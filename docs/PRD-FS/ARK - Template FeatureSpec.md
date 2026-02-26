@@ -2,7 +2,7 @@
 
 _Version 0.1 — Février 2026_
 
-> **Usage :** Ce template est le format standard de toute Feature-Spec ARK. Chaque spec est un document autonome, versionné, directement injectable dans Claude Code sans reformatage. Une spec = une feature end-to-end (backend + frontend + tests). **Ne pas coder sans spec stabilisée.**
+> **Usage :** Ce template est le format standard de toute Feature-Spec ARK. Chaque spec est un document autonome, versionné, directement injectable dans OpenCode sans reformatage. Une spec = une feature end-to-end (backend + frontend + tests). **Ne pas coder sans spec stabilisée.**
 
 ---
 
@@ -11,8 +11,8 @@ _Version 0.1 — Février 2026_
 1. Dupliquer ce fichier dans `docs/specs/`
 2. Nommer le fichier : `FS-<numéro>-<slug>.md` (ex: `FS-01-auth-rbac.md`)
 3. Remplir toutes les sections — les sections marquées ⚠️ sont bloquantes pour la génération
-4. Faire valider la spec avant de lancer Claude Code
-5. Injecter la spec complète en début de session Claude Code avec la commande : `"Implémente la feature suivante en respectant strictement ce contrat. Ne fais aucune hypothèse non documentée ici."`
+4. Faire valider la spec avant de lancer OpenCode
+5. Injecter la spec complète en début de session OpenCode avec la commande : `"Implémente la feature suivante en respectant strictement ce contrat. Ne fais aucune hypothèse non documentée ici."`
 
 ---
 
@@ -43,7 +43,7 @@ _Version 0.1 — Février 2026_
 
 ## 2. Modèle Prisma ⚠️
 
-> Coller le bloc Prisma exact correspondant à cette feature. Claude Code utilise ce bloc comme source de vérité pour générer les types TypeScript et les requêtes.
+> Coller le bloc Prisma exact correspondant à cette feature. OpenCode utilise ce bloc comme source de vérité pour générer les types TypeScript et les requêtes.
 
 ```prisma
 // Coller ici le modèle Prisma concerné
@@ -54,7 +54,7 @@ _Version 0.1 — Février 2026_
 
 ## 3. Contrat API (OpenAPI) ⚠️
 
-> Définir chaque endpoint de la feature. Format YAML OpenAPI 3.0. Claude Code génère les controllers NestJS à partir de ce contrat — il doit être exhaustif.
+> Définir chaque endpoint de la feature. Format YAML OpenAPI 3.0. OpenCode génère les controllers NestJS à partir de ce contrat — il doit être exhaustif.
 
 ```yaml
 # Coller ici les routes OpenAPI de la feature
@@ -65,7 +65,7 @@ _Version 0.1 — Février 2026_
 
 ## 4. Règles Métier Critiques ⚠️
 
-> Lister toutes les règles qui ne sont pas déductibles du schéma ou du contrat API. C'est la section la plus importante — ce que Claude Code ne peut pas deviner.
+> Lister toutes les règles qui ne sont pas déductibles du schéma ou du contrat API. C'est la section la plus importante — ce que OpenCode ne peut pas deviner.
 
 - **RM-01 :** 
 - **RM-02 :** 
@@ -103,7 +103,7 @@ _Version 0.1 — Février 2026_
 
 ## 7. Tests attendus
 
-> Lister les cas de test à implémenter. Claude Code génère les tests à partir de cette liste.
+> Lister les cas de test à implémenter. OpenCode génère les tests à partir de cette liste.
 
 **Unit :**
 - [ ] 
@@ -130,9 +130,9 @@ _Version 0.1 — Février 2026_
 
 ---
 
-## 9. Commande Claude Code
+## 9. Commande OpenCode
 
-> Bloc prêt à l'emploi — copier-coller en début de session Claude Code.
+> Bloc prêt à l'emploi — copier-coller en début de session OpenCode.
 
 ```
 Contexte projet ARK :
