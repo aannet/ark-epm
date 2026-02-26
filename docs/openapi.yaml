@@ -1,0 +1,15 @@
+openapi: 3.0.0
+info:
+  title: Ark EPM API
+  version: 1.0.0
+  description: Enterprise Project Management API
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
