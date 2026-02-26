@@ -1,8 +1,8 @@
 -- =============================================================================
--- ARK DATABASE SCHEMA - Version 0.4
+-- ARK DATABASE SCHEMA - Version 0.5
 -- Date: Février 2026
 -- Changelog v0.4 :
---   - Suppression de la contrainte UNIQUE trop restrictive sur interfaces
+--   - Suppression CHECK (level BETWEEN 1 AND 5) sur business-capabilities
 --   - Ajout des tables de liaison app_data_object_map et app_it_component_map
 --   - Ajout first_name / last_name sur users
 --   - Ajout index idx_applications_provider pour navigabilité depuis providers
@@ -71,7 +71,7 @@ CREATE TABLE business_capabilities (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     parent_id UUID REFERENCES business_capabilities(id) ON DELETE SET NULL,
-    level SMALLINT NOT NULL CHECK (level BETWEEN 1 AND 5),
+    level SMALLINT NOT NULL,
     domain_id UUID REFERENCES domains(id),
     tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -253,7 +253,6 @@ CREATE TRIGGER trg_audit_users
 ---
 
 CREATE INDEX idx_bus_cap_parent ON business_capabilities(parent_id);
-CREATE INDEX idx_bus_cap_level  ON business_capabilities(level);
 CREATE INDEX idx_interfaces_source ON interfaces(source_app_id);
 CREATE INDEX idx_interfaces_target ON interfaces(target_app_id);
 CREATE INDEX idx_applications_provider ON applications(provider_id);
