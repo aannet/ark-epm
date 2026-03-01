@@ -1,4 +1,4 @@
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, alpha } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Apps from '@mui/icons-material/Apps';
 import AccountTree from '@mui/icons-material/AccountTree';
@@ -25,10 +25,13 @@ const navItems: NavItem[] = [
 ];
 
 export default function Sidebar(): JSX.Element {
+  const theme = useTheme();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
   const isActive = (path: string): boolean => pathname.startsWith(path);
+  const white = theme.palette.primary.contrastText;
+  const secondaryMain = theme.palette.secondary.main;
 
   return (
     <Box
@@ -45,13 +48,13 @@ export default function Sidebar(): JSX.Element {
       <Box
         sx={{
           p: 3,
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: `1px solid ${alpha(white, 0.1)}`,
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            color: '#fff',
+            color: white,
             fontWeight: 700,
             letterSpacing: '0.05em',
           }}
@@ -69,15 +72,15 @@ export default function Sidebar(): JSX.Element {
                 onClick={() => navigate(item.path)}
                 sx={{
                   borderRadius: 1,
-                  bgcolor: active ? 'rgba(0, 127, 255, 0.12)' : 'transparent',
+                  bgcolor: active ? alpha(secondaryMain, 0.12) : 'transparent',
                   '&:hover': {
-                    bgcolor: active ? 'rgba(0, 127, 255, 0.16)' : 'rgba(255,255,255,0.08)',
+                    bgcolor: active ? alpha(secondaryMain, 0.16) : alpha(white, 0.08),
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
-                    color: active ? 'secondary.main' : 'rgba(255,255,255,0.85)',
+                    color: active ? 'secondary.main' : alpha(white, 0.85),
                     minWidth: 40,
                   }}
                 >
@@ -87,7 +90,7 @@ export default function Sidebar(): JSX.Element {
                   primary={item.label}
                   primaryTypographyProps={{
                     sx: {
-                      color: active ? '#fff' : 'rgba(255,255,255,0.85)',
+                      color: active ? white : alpha(white, 0.85),
                       fontWeight: active ? 600 : 400,
                       fontSize: '0.875rem',
                     },
@@ -102,10 +105,10 @@ export default function Sidebar(): JSX.Element {
       <Box
         sx={{
           p: 2,
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          borderTop: `1px solid ${alpha(white, 0.1)}`,
         }}
       >
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+        <Typography variant="caption" sx={{ color: alpha(white, 0.6) }}>
           Utilisateur
         </Typography>
       </Box>
