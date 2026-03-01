@@ -178,8 +178,46 @@ Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `pri
 
 ## Design System — ARK UI (NON-NÉGOCIABLE)
 
-> Source de vérité : `ARK - Design charte express v0.1` + `ARK - UI Kit v0.1`
+> Source de vérité : `ARK - Design charte express v0.1` + `ARK - UI Kit v0.1` + `docs/PRD-FS/F01-Design System-UI Foundation.md`
 > Injecter ce bloc dans chaque session OpenCode frontend.
+
+---
+
+## F01-Design System & UI Foundation
+
+> **Source :** `docs/PRD-FS/F01-Design System-UI Foundation.md` (v0.2)
+> Ce bloc doit être injecté en début de **chaque** session OpenCode frontend pour les sprints suivants.
+
+### Composants disponibles
+
+| Catégorie | Composants | Import |
+|---|---|---|
+| Layout | `AppShell`, `Sidebar`, `TopBar`, `PageContainer` | `@/components/layout` |
+| Shared | `StatusChip`, `ConfirmDialog`, `EmptyState`, `PageHeader`, `LoadingSkeleton` | `@/components/shared` |
+| Error | `ErrorBoundary` | `@/components/error` |
+| Pages | `NotFoundPage` (route `*`), `DesignSystemPage` (dev: `/design`) | `@/pages` |
+
+### Règles d'utilisation
+
+1. **Theme MUI** — `src/theme/index.ts` est la source de vérité. Ne jamais redéfinir les couleurs en dur.
+2. **Tailwind CSS interdit** — MUI + `sx` prop uniquement.
+3. **PageContainer** — wrapper avec padding 24px pour toutes les pages
+4. **PageHeader** — titre + action principale en haut de chaque liste
+5. **LoadingSkeleton** — toujours Skeleton, jamais de spinner central
+6. **EmptyState** — affiché quand la liste est vide
+7. **ConfirmDialog** — obligatoire avant toute suppression
+8. **StatusChip** — pour criticality / lifecycle / isActive
+9. **ErrorBoundary** — wrapping global dans `main.tsx` (déjà configuré)
+10. **Route catch-all** — `*` déclarée en dernier dans `App.tsx` (déjà configuré)
+
+### Tokens de référence
+
+| Token | Valeur |
+|---|---|
+| `primary.main` | `#1A237E` |
+| `secondary.main` | `#007FFF` |
+| `background.default` | `#F8FAFC` |
+| `divider` | `#E2E8F0` |
 
 ### Style global
 - **Thème :** Modern Enterprise Blueprint — Sidebar Dark / Content Light
