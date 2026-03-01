@@ -1,8 +1,10 @@
 # ARK — Feature Spec FS-01 : Auth & RBAC
 
-_Version 0.4 — Février 2026_
+_Version 0.5 — Février 2026_
 
-> **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`. Fichiers cibles précisés. Section 9 (commande OpenCode) mise à jour pour inclure la génération des tests. Checklist section 10 complétée.
+> **Changelog v0.5 :** Ajout des pages `UnauthorizedPage` (401) et `ForbiddenPage` (403), intercepteur Axios pour redirect automatique, `PrivateRoute` étendu avec vérification de permission, gates G-14/G-15/G-16 ajoutés, checklist complétée.
+
+> **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`. Fichiers cibles précisés. Section 9 mise à jour.
 
 > **Changelog v0.3 :** Routes React (`/login`, `/users`, `/roles`), structure fichiers frontend, comportements UX `UsersListPage`/`RolesListPage`, `hasPermission()` dans `store/auth.ts`, checklist section 10 complétée.
 
@@ -607,6 +609,8 @@ components:
 | Route | Composant | Accès |
 |---|---|---|
 | `/login` | `LoginPage` | Public |
+| `/401` | `UnauthorizedPage` | Public |
+| `/403` | `ForbiddenPage` | Public |
 | `/users` | `UsersListPage` | Authentifié + `users:write` |
 | `/users/:id/edit` | `UserEditPage` | Authentifié + `users:write` |
 | `/roles` | `RolesListPage` | Authentifié + `roles:write` |
@@ -619,13 +623,17 @@ frontend/src/
 │   └── auth.ts
 ├── pages/
 │   ├── LoginPage.tsx
+│   ├── UnauthorizedPage.tsx       ← 401 — token absent ou expiré
+│   ├── ForbiddenPage.tsx          ← 403 — authentifié mais permission insuffisante
 │   ├── users/
 │   │   ├── UsersListPage.tsx
 │   │   └── UserEditPage.tsx
 │   └── roles/
 │       └── RolesListPage.tsx
 ├── components/
-│   └── PrivateRoute.tsx
+│   └── PrivateRoute.tsx           ← étendu : vérifie token + permission optionnelle
+├── api/
+│   └── client.ts                  ← intercepteur Axios 401/403
 └── types/
     └── auth.ts
 ```
@@ -644,6 +652,99 @@ export const clearAuth = () => { _token = null; _user = null; };
 export const hasPermission = (permission: string): boolean =>
   _user?.role?.permissions?.some(p => p.name === permission) ?? false;
 ```
+
+**`UnauthorizedPage` (401) :**
+
+```typescript
+// frontend/src/pages/UnauthorizedPage.tsx
+// Affiché quand : token absent, token expiré, ou compte désactivé
+// Pas de Sidebar — page autonome (hors AppShell)
+//
+// Contenu :
+// - Code "401" en grand (h1, color primary.main)
+// - Titre : "Session expirée"
+// - Description : "Votre session a expiré ou vous n'êtes pas connecté."
+// - Bouton "Se connecter" → navigate('/login') via useNavigate()
+// - Centré verticalement (height: 100vh), fond background.default
+
+export default function UnauthorizedPage(): JSX.Element
+```
+
+**`ForbiddenPage` (403) :**
+
+```typescript
+// frontend/src/pages/ForbiddenPage.tsx
+// Affiché quand : utilisateur authentifié mais permission insuffisante
+// Pas de Sidebar — page autonome (hors AppShell)
+//
+// Contenu :
+// - Code "403" en grand (h1, color error.main)
+// - Titre : "Accès refusé"
+// - Description : "Vous n'avez pas les droits nécessaires pour accéder à cette page."
+// - Bouton "Retour à l'accueil" → navigate('/') via useNavigate()
+// - Bouton secondaire "Contacter l'administrateur" → mailto (optionnel)
+// - Centré verticalement (height: 100vh), fond background.default
+
+export default function ForbiddenPage(): JSX.Element
+```
+
+**`PrivateRoute` étendu :**
+
+```typescript
+// frontend/src/components/PrivateRoute.tsx
+// Garde de route à deux niveaux :
+//   1. Token absent → redirect /401
+//   2. Permission requise absente → redirect /403
+//   3. Les deux présents → rendu du composant enfant
+
+interface PrivateRouteProps {
+  permission?: string; // ex: 'users:write' — optionnel, si absent vérifie uniquement le token
+}
+
+// Usage dans App.tsx :
+// <Route path="/users" element={<PrivateRoute permission="users:write" />}>
+//   <Route index element={<UsersListPage />} />
+// </Route>
+//
+// <Route path="/domains" element={<PrivateRoute />}>  ← token requis, pas de permission spécifique
+//   <Route index element={<DomainsListPage />} />
+// </Route>
+
+export default function PrivateRoute({ permission }: PrivateRouteProps): JSX.Element {
+  const token = getToken();
+  if (!token) return <Navigate to="/401" replace />;
+  if (permission && !hasPermission(permission)) return <Navigate to="/403" replace />;
+  return <Outlet />;
+}
+```
+
+**Intercepteur Axios 401/403 :**
+
+```typescript
+// frontend/src/api/client.ts — compléter le fichier existant de F-01
+// Ajouter l'intercepteur de réponse après l'intercepteur de requête existant :
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      clearAuth();
+      // Redirection hard (window.location) pour purger le state React en mémoire
+      window.location.href = '/401';
+    }
+    if (error.response?.status === 403) {
+      window.location.href = '/403';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ⚠️ Exception : NE PAS intercepter le 401 de POST /auth/login
+// → Cette route gère son propre état d'erreur inline dans LoginPage
+// → Utiliser un flag ou une instance Axios séparée pour /auth/login si nécessaire
+```
+
+> **Note sur la stratégie de redirection :** `window.location.href` (hard redirect) est intentionnel pour le 401 — il purge le state React en mémoire (`_token`, `_user`) et force un cycle de vie propre. Pour le 403, une alternative acceptable est `navigate('/403')` via React Router si le contexte le permet.
 
 ---
 
@@ -689,12 +790,18 @@ export const hasPermission = (permission: string): boolean =>
 - [ ] `[Manuel]` Token expiré → `401` (pas `403`)
 - [ ] `[Manuel]` Utilisateur désactivé (`isActive = false`) → `401` sur `POST /auth/login`
 - [ ] `[Manuel]` `DELETE /roles/{id}` avec utilisateurs assignés → `409` (pas `204`)
+- [ ] `[Manuel]` `POST /auth/login` avec credentials invalides → erreur inline dans `LoginPage`, **pas** de redirect vers `/401`
+- [ ] `[Manuel]` Intercepteur Axios : `401` reçu sur une route protégée → `_token` et `_user` purgés en mémoire
 
 ### Tests Cypress — E2E Browser
 
 - [ ] `[Cypress]` Flow login complet : saisie email/password → token en mémoire → redirection `/`
 - [ ] `[Cypress]` Credentials invalides → message d'erreur inline sur `LoginPage`
-- [ ] `[Cypress]` `PrivateRoute` redirige vers `/login` si token absent
+- [ ] `[Cypress]` `PrivateRoute` redirige vers `/401` si token absent
+- [ ] `[Cypress]` `PrivateRoute` redirige vers `/403` si token valide mais permission insuffisante
+- [ ] `[Cypress]` `UnauthorizedPage` : bouton "Se connecter" redirige vers `/login`
+- [ ] `[Cypress]` `ForbiddenPage` : bouton "Retour à l'accueil" redirige vers `/`
+- [ ] `[Cypress]` Intercepteur Axios : réponse `401` de l'API → redirect `/401` + token purgé
 - [ ] `[Cypress]` `UsersListPage` affiche la liste des utilisateurs après login
 - [ ] `[Cypress]` Désactivation d'un utilisateur via UI → badge statut mis à jour
 
@@ -730,6 +837,10 @@ Contexte projet ARK (conventions dans AGENTS.md) :
 - JwtAuthGuard est global — @Public() sur les routes publiques uniquement
 - ClassSerializerInterceptor est global — @Exclude() actif partout
 - Le module Auth (AuthService, AuthController, JwtStrategy, LocalStrategy) est déjà implémenté manuellement
+- Pages d'erreur disponibles (F-01) : NotFoundPage (*), ErrorBoundary (wrapper global)
+- Pages d'erreur FS-01 : UnauthorizedPage (/401), ForbiddenPage (/403)
+- PrivateRoute : redirige /401 si token absent, /403 si permission insuffisante
+- Intercepteur Axios : 401 API → clearAuth() + window.location.href='/401' (sauf POST /auth/login)
 - Stack de test :
   * Unit + API : Jest + Supertest (@nestjs/testing)
   * E2E browser : Cypress — cy.login() disponible dans cypress/support/commands.ts
@@ -748,6 +859,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 ## 10. Checklist de Validation Avant Génération
 
 - [ ] F-00 terminé — `docker-compose up` OK, PrismaModule global, middleware audit actif
+- [ ] **F-01 terminé** — Theme MUI actif, AppShell fonctionnel, composants partagés disponibles
 - [ ] **Jest + Supertest configurés et opérationnels (G-12 de F-00)**
 - [ ] **Cypress installé et opérationnel (G-13 de F-00)**
 - [ ] **`cy.login()` disponible dans `cypress/support/commands.ts`**
@@ -757,12 +869,12 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Backend Auth (tâche 1.2) implémenté manuellement — login OK, token valide
 - [ ] `ClassSerializerInterceptor` enregistré globalement dans `main.ts`
 - [ ] Aucun `passwordHash` visible dans les réponses API (testé manuellement)
-- [ ] React Router configuré — routes `/login`, `/users`, `/roles` déclarées
+- [ ] React Router configuré — routes `/login`, `/401`, `/403`, `/users`, `/roles` déclarées
+- [ ] `UnauthorizedPage` affichée sur `/401` — bouton "Se connecter" fonctionnel
+- [ ] `ForbiddenPage` affichée sur `/403` — bouton "Retour à l'accueil" fonctionnel
+- [ ] `PrivateRoute` redirige vers `/401` (pas `/login`) si token absent
+- [ ] `PrivateRoute` redirige vers `/403` si permission insuffisante
+- [ ] Intercepteur Axios actif — `401` API purge le token et redirige vers `/401`
+- [ ] `POST /auth/login` échoué → erreur inline dans `LoginPage`, **pas** de redirect vers `/401`
 - [ ] `LoginPage` redirige vers `/` après succès
 - [ ] Spec relue — aucune règle implicite non documentée
-
----
-
-_Feature Spec FS-01 v0.4 — Projet ARK — Document de travail_
-
-> **Probabilité que cette spec couvre l'intégralité des besoins Auth & RBAC P1 sans ajustement majeur : ~80%.** Points d'incertitude : (1) stratégie stockage token JWT côté frontend, (2) liste exhaustive des permissions P1 à compléter lors de FS-06.
