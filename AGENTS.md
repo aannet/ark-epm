@@ -15,12 +15,12 @@ AI agent guidance for ARK-EPM codebase (Enterprise Architecture Mapping tool).
 ### Backend
 ```bash
 cd backend
-npm run dev           # hot reload (port 3000)
+npm run start:dev     # hot reload (port 3000)
 npm run build         # TypeScript build
 npm start             # production
 npm run prisma:generate   # Generate Prisma client
-npm run prisma:migrate   # Run migrations
-npm run prisma:studio    # GUI for database
+npm run prisma:migrate     # Run migrations
+npm run prisma:studio     # GUI for database
 ```
 
 ### Frontend
@@ -151,27 +151,6 @@ login() { ... }
 
 > Never omit `@Public()` on a route that must be accessible without a token — the guard will block it silently.
 
-### DTO serialization — `@Exclude()` + `ClassSerializerInterceptor`
-`ClassSerializerInterceptor` is registered globally in `main.ts`. Use `@Exclude()` on any field that must never appear in API responses (e.g. `passwordHash`):
-
-```typescript
-import { Exclude } from 'class-transformer';
-
-export class UserEntity {
-  id: string;
-  email: string;
-
-  @Exclude()
-  passwordHash: string;  // never returned by any endpoint
-
-  constructor(partial: Partial<UserEntity>) {
-    Object.assign(this, partial);
-  }
-}
-```
-
-> Always return entity instances (not raw Prisma objects) from controllers so `@Exclude()` is applied.
-
 ### Permission naming convention
 Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `prisma/seed.ts`:
 
@@ -194,8 +173,6 @@ Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `pri
 | `users:write` | Create / update / deactivate users |
 | `roles:write` | Create / update / delete roles |
 | `permissions:write` | Create permissions |
-
-> Guard checks use permission **names** (not IDs). Example: `@RequirePermission('applications:write')`.
 
 ---
 
