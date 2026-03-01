@@ -1,11 +1,220 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String           @unique @db.VarChar(100)
+  description     String?
+  createdAt       DateTime?        @default(now()) @map("created_at") @db.Timestamptz(6)
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String           @unique @db.VarChar(100)
+  description     String?
+  createdAt       DateTime?        @default(now()) @map("created_at") @db.Timestamptz(6)
+  rolePermissions RolePermission[]
+  users           User[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id                String        @id @default(uuid()) @db.Uuid
+  email             String        @unique @db.VarChar(255)
+  passwordHash      String        @map("password_hash") @db.VarChar(255)
+  firstName         String?       @map("first_name") @db.VarChar(100)
+  lastName          String?       @map("last_name") @db.VarChar(100)
+  roleId            String?       @map("role_id") @db.Uuid
+  isActive          Boolean?      @default(true) @map("is_active")
+  createdAt         DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  ownedApplications Application[] @relation("ApplicationOwner")
+  auditTrail        AuditTrail[]  @relation("AuditChangedBy")
+  technicalContacts Interface[]   @relation("InterfaceTechnicalContact")
+  role              Role?         @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("users")
+}
+
+model Domain {
+  id                   String               @id @default(uuid()) @db.Uuid
+  name                 String               @unique @db.VarChar(255)
+  description          String?
+  createdAt            DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
+  applications         Application[]
+  businessCapabilities BusinessCapability[]
+
+  @@map("domains")
+}
+
+model BusinessCapability {
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String               @db.VarChar(255)
+  description         String?
+  parentId            String?              @map("parent_id") @db.Uuid
+  level               Int                  @db.SmallInt
+  domainId            String?              @map("domain_id") @db.Uuid
+  tags                String[]             @default([])
+  createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  applicationMappings AppCapabilityMap[]
+  domain              Domain?              @relation(fields: [domainId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent              BusinessCapability?  @relation("CapabilityHierarchy", fields: [parentId], references: [id], onUpdate: NoAction)
+  children            BusinessCapability[] @relation("CapabilityHierarchy")
+
+  @@index([parentId], map: "idx_bus_cap_parent")
+  @@map("business_capabilities")
+}
+
+model Provider {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String        @db.VarChar(255)
+  contractType String?       @map("contract_type") @db.VarChar(100)
+  expiryDate   DateTime?     @map("expiry_date") @db.Date
+  tags         String[]      @default([])
+  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)
+  applications Application[]
+
+  @@map("providers")
+}
+
+model Application {
+  id               String              @id @default(uuid()) @db.Uuid
+  name             String              @db.VarChar(255)
+  ownerId          String?             @map("owner_id") @db.Uuid
+  providerId       String?             @map("provider_id") @db.Uuid
+  domainId         String?             @map("domain_id") @db.Uuid
+  criticality      String?             @map("criticality") @db.VarChar(50)
+  lifecycleStatus  String?             @map("lifecycle_status") @db.VarChar(50)
+  tags             String[]            @default([])
+  createdAt        DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  capabilities     AppCapabilityMap[]
+  dataObjects      AppDataObjectMap[]
+  itComponents     AppItComponentMap[]
+  domain           Domain?             @relation(fields: [domainId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  owner            User?               @relation("ApplicationOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  provider         Provider?           @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sourceInterfaces Interface[]         @relation("InterfaceSourceApp")
+  targetInterfaces Interface[]         @relation("InterfaceTargetApp")
+
+  @@index([providerId], map: "idx_applications_provider")
+  @@index([domainId], map: "idx_applications_domain")
+  @@index([ownerId], map: "idx_applications_owner")
+  @@map("applications")
+}
+
+model AppCapabilityMap {
+  applicationId String             @map("application_id") @db.Uuid
+  capabilityId  String             @map("capability_id") @db.Uuid
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  capability    BusinessCapability @relation(fields: [capabilityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([applicationId, capabilityId])
+  @@map("app_capability_map")
+}
+
+model Interface {
+  id                 String      @id @default(uuid()) @db.Uuid
+  name               String?     @db.VarChar(255)
+  sourceAppId        String      @map("source_app_id") @db.Uuid
+  targetAppId        String      @map("target_app_id") @db.Uuid
+  type               String      @db.VarChar(50)
+  frequency          String?     @map("frequency") @db.VarChar(50)
+  criticality        String?     @map("criticality") @db.VarChar(50)
+  technicalContactId String?     @map("technical_contact_id") @db.Uuid
+  latencyMs          Int?        @map("latency_ms")
+  errorRate          Decimal?    @map("error_rate") @db.Decimal(5, 2)
+  tags               String[]    @default([])
+  createdAt          DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  sourceApp          Application @relation("InterfaceSourceApp", fields: [sourceAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetApp          Application @relation("InterfaceTargetApp", fields: [targetAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  technicalContact   User?       @relation("InterfaceTechnicalContact", fields: [technicalContactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([sourceAppId], map: "idx_interfaces_source")
+  @@index([targetAppId], map: "idx_interfaces_target")
+  @@map("interfaces")
+}
+
+model DataObject {
+  id              String             @id @default(uuid()) @db.Uuid
+  name            String             @db.VarChar(255)
+  type            String?            @db.VarChar(100)
+  isSourceOfTruth Boolean?           @default(false) @map("is_source_of_truth")
+  tags            String[]           @default([])
+  createdAt       DateTime?          @default(now()) @map("created_at") @db.Timestamptz(6)
+  applications    AppDataObjectMap[]
+
+  @@map("data_objects")
+}
+
+model AppDataObjectMap {
+  applicationId String      @map("application_id") @db.Uuid
+  dataObjectId  String      @map("data_object_id") @db.Uuid
+  role          String?     @default("consumer") @db.VarChar(50)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dataObject    DataObject  @relation(fields: [dataObjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([applicationId, dataObjectId])
+  @@map("app_data_object_map")
+}
+
+model ItComponent {
+  id           String              @id @default(uuid()) @db.Uuid
+  name         String              @db.VarChar(255)
+  technology   String?             @db.VarChar(255)
+  type         String?             @db.VarChar(100)
+  tags         String[]            @default([])
+  createdAt    DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
+  applications AppItComponentMap[]
+
+  @@map("it_components")
+}
+
+model AppItComponentMap {
+  applicationId String      @map("application_id") @db.Uuid
+  itComponentId String      @map("it_component_id") @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  itComponent   ItComponent @relation(fields: [itComponentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([applicationId, itComponentId])
+  @@map("app_it_component_map")
+}
+
+model AuditTrail {
+  id            String    @id @default(uuid()) @db.Uuid
+  entityType    String    @map("entity_type") @db.VarChar(50)
+  entityId      String    @map("entity_id") @db.Uuid
+  action        String    @db.VarChar(20)
+  changedBy     String?   @map("changed_by") @db.Uuid
+  oldValue      Json?     @map("old_value")
+  newValue      Json?     @map("new_value")
+  occurredAt    DateTime? @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  changedByUser User?     @relation("AuditChangedBy", fields: [changedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([entityType, entityId], map: "idx_audit_entity")
+  @@index([occurredAt(sort: Desc)], map: "idx_audit_occurred")
+  @@map("audit_trail")
 }
