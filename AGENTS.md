@@ -176,6 +176,124 @@ Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `pri
 
 ---
 
+## Design System — ARK UI (NON-NÉGOCIABLE)
+
+> Source de vérité : `ARK - Design charte express v0.1` + `ARK - UI Kit v0.1` + `docs/PRD-FS/F01-Design System-UI Foundation.md`
+> Injecter ce bloc dans chaque session OpenCode frontend.
+
+---
+
+## F01-Design System & UI Foundation
+
+> **Source :** `docs/PRD-FS/F01-Design System-UI Foundation.md` (v0.2)
+> Ce bloc doit être injecté en début de **chaque** session OpenCode frontend pour les sprints suivants.
+
+### Composants disponibles
+
+| Catégorie | Composants | Import |
+|---|---|---|
+| Layout | `AppShell`, `Sidebar`, `TopBar`, `PageContainer` | `@/components/layout` |
+| Shared | `StatusChip`, `ConfirmDialog`, `EmptyState`, `PageHeader`, `LoadingSkeleton` | `@/components/shared` |
+| Error | `ErrorBoundary` | `@/components/error` |
+| Pages | `NotFoundPage` (route `*`), `DesignSystemPage` (dev: `/design`) | `@/pages` |
+
+### Règles d'utilisation
+
+1. **Theme MUI** — `src/theme/index.ts` est la source de vérité. Ne jamais redéfinir les couleurs en dur.
+2. **Tailwind CSS interdit** — MUI + `sx` prop uniquement.
+3. **PageContainer** — wrapper avec padding 24px pour toutes les pages
+4. **PageHeader** — titre + action principale en haut de chaque liste
+5. **LoadingSkeleton** — toujours Skeleton, jamais de spinner central
+6. **EmptyState** — affiché quand la liste est vide
+7. **ConfirmDialog** — obligatoire avant toute suppression
+8. **StatusChip** — pour criticality / lifecycle / isActive
+9. **ErrorBoundary** — wrapping global dans `main.tsx` (déjà configuré)
+10. **Route catch-all** — `*` déclarée en dernier dans `App.tsx` (déjà configuré)
+
+### Tokens de référence
+
+| Token | Valeur |
+|---|---|
+| `primary.main` | `#1A237E` |
+| `secondary.main` | `#007FFF` |
+| `background.default` | `#F8FAFC` |
+| `divider` | `#E2E8F0` |
+
+### Style global
+- **Thème :** Modern Enterprise Blueprint — Sidebar Dark / Content Light
+- **Librairie UI :** MUI v5 **exclusivement** — Tailwind CSS est **interdit** (conflits CSS-in-JS / Emotion)
+- **Theme MUI :** `src/theme/index.ts` — source de vérité des tokens. **Ne jamais redéfinir les couleurs en dur.**
+
+### Tokens de référence
+
+| Token | Valeur | Usage |
+|---|---|---|
+| `primary.main` | `#1A237E` | Sidebar, Header, Branding |
+| `secondary.main` | `#007FFF` | Boutons, liens, focus, icône active |
+| `background.default` | `#F8FAFC` | Fond de page (zone content) |
+| `background.paper` | `#FFFFFF` | Cartes, Formulaires, Tableaux |
+| `text.primary` | `#1E293B` | Texte principal |
+| `text.secondary` | `#64748B` | Labels, aides, placeholders |
+| `divider` | `#E2E8F0` | Bordures, séparations |
+
+### Typographie
+- **Font principale :** `Inter, system-ui, sans-serif`
+- **Font technique (IDs) :** `JetBrains Mono` — utiliser `sx={{ fontFamily: "'JetBrains Mono', monospace" }}` ou classe `.font-mono`
+- `textTransform: 'none'` sur tous les boutons — jamais de majuscules forcées
+
+### Shape
+- **Radius standard :** `4px` — Cartes, Paper, conteneurs
+- **Radius action :** `6px` — Boutons, Inputs
+- Pas d'ombres portées (`elevation={0}` par défaut) — style "flat / plan technique"
+
+### Layout
+- **Sidebar :** fond `primary.main` (#1A237E), texte blanc 85% opacité, icône `secondary.main` sur item actif uniquement
+- **Content :** fond `background.default` (#F8FAFC), padding `24px` (spacing 3)
+- **Container MUI :** `maxWidth="xl"` par défaut
+
+### Composants — règles impératives
+
+```typescript
+// Boutons — hiérarchie stricte
+<Button variant="contained">Action principale</Button>   // 1 seul par page
+<Button variant="outlined">Action secondaire</Button>
+<Button color="error">Suppression</Button>               // toujours + Dialog de confirmation
+<IconButton>...</IconButton>                             // actions de ligne dans tableaux
+
+// Inputs — toujours outlined + small
+<TextField variant="outlined" size="small" />
+
+// Cards / Paper — toujours elevation={0} + bordure
+<Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+
+// Tableaux — header gris, pas de zebra-striping
+// Header : fond #F1F5F9, texte uppercase bold 0.75rem
+// Lignes  : bordure bottom 1px #E2E8F0 uniquement
+
+// Loading — Skeleton obligatoire, jamais de spinner central
+<Skeleton variant="rectangular" animation="wave" />
+
+// Empty state — icône grise + message centré + bouton d'action
+```
+
+### React Flow (Dependency Graph)
+- **Canvas :** fond blanc, grille de points (`variant="dots"`) gris clair
+- **Nodes :** fond blanc, bordure indigo `primary.main` 1px, titre en gras
+- **Edges :** couleur `divider` (#E2E8F0), flèche directionnelle Source → Cible
+
+### Routing frontend — patron de référence (FS-02)
+Pages indépendantes, jamais de modales pour le CRUD :
+
+| Pattern | Route | Composant |
+|---|---|---|
+| Liste | `/<entité>s` | `<Entité>sListPage` |
+| Création | `/<entité>s/new` | `<Entité>NewPage` |
+| Édition | `/<entité>s/:id/edit` | `<Entité>EditPage` |
+
+Formulaire partagé entre New et Edit via composant `<Entité>Form` avec prop `initialValues?`.
+
+---
+
 ## Environment
 
 ```bash
