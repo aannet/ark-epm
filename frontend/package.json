@@ -21,10 +21,12 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@cypress/react18": "^2.0.1",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.0.0",
+    "cypress": "^15.11.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   }

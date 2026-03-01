@@ -2,24 +2,46 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout';
 import NotFoundPage from '@/pages/NotFoundPage';
 import DesignSystemPage from '@/pages/DesignSystemPage';
+import LoginPage from '@/pages/LoginPage';
+import UnauthorizedPage from '@/pages/UnauthorizedPage';
+import ForbiddenPage from '@/pages/ForbiddenPage';
+import PrivateRoute from '@/components/PrivateRoute';
+import { initializeAuth } from '@/store/auth';
+import { useEffect } from 'react';
 
 function App(): JSX.Element {
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AppShell />}>
-          <Route index element={<Navigate to="/applications" replace />} />
-          <Route path="applications/*" element={<div />} />
-          <Route path="business-capabilities/*" element={<div />} />
-          <Route path="interfaces/*" element={<div />} />
-          <Route path="data-objects/*" element={<div />} />
-          <Route path="it-components/*" element={<div />} />
-          <Route path="providers/*" element={<div />} />
-          <Route path="domains/*" element={<div />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/401" element={<UnauthorizedPage />} />
+        <Route path="/403" element={<ForbiddenPage />} />
+        <Route path="/design" element={<DesignSystemPage />} />
+
+        <Route element={<PrivateRoute />}>
+          <Route path="/" element={<AppShell />}>
+            <Route index element={<Navigate to="/applications" replace />} />
+            <Route path="applications/*" element={<div />} />
+            <Route path="business-capabilities/*" element={<div />} />
+            <Route path="interfaces/*" element={<div />} />
+            <Route path="data-objects/*" element={<div />} />
+            <Route path="it-components/*" element={<div />} />
+            <Route path="providers/*" element={<div />} />
+            <Route path="domains/*" element={<div />} />
+          </Route>
         </Route>
 
-        <Route path="/login" element={<div />} />
-        <Route path="/design" element={<DesignSystemPage />} />
+        <Route element={<PrivateRoute permission="users:write" />}>
+          <Route path="/users" element={<div />} />
+        </Route>
+
+        <Route element={<PrivateRoute permission="roles:write" />}>
+          <Route path="/roles" element={<div />} />
+        </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
