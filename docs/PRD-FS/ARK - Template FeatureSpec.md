@@ -1,8 +1,10 @@
 # ARK — Template Feature-Spec
 
-_Version 0.1 — Février 2026_
+_Version 0.2 — Février 2026_
 
-> **Usage :** Ce template est le format standard de toute Feature-Spec ARK. Chaque spec est un document autonome, versionné, directement injectable dans OpenCode sans reformatage. Une spec = une feature end-to-end (backend + frontend + tests). **Ne pas coder sans spec stabilisée.**
+> **Changelog v0.2 :** Intégration de la stratégie de test dans le sprint — section 7 restructurée avec outillage explicite (Jest/Supertest vs Cypress), section 8 enrichie des conventions de fichiers de test, section 9 mise à jour pour inclure la génération des tests dans la session OpenCode, section 10 complétée avec checklist tests.
+
+> **Usage :** Ce template est le format standard de toute Feature-Spec ARK. Chaque spec est un document autonome, versionné, directement injectable dans Claude Code sans reformatage. Une spec = une feature end-to-end (backend + frontend + tests). **Ne pas coder sans spec stabilisée.**
 
 ---
 
@@ -11,8 +13,8 @@ _Version 0.1 — Février 2026_
 1. Dupliquer ce fichier dans `docs/specs/`
 2. Nommer le fichier : `FS-<numéro>-<slug>.md` (ex: `FS-01-auth-rbac.md`)
 3. Remplir toutes les sections — les sections marquées ⚠️ sont bloquantes pour la génération
-4. Faire valider la spec avant de lancer OpenCode
-5. Injecter la spec complète en début de session OpenCode avec la commande : `"Implémente la feature suivante en respectant strictement ce contrat. Ne fais aucune hypothèse non documentée ici."`
+4. Faire valider la spec avant de lancer Claude Code
+5. Injecter la spec complète en début de session Claude Code avec la commande de la section 9
 
 ---
 
@@ -25,7 +27,7 @@ _Version 0.1 — Février 2026_
 | **Priorité** | P1 / P2 / P3 |
 | **Statut** | `draft` / `review` / `stable` / `done` |
 | **Dépend de** | IDs des specs dont celle-ci dépend (ex: FS-01) |
-| **Estimé** | Nb de jours développeur |
+| **Estimé** | Nb de jours développeur (inclut génération + validation des tests) |
 | **Version** | 0.1 |
 
 ---
@@ -43,7 +45,7 @@ _Version 0.1 — Février 2026_
 
 ## 2. Modèle Prisma ⚠️
 
-> Coller le bloc Prisma exact correspondant à cette feature. OpenCode utilise ce bloc comme source de vérité pour générer les types TypeScript et les requêtes.
+> Coller le bloc Prisma exact correspondant à cette feature. Claude Code utilise ce bloc comme source de vérité pour générer les types TypeScript et les requêtes.
 
 ```prisma
 // Coller ici le modèle Prisma concerné
@@ -54,7 +56,7 @@ _Version 0.1 — Février 2026_
 
 ## 3. Contrat API (OpenAPI) ⚠️
 
-> Définir chaque endpoint de la feature. Format YAML OpenAPI 3.0. OpenCode génère les controllers NestJS à partir de ce contrat — il doit être exhaustif.
+> Définir chaque endpoint de la feature. Format YAML OpenAPI 3.0. Claude Code génère les controllers NestJS à partir de ce contrat — il doit être exhaustif.
 
 ```yaml
 # Coller ici les routes OpenAPI de la feature
@@ -65,7 +67,7 @@ _Version 0.1 — Février 2026_
 
 ## 4. Règles Métier Critiques ⚠️
 
-> Lister toutes les règles qui ne sont pas déductibles du schéma ou du contrat API. C'est la section la plus importante — ce que OpenCode ne peut pas deviner.
+> Lister toutes les règles qui ne sont pas déductibles du schéma ou du contrat API. C'est la section la plus importante — ce que Claude Code ne peut pas deviner.
 
 - **RM-01 :** 
 - **RM-02 :** 
@@ -101,21 +103,48 @@ _Version 0.1 — Février 2026_
 
 ---
 
-## 7. Tests attendus
+## 7. Tests ⚠️
 
-> Lister les cas de test à implémenter. OpenCode génère les tests à partir de cette liste.
+> Stratégie de test à deux niveaux — à remplir exhaustivement car OpenCode génère les tests à partir de cette section.
 
-**Unit :**
-- [ ] 
-- [ ] 
+### Outil par niveau
 
-**E2E :**
-- [ ] 
-- [ ] 
+| Niveau | Outil | Fichier cible | Délégable à OpenCode |
+|---|---|---|---|
+| Unit (services NestJS) | **Jest** | `src/<domaine>/<domaine>.service.spec.ts` | ✅ Oui |
+| API / contrat HTTP | **Jest + Supertest** | `test/<domaine>.e2e-spec.ts` | ✅ Oui |
+| Sécurité / RBAC | **Jest + Supertest** | `test/<domaine>.e2e-spec.ts` | ❌ **Manuel** |
+| E2E browser (UI) | **Cypress** | `cypress/e2e/<domaine>.cy.ts` | ✅ Oui (scénarios nominaux) |
 
-**Sécurité / RBAC :**
-- [ ] Vérifier que le rôle `X` ne peut pas accéder à la route `Y`
-- [ ] 
+> **Règle absolue :** Les tests de sécurité (guards, vérification que des champs sensibles ne fuient pas, comportements RBAC) ne sont **jamais** délégués à OpenCode. Cf. Plan Sprint §"Ce qu'il ne faut jamais déléguer".
+
+### Tests Jest — Unit
+
+> Un test = une méthode de service, un cas précis.
+
+- [ ] `[Jest]` 
+- [ ] `[Jest]` 
+
+### Tests Jest + Supertest — Contrat API
+
+> Un test = un endpoint, un cas (nominal ou erreur).
+
+- [ ] `[Supertest]` `VERB /route` → code HTTP attendu
+- [ ] `[Supertest]` 
+
+### Tests Sécurité / RBAC — Manuel ❌
+
+> À écrire et valider à la main. Ne pas déléguer.
+
+- [ ] `[Manuel]` Vérifier que le rôle `X` reçoit `403` sur la route `Y`
+- [ ] `[Manuel]` Vérifier qu'aucun champ sensible n'apparaît dans les réponses
+
+### Tests Cypress — E2E Browser
+
+> Un test = un scénario utilisateur complet dans l'UI.
+
+- [ ] `[Cypress]` 
+- [ ] `[Cypress]` 
 
 ---
 
@@ -126,13 +155,19 @@ _Version 0.1 — Février 2026_
 - **Pattern NestJS :** Suivre le module `[référence]` comme exemple
 - **Prisma :** Toute écriture passe par le middleware `$executeRaw ark.current_user_id`
 - **Auth :** Toutes les routes sont protégées par `JwtAuthGuard` sauf mention contraire
+- **Conventions de fichiers de test :**
+  - Unit : `src/<domaine>/<domaine>.service.spec.ts`
+  - E2E API : `test/<domaine>.e2e-spec.ts` (dossier `test/` à la racine de `backend/`)
+  - Cypress : `cypress/e2e/<domaine>.cy.ts` (dossier `cypress/` à la racine de `frontend/`)
+- **Setup Supertest :** Utiliser `@nestjs/testing` + `supertest`. Le module de test NestJS doit mocker `PrismaService` avec `jest.mock()`.
+- **Setup Cypress :** `cy.request()` pour les appels API directs, `cy.visit()` pour les flows UI. Token JWT stocké via `cy.window().then(win => win.__ark_setToken(token))` — convention à définir dans `cypress/support/commands.ts`.
 - *(ajouter ici les contraintes spécifiques à la feature)*
 
 ---
 
-## 9. Commande OpenCode
+## 9. Commande Claude Code
 
-> Bloc prêt à l'emploi — copier-coller en début de session OpenCode.
+> Bloc prêt à l'emploi — copier-coller en début de session Claude Code. Les tests sont générés dans la **même session** que le code de production.
 
 ```
 Contexte projet ARK :
@@ -140,8 +175,14 @@ Contexte projet ARK :
 - Toute écriture en base passe par : await prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`
 - Structure modules : src/<domaine>/<domaine>.module.ts / .service.ts / .controller.ts
 - Pattern de référence : [indiquer le module à suivre]
+- Stack de test :
+  * Unit + API : Jest + Supertest (@nestjs/testing)
+  * E2E browser : Cypress
+  * Tests de sécurité/RBAC : écrits manuellement — NE PAS générer
 
 Implémente la feature "[TITRE]" (FS-XX) en respectant strictement le contrat ci-dessous.
+Génère le code de production ET les tests (Jest unit, Supertest API, Cypress E2E) définis en section 7.
+Ne génère PAS les tests marqués [Manuel] — ils seront écrits à la main.
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
 
 [COLLER LE CONTENU COMPLET DE LA SPEC ICI]
@@ -154,10 +195,13 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Modèle Prisma testé en base (`prisma migrate dev`)
 - [ ] Contrat OpenAPI relu et cohérent avec le modèle
 - [ ] Règles métier exhaustives (aucune règle implicite)
+- [ ] Section 7 complète — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`
+- [ ] Tests sécurité/RBAC identifiés et marqués `[Manuel]`
 - [ ] Dépendances (autres FS) marquées `done`
 - [ ] Module de référence NestJS identifié (section 8)
+- [ ] Stack de test configurée (Jest + Supertest opérationnels, Cypress installé)
 - [ ] Spec relue par une seconde personne ou par Claude en mode Review
 
 ---
 
-_Template v0.1 — Projet ARK_
+_Template v0.2 — Projet ARK_

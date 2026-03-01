@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://claude.ai/chat/e56b5cff-475a-495d-9ef0-f33a187232b8
+HostUrl=https://claude.ai/api/organizations/f1c3ad5a-4694-4d4d-9300-86e9f68b442d/conversations/e56b5cff-475a-495d-9ef0-f33a187232b8/wiggle/download-file?path=%2Fmnt%2Fuser-data%2Foutputs%2FFS-01-auth-rbac.md

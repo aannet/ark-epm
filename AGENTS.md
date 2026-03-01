@@ -15,12 +15,12 @@ AI agent guidance for ARK-EPM codebase (Enterprise Architecture Mapping tool).
 ### Backend
 ```bash
 cd backend
-npm run dev           # hot reload (port 3000)
+npm run start:dev     # hot reload (port 3000)
 npm run build         # TypeScript build
 npm start             # production
 npm run prisma:generate   # Generate Prisma client
-npm run prisma:migrate   # Run migrations
-npm run prisma:studio    # GUI for database
+npm run prisma:migrate     # Run migrations
+npm run prisma:studio     # GUI for database
 ```
 
 ### Frontend
@@ -130,6 +130,49 @@ this.logger.log({ method: 'createApp', userId, result: id });
 4. **API contracts** - Define in `docs/openapi.yaml` before coding
 5. **Prisma schema** - Source of truth for TypeScript types
 6. **No external integrations** in MVP (keep dependencies minimal)
+7. **Never hard-delete users** - Always soft delete via `isActive = false`
+
+---
+
+## Auth & Security Conventions
+
+### Route protection — `@Public()` decorator
+`JwtAuthGuard` is registered globally in `AppModule`. All routes are protected by default. Mark public routes explicitly:
+
+```typescript
+// common/decorators/public.decorator.ts
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
+// Usage — only /auth/login and /health are public in P1
+@Public()
+@Post('login')
+login() { ... }
+```
+
+> Never omit `@Public()` on a route that must be accessible without a token — the guard will block it silently.
+
+### Permission naming convention
+Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `prisma/seed.ts`:
+
+| Permission | Description |
+|---|---|
+| `applications:read` | Read applications |
+| `applications:write` | Create / update / delete applications |
+| `business-capabilities:read` | Read business capabilities |
+| `business-capabilities:write` | Create / update / delete business capabilities |
+| `data-objects:read` | Read data objects |
+| `data-objects:write` | Create / update / delete data objects |
+| `interfaces:read` | Read interfaces |
+| `interfaces:write` | Create / update / delete interfaces |
+| `it-components:read` | Read IT components |
+| `it-components:write` | Create / update / delete IT components |
+| `providers:read` | Read providers |
+| `providers:write` | Create / update / delete providers |
+| `domains:read` | Read domains |
+| `domains:write` | Create / update / delete domains |
+| `users:write` | Create / update / deactivate users |
+| `roles:write` | Create / update / delete roles |
+| `permissions:write` | Create permissions |
 
 ---
 
@@ -139,7 +182,9 @@ this.logger.log({ method: 'createApp', userId, result: id });
 # Backend (.env)
 DATABASE_URL=postgresql://arkepm:arkepm@localhost:5432/arkepm
 JWT_SECRET=<secret>
+JWT_EXPIRES_IN=8h
 NODE_ENV=development
+ADMIN_PASSWORD=<initial_admin_password>  # used by prisma/seed.ts
 
 # Frontend (.env)
 VITE_API_URL=http://localhost:3000

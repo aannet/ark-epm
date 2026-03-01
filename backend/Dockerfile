@@ -1,12 +1,16 @@
-FROM node:20-alpine
+FROM node:20-bookworm
 
 WORKDIR /app
 
 COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm ci
+
+ENV DATABASE_URL=postgresql://arkepm:arkepm@postgres:5432/arkepm
+RUN npx prisma generate
 
 COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start:dev"]
