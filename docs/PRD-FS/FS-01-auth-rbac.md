@@ -2,7 +2,7 @@
 
 _Version 0.5 — Février 2026_
 
-> **Changelog v0.5 :** Ajout des pages `UnauthorizedPage` (401) et `ForbiddenPage` (403), intercepteur Axios pour redirect automatique, `PrivateRoute` étendu avec vérification de permission, gates G-14/G-15/G-16 ajoutés, checklist complétée.
+> **Changelog v0.6 :** OpenCode implémente l'ensemble des tâches (1.2 à 1.7), y compris le backend Auth avec bcrypt + JWT.
 
 > **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`. Fichiers cibles précisés. Section 9 mise à jour.
 
@@ -19,10 +19,9 @@ _Version 0.5 — Février 2026_
 | **ID** | FS-01 |
 | **Titre** | Auth & RBAC — Login email/password, JWT, rôles, permissions, guards NestJS, écran login React |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
-| **Dépend de** | F-00 |
-| **Estimé** | 3.5 jours |
-| **Version** | 0.4 |
+| **Statut** | `in_progress` |
+| **Estimé** | 5 jours |
+| **Version** | 0.6 |
 
 ---
 
@@ -825,9 +824,14 @@ apiClient.interceptors.response.use(
 
 ## 9. Commande OpenCode
 
-> ⚠️ La tâche **1.2 (backend Auth — Bcrypt + JWT)** est réalisée **manuellement**.
+> ⚠️ OpenCode implémente l'ensemble des tâches de cette spec :
+> - **1.2** : Backend Auth (bcrypt + JWT)
+> - **1.3** : CRUD users/roles/permissions + guards
+> - **1.4** : Frontend (LoginPage, PrivateRoute, pages 401/403, store auth, interceptors)
+> - **1.5** : Tests Jest + Supertest
+> - **1.7** : Tests Cypress
 >
-> OpenCode intervient sur les tâches **1.3** (CRUD + guards), **1.4** (frontend), **1.5** (tests Jest/Supertest), **1.7** (tests Cypress).
+> Les tests marqués [Manuel] ne sont pas générés.
 
 ```
 Contexte projet ARK (conventions dans AGENTS.md) :
@@ -836,14 +840,13 @@ Contexte projet ARK (conventions dans AGENTS.md) :
 - PrismaModule est global — ne pas le réimporter
 - JwtAuthGuard est global — @Public() sur les routes publiques uniquement
 - ClassSerializerInterceptor est global — @Exclude() actif partout
-- Le module Auth (AuthService, AuthController, JwtStrategy, LocalStrategy) est déjà implémenté manuellement
 - Pages d'erreur disponibles (F-01) : NotFoundPage (*), ErrorBoundary (wrapper global)
-- Pages d'erreur FS-01 : UnauthorizedPage (/401), ForbiddenPage (/403)
-- PrivateRoute : redirige /401 si token absent, /403 si permission insuffisante
-- Intercepteur Axios : 401 API → clearAuth() + window.location.href='/401' (sauf POST /auth/login)
+- Pages d'erreur FS-01 à créer : UnauthorizedPage (/401), ForbiddenPage (/403)
+- PrivateRoute à créer : redirige /401 si token absent, /403 si permission insuffisante
+- Intercepteur Axios à compléter : 401 API → clearAuth() + window.location.href='/401' (sauf POST /auth/login)
 - Stack de test :
   * Unit + API : Jest + Supertest (@nestjs/testing)
-  * E2E browser : Cypress — cy.login() disponible dans cypress/support/commands.ts
+  * E2E browser : Cypress
   * Tests marqués [Manuel] : NE PAS générer
 
 Implémente la feature "Auth & RBAC" (FS-01) en respectant strictement le contrat ci-dessous.
