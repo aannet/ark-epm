@@ -25,11 +25,32 @@ cd frontend && npm run dev
 Copy `.env.example` to `.env` and configure:
 
 ```bash
-DB_NAME=ark_db
-DB_USER=ark_user
-DB_PASSWORD=change_me
+# Database
+DB_NAME=arkepm
+DB_USER=arkepm
+DB_PASSWORD=arkepm
+
+# Backend
+DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
 JWT_SECRET=change_me_min_32_chars
 JWT_EXPIRES_IN=8h
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
+
+# Frontend
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+## Docker Quick Start
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Services
+# - Backend: http://localhost:3000
+# - Frontend: http://localhost:5173
+# - Database: localhost:5432
 ```
 
 ## Convention: Audit Context
