@@ -9,15 +9,29 @@ Enterprise Architecture Mapping Tool
 
 ## Quick Start
 
+### With Docker (recommended)
+
 ```bash
 # Start all services
 docker-compose up -d
 
-# Backend (http://localhost:3000)
-cd backend && npm run dev
+# Services
+# - Backend: http://localhost:3000
+# - Frontend: http://localhost:5173
+# - Database: localhost:5432
+```
 
-# Frontend (http://localhost:5173)
-cd frontend && npm run dev
+### Local Development
+
+```bash
+# Backend
+cd backend && npm install && npm run dev
+
+# Frontend (in another terminal)
+cd frontend && npm install
+# Copy .env.example to .env and configure
+cp .env.example .env
+npm run dev
 ```
 
 ## Environment Variables
@@ -25,12 +39,23 @@ cd frontend && npm run dev
 Copy `.env.example` to `.env` and configure:
 
 ```bash
-DB_NAME=ark_db
-DB_USER=ark_user
-DB_PASSWORD=change_me
+# Database
+DB_NAME=arkepm
+DB_USER=arkepm
+DB_PASSWORD=arkepm
+
+# Backend
+DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
 JWT_SECRET=change_me_min_32_chars
 JWT_EXPIRES_IN=8h
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
+
+# Frontend (required for local dev; docker-compose sets this automatically)
+VITE_API_BASE_URL=http://localhost:3000
 ```
+
+> **Note**: The frontend has a fallback to `http://localhost:3000` for convenience, but for proper local development, create a `.env` file with `VITE_API_BASE_URL` configured.
 
 ## Convention: Audit Context
 
