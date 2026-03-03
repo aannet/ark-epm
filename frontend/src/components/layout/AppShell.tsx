@@ -3,10 +3,14 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
-export default function AppShell(): JSX.Element {
+interface AppShellProps {
+  onLogout?: () => void;
+}
+
+export default function AppShell({ onLogout }: AppShellProps): JSX.Element {
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
-      <Sidebar />
+      <Sidebar onLogout={onLogout} />
       <Box
         component="main"
         sx={{
