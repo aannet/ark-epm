@@ -1,5 +1,6 @@
 import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, alpha, IconButton } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Apps from '@mui/icons-material/Apps';
 import AccountTree from '@mui/icons-material/AccountTree';
 import AltRoute from '@mui/icons-material/AltRoute';
@@ -13,26 +14,21 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-interface NavItem {
-  label: string;
-  icon: React.ReactElement;
-  path: string;
-}
-
-const navItems: NavItem[] = [
-  { label: 'Applications', icon: <Apps />, path: '/applications' },
-  { label: 'Capacités métier', icon: <AccountTree />, path: '/business-capabilities' },
-  { label: 'Interfaces', icon: <AltRoute />, path: '/interfaces' },
-  { label: 'Objets de données', icon: <Storage />, path: '/data-objects' },
-  { label: 'Composants IT', icon: <Dns />, path: '/it-components' },
-  { label: 'Fournisseurs', icon: <Business />, path: '/providers' },
-  { label: 'Domaines', icon: <Folder />, path: '/domains' },
-];
-
 export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
   const theme = useTheme();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { label: t('nav.applications'), icon: <Apps />, path: '/applications' },
+    { label: t('nav.businessCapabilities'), icon: <AccountTree />, path: '/business-capabilities' },
+    { label: t('nav.interfaces'), icon: <AltRoute />, path: '/interfaces' },
+    { label: t('nav.dataObjects'), icon: <Storage />, path: '/data-objects' },
+    { label: t('nav.itComponents'), icon: <Dns />, path: '/it-components' },
+    { label: t('nav.providers'), icon: <Business />, path: '/providers' },
+    { label: t('nav.domains'), icon: <Folder />, path: '/domains' },
+  ];
 
   const isActive = (path: string): boolean => pathname.startsWith(path);
   const white = theme.palette.primary.contrastText;
@@ -118,7 +114,7 @@ export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
       >
         <Box>
           <Typography variant="caption" sx={{ color: alpha(white, 0.6) }}>
-            Utilisateur
+            {t('common.user')}
           </Typography>
         </Box>
         {onLogout && (

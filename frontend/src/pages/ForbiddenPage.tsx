@@ -1,9 +1,11 @@
 import { Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import BlockIcon from '@mui/icons-material/Block';
 
 export default function ForbiddenPage(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Box
@@ -19,20 +21,20 @@ export default function ForbiddenPage(): JSX.Element {
     >
       <BlockIcon sx={{ fontSize: 80, color: 'error.main' }} />
       <Typography variant="h1" sx={{ color: 'error.main', fontSize: 72, fontWeight: 700 }}>
-        403
+        {t('errors.forbidden.code')}
       </Typography>
       <Typography variant="h5" sx={{ color: 'text.primary' }}>
-        Accès refusé
+        {t('errors.forbidden.title')}
       </Typography>
       <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
-        Vous n'avez pas les droits nécessaires pour accéder à cette page.
+        {t('errors.forbidden.description')}
       </Typography>
       <Box sx={{ display: 'flex', gap: 2 }}>
         <Button variant="contained" onClick={() => navigate('/')}>
-          Retour à l'accueil
+          {t('common.actions.backHome')}
         </Button>
         <Button variant="outlined" href="mailto:admin@ark.io">
-          Contacter l'administrateur
+          {t('common.actions.contact')}
         </Button>
       </Box>
     </Box>

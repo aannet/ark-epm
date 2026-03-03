@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
 import { login } from '../api/auth';
 import { setAuth } from '../store/auth';
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +23,12 @@ export default function LoginPage(): JSX.Element {
       setAuth(response.accessToken, response.user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      const message = err.response?.data?.message;
+      if (message?.includes('disabled')) {
+        setError(t('auth.login.accountDisabled'));
+      } else {
+        setError(t('auth.login.invalidCredentials'));
+      }
     } finally {
       setLoading(false);
     }
@@ -48,7 +55,7 @@ export default function LoginPage(): JSX.Element {
         }}
       >
         <Typography variant="h5" sx={{ mb: 3, textAlign: 'center' }}>
-          Connexion
+          {t('auth.login.title')}
         </Typography>
 
         {error && (
@@ -60,7 +67,7 @@ export default function LoginPage(): JSX.Element {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Email"
+            label={t('auth.login.emailLabel')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -71,7 +78,7 @@ export default function LoginPage(): JSX.Element {
           />
           <TextField
             fullWidth
-            label="Mot de passe"
+            label={t('auth.login.passwordLabel')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -86,7 +93,7 @@ export default function LoginPage(): JSX.Element {
             variant="contained"
             disabled={loading}
           >
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? t('auth.login.loadingLabel') : t('auth.login.submitLabel')}
           </Button>
         </form>
       </Paper>

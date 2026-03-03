@@ -297,13 +297,86 @@ Pages indépendantes, jamais de modales pour le CRUD :
 |---|---|---|
 | Liste | `/<entité>s` | `<Entité>sListPage` |
 | Création | `/<entité>s/new` | `<Entité>NewPage` |
+| Détail | `/<entité>s/:id` | `<Entité>DetailPage` |
 | Édition | `/<entité>s/:id/edit` | `<Entité>EditPage` |
 
 Formulaire partagé entre New et Edit via composant `<Entité>Form` avec prop `initialValues?`.
 
 ---
 
-## Environment
+## F02-i18n Foundation
+
+> **Source :** `docs/PRD-FS/F02-i18n-foundation.md` (v0.1)
+> Ce bloc doit être injecté en début de **chaque** session OpenCode frontend pour les sprints suivants.
+> **Convention NON-NÉGOCIABLE** — toute string visible en dur est refusée en code review.
+
+### Règle fondamentale
+
+```typescript
+// ✅ Correct — toujours
+import { useTranslation } from 'react-i18next';
+const { t } = useTranslation();
+<Button>{t('common.actions.save')}</Button>
+
+// ❌ Interdit — refusé en code review
+<Button>Enregistrer</Button>
+```
+
+### Structure
+
+```
+frontend/src/
+├── i18n/
+│   ├── index.ts              ← import side-effect dans main.tsx (avant tout autre import)
+│   └── locales/
+│       └── fr.json           ← source de vérité de toutes les strings FR
+```
+
+### Convention de nommage des clés
+
+Format : `domaine.page.element` — ex : `domains.list.title`, `common.actions.save`
+
+```json
+{
+  "nav": { "applications": "Applications", "domains": "Domaines", ... },
+  "common": {
+    "actions": { "add": "Ajouter", "edit": "Modifier", "delete": "Supprimer", "save": "Enregistrer", "cancel": "Annuler", "back": "Retour" },
+    "status": { "active": "Actif", "inactive": "Inactif", "deprecated": "Déprécié" },
+    "criticality": { "low": "Faible", "medium": "Moyen", "high": "Élevé", "missionCritical": "Mission critique" },
+    "emptyState": { "title": "Aucun élément", "description": "Commencez par créer votre premier élément." },
+    "confirmDialog": { "confirmLabel": "Supprimer", "cancelLabel": "Annuler" },
+    "snackbar": { "createSuccess": "Élément créé avec succès.", "updateSuccess": "Élément mis à jour avec succès.", "deleteSuccess": "Élément supprimé avec succès." }
+  },
+  "errors": { "notFound": {...}, "unauthorized": {...}, "forbidden": {...}, "unexpected": {...} },
+  "auth": { "login": {...} },
+  "<module>": { "list": {...}, "detail": {...}, "form": {...}, "delete": {...}, "snackbar": {...} }
+}
+```
+
+### Règles impératives
+
+1. **Toutes les strings visibles** passent par `t('key')` — sans exception
+2. **Ajouter les clés dans `fr.json` en même temps que le composant** — jamais après coup
+3. **Interpolation dynamique :** `t('key', { variable: valeur })` avec syntaxe `{{variable}}` dans `fr.json`
+4. **Pas de composant `<Trans>` en P1**
+5. **Pas de `defaultValue`** dans les appels `t()` — les clés manquantes s'affichent crues (détection immédiate)
+6. **Valeurs par défaut** des composants partagés (`ConfirmDialog`, `EmptyState`) : via `t()` sur `common.*`
+
+### Bloc contexte à injecter dans chaque session OpenCode frontend
+
+```
+i18n (F-02) :
+- react-i18next installé, langue unique FR, fichier source : src/i18n/locales/fr.json
+- Convention obligatoire : toutes les strings visibles passent par t('key') — jamais de string en dur
+- Structure des clés : domaine.page.element — ex: domains.list.title, common.actions.save
+- Ajouter les nouvelles clés dans fr.json EN MÊME TEMPS que le composant — jamais après
+- Interpolation dynamique : t('key', { variable: valeur }) avec syntaxe {{variable}} dans fr.json
+- Pas de composant <Trans> en P1
+- Valeurs par défaut dans les composants partagés (ConfirmDialog, EmptyState) : via t() sur les clés common.*
+- Assertions Cypress : utiliser les valeurs FR de fr.json, pas les strings anglaises des specs Gherkin
+```
+
+---
 
 ```bash
 # Backend (.env)

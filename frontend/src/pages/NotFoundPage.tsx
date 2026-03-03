@@ -1,8 +1,10 @@
 import { Box, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function NotFoundPage(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleGoHome = (): void => {
     navigate('/');
@@ -25,16 +27,16 @@ export default function NotFoundPage(): JSX.Element {
         color="primary.main"
         sx={{ fontSize: '6rem', fontWeight: 700, lineHeight: 1 }}
       >
-        404
+        {t('errors.notFound.code')}
       </Typography>
       <Typography variant="h3" sx={{ mt: 2 }}>
-        Page introuvable
+        {t('errors.notFound.title')}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
-        La page que vous recherchez n'existe pas ou a été déplacée.
+        {t('errors.notFound.description')}
       </Typography>
       <Button variant="contained" onClick={handleGoHome}>
-        Retour à l'accueil
+        {t('common.actions.backHome')}
       </Button>
     </Box>
   );

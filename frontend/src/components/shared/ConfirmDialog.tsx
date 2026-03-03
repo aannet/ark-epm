@@ -7,6 +7,7 @@ import {
   Button,
 } from '@mui/material';
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -24,13 +25,15 @@ export default function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Supprimer',
-  cancelLabel = 'Annuler',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   severity = 'error',
   isLoading = false,
 }: ConfirmDialogProps): JSX.Element {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
       <DialogTitle>{title}</DialogTitle>
@@ -39,7 +42,7 @@ export default function ConfirmDialog({
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onCancel} variant="outlined" disabled={isLoading}>
-          {cancelLabel}
+          {cancelLabel || t('common.confirmDialog.cancelLabel')}
         </Button>
         <Button
           onClick={onConfirm}
@@ -47,7 +50,7 @@ export default function ConfirmDialog({
           color={severity}
           disabled={isLoading}
         >
-          {confirmLabel}
+          {confirmLabel || t('common.confirmDialog.confirmLabel')}
         </Button>
       </DialogActions>
     </Dialog>
