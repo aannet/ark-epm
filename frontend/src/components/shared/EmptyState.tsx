@@ -1,10 +1,11 @@
 import { Box, Typography, Button } from '@mui/material';
 import Inbox from '@mui/icons-material/Inbox';
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface EmptyStateProps {
   icon?: ReactNode;
-  title: string;
+  title?: string;
   description?: string;
   action?: {
     label: string;
@@ -18,6 +19,8 @@ export default function EmptyState({
   description,
   action,
 }: EmptyStateProps): JSX.Element {
+  const { t } = useTranslation();
+
   return (
     <Box
       sx={{
@@ -33,11 +36,11 @@ export default function EmptyState({
         {icon || <Inbox sx={{ fontSize: 64 }} />}
       </Box>
       <Typography variant="h4" color="text.primary" gutterBottom textAlign="center">
-        {title}
+        {title || t('common.emptyState.title')}
       </Typography>
-      {description && (
+      {(description || !title) && (
         <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
-          {description}
+          {description || t('common.emptyState.description')}
         </Typography>
       )}
       {action && (

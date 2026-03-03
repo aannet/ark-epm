@@ -1,9 +1,11 @@
 import { Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import SecurityIcon from '@mui/icons-material/Security';
 
 export default function UnauthorizedPage(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Box
@@ -19,16 +21,16 @@ export default function UnauthorizedPage(): JSX.Element {
     >
       <SecurityIcon sx={{ fontSize: 80, color: 'primary.main' }} />
       <Typography variant="h1" sx={{ color: 'primary.main', fontSize: 72, fontWeight: 700 }}>
-        401
+        {t('errors.unauthorized.code')}
       </Typography>
       <Typography variant="h5" sx={{ color: 'text.primary' }}>
-        Session expirée
+        {t('errors.unauthorized.title')}
       </Typography>
       <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
-        Votre session a expiré ou vous n'êtes pas connecté.
+        {t('errors.unauthorized.description')}
       </Typography>
       <Button variant="contained" onClick={() => navigate('/login')}>
-        Se connecter
+        {t('common.actions.signIn')}
       </Button>
     </Box>
   );
