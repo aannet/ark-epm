@@ -24,15 +24,19 @@ docker-compose up -d
 ### Local Development
 
 ```bash
+# Stop Docker frontend first to avoid port conflict on 5173
+docker stop ark-epm_frontend_1
+
 # Backend
-cd backend && npm install && npm run dev
+cd backend && npm install && npm run start:dev
 
 # Frontend (in another terminal)
 cd frontend && npm install
-# Copy .env.example to .env and configure
 cp .env.example .env
-npm run dev
+npm run dev   # runs on http://localhost:5173
 ```
+
+> **Tip**: If port 5173 is still in use, Vite will automatically use 5174.
 
 ## Environment Variables
 
