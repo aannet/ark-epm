@@ -1,6 +1,8 @@
 # ARK — User Scenarios FS-01 : Auth & RBAC
 
-_Version 0.1 — Février 2026_
+_Version 0.2 — Février 2026_
+
+> **Changelog v0.2 :** Scénario "Logout clears the session" complété (appel `POST /auth/logout` explicité, bouton Sidebar précisé). Ajout du scénario "Navigating to a protected route after logout redirects to /401". Mapping table mise à jour avec les deux nouveaux tests `[Supertest]` sur `/auth/logout`. Bloc OpenCode enrichi avec les assertions logout.
 
 > **Changelog v0.1 :** Version initiale — scénarios Login, UnauthorizedPage (401), ForbiddenPage (403),
 > gestion des utilisateurs, gestion des rôles & permissions, PrivateRoute, intercepteur Axios.
@@ -57,9 +59,16 @@ Feature: Authentication
 
   Scenario: Logout clears the session
     Given I am logged in
-    When I click the logout button
-    Then the JWT token is purged from memory
+    When I click the logout button in the Sidebar
+    Then "POST /auth/logout" is called
+    And the JWT token is purged from memory
     And I am redirected to "/login"
+
+  Scenario: Navigating to a protected route after logout redirects to /401
+    Given I have just logged out
+    When I navigate to "/"
+    Then I am redirected to "/401"
+    And the JWT token is not present in memory
 
   #
   # ── ERROR PATHS ──────────────────────────────────────────────────────────────
@@ -456,7 +465,10 @@ Feature: PrivateRoute Guard
 | Successful login redirects to home | `logs in and redirects to home` | `[Cypress]` |
 | Login page is accessible without authentication | `renders login page when unauthenticated` | `[Cypress]` |
 | Authenticated user is redirected away from login page | `redirects authenticated user away from /login` | `[Cypress]` |
-| Logout clears the session | `logout purges token and redirects to /login` | `[Cypress]` |
+| Logout clears the session | `logout calls POST /auth/logout, purges token and redirects to /login` | `[Cypress]` |
+| Navigating to a protected route after logout redirects to /401 | `after logout, protected route redirects to /401` | `[Cypress]` |
+| POST /auth/logout with valid token returns 204 | — | `[Supertest]` |
+| POST /auth/logout without token returns 401 | — | `[Supertest]` |
 | Login with an unknown email shows an inline error | `shows inline error on unknown email` | `[Cypress]` |
 | Login with a wrong password shows an inline error | `shows inline error on wrong password` | `[Cypress]` |
 | Login with a disabled account shows an inline error | `shows inline error on disabled account` | `[Cypress]` |
@@ -515,6 +527,7 @@ Generate Cypress tests in cypress/e2e/login.cy.ts and cypress/e2e/users.cy.ts us
 
 Key assertions to enforce:
 - Login success: assert JWT token in memory (not in localStorage/sessionStorage), redirect to "/"
+- Logout: assert POST /auth/logout is called, token purged from memory, hard redirect to /login; then assert navigating to "/" redirects to /401
 - Login failure (wrong credentials, disabled account): assert inline error on LoginPage, NOT redirect to /401
 - 401 Axios interceptor: assert token is purged from memory AND window.location is /401
 - 403 Axios interceptor: assert redirect to /403 (not /401)

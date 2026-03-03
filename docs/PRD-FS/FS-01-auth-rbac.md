@@ -743,6 +743,15 @@ apiClient.interceptors.response.use(
 // → Utiliser un flag ou une instance Axios séparée pour /auth/login si nécessaire
 ```
 
+**Bouton de déconnexion (Sidebar — bas) :**
+- Affiché sous le nom utilisateur + avatar
+- Au clic :
+  1. Appel `POST /auth/logout` (best-effort — ignorer les erreurs réseau)
+  2. `clearAuth()` — purge token + user en mémoire
+  3. `window.location.href = '/login'` — hard redirect pour purger le state React
+
+
+
 > **Note sur la stratégie de redirection :** `window.location.href` (hard redirect) est intentionnel pour le 401 — il purge le state React en mémoire (`_token`, `_user`) et force un cycle de vie propre. Pour le 403, une alternative acceptable est `navigate('/403')` via React Router si le contexte le permet.
 
 ---
@@ -778,6 +787,8 @@ apiClient.interceptors.response.use(
 - [ ] `[Supertest]` `DELETE /users/{id}` → `204` + `isActive = false` en base
 - [ ] `[Supertest]` `DELETE /roles/{id}` rôle assigné → `409`
 - [ ] `[Supertest]` `PUT /roles/{id}/permissions` → `200` permissions remplacées
+- [ ] `[Supertest]` `POST /auth/logout` token valide → `204`
+- [ ] `[Supertest]` `POST /auth/logout` sans token → `401`
 
 ### Tests Sécurité / RBAC — Manuel ❌
 
@@ -803,7 +814,8 @@ apiClient.interceptors.response.use(
 - [ ] `[Cypress]` Intercepteur Axios : réponse `401` de l'API → redirect `/401` + token purgé
 - [ ] `[Cypress]` `UsersListPage` affiche la liste des utilisateurs après login
 - [ ] `[Cypress]` Désactivation d'un utilisateur via UI → badge statut mis à jour
-
+- [ ] `[Cypress]` Flow logout : clic bouton déconnexion → token purgé + redirect `/login`
+- [ ] `[Cypress]` Après logout, navigation vers `/` redirige vers `/401`
 ---
 
 ## 8. Contraintes Techniques
