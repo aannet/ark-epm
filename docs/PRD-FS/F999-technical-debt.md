@@ -1,10 +1,14 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
+_Version 0.2 — Mars 2026_
+> Item 8 ajouté aux trois endroits qui comptent : la décision elle-même, le bloc contexte OpenCode, et la checklist.
+Un point notable dans cet item : le middleware d'audit de F-00 est probablement déjà correct (il utilise le tagged template par convention), mais il n'avait jamais été formalisé comme règle à vérifier. C'est précisément le genre de chose qui se retrouve correcte par accident dans F-00, puis incorrecte dans FS-07 parce qu'OpenCode a vu un pattern $queryRaw quelque part et l'a reproduit avec Prisma.raw(). Avoir la règle explicite dans le contexte OpenCode coupe ce risque à la source.
+
 _Version 0.1 — Mars 2026_
 
 > **Usage :** Ce document est la référence vivante des décisions techniques transverses qui ne sont pas portées par une feature métier. Il est distinct de AGENTS.md (qui décrit les conventions de code et les patterns d'implémentation) : F-999 docte les **décisions d'architecture** et les **contrats techniques globaux** — le "pourquoi" et le "quoi", pas le "comment coder".
 >
-> **Mode :** Chaque item doit être implémenté manuellement et validé par une gate dédiée avant d'être marqué `done`.
+> **Mode :**  Chaque item doit être implémenté manuellement et validé par une gate dédiée avant d'être marqué `done`.
 >
 > **Lecture recommandée :** avant de rédiger toute nouvelle Feature-Spec (FS-XX). Les conventions de ce document s'imposent à toutes les features.
 
@@ -16,11 +20,11 @@ _Version 0.1 — Mars 2026_
 |---|---|
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
-| **Priorité** | P1 (items 1–5) / P2 (items 6–7) |
-| **Statut** | `draft` |
+| **Priorité** | P1 (items 1–5, 8, 10) / P2 (items 6–7, 9) |
+| **Statut** | `review` |
 | **Dépend de** | F-00 |
 | **Estimé** | 1 jour (items P1) |
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 
 ---
 
@@ -101,15 +105,32 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception.getExceptionResponse();
+    const status = exception.getStatus();
+    const exceptionResponse = exception.getResponse();
 
-    response.status(exception.getStatus()).json({
-      statusCode: exception.getStatus(),
-      code: /* extraire du payload ou defaulter */ 'INTERNAL_ERROR',
+    const responseBody = typeof exceptionResponse === 'object' ? exceptionResponse : {};
+    const code = (responseBody as Record<string, unknown>)['code'] as string || this.getDefaultCode(status);
+
+    response.status(status).json({
+      statusCode: status,
+      code,
       message: exception.message,
       timestamp: new Date().toISOString(),
       path: request.url,
     });
+  }
+
+  private getDefaultCode(status: number): string {
+    const codes: Record<number, string> = {
+      400: 'BAD_REQUEST',
+      401: 'UNAUTHORIZED',
+      403: 'FORBIDDEN',
+      404: 'NOT_FOUND',
+      409: 'CONFLICT',
+      422: 'VALIDATION_ERROR',
+      500: 'INTERNAL_ERROR',
+    };
+    return codes[status] || 'INTERNAL_ERROR';
   }
 }
 ```
@@ -273,8 +294,8 @@ Le schéma SQL actuel ne comporte pas de colonne `deleted_at`. Supprimer une App
 | `applications` | ❌ **Blocage** si des interfaces source/cible existent | Cœur du patrimoine — jamais silencieux |
 | `business_capabilities` | ❌ **Blocage** si des enfants ou applications mappées existent | Hiérarchie récursive — risque élevé |
 | `interfaces` | ✅ **Hard delete** autorisé | Relation simple, pas de dépendances en aval |
-| `data_objects` | ❌ **Blocage** si des applications sont mappées | |
-| `it_components` | ❌ **Blocage** si des applications sont mappées | |
+| `data_objects` | ❌ **Blocage** si des applications sont mappées | Traçabilité des flux de données — rupture de lineage |
+| `it_components` | ❌ **Blocage** si des applications sont mappées | Impact sur la cartographie d'infrastructure |
 | `users` | 🟡 **Soft delete** (`is_active = false`) | Préserver l'audit trail — `changed_by` doit rester résolvable |
 
 > **Pas de soft delete généralisé en P1** : la colonne `deleted_at` n'est pas ajoutée au schéma global. Les suppressions bloquées retournent `409 DEPENDENCY_CONFLICT` avec un message explicite indiquant le nombre de dépendances. Le soft delete est réservé à `users` via le champ `is_active` existant.
@@ -315,6 +336,118 @@ Utiliser `@nestjs/terminus`. À implémenter au démarrage de P2 avec le déploi
 
 ---
 
+### Item 8 — Sécurité des requêtes raw Prisma
+
+| | |
+|---|---|
+| **Statut** | 🔴 À documenter — P1 |
+| **Priorité** | Haute — concerne FS-07 (WITH RECURSIVE) et le middleware audit |
+| **Gate de validation** | Revue manuelle de toutes les occurrences `$queryRaw` / `$executeRaw` avant merge |
+
+**Contexte :**
+Prisma paramétrise automatiquement toutes les requêtes générées (`.findMany()`, `.create()`, etc.) — pas de risque d'injection SQL sur les CRUD standards. En revanche, `$queryRaw` et `$executeRaw` contournent cette protection si un paramètre utilisateur est interpolé par concaténation de string plutôt que via le tagged template `Prisma.sql`.
+
+ARK utilise ces deux méthodes dans deux endroits critiques :
+- Le middleware d'audit (`SET LOCAL ark.current_user_id = ${userId}`)
+- La requête `WITH RECURSIVE` de FS-07 (Business Capabilities)
+
+**Décision :**
+Règle absolue — **toute variable interpolée dans un `$queryRaw` ou `$executeRaw` passe par le tagged template Prisma**, jamais par concaténation.
+
+```typescript
+// ✅ Correct — Prisma paramétrise automatiquement userId
+await prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`;
+
+// ✅ Correct — paramètres isolés
+const results = await prisma.$queryRaw`
+  SELECT * FROM applications WHERE domain_id = ${domainId}
+`;
+
+// ❌ Interdit — injection SQL possible
+const results = await prisma.$queryRaw(
+  Prisma.raw(`SELECT * FROM applications WHERE domain_id = '${domainId}'`)
+);
+
+// ❌ Interdit — concaténation de string
+await prisma.$executeRaw(Prisma.raw(`SET LOCAL ark.current_user_id = '${userId}'`));
+```
+
+**Scope des occurrences à surveiller :**
+
+| Fichier | Usage | Risque |
+|---|---|---|
+| `common/middleware/audit-context.middleware.ts` | `$executeRaw SET LOCAL` | ✅ Déjà sécurisé si tagged template |
+| `business-capabilities/business-capabilities.service.ts` | `$queryRaw WITH RECURSIVE` | ⚠️ À vérifier lors de l'implémentation FS-07 |
+| Tout futur `$queryRaw` / `$executeRaw` | — | ⚠️ Revue obligatoire |
+
+> ⚠️ **Règle de code review :** toute PR contenant `$queryRaw` ou `$executeRaw` doit être relue manuellement ligne par ligne — OpenCode ne garantit pas l'usage correct du tagged template. Classé dans "Ce qu'il ne faut jamais déléguer" du Plan Sprint.
+
+> **Note :** `dangerouslySetInnerHTML` est également interdit dans tous les composants React ARK — aucune raison métier ne justifie son usage, et React échappe nativement tout ce qui passe par JSX `{value}`.
+
+---
+
+### Item 9 — API Versioning *(P2)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Documenté — implémentation P2 |
+| **Priorité** | Faible — utile si le projet évolue au-delà du MVP |
+
+**Contexte :**
+Si l'API publique évolue (changement de structure de réponse, dépréciation de champs), sans versionnement, les clients existants cassent. Pour un MVP on-premise à 5 utilisateurs, c'est prématuré — mais la règle doit être posée.
+
+**Décision :**
+
+| Stratégie | Mise en œuvre |
+|---|---|
+| Version dans l'URL | `GET /api/v1/domains` |
+| Version par défaut | v1 — aucune route sans version dans le chemin |
+| Dépréciation | Ajouter header `Deprecation: true` + `Sunset: <date>` lors du passage à v2 |
+
+**Implémentation future :**
+- Prefix global dans `main.ts` : `app.setGlobalPrefix('api/v1')`
+- Documentation OpenAPI générée avec version dans le titre
+
+---
+
+### Item 10 — Request ID / Correlation ID
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — P1 |
+| **Priorité** | Haute — debugging production indispensable |
+| **Gate de validation** | Logs et responses contiennent un `requestId` cohérent |
+
+**Contexte :**
+En production, corréler les logs backend avec les erreurs rapportées par le frontend est impossible sans identifiant commun. Le pattern standard est un `X-Request-ID` généré par le premier service (frontend ou gateway) et propagé tout au long de la chaîne.
+
+**Décision :**
+
+| Action | Implémentation |
+|---|---|
+| Génération | Si absent, générer un UUID v4 au niveau du middleware NestJS |
+| Propagation | Logger et response header `X-Request-ID` |
+| Frontend | Ajouter `X-Request-ID` à chaque requête Axios |
+
+**Implémentation :**
+
+```typescript
+// backend/src/common/middleware/request-id.middleware.ts
+@Injectable()
+export class RequestIdMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    const requestId = (req.headers['x-request-id'] as string) || crypto.randomUUID();
+    req.headers['x-request-id'] = requestId;
+    res.setHeader('X-Request-ID', requestId);
+    next();
+  }
+}
+```
+
+> ⚠️ **À injecter dans le bloc contexte OpenCode :** "Tout endpoint ARK retourne le header `X-Request-ID`. Logger ce même ID pour chaque requête."
+
+---
+
 ### Item 7 — CORS *(P2)*
 
 | | |
@@ -339,6 +472,10 @@ Erreurs API :
 - Codes : VALIDATION_ERROR (422), NOT_FOUND (404), CONFLICT (409), DEPENDENCY_CONFLICT (409), FORBIDDEN (403)
 - Filtre global : HttpExceptionFilter dans src/common/filters/ — ne pas créer de format custom
 
+JWT :
+- Access token TTL : 15 min (mémoire uniquement)
+- Sur 401 : rediriger vers /login?reason=session_expired
+
 Pagination :
 - Toutes les routes de liste utilisent PaginationQueryDto (src/common/dto/pagination-query.dto.ts)
 - Réponse : { data: [...], meta: { page, limit, total, totalPages } }
@@ -353,6 +490,15 @@ Rate limiting :
 - ThrottlerModule global : 100 req/min
 - Routes auth : @Throttle limit=10/min
 - Route import Excel : @Throttle limit=3/min
+
+Requêtes raw Prisma :
+- Toute variable dans $queryRaw / $executeRaw passe par le tagged template Prisma (backticks)
+- Jamais de Prisma.raw() avec interpolation de string
+- dangerouslySetInnerHTML interdit dans tous les composants React
+
+Request ID :
+- Chaque requête génère ou propage X-Request-ID
+- Header présent dans la réponse et les logs
 ```
 
 ---
@@ -369,7 +515,10 @@ Rate limiting :
 - [ ] **Item 4** — FS-02 (Domains) implémente le contrat — sert de référence pour les suivantes
 - [ ] **Item 5** — Vérification de dépendances implémentée dans chaque service `remove()`
 - [ ] **Item 5** — Suppression d'un Domain référencé → 409 validé en test manuel
-
+- [ ] **Item 8** — Middleware audit vérifié : `$executeRaw` en tagged template
+- [ ] **Item 9** — API Versioning : documenté, implémentation P2
+- [ ] **Item 10** — RequestIdMiddleware créé et enregistré dans AppModule
+- [ ] **Item 10** — Header `X-Request-ID` présent sur toutes les réponses
 ---
 
 ## 5. Journal des décisions
@@ -379,7 +528,10 @@ Rate limiting :
 | Date | Item | Modification | Auteur |
 |---|---|---|---|
 | 2026-03-03 | Tous | Création initiale — items 1-7 | Alec |
+| 2026-03-03 | Item 8 | Ajout règle sécurité requêtes raw Prisma — injection SQL | Alec |
+| 2026-03-03 | Item 9 | Ajout API Versioning — stratégie URL /api/v1/ | Alec |
+| 2026-03-03 | Item 10 | Ajout Request ID / Correlation ID — X-Request-ID | Alec |
 
 ---
 
-_Feature Spec F-999 v0.1 — Projet ARK — Document de travail_
+_Feature Spec F-999 v0.2 — Projet ARK — Document de travail_
