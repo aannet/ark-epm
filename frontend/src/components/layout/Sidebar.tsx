@@ -1,4 +1,4 @@
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, alpha } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, alpha, IconButton } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Apps from '@mui/icons-material/Apps';
 import AccountTree from '@mui/icons-material/AccountTree';
@@ -7,6 +7,11 @@ import Storage from '@mui/icons-material/Storage';
 import Dns from '@mui/icons-material/Dns';
 import Business from '@mui/icons-material/Business';
 import Folder from '@mui/icons-material/Folder';
+import Logout from '@mui/icons-material/Logout';
+
+interface SidebarProps {
+  onLogout?: () => void;
+}
 
 interface NavItem {
   label: string;
@@ -24,7 +29,7 @@ const navItems: NavItem[] = [
   { label: 'Domaines', icon: <Folder />, path: '/domains' },
 ];
 
-export default function Sidebar(): JSX.Element {
+export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
   const theme = useTheme();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -106,11 +111,31 @@ export default function Sidebar(): JSX.Element {
         sx={{
           p: 2,
           borderTop: `1px solid ${alpha(white, 0.1)}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <Typography variant="caption" sx={{ color: alpha(white, 0.6) }}>
-          Utilisateur
-        </Typography>
+        <Box>
+          <Typography variant="caption" sx={{ color: alpha(white, 0.6) }}>
+            Utilisateur
+          </Typography>
+        </Box>
+        {onLogout && (
+          <IconButton
+            onClick={onLogout}
+            size="small"
+            sx={{
+              color: alpha(white, 0.7),
+              '&:hover': {
+                bgcolor: alpha(white, 0.1),
+                color: white,
+              },
+            }}
+          >
+            <Logout fontSize="small" />
+          </IconButton>
+        )}
       </Box>
     </Box>
   );

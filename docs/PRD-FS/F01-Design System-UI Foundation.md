@@ -131,6 +131,15 @@ const navItems: NavItem[] = [
 // - Largeur fixe : 240px
 // - Logo ARK en haut (lien vers '/')
 // - Nom utilisateur + avatar en bas (données statiques en F-01, connecté en FS-01)
+// - Bouton "Se déconnecter" en bas — handler injecté via prop (branché en FS-01)
+
+interface SidebarProps {
+  onLogout?: () => void; // injecté par AppShell en FS-01, absent (no-op) en F-01
+}
+
+// Bas de sidebar :
+// - Nom utilisateur + avatar (données statiques en F-01, connecté en FS-01)
+// - Bouton "Se déconnecter" — handler injecté via prop ou context (branché en FS-01)
 ```
 
 ### 3.3 `TopBar`
