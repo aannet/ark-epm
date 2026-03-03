@@ -94,6 +94,7 @@ await this.prisma.application.create({ data: { ... } });
 ### File Structure
 ```
 backend/src/
+├── auth/                  # Login, JWT, logout
 ├── applications/           # CRUD
 ├── business-capabilities/ # recursive hierarchy
 ├── data-objects/
@@ -150,6 +151,14 @@ login() { ... }
 ```
 
 > Never omit `@Public()` on a route that must be accessible without a token — the guard will block it silently.
+
+### Logout (stateless)
+`POST /auth/logout` → `204`, client deletes token. No server-side blacklist in P1.
+
+Frontend logout flow:
+1. Call `POST /auth/logout` (best-effort — ignore network errors)
+2. Call `clearAuth()` to purge token + user from memory
+3. Hard redirect to `/login` via `window.location.href`
 
 ### Permission naming convention
 Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `prisma/seed.ts`:

@@ -45,10 +45,27 @@ describe('Authentication', () => {
   });
 
   describe('Logout clears the session', () => {
-    it('logout purges token and redirects to /login', () => {
+    it('logout calls POST /auth/logout, purges token and redirects to /login', () => {
+      cy.login();
+
+      cy.intercept('POST', '/auth/logout').as('logoutRequest');
+
+      cy.logout();
+
+      cy.wait('@logoutRequest').its('response.statusCode').should('eq', 204);
+
+      cy.url().should('include', '/login');
+    });
+  });
+
+  describe('Navigating to a protected route after logout redirects to /401', () => {
+    it('after logout, protected route redirects to /401', () => {
       cy.login();
       cy.logout();
-      cy.url().should('include', '/login');
+
+      cy.visit('/');
+
+      cy.url().should('include', '/401');
     });
   });
 

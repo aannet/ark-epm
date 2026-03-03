@@ -42,6 +42,16 @@ Cypress.Commands.add('loginAsReadOnly', () => {
 });
 
 Cypress.Commands.add('logout', () => {
+  // Call POST /auth/logout (best-effort - ignore errors)
+  cy.request({
+    method: 'POST',
+    url: `${API_URL}/auth/logout`,
+    failOnStatusCode: false,
+  }).catch(() => {
+    // Ignore errors - best-effort
+  });
+
+  // Clear in-memory token
   cy.window().then((win) => {
     (win as any).__ARK_TOKEN__ = null;
     (win as any).__ARK_USER__ = null;

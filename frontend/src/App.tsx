@@ -6,13 +6,24 @@ import LoginPage from '@/pages/LoginPage';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import ForbiddenPage from '@/pages/ForbiddenPage';
 import PrivateRoute from '@/components/PrivateRoute';
-import { initializeAuth } from '@/store/auth';
+import { initializeAuth, clearAuth } from '@/store/auth';
+import { logout } from '@/api/auth';
 import { useEffect } from 'react';
 
 function App(): JSX.Element {
   useEffect(() => {
     initializeAuth();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      // Best-effort - ignore network errors
+    }
+    clearAuth();
+    window.location.href = '/login';
+  };
 
   return (
     <BrowserRouter>
@@ -23,7 +34,7 @@ function App(): JSX.Element {
         <Route path="/design" element={<DesignSystemPage />} />
 
         <Route element={<PrivateRoute />}>
-          <Route path="/" element={<AppShell />}>
+          <Route path="/" element={<AppShell onLogout={handleLogout} />}>
             <Route index element={<Navigate to="/applications" replace />} />
             <Route path="applications/*" element={<div />} />
             <Route path="business-capabilities/*" element={<div />} />
