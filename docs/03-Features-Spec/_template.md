@@ -1,6 +1,8 @@
 # ARK — Template Feature-Spec
 
-_Version 0.2 — Février 2026_
+_Version 0.3 — Mars 2026_
+
+> **Changelog v0.3 :** Ajout section §11 — Revue de dette technique (gate de fin de sprint obligatoire). Intègre les 6 gates TD + tableau de résultat de revue. Template bumped v0.2 → v0.3.
 
 > **Changelog v0.2 :** Intégration de la stratégie de test dans le sprint — section 7 restructurée avec outillage explicite (Jest/Supertest vs Cypress), section 8 enrichie des conventions de fichiers de test, section 9 mise à jour pour inclure la génération des tests dans la session OpenCode, section 10 complétée avec checklist tests.
 
@@ -204,4 +206,34 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_Template v0.2 — Projet ARK_
+## 11. Revue de dette technique *(gate de fin de sprint — obligatoire)* ⚠️
+
+> À remplir **après** implémentation, avant de clore le sprint. Bloquant : un sprint n'est `done` que si cette section est complétée.
+
+### Gates TD
+
+| # | Vérification | Commande / Action |
+|---|---|---|
+| TD-1 | Aucun `TODO / FIXME / HACK` non tracé dans le code livré de ce sprint | `git grep -n "TODO\|FIXME\|HACK" -- '*.ts' '*.tsx'` |
+| TD-2 | Items F-999 activés par cette feature : statut mis à jour (`pending` → `done` si applicable) | Relire F-999 §2 |
+| TD-3 | Checklist F-999 §4 : cases cochées pour les items de ce sprint | F-999 §4 |
+| TD-4 | AGENTS.md : aucun pattern nouveau non documenté introduit par ce sprint | Relire AGENTS.md |
+| TD-5 | ARK-NFR.md : NFR impactés par cette feature mis à jour (`missing` → `covered` / `partial`) | ARK-NFR.md |
+| TD-6 | Nouvelles décisions transverses → nouvel Item F-999 créé si applicable | Jugement |
+
+### Résultat de la revue
+
+| Champ | Valeur |
+|---|---|
+| **Sprint** | *(ex : Sprint 2)* |
+| **Date de revue** | *(date)* |
+| **Items F-999 fermés** | *(ex : Item 5)* |
+| **Items F-999 ouverts** | *(ex : Item 8 — reste pending)* |
+| **Nouveaux items F-999 créés** | *(ex : Item 11 — voir §2)* |
+| **NFR mis à jour** | *(ex : NFR-SEC-005 → covered)* |
+| **TODOs résiduels tracés** | *(ex : 2 TODOs → issues GitHub #12, #13)* |
+| **Statut gates TD** | ✅ TD-1 / ✅ TD-2 / ❌ TD-3 / … |
+
+---
+
+_Template v0.3 — Projet ARK_

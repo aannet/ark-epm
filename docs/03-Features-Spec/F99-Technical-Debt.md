@@ -1,8 +1,8 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.3 — Mars 2026_
+_Version 0.4 — Mars 2026_
 
-> **Changelog v0.3 :** Implémentation Items 1, 2, 3, 4, 9, 10 réalisée.
+> **Changelog v0.4 :** Ajout §6 — Historique des revues de sprint. Mémoire longitudinale de la dette technique, alimentée à partir des gates TD §11 de chaque Feature-Spec. Pré-rempli avec Sprint 1 (F-00, F-01, FS-01, F-999).
 > - Item 1 : HttpExceptionFilter créé dans src/common/filters/
 > - Item 2 : JWT TTL 15min, redirect /login?reason=session_expired, page login avec message
 > - Item 3 : ThrottlerModule configuré (100 req/min global, 10 req/min auth)
@@ -539,7 +539,20 @@ Request ID :
 | 2026-03-03 | Item 9 | Ajout API Versioning — stratégie URL /api/v1/ | Alec |
 | 2026-03-03 | Item 10 | Ajout Request ID / Correlation ID — X-Request-ID | Alec |
 | 2026-03-03 | Items 1,2,3,4,9,10 | Implémentation complète — HttpExceptionFilter, JWT 15min, Throttler, PaginationDto, API v1, RequestId | Alec |
+| 2026-03-04 | §6 | Ajout section Historique des Revues de Sprint — revue de dette obligatoire en fin de sprint | Alec |
 
 ---
 
-_Feature Spec F-999 v0.3 — Projet ARK — Document de travail_
+## 6. Historique des revues de sprint
+
+> Une ligne par sprint clôturé. Alimenté à partir du tableau §11 de chaque Feature-Spec (`Résultat de la revue`). C'est la mémoire longitudinale de la dette — le complément opérationnel des gates TD dans les specs.
+
+| Sprint | Date | Feature(s) | Items F-999 fermés | Items F-999 ouverts | Nouveaux items | NFR mis à jour | TODOs résiduels tracés |
+|---|---|---|---|---|---|---|---|
+| *(Sprint 1)* | *(2026-03-03)* | F-00, F-01, FS-01, F-999 | Items 1,2,3,4,9,10 | Item 5 (pending), Item 8 (pending) | — | NFR-SEC-001 à 004 → covered | — |
+
+> **Convention :** compléter cette table à chaque fin de sprint, en consolidant les tableaux §11 des specs du sprint. Si plusieurs specs dans le même sprint, fusionner les lignes en une seule entrée par sprint.
+
+---
+
+_Feature Spec F-999 v0.4 — Projet ARK — Document de travail_
