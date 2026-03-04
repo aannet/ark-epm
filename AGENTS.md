@@ -69,11 +69,14 @@ docker-compose down           # stop
 - Use strict null checks: `function findById(id: string): App | null`
 
 ### Error Handling (NestJS)
+Use the global `HttpExceptionFilter` for all errors:
 ```typescript
-throw new NotFoundException(`Application ${id} not found`);
-throw new BadRequestException('Invalid input');
-throw new InternalServerErrorException(`Failed: ${error.message}`);
+// Format: { statusCode, code, message, timestamp, path }
+// All routes return this format via HttpExceptionFilter
+throw new NotFoundException({ code: 'DOMAIN_NOT_FOUND', message: 'Le domaine n existe pas' });
+throw new ConflictException({ code: 'CONFLICT', message: 'Email déjà utilisé' });
 ```
+The filter is registered globally in `main.ts` — never create custom error formats.
 
 ### Prisma - CRITICAL
 Always set user session before write operations:
@@ -132,6 +135,9 @@ this.logger.log({ method: 'createApp', userId, result: id });
 5. **Prisma schema** - Source of truth for TypeScript types
 6. **No external integrations** in MVP (keep dependencies minimal)
 7. **Never hard-delete users** - Always soft delete via `isActive = false`
+8. **API versioning** - All routes under `/api/v1/` prefix
+9. **Request ID** - Every response includes `X-Request-ID` header
+10. **Pagination** - List endpoints use `PaginationQueryDto` with `{ data, meta }` response format
 
 ---
 
@@ -382,7 +388,7 @@ i18n (F-02) :
 # Backend (.env)
 DATABASE_URL=postgresql://arkepm:arkepm@localhost:5432/arkepm
 JWT_SECRET=<secret>
-JWT_EXPIRES_IN=8h
+JWT_EXPIRES_IN=15m
 NODE_ENV=development
 ADMIN_PASSWORD=<initial_admin_password>  # used by prisma/seed.ts
 

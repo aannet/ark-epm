@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
 import { login } from '../api/auth';
@@ -7,11 +7,20 @@ import { setAuth } from '../store/auth';
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'session_expired') {
+      setSessionExpired(true);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +66,12 @@ export default function LoginPage(): JSX.Element {
         <Typography variant="h5" sx={{ mb: 3, textAlign: 'center' }}>
           {t('auth.login.title')}
         </Typography>
+
+        {sessionExpired && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {t('auth.login.sessionExpired')}
+          </Alert>
+        )}
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>

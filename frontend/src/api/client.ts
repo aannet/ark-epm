@@ -2,7 +2,7 @@ import axios from 'axios';
 import { clearAuth, getToken } from '../store/auth';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000',
+  baseURL: (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000') + '/api/v1',
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -22,7 +22,7 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401) {
       clearAuth();
-      window.location.href = '/401';
+      window.location.href = '/login?reason=session_expired';
     }
     if (error.response?.status === 403) {
       window.location.href = '/403';

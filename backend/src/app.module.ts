@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -10,6 +11,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { AuditContextMiddleware } from './common/middleware/audit-context.middleware';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
@@ -20,6 +22,12 @@ import { PermissionsModule } from './permissions/permissions.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -27,7 +35,7 @@ import { PermissionsModule } from './permissions/permissions.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get('JWT_EXPIRES_IN', '1d'),
+          expiresIn: configService.get('JWT_EXPIRES_IN', '15m'),
         },
       }),
     }),
@@ -53,6 +61,10 @@ import { PermissionsModule } from './permissions/permissions.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuditContextMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes('*')
+      .apply(AuditContextMiddleware)
+      .forRoutes('*');
   }
 }

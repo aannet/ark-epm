@@ -1,6 +1,9 @@
 # ARK — User Scenarios FS-01 : Auth & RBAC
 
-_Version 0.2 — Février 2026_
+_Version 0.3 — Mars 2026_
+
+> **Changelog v0.3 :** Scénario "Session expiry" ajouté avec redirect vers `/login?reason=session_expired`. 
+> Mapping table mise à jour. Le comportement de logout reste inchangé (redirect vers /login), seul le timeout JWT déclenche le paramètre reason.
 
 > **Changelog v0.2 :** Scénario "Logout clears the session" complété (appel `POST /auth/logout` explicité, bouton Sidebar précisé). Ajout du scénario "Navigating to a protected route after logout redirects to /401". Mapping table mise à jour avec les deux nouveaux tests `[Supertest]` sur `/auth/logout`. Bloc OpenCode enrichi avec les assertions logout.
 
@@ -64,11 +67,23 @@ Feature: Authentication
     And the JWT token is purged from memory
     And I am redirected to "/login"
 
-  Scenario: Navigating to a protected route after logout redirects to /401
+  Scenario: Navigating to a protected route after logout redirects to /login
     Given I have just logged out
     When I navigate to "/"
-    Then I am redirected to "/401"
+    Then I am redirected to "/login"
     And the JWT token is not present in memory
+
+  Scenario: Expired JWT token redirects to /login with session_expired reason
+    Given I am logged in with a token that has expired
+    When the application makes an authenticated API call
+    Then the interceptor purges the token from memory
+    And I am redirected to "/login?reason=session_expired"
+    And the token is no longer present in memory
+
+  Scenario: /login page displays session expired message when reason=session_expired
+    Given I navigate to "/login?reason=session_expired"
+    Then I see the login form
+    And I see a warning message "Votre session a expiré. Veuillez vous reconnecter."
 
   #
   # ── ERROR PATHS ──────────────────────────────────────────────────────────────
@@ -466,7 +481,9 @@ Feature: PrivateRoute Guard
 | Login page is accessible without authentication | `renders login page when unauthenticated` | `[Cypress]` |
 | Authenticated user is redirected away from login page | `redirects authenticated user away from /login` | `[Cypress]` |
 | Logout clears the session | `logout calls POST /auth/logout, purges token and redirects to /login` | `[Cypress]` |
-| Navigating to a protected route after logout redirects to /401 | `after logout, protected route redirects to /401` | `[Cypress]` |
+| Navigating to a protected route after logout redirects to /login | `after logout, protected route redirects to /login` | `[Cypress]` |
+| Expired JWT token redirects to /login with session_expired reason | `on expired token, redirects to /login?reason=session_expired` | `[Cypress]` |
+| /login page displays session expired message when reason=session_expired | `displays session expired warning on login page` | `[Cypress]` |
 | POST /auth/logout with valid token returns 204 | — | `[Supertest]` |
 | POST /auth/logout without token returns 401 | — | `[Supertest]` |
 | Login with an unknown email shows an inline error | `shows inline error on unknown email` | `[Cypress]` |
@@ -527,11 +544,13 @@ Generate Cypress tests in cypress/e2e/login.cy.ts and cypress/e2e/users.cy.ts us
 
 Key assertions to enforce:
 - Login success: assert JWT token in memory (not in localStorage/sessionStorage), redirect to "/"
-- Logout: assert POST /auth/logout is called, token purged from memory, hard redirect to /login; then assert navigating to "/" redirects to /401
-- Login failure (wrong credentials, disabled account): assert inline error on LoginPage, NOT redirect to /401
-- 401 Axios interceptor: assert token is purged from memory AND window.location is /401
+- Logout: assert POST /auth/logout is called, token purged from memory, hard redirect to /login (no query param); then assert navigating to "/" redirects to /login
+- Session expiry (expired JWT): assert token is purged from memory AND window.location includes "/login?reason=session_expired"
+- Login page with session_expired: assert warning message "Votre session a expiré. Veuillez vous reconnecter." is displayed
+- Login failure (wrong credentials, disabled account): assert inline error on LoginPage, NOT redirect to /login
+- 401 Axios interceptor: assert token is purged from memory AND window.location is /login?reason=session_expired (not /401)
 - 403 Axios interceptor: assert redirect to /403 (not /401)
-- PrivateRoute (no token): assert redirect to /401, not /403
+- PrivateRoute (no token): assert redirect to /login (not /401)
 - PrivateRoute (token + missing permission): assert redirect to /403, not /401
 - User deactivation: assert isActive badge changes to "Inactive" and row is visually dimmed
 - Role deletion blocked: assert error message text matches exactly "This role is assigned to X user(s) and cannot be deleted"
