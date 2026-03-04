@@ -1,6 +1,13 @@
 # ARK — Feature Spec FS-02 : Domains
 
-_Version 0.8 — Mars 2026_
+_Version 0.9 — Mars 2026_
+
+> **Changelog v0.9 :**
+> - Correctionincohérences fonctionnelles : version header → 0.9, ajout préfixe `/api/v1/` aux paths OpenAPI
+> - NFR-MAINT-001 : responses 409 enrichies avec champ `code` explicite (`CONFLICT` pour nom dupliqué, `DEPENDENCY_CONFLICT` pour suppression bloquée)
+> - NFR-PERF-002 : clarification trade-off pagination — délibérément exclue de FS-02 pour valider le patron de référence rapidement
+> - RM-02 : ajout test case whitespace-only name (espaces uniquement)
+> - DTOs : ajout `maxLength(2000)` sur description
 
 > **Changelog v0.8 :**
 > - Ajout §11 — Revue de dette technique (gate de fin de sprint obligatoire)
@@ -56,7 +63,7 @@ _Version 0.8 — Mars 2026_
 | **Statut** | `draft` |
 | **Dépend de** | FS-01, F-02 |
 | **Estimé** | 2 jours |
-| **Version** | 0.7 |
+| **Version** | 0.9 |
 
 ---
 
@@ -70,7 +77,7 @@ FS-02 implémente la gestion complète des Domaines métier : création, lecture
 
 - Pas de droits différenciés par domaine (P2)
 - Pas de suppression en cascade — bloquée si entités liées (RM-03)
-- Pas de pagination côté serveur en P1
+- Pas de pagination côté serveur en P1 — **délibéré** : FS-02 est le module de référence simple. NFR-PERF-002 sera implémenté dans un module ultérieur (FS-03+). Ce choix simplify FS-02 pour valider le patron de référence plus rapidement.
 - Pas de recherche / filtrage avancé en P1
 
 ---
@@ -100,7 +107,7 @@ model Domain {
 ```yaml
 paths:
 
-  /domains:
+  /api/v1/domains:
     get:
       summary: Liste de tous les domaines
       tags: [Domains]
@@ -142,8 +149,26 @@ paths:
           description: Permission insuffisante
         '409':
           description: Nom de domaine déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 409
+                  code:
+                    type: string
+                    example: "CONFLICT"
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
 
-  /domains/{id}:
+  /api/v1/domains/{id}:
     get:
       summary: Détail d'un domaine
       tags: [Domains]
@@ -193,6 +218,24 @@ paths:
           description: Domaine introuvable
         '409':
           description: Nom de domaine déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 409
+                  code:
+                    type: string
+                    example: "CONFLICT"
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
 
     delete:
       summary: Supprimer un domaine
@@ -213,6 +256,24 @@ paths:
           description: Domaine introuvable
         '409':
           description: Domaine utilisé par des entités liées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 409
+                  code:
+                    type: string
+                    example: "DEPENDENCY_CONFLICT"
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
 
 components:
   schemas:
@@ -244,6 +305,7 @@ components:
         description:
           type: string
           nullable: true
+          maxLength: 2000
 
     UpdateDomainDto:
       type: object
@@ -255,15 +317,16 @@ components:
         description:
           type: string
           nullable: true
+          maxLength: 2000
 ```
 
 ---
 
 ## 4. Règles Métier Critiques ⚠️
 
-- **RM-01 — Nom unique :** Deux domaines ne peuvent pas avoir le même nom. `409 Conflict` + `"Domain name already in use"`. Intercepter l'erreur Prisma `P2002`.
+- **RM-01 — Nom unique :** Deux domaines ne peuvent pas avoir le même nom. `409 Conflict` + code `"CONFLICT"` + message `"Domain name already in use"`. Intercepter l'erreur Prisma `P2002`. Réponse conforme à NFR-MAINT-001.
 
-- **RM-02 — Nom non vide :** `name` obligatoire, non vide, non uniquement espaces. `@IsNotEmpty()`.
+- **RM-02 — Nom non vide :** `name` obligatoire, non vide, non uniquement espaces. `@IsNotEmpty()` + trim avant validation. Les espaces uniquement sont rejectés comme vide.
 
 - **RM-03 — Suppression bloquée si domaine utilisé (Option A — _count Prisma) :**
 
@@ -281,10 +344,11 @@ async remove(id: string): Promise<void> {
 
   const total = domain._count.applications + domain._count.businessCapabilities;
   if (total > 0) {
-    throw new ConflictException(
-      `Domain is used by ${domain._count.applications} application(s) ` +
-      `and ${domain._count.businessCapabilities} business capability(ies)`
-    );
+    throw new ConflictException({
+      code: 'DEPENDENCY_CONFLICT',
+      message: `Domain is used by ${domain._count.applications} application(s) ` +
+        `and ${domain._count.businessCapabilities} business capability(ies)`
+    });
   }
   await this.prisma.domain.delete({ where: { id } });
 }
@@ -379,6 +443,7 @@ async remove(id: string): Promise<void> {
 **Erreurs :**
 - `POST /domains` nom existant → `409` + erreur inline `t('domains.form.nameDuplicate')`
 - `POST /domains` sans `name` → `400` + erreur inline `t('domains.form.nameRequired')`
+- `POST /domains` name avec uniquement des espaces → `400` + erreur inline `t('domains.form.nameRequired')`
 - `PATCH /domains/{id}` nom existant → `409` + erreur inline `t('domains.form.nameDuplicate')`
 - `DELETE /domains/{id}` 3 apps liées, 0 BC → `409` → UI affiche `format409Message(t, 3, 0)` → `t('domains.delete.blockedMessage', { apps: 3, bcs: 'no' })`
 - `DELETE /domains/{id}` 0 apps, 4 BC → `409` → UI affiche `format409Message(t, 0, 4)` → `t('domains.delete.blockedMessage', { apps: 'no', bcs: 4 })`
@@ -578,6 +643,7 @@ frontend/src/
 - [ ] `[Supertest]` `POST /domains` nom valide → `201` avec domaine créé
 - [ ] `[Supertest]` `POST /domains` nom dupliqué → `409`
 - [ ] `[Supertest]` `POST /domains` sans `name` → `400`
+- [ ] `[Supertest]` `POST /domains` name avec uniquement des espaces → `400`
 - [ ] `[Supertest]` `GET /domains/{id}` existant → `200`
 - [ ] `[Supertest]` `GET /domains/{id}` UUID inexistant → `404`
 - [ ] `[Supertest]` `PATCH /domains/{id}` description valide → `200`
@@ -613,6 +679,7 @@ frontend/src/
 **Parcours d'erreur :**
 - [ ] `[Cypress]` Créer un domaine avec nom dupliqué → erreur inline `"This domain name is already in use"`
 - [ ] `[Cypress]` Créer un domaine sans nom → erreur inline `"Name is required"`
+- [ ] `[Cypress]` Créer un domaine avec nom uniquement espaces → erreur inline `"Name is required"`
 - [ ] `[Cypress]` Modifier un domaine avec nom dupliqué → erreur inline `"This domain name is already in use"`
 - [ ] `[Cypress]` Supprimer un domaine lié à 3 apps, 0 BC → message `"...3 application(s) and no business capability(ies)..."`
 - [ ] `[Cypress]` Supprimer un domaine lié à 0 apps, 4 BC → message `"...no application(s) and 4 business capability(ies)..."`
@@ -649,7 +716,7 @@ test/
 - **Gestion erreur P2002 :** try/catch ciblé → `ConflictException`. Ne pas laisser remonter.
 - **Suppression :** Pattern `_count` avant `delete` (RM-03) — à reproduire dans tous les modules.
 - **`@RequirePermission()` :** `domains:read` sur GET, `domains:write` sur POST/PATCH/DELETE.
-- **Validation DTO :** `@IsString()`, `@IsNotEmpty()`, `@IsOptional()`, `@MaxLength(255)`.
+- **Validation DTO :** `@IsString()`, `@IsNotEmpty()`, `@IsOptional()`, `@MaxLength(255)` pour name, `@MaxLength(2000)` pour description.
 - **Pas de `updatedAt`** sur Domain.
 - **Mock Prisma dans les tests unit :** Ne pas dépendre d'une base réelle.
 - **i18n :** Toutes les strings visibles passent par `t('key')` — jamais de string en dur dans les composants. Clés `domains.*` à ajouter dans `src/i18n/locales/fr.json` en même temps que les composants (F-02 RM-03).
