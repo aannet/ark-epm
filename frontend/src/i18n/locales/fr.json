@@ -87,7 +87,8 @@
       "submitLabel": "Se connecter",
       "loadingLabel": "Connexion...",
       "invalidCredentials": "Identifiants invalides. Vérifiez votre e-mail et mot de passe.",
-      "accountDisabled": "Ce compte est désactivé. Contactez votre administrateur."
+      "accountDisabled": "Ce compte est désactivé. Contactez votre administrateur.",
+      "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter."
     }
   }
 }

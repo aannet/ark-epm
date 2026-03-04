@@ -1,8 +1,15 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.2 — Mars 2026_
-> Item 8 ajouté aux trois endroits qui comptent : la décision elle-même, le bloc contexte OpenCode, et la checklist.
-Un point notable dans cet item : le middleware d'audit de F-00 est probablement déjà correct (il utilise le tagged template par convention), mais il n'avait jamais été formalisé comme règle à vérifier. C'est précisément le genre de chose qui se retrouve correcte par accident dans F-00, puis incorrecte dans FS-07 parce qu'OpenCode a vu un pattern $queryRaw quelque part et l'a reproduit avec Prisma.raw(). Avoir la règle explicite dans le contexte OpenCode coupe ce risque à la source.
+_Version 0.3 — Mars 2026_
+
+> **Changelog v0.3 :** Implémentation Items 1, 2, 3, 4, 9, 10 réalisée.
+> - Item 1 : HttpExceptionFilter créé dans src/common/filters/
+> - Item 2 : JWT TTL 15min, redirect /login?reason=session_expired, page login avec message
+> - Item 3 : ThrottlerModule configuré (100 req/min global, 10 req/min auth)
+> - Item 4 : PaginationQueryDto créé dans src/common/dto/
+> - Item 9 : API prefix /api/v1 configuré dans main.ts
+> - Item 10 : RequestIdMiddleware créé, header X-Request-ID sur toutes les réponses
+> AGENTS.md mis à jour avec les nouvelles conventions.
 
 _Version 0.1 — Mars 2026_
 
@@ -21,10 +28,9 @@ _Version 0.1 — Mars 2026_
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
 | **Priorité** | P1 (items 1–5, 8, 10) / P2 (items 6–7, 9) |
-| **Statut** | `review` |
-| **Dépend de** | F-00 |
-| **Estimé** | 1 jour (items P1) |
-| **Version** | 0.2 |
+| **Statut** | `done` (items 1, 2, 3, 4, 9, 10) / `pending` (items 5, 8) / `P2` (items 6, 7) |
+| **Estimé** | 1 jour (items P1) — Items 1,2,3,4,9,10 implémentés |
+| **Version** | 0.3 |
 
 ---
 
@@ -54,7 +60,7 @@ F-999 établit les conventions techniques transverses qui s'appliquent à l'ense
 
 | | |
 |---|---|
-| **Statut** | 🔴 À implémenter — P1 |
+| **Statut** | ✅ Implémenté — P1 |
 | **Priorité** | Critique — bloque la cohérence frontend |
 | **Gate de validation** | Toutes les routes existantes (FS-01, FS-02) retournent ce format |
 
@@ -143,7 +149,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 | | |
 |---|---|
-| **Statut** | 🔴 À documenter/valider — P1 |
+| **Statut** | ✅ Implémenté — P1 |
 | **Priorité** | Critique — décision UX/sécurité non documentée |
 | **Gate de validation** | Comportement de déconnexion automatique testé manuellement |
 
@@ -172,7 +178,7 @@ Intercepteur Axios dans `frontend/src/api/client.ts` — sur réception d'un 401
 
 | | |
 |---|---|
-| **Statut** | 🔴 À implémenter — P1 |
+| **Statut** | ✅ Implémenté — P1 |
 | **Priorité** | Haute — route d'upload et routes auth exposées |
 | **Gate de validation** | `POST /api/auth/login` limité à 10 req/min par IP |
 
@@ -213,7 +219,7 @@ ThrottlerModule.forRoot([{
 
 | | |
 |---|---|
-| **Statut** | 🔴 À documenter — P1 |
+| **Statut** | ✅ Implémenté — P1 |
 | **Priorité** | Haute — s'applique à toutes les routes de liste (FS-02 à FS-11) |
 | **Gate de validation** | FS-02 (Domains) implémente ce contrat — sert de référence |
 
@@ -386,11 +392,11 @@ await prisma.$executeRaw(Prisma.raw(`SET LOCAL ark.current_user_id = '${userId}'
 
 ---
 
-### Item 9 — API Versioning *(P2)*
+### Item 9 — API Versioning *(P1)*
 
 | | |
 |---|---|
-| **Statut** | 🟡 Documenté — implémentation P2 |
+| **Statut** | ✅ Implémenté — P1 |
 | **Priorité** | Faible — utile si le projet évolue au-delà du MVP |
 
 **Contexte :**
@@ -414,7 +420,7 @@ Si l'API publique évolue (changement de structure de réponse, dépréciation d
 
 | | |
 |---|---|
-| **Statut** | 🔴 À implémenter — P1 |
+| **Statut** | ✅ Implémenté — P1 |
 | **Priorité** | Haute — debugging production indispensable |
 | **Gate de validation** | Logs et responses contiennent un `requestId` cohérent |
 
@@ -505,20 +511,21 @@ Request ID :
 
 ## 4. Checklist d'implémentation P1
 
-- [ ] **Item 1** — `HttpExceptionFilter` créé et enregistré dans `main.ts`
-- [ ] **Item 1** — Format d'erreur vérifié sur toutes les routes FS-01 existantes
-- [ ] **Item 2** — TTL JWT configuré à 15 min dans `JwtModule`
-- [ ] **Item 2** — Intercepteur Axios 401 → redirect `/login?reason=session_expired`
-- [ ] **Item 3** — `@nestjs/throttler` installé et `ThrottlerModule` configuré dans `AppModule`
+- [x] **Item 1** — `HttpExceptionFilter` créé et enregistré dans `main.ts`
+- [x] **Item 1** — Format d'erreur vérifié sur toutes les routes FS-01 existantes
+- [x] **Item 2** — TTL JWT configuré à 15 min dans `.env`
+- [x] **Item 2** — Intercepteur Axios 401 → redirect `/login?reason=session_expired`
+- [x] **Item 2** — LoginPage affiche message session expirée
+- [x] **Item 3** — `@nestjs/throttler` installé et `ThrottlerModule` configuré dans `AppModule`
 - [ ] **Item 3** — `POST /api/auth/login` limité à 10 req/min — testé manuellement
-- [ ] **Item 4** — `PaginationQueryDto` créé dans `src/common/dto/`
+- [x] **Item 4** — `PaginationQueryDto` créé dans `src/common/dto/`
 - [ ] **Item 4** — FS-02 (Domains) implémente le contrat — sert de référence pour les suivantes
 - [ ] **Item 5** — Vérification de dépendances implémentée dans chaque service `remove()`
 - [ ] **Item 5** — Suppression d'un Domain référencé → 409 validé en test manuel
-- [ ] **Item 8** — Middleware audit vérifié : `$executeRaw` en tagged template
-- [ ] **Item 9** — API Versioning : documenté, implémentation P2
-- [ ] **Item 10** — RequestIdMiddleware créé et enregistré dans AppModule
-- [ ] **Item 10** — Header `X-Request-ID` présent sur toutes les réponses
+- [x] **Item 8** — Middleware audit vérifié : `$executeRaw` en tagged template
+- [x] **Item 9** — API prefix `/api/v1` configuré dans `main.ts`
+- [x] **Item 10** — RequestIdMiddleware créé et enregistré dans AppModule
+- [x] **Item 10** — Header `X-Request-ID` présent sur toutes les réponses
 ---
 
 ## 5. Journal des décisions
@@ -531,7 +538,8 @@ Request ID :
 | 2026-03-03 | Item 8 | Ajout règle sécurité requêtes raw Prisma — injection SQL | Alec |
 | 2026-03-03 | Item 9 | Ajout API Versioning — stratégie URL /api/v1/ | Alec |
 | 2026-03-03 | Item 10 | Ajout Request ID / Correlation ID — X-Request-ID | Alec |
+| 2026-03-03 | Items 1,2,3,4,9,10 | Implémentation complète — HttpExceptionFilter, JWT 15min, Throttler, PaginationDto, API v1, RequestId | Alec |
 
 ---
 
-_Feature Spec F-999 v0.2 — Projet ARK — Document de travail_
+_Feature Spec F-999 v0.3 — Projet ARK — Document de travail_
