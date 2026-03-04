@@ -720,6 +720,209 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
+---
+
+## Annexe : User Scenarios (Gherkin)
+
+> Cette section contient les scénarios utilisateur détaillés pour la génération des tests Cypress.
+> Les textes UI sont en anglais pour lisibilité ; voir fr.json pour les valeurs FR exactes.
+
+### Feature: Business Domain Management
+
+```gherkin
+Feature: Business Domain Management
+  As an Enterprise Architect
+  I want to manage business domains
+  So that I can structure my organization's application portfolio
+
+  Background:
+    Given I am logged in as an Enterprise Architect
+    And I am on the "/domains" page
+
+  #
+  # ── NOMINAL PATHS ────────────────────────────────────────────────────────────
+  #
+
+  Scenario: View the domains list
+    Then I see a table listing all existing domains
+    And each row displays the domain name, description, and creation date
+    And an "Add Domain" button is visible in the page header
+
+  Scenario: View an empty domains list
+    Given no domain has been created yet
+    Then I see an empty state with the message "No domain created yet"
+    And a call-to-action button "Create your first domain" is visible
+
+  Scenario: View domains list with no pagination
+    Given 15 domains have been created
+    When I navigate to "/domains"
+    Then all 15 domains are displayed in the table
+    And no pagination control is visible
+
+  Scenario: Create a new domain
+    When I click "Add Domain"
+    Then I am redirected to "/domains/new"
+    When I fill in the name field with "Finance"
+    And I fill in the description field with "Financial and accounting domain"
+    And I click "Save"
+    Then I see a success snackbar "Domain created successfully"
+    And I am redirected to "/domains/<new-id>"
+    And the page displays the domain name "Finance"
+    And the page displays the description "Financial and accounting domain"
+
+  Scenario: Create a domain with name only (description optional)
+    When I click "Add Domain"
+    And I fill in the name field with "HR"
+    And I leave the description field empty
+    And I click "Save"
+    Then I see a success snackbar "Domain created successfully"
+    And I am redirected to "/domains/<new-id>"
+    And the page displays the domain name "HR"
+    And no description is displayed
+
+  Scenario: Cancel creating a domain
+    When I click "Add Domain"
+    And I fill in the name field with "Draft"
+    And I click "Cancel"
+    Then I am redirected to "/domains"
+    And no domain "Draft" appears in the list
+
+  Scenario: View a domain detail page
+    Given the domain "Finance" exists
+    When I click on the "Finance" row in the list
+    Then I am redirected to "/domains/<id>"
+    And the page displays the domain name "Finance"
+    And the page displays the creation date
+    And an "Edit" button is visible
+
+  Scenario: Edit an existing domain
+    Given the domain "Finance" exists
+    When I click the edit icon on the "Finance" row
+    Then I am redirected to "/domains/<id>/edit"
+    And the name field is pre-filled with "Finance"
+    When I update the description to "Finance, HR and Legal domain"
+    And I click "Save"
+    Then I see a success snackbar "Domain updated successfully"
+    And I remain on "/domains/<id>"
+    And the page displays the updated description "Finance, HR and Legal domain"
+
+  Scenario: Cancel editing a domain
+    Given the domain "Finance" exists
+    When I click the edit icon on the "Finance" row
+    And I modify the name to "Finance Modified"
+    And I click "Cancel"
+    Then I am redirected to "/domains/<id>"
+    And the page displays the domain name "Finance" unchanged
+
+  Scenario: Delete a domain with no linked entities
+    Given the domain "Sandbox" exists with no linked applications or business capabilities
+    When I click the delete icon on the "Sandbox" row
+    Then a confirmation dialog appears with the message "Are you sure you want to delete the domain 'Sandbox'?"
+    When I click "Delete" in the dialog
+    Then I see a success snackbar "Domain deleted successfully"
+    And the domain "Sandbox" no longer appears in the list
+
+  Scenario: Cancel a domain deletion
+    Given the domain "Finance" exists
+    When I click the delete icon on the "Finance" row
+    And a confirmation dialog appears
+    When I click "Cancel" in the dialog
+    Then the dialog closes
+    And the domain "Finance" remains in the list
+
+  #
+  # ── ERROR PATHS ──────────────────────────────────────────────────────────────
+  #
+
+  Scenario: Attempt to create a domain with a duplicate name
+    Given the domain "Finance" already exists
+    When I click "Add Domain"
+    And I fill in the name field with "Finance"
+    And I click "Save"
+    Then I see an inline error "This domain name is already in use"
+    And no duplicate domain is created
+    And I remain on the "/domains/new" page
+
+  Scenario: Attempt to create a domain with an empty name
+    When I click "Add Domain"
+    And I leave the name field empty
+    And I click "Save"
+    Then I see a validation error "Name is required" below the name field
+    And the form is not submitted
+
+  Scenario: Attempt to edit a domain with a duplicate name
+    Given the domains "Finance" and "IT" exist
+    When I click the edit icon on the "Finance" row
+    And I change the name to "IT"
+    And I click "Save"
+    Then I see an inline error "This domain name is already in use"
+    And I remain on the "/domains/<id>/edit" page
+    And the domain "Finance" is unchanged
+
+  Scenario: Attempt to delete a domain linked to applications only
+    Given the domain "Finance" is linked to 3 applications and 0 business capabilities
+    When I click the delete icon on the "Finance" row
+    And I confirm the deletion in the dialog
+    Then I see an error message "This domain is used by 3 application(s) and no business capability(ies) and cannot be deleted"
+    And the domain "Finance" remains in the list
+
+  Scenario: Attempt to delete a domain linked to business capabilities only
+    Given the domain "Finance" is linked to 0 applications and 4 business capabilities
+    When I click the delete icon on the "Finance" row
+    And I confirm the deletion in the dialog
+    Then I see an error message "This domain is used by no application(s) and 4 business capability(ies) and cannot be deleted"
+    And the domain "Finance" remains in the list
+
+  Scenario: Attempt to delete a domain linked to both applications and business capabilities
+    Given the domain "Finance" is linked to 2 applications and 4 business capabilities
+    When I click the delete icon on the "Finance" row
+    And I confirm the deletion in the dialog
+    Then I see an error message "This domain is used by 2 application(s) and 4 business capability(ies) and cannot be deleted"
+    And the domain "Finance" remains in the list
+
+  Scenario: Access the edit page for a non-existent domain
+    When I navigate directly to "/domains/non-existent-uuid/edit"
+    Then I am redirected to "/domains"
+
+  Scenario: Access the detail page for a non-existent domain
+    When I navigate directly to "/domains/non-existent-uuid"
+    Then I am redirected to "/domains"
+
+  #
+  # ── ACCESS CONTROL PATHS ─────────────────────────────────────────────────────
+  #
+
+  Scenario: Access the domains list without being authenticated
+    Given I am not logged in
+    When I navigate to "/domains"
+    Then I am redirected to "/401"
+
+  Scenario: Read-only user sees no write actions on the domains list
+    Given I am logged in as a read-only user via cy.loginAsReadOnly()
+    When I navigate to "/domains"
+    Then the "Add Domain" button is not visible
+    And no edit icon is visible on any domain row
+    And no delete icon is visible on any domain row
+
+  Scenario: Read-only user sees no edit button on the domain detail page
+    Given I am logged in as a read-only user via cy.loginAsReadOnly()
+    And the domain "Finance" exists
+    When I navigate to "/domains/<id>"
+    Then the "Edit" button is not visible
+
+  Scenario: Read-only user navigates directly to the new domain page
+    Given I am logged in as a read-only user via cy.loginAsReadOnly()
+    When I navigate directly to "/domains/new"
+    Then I am redirected to "/403"
+
+  Scenario: Read-only user navigates directly to the edit domain page
+    Given I am logged in as a read-only user via cy.loginAsReadOnly()
+    When I navigate directly to "/domains/<id>/edit"
+    Then I am redirected to "/403"
+```
+
+---
+
 _Feature Spec FS-02 v0.7 — Projet ARK — Module de référence — Document de travail_
 
 > **Probabilité que cette spec couvre l'intégralité des besoins Domains P1 sans ajustement majeur : ~94%.** Points d'incertitude résiduels : (1) parsing du message 409 backend pour extraire les compteurs — envisager d'enrichir la ConflictException avec un champ `details` structuré si le parsing s'avère fragile ; (2) l'interface exacte de `@RequirePermission()` dépend de FS-01 — vérifier avant de lancer OpenCode.

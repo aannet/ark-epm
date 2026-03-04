@@ -128,7 +128,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docs/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./docs/04-Tech/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "5432:5432"
     healthcheck:
@@ -267,9 +267,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
 ### RM-04 : `schema.prisma` P1 complet dès F-00
 
-Le `schema.prisma` doit refléter **l'intégralité** du schéma P1 défini dans `docs/schema.sql` v0.4. Ne pas le fragmenter feature par feature — Prisma est la source de vérité TypeScript unique. Les migrations sont générées par `prisma migrate dev`.
+Le `schema.prisma` doit refléter **l'intégralité** du schéma P1 défini dans `docs/04-Tech/schema.sql` v0.4. Ne pas le fragmenter feature par feature — Prisma est la source de vérité TypeScript unique. Les migrations sont générées par `prisma migrate dev`.
 
-> ⚠️ Les triggers d'audit définis dans `schema.sql` sont **hors périmètre Prisma**. Ils sont appliqués via le volume Docker `./docs/schema.sql:/docker-entrypoint-initdb.d/schema.sql` au premier démarrage de PostgreSQL.
+> ⚠️ Les triggers d'audit définis dans `schema.sql` sont **hors périmètre Prisma**. Ils sont appliqués via le volume Docker `./docs/04-Tech/schema.sql:/docker-entrypoint-initdb.d/schema.sql` au premier démarrage de PostgreSQL.
 
 ### RM-05 : Jamais de `prisma migrate dev` sans relire la migration générée
 

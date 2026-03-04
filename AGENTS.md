@@ -131,7 +131,7 @@ this.logger.log({ method: 'createApp', userId, result: id });
 1. **Never commit secrets** - Use `.env`, add to `.gitignore`
 2. **Always use UUIDs** - `gen_random_uuid()` for primary keys
 3. **Audit trail** - Handled by PostgreSQL triggers, not app code
-4. **API contracts** - Define in `docs/openapi.yaml` before coding
+4. **API contracts** - Define in `docs/04-Tech/openapi.yaml` before coding
 5. **Prisma schema** - Source of truth for TypeScript types
 6. **No external integrations** in MVP (keep dependencies minimal)
 7. **Never hard-delete users** - Always soft delete via `isActive = false`
@@ -193,14 +193,14 @@ Format: `<resource>:<action>`. All P1 permissions are seeded at startup via `pri
 
 ## Design System — ARK UI (NON-NÉGOCIABLE)
 
-> Source de vérité : `ARK - Design charte express v0.1` + `ARK - UI Kit v0.1` + `docs/PRD-FS/F01-Design System-UI Foundation.md`
+> Source de vérité : `docs/02-Design/00-UI-Kit.md` + `docs/03-Features-Spec/F01-Design-System.md`
 > Injecter ce bloc dans chaque session OpenCode frontend.
 
 ---
 
 ## F01-Design System & UI Foundation
 
-> **Source :** `docs/PRD-FS/F01-Design System-UI Foundation.md` (v0.2)
+> **Source :** `docs/03-Features-Spec/F01-Design-System.md` (v0.2)
 > Ce bloc doit être injecté en début de **chaque** session OpenCode frontend pour les sprints suivants.
 
 ### Composants disponibles
@@ -312,7 +312,7 @@ Formulaire partagé entre New et Edit via composant `<Entité>Form` avec prop `i
 
 ## F02-i18n Foundation
 
-> **Source :** `docs/PRD-FS/F02-i18n-foundation.md` (v0.1)
+> **Source :** `docs/03-Features-Spec/F02-i18n.md` (v0.1)
 > Ce bloc doit être injecté en début de **chaque** session OpenCode frontend pour les sprints suivants.
 > **Convention NON-NÉGOCIABLE** — toute string visible en dur est refusée en code review.
 
