@@ -1,6 +1,11 @@
 # ARK — Feature Spec FS-02 : Domains
 
-_Version 0.7 — Mars 2026_
+_Version 0.8 — Mars 2026_
+
+> **Changelog v0.8 :**
+> - Ajout §11 — Revue de dette technique (gate de fin de sprint obligatoire)
+> - 6 gates TD adaptées au contexte FS-02 (patron de référence, Item 5 F-999, permissions `domains:*`)
+> - Note spécifique : tolérance zéro sur TD-1 à TD-4 car FS-02 propage ses patterns vers FS-03 → FS-11
 
 > **Changelog v0.7 :**
 > - Dépendance F-02 (i18n Foundation) ajoutée dans l'en-tête
@@ -720,6 +725,38 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
+## 11. Revue de dette technique *(gate de fin de sprint — obligatoire)* ⚠️
+
+> À remplir **après** implémentation, avant de clore le sprint. Bloquant : FS-02 n'est `done` que si cette section est complétée et consignée dans F-999 §6.
+
+### Gates TD
+
+| # | Vérification | Commande / Action |
+|---|---|---|
+| TD-1 | Aucun `TODO / FIXME / HACK` non tracé dans le code livré de ce sprint | `git grep -n "TODO\|FIXME\|HACK" -- '*.ts' '*.tsx'` |
+| TD-2 | Items F-999 activés par FS-02 mis à jour — en particulier **Item 5** (politique de suppression, `409 DEPENDENCY_CONFLICT`) | F-999 §2 Item 5 |
+| TD-3 | Checklist F-999 §4 cochée : Item 4 (`PaginationQueryDto` — FS-02 sert de référence), Item 5 (`remove()` avec `_count`) | F-999 §4 |
+| TD-4 | AGENTS.md : pattern `_count` avant suppression documenté comme patron de référence | Relire AGENTS.md |
+| TD-5 | ARK-NFR.md : NFR impactés mis à jour — notamment `NFR-SEC-004` (RBAC, nouvelles permissions `domains:*`) | ARK-NFR.md |
+| TD-6 | Nouvelles décisions transverses émergées pendant l'implémentation → Item F-999 créé si applicable | Jugement |
+
+> **Note FS-02 spécifique :** ce sprint valide le patron de référence pour tous les modules suivants. Une anomalie non corrigée ici se propage à FS-03 → FS-11. Tolérance zéro sur TD-1 à TD-4.
+
+### Résultat de la revue
+
+| Champ | Valeur |
+|---|---|
+| **Sprint** | *(ex : Sprint 2)* |
+| **Date de revue** | *(date)* |
+| **Items F-999 fermés** | *(ex : Item 4 — FS-02 implémente le contrat de référence pagination ; Item 5 — `_count` + 409 validés)* |
+| **Items F-999 ouverts** | *(ex : Item 8 — reste pending)* |
+| **Nouveaux items F-999 créés** | *(ex : aucun)* |
+| **NFR mis à jour** | *(ex : NFR-SEC-004 → covered ; NFR-PERF-001 → partial)* |
+| **TODOs résiduels tracés** | *(ex : aucun)* |
+| **Statut gates TD** | ✅ TD-1 / ✅ TD-2 / ✅ TD-3 / ✅ TD-4 / ✅ TD-5 / ✅ TD-6 |
+
+---
+
 ---
 
 ## Annexe : User Scenarios (Gherkin)
@@ -923,6 +960,6 @@ Feature: Business Domain Management
 
 ---
 
-_Feature Spec FS-02 v0.7 — Projet ARK — Module de référence — Document de travail_
+_Feature Spec FS-02 v0.8 — Projet ARK — Module de référence — Document de travail_
 
 > **Probabilité que cette spec couvre l'intégralité des besoins Domains P1 sans ajustement majeur : ~94%.** Points d'incertitude résiduels : (1) parsing du message 409 backend pour extraire les compteurs — envisager d'enrichir la ConflictException avec un champ `details` structuré si le parsing s'avère fragile ; (2) l'interface exacte de `@RequirePermission()` dépend de FS-01 — vérifier avant de lancer OpenCode.
