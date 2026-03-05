@@ -2,8 +2,11 @@
 
 _Version 0.9 — Mars 2026_
 
-> **Changelog v0.9 :**
-> - Correctionincohérences fonctionnelles : version header → 0.9, ajout préfixe `/api/v1/` aux paths OpenAPI
+> **Changelog v0.10 :**
+> - RM-08 : ajout tri des colonnes côté client sur DomainsListPage (name, description, createdAt)
+> - Gherkin : ajout scénarios de test pour le tri des colonnes
+
+
 > - NFR-MAINT-001 : responses 409 enrichies avec champ `code` explicite (`CONFLICT` pour nom dupliqué, `DEPENDENCY_CONFLICT` pour suppression bloquée)
 > - NFR-PERF-002 : clarification trade-off pagination — délibérément exclue de FS-02 pour valider le patron de référence rapidement
 > - RM-02 : ajout test case whitespace-only name (espaces uniquement)
@@ -63,7 +66,7 @@ _Version 0.9 — Mars 2026_
 | **Statut** | `in-progress` |
 | **Dépend de** | FS-01, F-02 |
 | **Estimé** | 2 jours |
-| **Version** | 0.9 |
+| **Version** | 0.10 |
 
 ---
 
@@ -421,6 +424,38 @@ async remove(id: string): Promise<void> {
 
   > Le parsing du message backend est fragile. Alternative plus robuste : enrichir la `ConflictException` backend avec un champ `details: { applications: number, businessCapabilities: number }` dans le corps de la réponse 409 — à considérer si le parsing devient un problème.
 
+- **RM-08 — Tri des colonnes côté client :** ⚠️ *Nouveau v0.10*
+
+  Les colonnes du tableau DomainsListPage sont triables côté client. Par défaut, le tri est effectué par `name` en ordre ascendant. Click sur un en-tête de colonne inverse le sens du tri si la même colonne est sélectionnée, sinon trie par la nouvelle colonne en ordre ascendant.
+
+  ```typescript
+  type SortField = 'name' | 'description' | 'createdAt';
+  type SortOrder = 'asc' | 'desc';
+
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  // MUI TableSortLabel
+  <TableSortLabel
+    active={sortField === 'name'}
+    direction={sortField === 'name' ? sortOrder : 'asc'}
+    onClick={() => handleSort('name')}
+  >
+    {t('domains.list.columns.name')}
+  </TableSortLabel>
+  ```
+
+  Le tri est implémenté via `useMemo` côté client sur le tableau des domaines reçus depuis l'API.
+
 ---
 
 ## 5. Comportement Attendu par Cas d'Usage
@@ -547,6 +582,8 @@ frontend/src/
 ```
 
 **Comportements UX :**
+- `DomainsListPage` : tri des colonnes (name, description, createdAt) via MUI TableSortLabel, tri client (RM-08)
+- `DomainsListPage` : tri par défaut sur `name` en ordre ascendant
 - `DomainsListPage` : clic sur une ligne → navigate(`/domains/${row.id}`)
 - `DomainsListPage` : MUI Dialog de confirmation avant suppression avec message `t('domains.delete.confirmMessage', { name })`
 - `DomainsListPage` : message 409 affiché via `format409Message(t, appCount, bcCount)` (RM-07) si suppression bloquée
@@ -666,6 +703,9 @@ frontend/src/
 - [ ] `[Cypress]` `DomainsListPage` affiche la liste après login
 - [ ] `[Cypress]` `DomainsListPage` affiche l'empty state si aucun domaine
 - [ ] `[Cypress]` `DomainsListPage` affiche 15 domaines sans contrôle de pagination
+- [ ] `[Cypress]` Tri par défaut sur `name` ascendant — domaines affichés dans l'ordre alphabétique
+- [ ] `[Cypress]` Clic sur en-tête `Name` inverse le tri (desc) — domaines affichés dans l'ordre alphabétique inverse
+- [ ] `[Cypress]` Clic sur en-tête `Created` trie par date croissante
 - [ ] `[Cypress]` Clic sur une ligne → redirect vers `/domains/:id`
 - [ ] `[Cypress]` `DomainDetailPage` affiche nom, description et date de création
 - [ ] `[Cypress]` Créer un domaine → redirect vers `/domains/<new-id>`, nom affiché sur la page
@@ -862,6 +902,24 @@ Feature: Business Domain Management
     When I navigate to "/domains"
     Then all 15 domains are displayed in the table
     And no pagination control is visible
+
+  Scenario: Default sorting is by name ascending
+    Given the domains "Zebra", "Apple", "Banana" exist
+    When I navigate to "/domains"
+    Then the domains are displayed in order "Apple", "Banana", "Zebra"
+
+  Scenario: Sort domains by name descending
+    Given the domains "Zebra", "Apple", "Banana" exist
+    When I navigate to "/domains"
+    And I click the "Name" column header
+    And I click the "Name" column header again
+    Then the domains are displayed in order "Zebra", "Banana", "Apple"
+
+  Scenario: Sort domains by creation date
+    Given the domains "First" (created yesterday) and "Second" (created today) exist
+    When I navigate to "/domains"
+    And I click the "Created" column header
+    Then the domains are displayed in order "Second", "First"
 
   Scenario: Create a new domain
     When I click "Add Domain"

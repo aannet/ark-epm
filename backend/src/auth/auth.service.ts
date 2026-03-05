@@ -48,6 +48,10 @@ export class AuthService {
           name: user.role.name,
           description: user.role.description,
           createdAt: user.role.createdAt,
+          permissions: user.role.rolePermissions?.map((rp: any) => ({
+            name: rp.permission.name,
+            description: rp.permission.description,
+          })) || [],
         } : null,
         createdAt: user.createdAt,
       },

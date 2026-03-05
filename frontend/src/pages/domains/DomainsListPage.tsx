@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,6 +24,9 @@ import { useDomains, useDeleteDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { Domain } from '@/types/domain';
 
+type SortField = 'name' | 'description' | 'createdAt';
+type SortOrder = 'asc' | 'desc';
+
 export default function DomainsListPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -32,7 +35,35 @@ export default function DomainsListPage(): JSX.Element {
   const { data: domains, isLoading, error } = useDomains();
   const deleteDomain = useDeleteDomain();
 
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [deleteDialog, setDeleteDialog] = useState<Domain | null>(null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedDomains = useMemo(() => {
+    if (!domains) return [];
+    return [...domains].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortField === 'description') {
+        const descA = a.description || '';
+        const descB = b.description || '';
+        comparison = descA.localeCompare(descB);
+      } else if (sortField === 'createdAt') {
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [domains, sortField, sortOrder]);
 
   const handleDeleteClick = (domain: Domain) => {
     setDeleteDialog(domain);
@@ -73,7 +104,7 @@ export default function DomainsListPage(): JSX.Element {
     );
   }
 
-  const isEmpty = !domains || domains.length === 0;
+  const isEmpty = !sortedDomains || sortedDomains.length === 0;
 
   return (
     <PageContainer>
@@ -114,12 +145,32 @@ export default function DomainsListPage(): JSX.Element {
             <TableHead>
               <TableRow sx={{ bgcolor: '#F1F5F9' }}>
                 <TableCell>
-                  <TableSortLabel active direction="asc">
+                  <TableSortLabel
+                    active={sortField === 'name'}
+                    direction={sortField === 'name' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('name')}
+                  >
                     {t('domains.list.columns.name')}
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>{t('domains.list.columns.description')}</TableCell>
-                <TableCell>{t('domains.list.columns.createdAt')}</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'description'}
+                    direction={sortField === 'description' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('description')}
+                  >
+                    {t('domains.list.columns.description')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'createdAt'}
+                    direction={sortField === 'createdAt' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('createdAt')}
+                  >
+                    {t('domains.list.columns.createdAt')}
+                  </TableSortLabel>
+                </TableCell>
                 {canWrite && (
                   <TableCell align="right">
                     {t('domains.list.columns.actions')}
@@ -128,7 +179,7 @@ export default function DomainsListPage(): JSX.Element {
               </TableRow>
             </TableHead>
             <TableBody>
-              {domains.map((domain) => (
+              {sortedDomains.map((domain) => (
                 <TableRow
                   key={domain.id}
                   hover
