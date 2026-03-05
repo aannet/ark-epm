@@ -60,7 +60,7 @@ _Version 0.9 — Mars 2026_
 | **ID** | FS-02 |
 | **Titre** | Domains — CRUD complet backend + pages liste/détail/new/edit React |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | `in-progress` |
 | **Dépend de** | FS-01, F-02 |
 | **Estimé** | 2 jours |
 | **Version** | 0.9 |
