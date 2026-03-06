@@ -90,5 +90,49 @@
       "accountDisabled": "Ce compte est désactivé. Contactez votre administrateur.",
       "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter."
     }
+  },
+
+  "domains": {
+    "list": {
+      "title": "Domaines",
+      "subtitle": "Gestion des domaines métier",
+      "addButton": "Ajouter un domaine",
+      "columns": {
+        "name": "Nom",
+        "description": "Description",
+        "createdAt": "Créé le",
+        "actions": "Actions"
+      },
+      "emptyState": {
+        "title": "Aucun domaine créé",
+        "description": "Commencez par créer votre premier domaine.",
+        "cta": "Créer votre premier domaine"
+      }
+    },
+    "detail": {
+      "noDescription": "—",
+      "editButton": "Modifier",
+      "backButton": "Retour"
+    },
+    "form": {
+      "createTitle": "Nouveau domaine",
+      "editTitle": "Modifier le domaine",
+      "nameLabel": "Nom",
+      "descriptionLabel": "Description",
+      "saveButton": "Enregistrer",
+      "cancelButton": "Annuler",
+      "nameRequired": "Le nom est obligatoire",
+      "nameDuplicate": "Ce nom de domaine est déjà utilisé"
+    },
+    "delete": {
+      "confirmTitle": "Supprimer le domaine",
+      "confirmMessage": "Êtes-vous sûr de vouloir supprimer le domaine \"{{name}}\" ?",
+      "blockedMessage": "Ce domaine est utilisé par {{apps}} application(s) et {{bcs}} capacité(s) métier et ne peut pas être supprimé"
+    },
+    "snackbar": {
+      "created": "Domaine créé avec succès",
+      "updated": "Domaine mis à jour avec succès",
+      "deleted": "Domaine supprimé avec succès"
+    }
   }
 }

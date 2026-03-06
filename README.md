@@ -21,6 +21,13 @@ docker-compose up -d
 # - Database: localhost:5432
 ```
 
+> **⚠️ WARNING**: Never run `docker-compose down -v` in development — this destroys 
+> the database volume and all data. If you accidentally do this, you must re-run 
+> the seed to recreate the admin user:
+> ```bash
+> docker exec ark-epm_backend_1 npx ts-node prisma/seed.ts
+> ```
+
 ### Local Development
 
 ```bash

@@ -13,3 +13,221 @@ paths:
       responses:
         '200':
           description: OK
+
+  /api/v1/domains:
+    get:
+      summary: Liste de tous les domaines
+      tags: [Domains]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DomainResponse'
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer un domaine
+      tags: [Domains]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDomainDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '409':
+          description: Nom de domaine déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 409
+                  code:
+                    type: string
+                    example: "CONFLICT"
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
+
+  /api/v1/domains/{id}:
+    get:
+      summary: Détail d'un domaine
+      tags: [Domains]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainResponse'
+        '404':
+          description: Domaine introuvable
+
+    patch:
+      summary: Modifier un domaine
+      tags: [Domains]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDomainDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainResponse'
+        '404':
+          description: Domaine introuvable
+        '409':
+          description: Nom de domaine déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 409
+                  code:
+                    type: string
+                    example: "CONFLICT"
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
+
+    delete:
+      summary: Supprimer un domaine
+      tags: [Domains]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Domaine supprimé
+        '404':
+          description: Domaine introuvable
+        '409':
+          description: Domaine utilisé par des entités liées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 409
+                  code:
+                    type: string
+                    example: "DEPENDENCY_CONFLICT"
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
+
+components:
+  schemas:
+
+    DomainResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateDomainDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Finance"
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+
+    UpdateDomainDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AppShell } from '@/components/layout';
 import NotFoundPage from '@/pages/NotFoundPage';
 import DesignSystemPage from '@/pages/DesignSystemPage';
@@ -9,6 +9,10 @@ import PrivateRoute from '@/components/PrivateRoute';
 import { initializeAuth, clearAuth } from '@/store/auth';
 import { logout } from '@/api/auth';
 import { useEffect } from 'react';
+import DomainsListPage from '@/pages/domains/DomainsListPage';
+import DomainNewPage from '@/pages/domains/DomainNewPage';
+import DomainDetailPage from '@/pages/domains/DomainDetailPage';
+import DomainEditPage from '@/pages/domains/DomainEditPage';
 
 function App(): JSX.Element {
   useEffect(() => {
@@ -42,7 +46,17 @@ function App(): JSX.Element {
             <Route path="data-objects/*" element={<div />} />
             <Route path="it-components/*" element={<div />} />
             <Route path="providers/*" element={<div />} />
-            <Route path="domains/*" element={<div />} />
+            <Route path="domains" element={<Outlet />}>
+              <Route index element={<DomainsListPage />} />
+              <Route path=":id" element={<DomainDetailPage />} />
+            </Route>
+          </Route>
+        </Route>
+
+        <Route element={<PrivateRoute permission="domains:write" />}>
+          <Route path="/domains">
+            <Route path="new" element={<DomainNewPage />} />
+            <Route path=":id/edit" element={<DomainEditPage />} />
           </Route>
         </Route>
 

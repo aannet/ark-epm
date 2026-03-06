@@ -41,6 +41,10 @@ npm run preview       # preview production build
 docker-compose up -d          # start all services
 docker-compose up -d --build  # rebuild
 docker-compose down           # stop
+
+> **⚠️ WARNING**: Never run `docker-compose down -v` — this destroys the database 
+> and requires manually re-running the seed:
+> `docker exec ark-epm_backend_1 npx ts-node prisma/seed.ts`
 ```
 
 ---

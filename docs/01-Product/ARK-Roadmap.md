@@ -2,7 +2,9 @@
 
 _Version 0.6 — Mars 2026_
 
-> **Changelog v0.6 :** Correction statuts — tâches 0.8 (POC React Flow) et 0.9 (WITH RECURSIVE) remises à `à faire`. Repositionnées pendant Sprint 2. Checklist pré-lancement corrigée en conséquence.
+> **Changelog v0.7 :** Correction statuts — tâches 0.8 (POC React Flow) et 0.9 (WITH RECURSIVE) remises à `à faire`. Repositionnées pendant Sprint 2. Checklist pré-lancement corrigée en conséquence.
+
+> **Changelog v0.7b :** FS-02 démarré — statut `draft` → `in-progress`
 
 > **Changelog v0.5 :** Ajout de F-02 (i18n Foundation) dans la section Fondation. Statuts F-00, F-01, FS-01 passés à `done`. Dépendance F-02 ajoutée sur toutes les Feature-Specs frontend Sprint 2+.
 
@@ -67,7 +69,7 @@ _Version 0.6 — Mars 2026_
 
 | ID | Feature | Dépend de | Statut | Estimé |
 |---|---|---|---|---|
-| FS-02 | **Domains** — CRUD complet backend + écran liste/détail React | FS-01, F-02 | `draft` | 1.5j |
+| FS-02 | **Domains** — CRUD complet backend + écran liste/détail React | FS-01, F-02 | `in-progress` | 1.5j |
 | FS-03 | **Providers** — CRUD complet backend + écran liste/détail React | FS-01, F-02 | `draft` | 1j |
 | FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écran | FS-01, F-02 | `draft` | 1.5j |
 | FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écran | FS-01, F-02 | `draft` | 1.5j |
