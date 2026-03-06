@@ -1,6 +1,6 @@
 # ARK — Feature Spec FS-02-BACK : Domains (Backend)
 
-_Version 1.1 — Mars 2026_
+_Version 1.2 — Mars 2026_
 
 > **Changelog v1.1 :**
 > - Statut `pending` → `draft` (alignement nomenclature ARK)
@@ -9,6 +9,11 @@ _Version 1.1 — Mars 2026_
 > - Gate §9 nettoyée — suppression de F-02, suppression des doublons avec §10 (correctif A4)
 > - Checklist §10 recentrée sur la validation post-session uniquement (correctif A4)
 > - Ajout gate de déblocage FS-02-FRONT explicite en fin de §9
+>
+> **Changelog v1.2 (Review 2026-03-07) :**
+> - Statut `draft` → `done` après audit d'implémentation
+> - UpdateDomainDto: ajout `@Transform` + `@IsNotEmpty()` pour conformité RM-02
+> - Tests e2e: ajout 3 scénarios DELETE avec dépendances (applications, BC, les deux)
 
 ---
 
@@ -19,11 +24,11 @@ _Version 1.1 — Mars 2026_
 | **ID** | FS-02-BACK |
 | **Titre** | Domains — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | `done` |
 | **Dépend de** | FS-01 |
 | **Spec mère** | FS-02 Domains v0.10 |
 | **Estimé** | 1 jour |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 
 ---
 
@@ -424,4 +429,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_FS-02-BACK v1.1 — ARK_
+_FS-02-BACK v1.2 — ARK_
