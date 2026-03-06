@@ -161,5 +161,75 @@ describe('DomainsController (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(204);
     });
+
+    it('should return 409 when applications are linked', async () => {
+      const domain = await request(app.getHttpServer())
+        .post('/domains')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `Domain With App ${Date.now()}` })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/applications')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `App for Domain ${Date.now()}`, domainId: domain.body.id })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/domains/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(409);
+      expect(response.body.code).toBe('DEPENDENCY_CONFLICT');
+      expect(response.body.message).toContain('application(s)');
+    });
+
+    it('should return 409 when business capabilities are linked', async () => {
+      const domain = await request(app.getHttpServer())
+        .post('/domains')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `Domain With BC ${Date.now()}` })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/business-capabilities')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `BC for Domain ${Date.now()}`, domainId: domain.body.id, level: 1 })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/domains/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(409);
+      expect(response.body.code).toBe('DEPENDENCY_CONFLICT');
+      expect(response.body.message).toContain('business capability(ies)');
+    });
+
+    it('should return 409 with both apps and business capabilities linked', async () => {
+      const domain = await request(app.getHttpServer())
+        .post('/domains')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `Domain With Both ${Date.now()}` })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/applications')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `App for Both ${Date.now()}`, domainId: domain.body.id })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/business-capabilities')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `BC for Both ${Date.now()}`, domainId: domain.body.id, level: 1 })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/domains/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(409);
+      expect(response.body.code).toBe('DEPENDENCY_CONFLICT');
+      expect(response.body.message).toContain('application(s)');
+      expect(response.body.message).toContain('business capability(ies)');
+    });
   });
 });
