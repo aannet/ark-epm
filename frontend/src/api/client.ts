@@ -21,8 +21,13 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      clearAuth();
-      window.location.href = '/login?reason=session_expired';
+      const token = getToken();
+      if (token) {
+        clearAuth();
+        window.location.href = '/login?reason=session_expired';
+      } else {
+        window.location.href = '/401';
+      }
     }
     if (error.response?.status === 403) {
       window.location.href = '/403';
