@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import client from './client';
 import { Domain, DomainFormValues } from '@/types/domain';
+import { queryClient } from '@/queryClient';
 
 export function useDomains() {
   return useQuery({
@@ -45,6 +46,9 @@ export function useDeleteDomain() {
   return useMutation({
     mutationFn: async (id: string) => {
       await client.delete(`/domains/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['domains'] });
     },
   });
 }
