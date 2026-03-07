@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Table,
@@ -20,16 +20,24 @@ import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import ArkAlert from '@/components/shared/ArkAlert';
 import { useDomains, useDeleteDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { Domain } from '@/types/domain';
+import { format409Message } from '@/utils/domain.utils';
 
 type SortField = 'name' | 'description' | 'createdAt';
 type SortOrder = 'asc' | 'desc';
 
+interface AlertState {
+  severity: 'success' | 'error';
+  message: string;
+}
+
 export default function DomainsListPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const canWrite = hasPermission('domains:write');
 
   const { data: domains, isLoading, error } = useDomains();
@@ -38,6 +46,14 @@ export default function DomainsListPage(): JSX.Element {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [deleteDialog, setDeleteDialog] = useState<Domain | null>(null);
+  const [alert, setAlert] = useState<AlertState | null>(null);
+
+  useEffect(() => {
+    if (location.state?.alert) {
+      setAlert(location.state.alert);
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -57,6 +73,8 @@ export default function DomainsListPage(): JSX.Element {
       } else if (sortField === 'description') {
         const descA = a.description || '';
         const descB = b.description || '';
+        if (descA === '' && descB !== '') return 1;
+        if (descA !== '' && descB === '') return -1;
         comparison = descA.localeCompare(descB);
       } else if (sortField === 'createdAt') {
         comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -74,8 +92,25 @@ export default function DomainsListPage(): JSX.Element {
     try {
       await deleteDomain.mutateAsync(deleteDialog.id);
       setDeleteDialog(null);
-    } catch (err) {
-      // Error handled by query
+      navigate('/domains', {
+        state: {
+          alert: { severity: 'success', message: t('domains.alert.deleted') },
+        },
+      });
+      setAlert({ severity: 'success', message: t('domains.alert.deleted') });
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const code = err?.response?.data?.code;
+      if (status === 409 && code === 'DEPENDENCY_CONFLICT') {
+        const appCount = err?.response?.data?.applicationsCount ?? 0;
+        const bcCount = err?.response?.data?.businessCapabilitiesCount ?? 0;
+        setDeleteDialog({
+          ...deleteDialog,
+          name: format409Message(t, appCount, bcCount),
+        } as Domain);
+      } else if (status && status >= 500) {
+        setAlert({ severity: 'error', message: t('domains.alert.errors.serverError') });
+      }
     }
   };
 
@@ -105,6 +140,7 @@ export default function DomainsListPage(): JSX.Element {
   }
 
   const isEmpty = !sortedDomains || sortedDomains.length === 0;
+  const isDependencyConflict = deleteDialog && !deleteDialog.createdAt;
 
   return (
     <PageContainer>
@@ -120,6 +156,14 @@ export default function DomainsListPage(): JSX.Element {
               }
             : undefined
         }
+      />
+
+      <ArkAlert
+        open={!!alert}
+        severity={alert?.severity ?? 'success'}
+        message={alert?.message ?? ''}
+        autoDismiss={5000}
+        onClose={() => setAlert(null)}
       />
 
       {isEmpty ? (
@@ -223,14 +267,16 @@ export default function DomainsListPage(): JSX.Element {
       <ConfirmDialog
         open={!!deleteDialog}
         title={t('domains.delete.confirmTitle')}
-        message={t('domains.delete.confirmMessage', {
-          name: deleteDialog?.name,
-        })}
-        confirmLabel={t('common.confirmDialog.confirmLabel')}
+        message={isDependencyConflict 
+          ? (deleteDialog?.name || '') 
+          : t('domains.delete.confirmMessage', { name: deleteDialog?.name })
+        }
+        confirmLabel={isDependencyConflict ? undefined : t('common.confirmDialog.confirmLabel')}
         cancelLabel={t('common.confirmDialog.cancelLabel')}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={isDependencyConflict ? () => {} : handleDeleteConfirm}
         onCancel={() => setDeleteDialog(null)}
         isLoading={deleteDomain.isPending}
+        severity={isDependencyConflict ? 'error' : undefined}
       />
     </PageContainer>
   );

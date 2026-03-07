@@ -129,10 +129,15 @@
       "confirmMessage": "Êtes-vous sûr de vouloir supprimer le domaine \"{{name}}\" ?",
       "blockedMessage": "Ce domaine est utilisé par {{apps}} application(s) et {{bcs}} capacité(s) métier et ne peut pas être supprimé"
     },
-    "snackbar": {
+    "alert": {
       "created": "Domaine créé avec succès",
       "updated": "Domaine mis à jour avec succès",
-      "deleted": "Domaine supprimé avec succès"
+      "deleted": "Domaine supprimé avec succès",
+      "errors": {
+        "serverError": "Une erreur serveur est survenue. Veuillez réessayer.",
+        "notFound": "Ce domaine n'existe plus.",
+        "unknown": "Une erreur inattendue est survenue."
+      }
     }
   }
 }

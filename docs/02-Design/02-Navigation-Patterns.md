@@ -1,6 +1,12 @@
 # ARK — Navigation Patterns
 
-_Versions combinées — Mars 2026_
+_Version 0.3 — Mars 2026_
+
+> **Changelog v0.3 :**
+> - **PNS-03** corrigé : après une création réussie, navigation vers la **fiche détail du nouvel objet** (+ `ArkAlert success`) — abandonne le pattern "retour liste + highlight"
+> - **PNS-02** : "snackbar d'erreur" remplacé par `ArkAlert` (terminologie harmonisée avec `00-UI-Kit.md §7`)
+> - **Flow A, B, C** mis à jour : feedback `ArkAlert` ajouté sur chaque action CUD réussie
+> - **PNS-10** ajouté : règle transverse de feedback utilisateur (synthèse des règles `ArkAlert` pour injection OpenCode)
 
 > Ce document combine :
 > - `ARK-Navigation-Principes-Communs.md` (règles transverses)
@@ -26,6 +32,8 @@ Les filtres actifs en vue liste se propagent à la vue avancée.
 | Providers | Table avec filtres | — |
 | Domains | Table avec filtres | — |
 
+---
+
 ### PNS-02 — Pattern de consultation et d'édition rapide (Side Drawer)
 
 Cliquer sur une ligne d'une liste ouvre un **Side Drawer** à droite. **Tout objet possède un drawer**, a minima avec son nom et ses champs simples, et un lien "Voir la fiche complète" vers la Full Page.
@@ -33,14 +41,16 @@ Cliquer sur une ligne d'une liste ouvre un **Side Drawer** à droite. **Tout obj
 **Règle fonctionnelle critique :** pour qu'une sauvegarde depuis le drawer soit valide, aucun champ obligatoire ne doit manquer dans le drawer. Les champs structurels (relations n:n, hiérarchie) ne sont jamais modifiables depuis le drawer — ils passent par la Full Page.
 
 **Contenu standard du drawer :**
-- Avatar + nom de l'Owner (si applicable à l'objet) — affiché en lecture seule en haut du drawer
+- Avatar + nom de l'Owner (si applicable) — affiché en lecture seule en haut du drawer
 - Champs simples de l'objet (modifiables inline)
 - Description Markdown (rendu lecture + édition inline — voir PNS-09)
 - Lien **"Voir la fiche complète"** → ouvre `/<objet>/:id/edit`
 
 **Comportement sur erreur :**
 - Validation échouée → message d'erreur inline sous le champ, drawer reste ouvert
-- Erreur réseau → snackbar d'erreur, drawer reste ouvert
+- Erreur réseau ou 5xx → `ArkAlert severity="error"` dans le drawer, drawer reste ouvert (voir PNS-10)
+
+---
 
 ### PNS-03 — Pattern de création (Full Page dédiée)
 
@@ -48,7 +58,15 @@ La création ouvre toujours une **page dédiée full-width** — jamais une moda
 
 **La création n'est accessible que depuis les vues liste.** Pas depuis le graphe, pas depuis le drawer.
 
-Après une création réussie : retour à la liste avec filtre automatique sur le nouvel objet (highlight ou scroll jusqu'à la ligne).
+**Après une création réussie :** navigation vers la **fiche détail du nouvel objet** (`/<objet>/:id`) avec `ArkAlert severity="success"` transmise en navigation state (voir PNS-10).
+
+> Ce pattern vaut pour tous les objets P1 sans exception. Il permet à l'utilisateur de vérifier immédiatement l'objet créé et d'accéder à ses relations depuis la fiche détail.
+
+**Erreur sur création :**
+- 400 / 409 CONFLICT → erreur inline sur le champ concerné, page reste affichée
+- 5xx → `ArkAlert severity="error"` au-dessus du formulaire, page reste affichée
+
+---
 
 ### PNS-04 — Pattern d'édition structurelle (Full Page — Fact Sheet)
 
@@ -60,20 +78,28 @@ La Full Page (`/<objet>/:id/edit`) est organisée en **3 onglets** :
 | **Relations** | Liaisons n:n, hiérarchie (`parent_id`), FK structurelles |
 | **Audit** | Historique des modifications — *(UI différée en P2, onglet visible mais vide en P1)* |
 
+**Après une modification réussie :** navigation vers la **fiche détail** (`/<objet>/:id`) avec `ArkAlert severity="success"` en navigation state (voir PNS-10).
+
+---
+
 ### PNS-05 — Gestion des droits RBAC dans la navigation
 
 | Élément UI | Comportement selon le rôle |
 |---|---|
-| Bouton **"+ Créer"** | Actif pour les rôles `write`. **Grisé (disabled)** pour les rôles lecture seule. |
-| Pages `/new` | Inaccessibles pour les rôles lecture seule — redirection `403` si accès direct par URL. |
-| Pages `/:id/edit` | Accessibles pour les rôles lecture seule en **mode read-only** : champs grisés, bouton "Enregistrer" absent. |
-| Side Drawer | Affiché pour tous les rôles. Champs grisés pour les rôles lecture seule, bouton "Enregistrer" absent. |
+| Bouton **"+ Créer"** | Actif pour les rôles `write`. **Masqué** pour les rôles lecture seule. |
+| Pages `/new` | Inaccessibles pour les rôles lecture seule — redirection `403` si accès direct par URL |
+| Pages `/:id/edit` | Accessibles pour les rôles lecture seule en **mode read-only** : champs grisés, bouton "Enregistrer" absent |
+| Side Drawer | Affiché pour tous les rôles. Champs grisés pour les rôles lecture seule, bouton "Enregistrer" absent |
+
+---
 
 ### PNS-06 — Filtres
 
 Chaque vue liste expose des filtres sur les attributs de l'objet. Les filtres actifs persistent lors du passage en vue avancée. Quand le filtre domaine global (PNS-08) est actif, il s'applique en amont de tous les filtres locaux.
 
-La liste exhaustive des filtres par objet est définie dans chaque Feature-Spec (section "Composants Frontend").
+La liste exhaustive des filtres par objet est définie dans chaque Feature-Spec.
+
+---
 
 ### PNS-07 — Recherche globale (Omnibar)
 
@@ -85,7 +111,9 @@ Une barre de recherche **Omnibar** est accessible depuis la TopBar sur toutes le
 - Sélection d'un résultat → ouvre le Side Drawer de l'objet dans sa liste contextuelle
 - Recherche sur : nom, tags, description
 
-**Scope MVP :** recherche textuelle simple (ILIKE PostgreSQL). Recherche full-text avancée (ranking, fuzzy) différée en P2.
+**Scope MVP :** recherche textuelle simple (ILIKE PostgreSQL). Recherche full-text avancée différée en P2.
+
+---
 
 ### PNS-08 — Filtre Domaine Global
 
@@ -97,6 +125,8 @@ Un **sélecteur de domaine** (`DomainSelector`) en Sidebar ou TopBar filtre l'en
 - Se combine avec les filtres locaux de chaque liste (PNS-06)
 - Point d'entrée de la page d'accueil `/` : l'utilisateur sélectionne son domaine et entre dans son univers
 
+---
+
 ### PNS-09 — Description Markdown
 
 Le champ `description` des objets qui le supportent est rendu en **Markdown** :
@@ -104,6 +134,30 @@ Le champ `description` des objets qui le supportent est rendu en **Markdown** :
 - **Mode édition :** éditeur simplifié (barre d'outils : gras, italique, liste, lien)
 
 Objets concernés en P1 : Applications, Business Capabilities. Extensible aux autres objets en P2.
+
+---
+
+### PNS-10 — Feedback utilisateur (ArkAlert) *(nouveau)*
+
+Toute action CUD réussie ou échouée donne un feedback visuel via le composant `ArkAlert` (voir `00-UI-Kit.md §7`). Ce principe est transverse à tous les objets P1.
+
+**Règle de déclenchement par action :**
+
+| Action | Résultat | Feedback | Page d'affichage |
+|--------|----------|----------|-----------------|
+| Création | 201 | `ArkAlert success` via navigation state | Fiche détail du nouvel objet |
+| Modification | 200 | `ArkAlert success` via navigation state | Fiche détail de l'objet |
+| Suppression | 204 | `ArkAlert success` via navigation state | Vue liste de l'objet |
+| Toute action | 5xx | `ArkAlert error` via `useState` local | Page courante (formulaire ou drawer) |
+| Suppression bloquée | 409 DEPENDENCY_CONFLICT | Message dans `ConfirmDialog` | Dans le dialog (pas d'`ArkAlert`) |
+| Validation / doublon | 400 / 409 CONFLICT | Erreur inline sous le champ | Formulaire (pas d'`ArkAlert`) |
+
+**Règle de transport :**
+- Alertes **success** → `react-router-dom` navigation state. La page réceptrice lit `location.state?.alert` puis efface le state avec `window.history.replaceState({}, '')`.
+- Alertes **error** → `useState` local dans la page ou le drawer. Pas d'auto-dismiss. Restent jusqu'à navigation.
+- Auto-dismiss : **5 000 ms** pour les alertes success. Aucun pour les alertes error.
+
+> **Règle d'implémentation :** Ne jamais créer de `Snackbar` ou d'`Alert` MUI directement dans une page. Toujours passer par le composant `ArkAlert` depuis `@/components/shared`.
 
 ---
 
@@ -149,8 +203,9 @@ ARK
   ├── Champs simples (édition inline)
   ├── Description Markdown (lecture + édition inline)
   ├── "Enregistrer" → PATCH /api/<objet>/:id
-  │       └── audit_trail automatique via trigger PostgreSQL
-  │       └── Drawer + liste se rafraîchissent
+  │       ├── Succès → ArkAlert success dans le drawer + liste rafraîchie
+  │       ├── Erreur validation → erreur inline sous le champ, drawer reste ouvert
+  │       └── Erreur 5xx → ArkAlert error dans le drawer, drawer reste ouvert
   └── "Voir la fiche complète" → Flow C
 ```
 
@@ -161,29 +216,50 @@ ARK
       │  clic sur "+ Créer"
       ▼
 [/<objet>/new]
-  ├── Onglet Général : champs simples + Description Markdown
-  ├── Onglet Relations : n:n, FK structurelles
-  ├── "Publier" → POST /api/<objet>
-  │       └── Succès : retour liste + highlight nouvel objet
-  │       └── Erreur : message inline, reste sur la page
-  └── "Annuler" → retour liste (sans filtre)
+  ├── Champs du formulaire
+  ├── "Enregistrer" → POST /api/<objet>
+  │       ├── Succès (201) → navigate('/<objet>/:newId', { state: { alert: success } })
+  │       │       └── ArkAlert success affiché sur la fiche détail
+  │       ├── Erreur 400 / 409 CONFLICT → erreur inline sous le champ concerné
+  │       └── Erreur 5xx → ArkAlert error au-dessus du formulaire, page reste affichée
+  └── "Annuler" → retour liste (sans feedback)
 ```
 
 ### Flow C — Édition structurelle (Full Page — Fact Sheet)
 
 ```
-[Side Drawer]
-      │  clic sur "Voir la fiche complète"
+[Side Drawer ou Fiche Détail]
+      │  clic sur "Voir la fiche complète" ou "Modifier"
       ▼
 [/<objet>/:id/edit]
-  ├── Onglet Général : champs simples + Description Markdown (édition)
+  ├── Onglet Général : champs simples + Description Markdown
   ├── Onglet Relations : n:n, parent_id, FK structurelles
   ├── Onglet Audit : placeholder P2 (visible, vide en P1)
   ├── "Enregistrer" → PATCH /api/<objet>/:id
-  └── "Annuler" → retour vue précédente
+  │       ├── Succès (200) → navigate('/<objet>/:id', { state: { alert: success } })
+  │       │       └── ArkAlert success affiché sur la fiche détail
+  │       ├── Erreur 400 / 409 CONFLICT → erreur inline sous le champ concerné
+  │       └── Erreur 5xx → ArkAlert error au-dessus du formulaire, page reste affichée
+  └── "Annuler" → retour fiche détail (sans feedback)
 ```
 
-### Flow D — Import Excel
+### Flow D — Suppression (depuis la liste)
+
+```
+[Vue Liste]
+      │  clic sur IconButton Delete sur une ligne
+      ▼
+[ConfirmDialog]
+  ├── Message : "Êtes-vous sûr de vouloir supprimer X ?"
+  ├── "Confirmer" → DELETE /api/<objet>/:id
+  │       ├── Succès (204) → navigate('/<objet>', { state: { alert: success } })
+  │       │       └── ArkAlert success affiché sur la liste, objet absent
+  │       └── 409 DEPENDENCY_CONFLICT → message remplacé par format409Message()
+  │               └── Bouton Confirmer désactivé — dialog reste ouvert
+  └── "Annuler" → dialog fermé, aucun changement
+```
+
+### Flow E — Import Excel
 
 ```
 [/admin/import]
@@ -205,7 +281,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/applications`, `/applications/new`, `/applications/:id/edit` |
+| Routes | `/applications`, `/applications/new`, `/applications/:id`, `/applications/:id/edit` |
 | Filtres | Criticité, Lifecycle Status, Domaine, Owner, Fraîcheur |
 | Colonnes liste | Nom, Criticité, Lifecycle, Owner, Domaine, Fraîcheur, Actions |
 | Side Drawer | Owner, Nom, Criticité, Lifecycle, Tags, Description |
@@ -216,7 +292,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/interfaces`, `/interfaces?view=graph`, `/interfaces/new`, `/interfaces/:id/edit` |
+| Routes | `/interfaces`, `/interfaces?view=graph`, `/interfaces/new`, `/interfaces/:id`, `/interfaces/:id/edit` |
 | Filtres | Type, Criticité, Source, Cible, Domaine |
 | Colonnes liste | Nom, Source → Cible, Type, Criticité, Contact, Actions |
 | Side Drawer | Nom, Type, Fréquence, Tags, Description (Source/Cible non modifiables) |
@@ -227,7 +303,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/business-capabilities`, `/business-capabilities?view=tree`, `/business-capabilities/new`, `/business-capabilities/:id/edit` |
+| Routes | `/business-capabilities`, `/business-capabilities?view=tree`, `/business-capabilities/new`, `/business-capabilities/:id`, `/business-capabilities/:id/edit` |
 | Filtres | Domaine, Niveau de profondeur, Tags |
 | Colonnes liste | Nom indenté, Domaine, Nb applications, Actions |
 | Side Drawer | Nom, Description, Tags, Breadcrumb hiérarchique |
@@ -238,7 +314,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/data-objects`, `/data-objects/new`, `/data-objects/:id/edit` |
+| Routes | `/data-objects`, `/data-objects/new`, `/data-objects/:id`, `/data-objects/:id/edit` |
 | Filtres | Type, Source de vérité, Tags |
 | Colonnes liste | Nom, Type, Source de vérité, Nb applications, Actions |
 | Side Drawer | Nom, Type, Source de vérité, Tags |
@@ -248,7 +324,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/it-components`, `/it-components/new`, `/it-components/:id/edit` |
+| Routes | `/it-components`, `/it-components/new`, `/it-components/:id`, `/it-components/:id/edit` |
 | Filtres | Type, Technologie, Tags |
 | Colonnes liste | Nom, Technologie, Type, Nb applications, Actions |
 | Side Drawer | Nom, Type, Technologie, Tags |
@@ -258,7 +334,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/providers`, `/providers/new`, `/providers/:id/edit` |
+| Routes | `/providers`, `/providers/new`, `/providers/:id`, `/providers/:id/edit` |
 | Filtres | Type de contrat, Expiration, Tags |
 | Colonnes liste | Nom, Type de contrat, Expiration, Nb applications, Actions |
 | Side Drawer | Nom, Type de contrat, Date expiration, Tags |
@@ -268,7 +344,7 @@ ARK
 
 | Élément | Détail |
 |---|---|
-| Routes | `/domains`, `/domains/new`, `/domains/:id/edit` |
+| Routes | `/domains`, `/domains/new`, `/domains/:id`, `/domains/:id/edit` |
 | Filtres | Aucun en P1 |
 | Colonnes liste | Nom, Description, Nb objets liés, Actions |
 | Side Drawer | Nom, Description |
@@ -291,8 +367,8 @@ ARK
 
 ### 5.3 Import Excel (`/admin/import`)
 - Accès : Admin et Architecte Entreprise
-- Flow : Download template → Upload → Validation → Import → Rapport
+- Flow : Download template → Upload → Validation → Import → Rapport (Flow E)
 
 ---
 
-_Document de travail v0.2 — Projet ARK_
+_Document de travail v0.3 — Projet ARK_
