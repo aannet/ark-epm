@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Stack, Paper, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -7,22 +7,37 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
+import ArkAlert from '@/components/shared/ArkAlert';
 import { useDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
+
+interface AlertState {
+  severity: 'success' | 'error';
+  message: string;
+}
 
 export default function DomainDetailPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const canWrite = hasPermission('domains:write');
 
   const { data: domain, isLoading, error } = useDomain(id || '');
+  const [alert, setAlert] = useState<AlertState | null>(null);
 
   useEffect(() => {
     if (error && (error as any)?.response?.status === 404) {
       navigate('/domains');
     }
   }, [error, navigate]);
+
+  useEffect(() => {
+    if (location.state?.alert) {
+      setAlert(location.state.alert);
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   if (isLoading) {
     return (
@@ -45,6 +60,14 @@ export default function DomainDetailPage(): JSX.Element {
 
   return (
     <PageContainer>
+      <ArkAlert
+        open={!!alert}
+        severity={alert?.severity ?? 'success'}
+        message={alert?.message ?? ''}
+        autoDismiss={5000}
+        onClose={() => setAlert(null)}
+      />
+
       <Stack spacing={3}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Button

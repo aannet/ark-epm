@@ -1,6 +1,15 @@
 # ARK — Feature Spec FS-02-FRONT : Domains (Frontend)
 
-_Version 1.2 — Mars 2026_
+_Version 1.3 — Mars 2026_
+
+> **Changelog v1.3 (Delta Fixes) :**
+> - Implémentation complète du système ArkAlert manquant
+> - Correction i18n : `domains.snackbar.*` → `domains.alert.*` + ajout `domains.alert.errors.*`
+> - Ajout `resolveAlertMessage` dans domain.utils.ts
+> - Pages : navigation avec state alert, affichage ArkAlert sur toutes les pages
+> - 409 DEPENDENCY_CONFLICT : message formaté + bouton confirmer désactivé
+> - Tri : null values last sur description
+> - Build TypeScript validé
 
 > **Changelog v1.2 :**
 > - Ajout du système de feedback utilisateur via `MUI Alert` (`Snackbar + Alert`) pour toutes les actions CUD
@@ -27,10 +36,10 @@ _Version 1.2 — Mars 2026_
 | **ID** | FS-02-FRONT |
 | **Titre** | Domains — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | `done` |
 | **Dépend de** | FS-01, F-02, **FS-02-BACK** (gate bloquante) |
 | **Estimé** | 1 jour |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 
 ---
 
@@ -719,4 +728,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_FS-02-FRONT v1.2 — ARK_
+_FS-02-FRONT v1.3 — ARK_
