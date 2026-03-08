@@ -1,6 +1,6 @@
 # ARK — Non-Functional Requirements
 
-_Version 0.1 — Mars 2026_
+_Version 0.2 — Mars 2026_
 
 > **Usage :** Ce document recense l'ensemble des exigences non fonctionnelles (NFR) du projet ARK. Il est produit à partir du Brief v0.5, du Setup Technique v0.4, de F-999 (Technical Debt) et du schema.sql v0.4. Il est mis à jour à chaque sprint — un NFR ne change de statut que lorsqu'une gate de validation est passée.
 
@@ -21,7 +21,7 @@ _Version 0.1 — Mars 2026_
 | **Priorité** | P1 / P2 |
 | **Statut** | `draft` |
 | **Dépend de** | F-00, F-01, F-02, F-999, FS-01 |
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 | **Mode** | 🟡 Manuel — référence vivante, mise à jour à chaque sprint |
 
 ---
@@ -599,6 +599,105 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 
 ---
 
+### NFR-GOV-005 — Champs socle, liaison tags et triggers d'audit des entités métier principales
+
+| Champ | Valeur |
+|---|---|
+| **Priorité** | P1 |
+| **Statut** | ⚠️ `partial` |
+| **Source** | Brief §3.1, F-999, _template.md, schema.sql §4 |
+| **Gate** | Revue `schema.prisma` + `schema.sql` avant chaque sprint CRUD — checklist §gate ci-dessous |
+
+Toute table représentant un objet métier principal (Applications, Business Capabilities, Data Objects, Interfaces, IT Components, Providers, Domains) doit obligatoirement exposer les **5 champs socle**, la **liaison tags** et les **triggers d'audit trail** décrits ci-dessous.
+
+> **Note sur `Domain` :** l'entité `Domain` est actuellement non conforme (`updatedAt` absent, pas de liaison tags, trigger à vérifier). Elle sera mise en conformité lors du sprint de correction du schéma n:n — elle n'est pas exclue de cette règle.
+
+#### 5 champs socle obligatoires
+
+| Champ Prisma | Type Prisma | Colonne SQL | Contrainte | Défaut |
+|---|---|---|---|---|
+| `name` | `String @db.VarChar(255)` | `name VARCHAR(255)` | `NOT NULL` | — |
+| `description` | `String?` | `description TEXT` | nullable | `NULL` |
+| `comment` | `String?` | `comment TEXT` | nullable | `NULL` |
+| `createdAt` | `DateTime @default(now()) @map("created_at") @db.Timestamptz` | `created_at TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | `now()` |
+| `updatedAt` | `DateTime @updatedAt @map("updated_at") @db.Timestamptz` | `updated_at TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | trigger `moddatetime` |
+
+> **`comment` vs `description` :** `description` documente l'objet métier (visible dans le Side Drawer et la Full Page). `comment` est un champ libre pour les notes internes des architectes — visible **uniquement dans la Full Page, onglet Général**, jamais dans le Side Drawer ni les vues liste.
+
+#### Liaison Tags (n:n polymorphique)
+
+Une seule table `tags` partagée entre toutes les entités, reliée via une table de jonction polymorphique `entity_tags`. Ce pattern évite N tables de jonction dédiées et permet une future API transverse `/tags/:id/entities` sans migration.
+
+**Trade-off assumé :** pas de contrainte FK applicative sur `entity_id` (UUID libre) — la cohérence est garantie par le service NestJS (validation à l'écriture, nettoyage lors de la suppression de l'entité parente).
+
+```sql
+CREATE TABLE tags (
+  id   UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE entity_tags (
+  tag_id      UUID        NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+  entity_type VARCHAR(50) NOT NULL,  -- 'application' | 'domain' | 'provider' | ...
+  entity_id   UUID        NOT NULL,
+  PRIMARY KEY (tag_id, entity_type, entity_id)
+);
+CREATE INDEX idx_entity_tags_lookup ON entity_tags (entity_type, entity_id);
+```
+
+```prisma
+model Tag {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String      @unique @db.VarChar(100)
+  entityTags EntityTag[]
+
+  @@map("tags")
+}
+
+model EntityTag {
+  tagId      String @map("tag_id") @db.Uuid
+  entityType String @map("entity_type") @db.VarChar(50)
+  entityId   String @map("entity_id") @db.Uuid
+
+  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([tagId, entityType, entityId])
+  @@index([entityType, entityId])
+  @@map("entity_tags")
+}
+```
+
+#### Triggers d'audit trail obligatoires
+
+Chaque table métier principale doit avoir un trigger `AFTER INSERT OR UPDATE OR DELETE` vers `fn_audit_trail()`, identique au pattern `schema.sql §4` :
+
+```sql
+CREATE TRIGGER trg_audit_[entity]
+  AFTER INSERT OR UPDATE OR DELETE ON [entity_table]
+  FOR EACH ROW EXECUTE FUNCTION fn_audit_trail();
+```
+
+Le champ `changed_by` est alimenté via `SET LOCAL ark.current_user_id` positionné par `AuditContextMiddleware` (RM-02 — écrit manuellement, jamais délégué à OpenCode).
+
+#### Gate de validation (checklist par sprint CRUD)
+
+```bash
+# 1. Champs socle présents
+\d [entity_table]
+# → colonnes name, description, comment, created_at, updated_at visibles
+
+# 2. Trigger d'audit actif
+SELECT trigger_name FROM information_schema.triggers
+WHERE event_object_table = '[entity_table]';
+# → trg_audit_[entity] présent
+
+# 3. Tags liables
+SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
+# → requête s'exécute sans erreur (table présente, index actif)
+```
+
+---
+
 ## 9. Tableau de synthèse — Couverture P1
 
 | ID | Titre court | Catégorie | P1/P2 | Statut |
@@ -642,10 +741,11 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 | NFR-GOV-002 | Intégrité référentielle | Gouvernance | P1 | ❌ `missing` |
 | NFR-GOV-003 | Import Excel | Gouvernance | P1 | ⚠️ `partial` |
 | NFR-GOV-004 | Intégrations exclues | Gouvernance | — | N/A |
+| NFR-GOV-005 | Champs socle + tags + audit trigger | Gouvernance | P1 | ⚠️ `partial` |
 
-**Bilan P1 (30 NFR) :**
+**Bilan P1 (31 NFR) :**
 - ✅ Couverts : 16
-- ⚠️ Partiels : 8
+- ⚠️ Partiels : 9
 - ❌ Manquants : 5 (tous dans F-999 — à implémenter avant Sprint 2)
 - 🔵 Différés P2 : 5
 
@@ -655,8 +755,9 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 
 | Date | NFR | Modification | Auteur |
 |---|---|---|---|
+| 2026-03-08 | NFR-GOV-005 | Ajout champs socle obligatoires (name, description, comment, created_at, updated_at), liaison tags polymorphique, triggers audit — v0.2 | Alec |
 | 2026-03-03 | Tous | Création initiale v0.1 — 38 NFR, 8 catégories | Alec |
 
 ---
 
-_Document de travail ARK NFR v0.1 — à mettre à jour à chaque sprint_
+_Document de travail ARK NFR v0.2 — à mettre à jour à chaque sprint_
