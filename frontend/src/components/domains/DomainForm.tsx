@@ -38,10 +38,8 @@ export default function DomainForm({
           required
           fullWidth
           disabled={isLoading}
-          error={error?.includes('name')}
-          helperText={
-            error && error.includes('name') ? error : undefined
-          }
+          error={!!error}
+          helperText={error ?? undefined}
         />
         <TextField
           name="description"

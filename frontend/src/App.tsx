@@ -48,15 +48,10 @@ function App(): JSX.Element {
             <Route path="providers/*" element={<div />} />
             <Route path="domains" element={<Outlet />}>
               <Route index element={<DomainsListPage />} />
+              <Route path="new" element={<DomainNewPage />} />
               <Route path=":id" element={<DomainDetailPage />} />
+              <Route path=":id/edit" element={<DomainEditPage />} />
             </Route>
-          </Route>
-        </Route>
-
-        <Route element={<PrivateRoute permission="domains:write" />}>
-          <Route path="/domains">
-            <Route path="new" element={<DomainNewPage />} />
-            <Route path=":id/edit" element={<DomainEditPage />} />
           </Route>
         </Route>
 

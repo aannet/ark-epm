@@ -1,6 +1,6 @@
 # ARK — Non-Functional Requirements
 
-_Version 0.1 — Mars 2026_
+_Version 0.3 — Mars 2026_
 
 > **Usage :** Ce document recense l'ensemble des exigences non fonctionnelles (NFR) du projet ARK. Il est produit à partir du Brief v0.5, du Setup Technique v0.4, de F-999 (Technical Debt) et du schema.sql v0.4. Il est mis à jour à chaque sprint — un NFR ne change de statut que lorsqu'une gate de validation est passée.
 
@@ -21,7 +21,7 @@ _Version 0.1 — Mars 2026_
 | **Priorité** | P1 / P2 |
 | **Statut** | `draft` |
 | **Dépend de** | F-00, F-01, F-02, F-999, FS-01 |
-| **Version** | 0.1 |
+| **Version** | 0.3 |
 | **Mode** | 🟡 Manuel — référence vivante, mise à jour à chaque sprint |
 
 ---
@@ -599,6 +599,172 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 
 ---
 
+### NFR-GOV-005 — Champs socle, liaison tags et triggers d'audit des entités métier principales
+
+| Champ | Valeur |
+|---|---|
+| **Priorité** | P1 |
+| **Statut** | ⚠️ `partial` |
+| **Source** | Brief §3.1, F-999, _template.md, schema.sql §4 |
+| **Gate** | Revue `schema.prisma` + `schema.sql` avant chaque sprint CRUD — checklist §gate ci-dessous |
+
+Toute table représentant un objet métier principal (Applications, Business Capabilities, Data Objects, Interfaces, IT Components, Providers, Domains) doit obligatoirement exposer les **5 champs socle**, la **liaison tags** et les **triggers d'audit trail** décrits ci-dessous.
+
+> **Note sur `Domain` :** l'entité `Domain` est actuellement non conforme (`updatedAt` absent, pas de liaison tags, trigger à vérifier). Elle sera mise en conformité lors du sprint de correction du schéma n:n — elle n'est pas exclue de cette règle.
+
+#### 5 champs socle obligatoires
+
+| Champ Prisma | Type Prisma | Colonne SQL | Contrainte | Défaut |
+|---|---|---|---|---|
+| `name` | `String @db.VarChar(255)` | `name VARCHAR(255)` | `NOT NULL` | — |
+| `description` | `String?` | `description TEXT` | nullable | `NULL` |
+| `comment` | `String?` | `comment TEXT` | nullable | `NULL` |
+| `createdAt` | `DateTime @default(now()) @map("created_at") @db.Timestamptz` | `created_at TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | `now()` |
+| `updatedAt` | `DateTime @updatedAt @map("updated_at") @db.Timestamptz` | `updated_at TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | trigger `moddatetime` |
+
+> **`comment` vs `description` :** `description` documente l'objet métier (visible dans le Side Drawer et la Full Page). `comment` est un champ libre pour les notes internes des architectes — visible **uniquement dans la Full Page, onglet Général**, jamais dans le Side Drawer ni les vues liste.
+
+#### Liaison Tags (n:n polymorphique avec dimensions hiérarchiques)
+
+> **Mise à jour v0.3 — Mars 2026 :** Le modèle de tags a été remplacé par F-03 (Dimension Tags Foundation). Ce nouveau modèle implémente des tags hiérarchiques polymorphes avec dimensions.
+
+Le système de tags ARK repose sur trois tables :
+- `tag_dimensions` : les catégories de tags (ex: Geography, Brand, LegalEntity)
+- `tag_values` : les valeurs hiérarchiques au sein d'une dimension (ex: europe/france/paris)
+- `entity_tags` : la table de jonction polymorphique reliant une entité à des valeurs de tag
+
+**Principe :** La tagging relationship est gérée via la table de jonction polymorphique `entity_tags`. Aucune colonne supplémentaire n'est ajoutée aux entités de base (Application, IT_Component, etc.). Ce pattern évite N tables de jonction dédiées et permet une future API transverse `/tags/:id/entities` sans migration.
+
+**Spécification complète :** Voir F-03 §2 (Modèle Prisma).
+
+**Trade-off assumé :** pas de contrainte FK applicative sur `entity_id` (UUID libre) — la cohérence est garantie par le service NestJS (validation à l'écriture, nettoyage lors de la suppression de l'entité parente).
+
+```sql
+-- Tables de tags (voir F-03 pour schéma complet)
+CREATE TABLE tag_dimensions (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        VARCHAR(255) NOT NULL UNIQUE,
+  description TEXT,
+  color       VARCHAR(7),   -- ex: "#1A237E"
+  icon        VARCHAR(50),  -- nom d'icône lucide-react
+  multi_value BOOLEAN DEFAULT true,
+  entity_scope VARCHAR(50)[] DEFAULT '{}',
+  sort_order   INTEGER DEFAULT 0,
+  comment     TEXT,          -- notes internes (NFR-GOV-005)
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE tag_values (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  dimension_id UUID      NOT NULL REFERENCES tag_dimensions(id) ON DELETE CASCADE,
+  path        VARCHAR(500) NOT NULL,  -- ex: "europe/france/paris"
+  label       VARCHAR(255),            -- ex: "Paris" (casse préservée)
+  parent_id   UUID,
+  depth       SMALLINT DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (dimension_id, path)
+);
+
+CREATE TABLE entity_tags (
+  entity_type   VARCHAR(50) NOT NULL,
+  entity_id     UUID        NOT NULL,
+  tag_value_id  UUID        NOT NULL REFERENCES tag_values(id) ON DELETE CASCADE,
+  tagged_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  tagged_by     UUID,
+  PRIMARY KEY (entity_type, entity_id, tag_value_id)
+);
+CREATE INDEX idx_entity_tags_lookup ON entity_tags (entity_type, entity_id);
+CREATE INDEX idx_entity_tags_by_value ON entity_tags (tag_value_id);
+```
+
+```prisma
+-- Voir F-03 §2 pour le schéma Prisma complet
+-- Modèle TagDimension : suit les 5 champs socle (name, description, comment, createdAt, updatedAt)
+-- Modèle TagValue : structure hiérarchique, pas de champs socle
+model TagDimension {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique @db.VarChar(255)
+  description String?
+  comment     String?  @db.Text
+  color       String?  @db.VarChar(7)
+  icon        String?  @db.VarChar(50)
+  multiValue  Boolean  @default(true) @map("multi_value")
+  entityScope String[] @default([]) @map("entity_scope")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  values TagValue[]
+
+  @@map("tag_dimensions")
+}
+
+model TagValue {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dimensionId String   @map("dimension_id") @db.Uuid
+  path        String   @db.VarChar(500)
+  label       String   @db.VarChar(255)
+  parentId    String?  @map("parent_id") @db.Uuid
+  depth       Int      @default(0) @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  dimension  TagDimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  parent     TagValue?    @relation("TagValueHierarchy", fields: [parentId], references: [id])
+  children   TagValue[]   @relation("TagValueHierarchy")
+  entityTags EntityTag[]
+
+  @@unique([dimensionId, path])
+  @@map("tag_values")
+}
+
+model EntityTag {
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.Uuid
+  tagValueId String   @map("tag_value_id") @db.Uuid
+  taggedAt   DateTime @default(now()) @map("tagged_at") @db.Timestamptz
+  taggedById String?  @map("tagged_by") @db.Uuid
+
+  tagValue TagValue @relation(fields: [tagValueId], references: [id], onDelete: Cascade)
+
+  @@id([entityType, entityId, tagValueId])
+  @@index([entityType, entityId], name: "idx_entity_tags_lookup")
+  @@index([tagValueId], name: "idx_entity_tags_by_value")
+  @@map("entity_tags")
+}
+```
+
+#### Triggers d'audit trail obligatoires
+
+Chaque table métier principale doit avoir un trigger `AFTER INSERT OR UPDATE OR DELETE` vers `fn_audit_trail()`, identique au pattern `schema.sql §4` :
+
+```sql
+CREATE TRIGGER trg_audit_[entity]
+  AFTER INSERT OR UPDATE OR DELETE ON [entity_table]
+  FOR EACH ROW EXECUTE FUNCTION fn_audit_trail();
+```
+
+Le champ `changed_by` est alimenté via `SET LOCAL ark.current_user_id` positionné par `AuditContextMiddleware` (RM-02 — écrit manuellement, jamais délégué à OpenCode).
+
+#### Gate de validation (checklist par sprint CRUD)
+
+```bash
+# 1. Champs socle présents
+\d [entity_table]
+# → colonnes name, description, comment, created_at, updated_at visibles
+
+# 2. Trigger d'audit actif
+SELECT trigger_name FROM information_schema.triggers
+WHERE event_object_table = '[entity_table]';
+# → trg_audit_[entity] présent
+
+# 3. Tags liables
+SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
+# → requête s'exécute sans erreur (table présente, index actif)
+```
+
+---
+
 ## 9. Tableau de synthèse — Couverture P1
 
 | ID | Titre court | Catégorie | P1/P2 | Statut |
@@ -642,10 +808,11 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 | NFR-GOV-002 | Intégrité référentielle | Gouvernance | P1 | ❌ `missing` |
 | NFR-GOV-003 | Import Excel | Gouvernance | P1 | ⚠️ `partial` |
 | NFR-GOV-004 | Intégrations exclues | Gouvernance | — | N/A |
+| NFR-GOV-005 | Champs socle + tags + audit trigger | Gouvernance | P1 | ⚠️ `partial` |
 
-**Bilan P1 (30 NFR) :**
+**Bilan P1 (31 NFR) :**
 - ✅ Couverts : 16
-- ⚠️ Partiels : 8
+- ⚠️ Partiels : 9
 - ❌ Manquants : 5 (tous dans F-999 — à implémenter avant Sprint 2)
 - 🔵 Différés P2 : 5
 
@@ -655,8 +822,10 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 
 | Date | NFR | Modification | Auteur |
 |---|---|---|---|
+| 2026-03-08 | NFR-GOV-005 | Remplacement du modèle de tags plat par le modèle hiérarchique dimensionnel (F-03). Ajout champs socle sur TagDimension (comment, updatedAt). Référence F-03 — v0.3 | Alec |
+| 2026-03-08 | NFR-GOV-005 | Ajout champs socle obligatoires (name, description, comment, created_at, updated_at), liaison tags polymorphique, triggers audit — v0.2 | Alec |
 | 2026-03-03 | Tous | Création initiale v0.1 — 38 NFR, 8 catégories | Alec |
 
 ---
 
-_Document de travail ARK NFR v0.1 — à mettre à jour à chaque sprint_
+_Document de travail ARK NFR v0.3 — à mettre à jour à chaque sprint_

@@ -218,3 +218,53 @@ model AuditTrail {
   @@index([occurredAt(sort: Desc)], map: "idx_audit_occurred")
   @@map("audit_trail")
 }
+
+model TagDimension {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique @db.VarChar(255)
+  description String?
+  color       String?  @db.VarChar(7)
+  icon        String?  @db.VarChar(50)
+  multiValue  Boolean  @default(true) @map("multi_value")
+  entityScope String[] @default([]) @map("entity_scope")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  values TagValue[]
+
+  @@map("tag_dimensions")
+}
+
+model TagValue {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dimensionId String   @map("dimension_id") @db.Uuid
+  path        String   @db.VarChar(500)
+  label       String   @db.VarChar(255)
+  parentId    String?  @map("parent_id") @db.Uuid
+  depth       Int      @default(0) @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  dimension  TagDimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  parent     TagValue?    @relation("TagValueHierarchy", fields: [parentId], references: [id])
+  children   TagValue[]   @relation("TagValueHierarchy")
+  entityTags EntityTag[]
+
+  @@unique([dimensionId, path])
+  @@index([dimensionId, path], name: "idx_tag_values_path_prefix")
+  @@map("tag_values")
+}
+
+model EntityTag {
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.Uuid
+  tagValueId String   @map("tag_value_id") @db.Uuid
+  taggedAt   DateTime @default(now()) @map("tagged_at") @db.Timestamptz(6)
+  taggedById String?  @map("tagged_by") @db.Uuid
+
+  tagValue TagValue @relation(fields: [tagValueId], references: [id], onDelete: Cascade)
+
+  @@id([entityType, entityId, tagValueId])
+  @@index([entityType, entityId], name: "idx_entity_tags_lookup")
+  @@index([tagValueId], name: "idx_entity_tags_by_value")
+  @@map("entity_tags")
+}

@@ -10,8 +10,13 @@ import ArkAlert from '@/components/shared/ArkAlert';
 import { useDomain, useUpdateDomain } from '@/api/domains';
 import { DomainFormValues } from '@/types/domain';
 import { resolveAlertMessage } from '@/utils/domain.utils';
+import { hasPermission } from '@/store/auth';
 
 export default function DomainEditPage(): JSX.Element {
+  if (!hasPermission('domains:write')) {
+    window.location.href = '/403';
+    return <></>;
+  }
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -89,13 +94,15 @@ export default function DomainEditPage(): JSX.Element {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={updateDomain.isPending}
-        error={
-          updateDomain.error
-            ? (updateDomain.error as any)?.response?.status === 409
-              ? t('domains.form.nameDuplicate')
-              : null
+      error={
+        updateDomain.error
+          ? (updateDomain.error as any)?.response?.status === 409
+            ? t('domains.form.nameDuplicate')
+            : (updateDomain.error as any)?.response?.status === 400
+            ? t('domains.form.nameRequired')
             : null
-        }
+          : null
+      }
       />
     </PageContainer>
   );

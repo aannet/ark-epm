@@ -25,6 +25,8 @@ async function main() {
     { name: 'roles:write', description: 'Create/update/delete roles' },
     { name: 'permissions:read', description: 'Read permissions' },
     { name: 'permissions:write', description: 'Create permissions' },
+    { name: 'tags:read', description: 'Read tags' },
+    { name: 'tags:write', description: 'Create/update tags' },
   ];
 
   for (const perm of permissions) {
@@ -60,6 +62,22 @@ async function main() {
   }
 
   console.log('Seed completed: Admin user created (admin@ark.io / admin123456)');
+
+  const tagDimensions = [
+    { name: 'Geography', color: '#2196F3', icon: 'public', description: 'Geographic dimension for entities' },
+    { name: 'Brand', color: '#9C27B0', icon: 'label', description: 'Brand dimension for entities' },
+    { name: 'LegalEntity', color: '#FF9800', icon: 'account_balance', description: 'Legal entity dimension for entities' },
+  ];
+
+  for (const dim of tagDimensions) {
+    const existing = await prisma.tagDimension.findUnique({ where: { name: dim.name } });
+    if (!existing) {
+      await prisma.$executeRaw`INSERT INTO tag_dimensions (id, name, color, icon, description, multi_value, entity_scope, sort_order)
+        VALUES (gen_random_uuid(), ${dim.name}, ${dim.color}, ${dim.icon}, ${dim.description}, true, ARRAY[]::varchar[], 0)`;
+    }
+  }
+
+  console.log('Seed completed: Tag dimensions created');
 }
 
 main()

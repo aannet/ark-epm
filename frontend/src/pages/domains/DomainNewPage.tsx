@@ -8,8 +8,13 @@ import ArkAlert from '@/components/shared/ArkAlert';
 import { useCreateDomain } from '@/api/domains';
 import { DomainFormValues } from '@/types/domain';
 import { resolveAlertMessage } from '@/utils/domain.utils';
+import { hasPermission } from '@/store/auth';
 
 export default function DomainNewPage(): JSX.Element {
+  if (!hasPermission('domains:write')) {
+    window.location.href = '/403';
+    return <></>;
+  }
   const { t } = useTranslation();
   const navigate = useNavigate();
   const createDomain = useCreateDomain();
@@ -56,14 +61,15 @@ export default function DomainNewPage(): JSX.Element {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={createDomain.isPending}
-        error={
-          createDomain.error
-            ? (createDomain.error as any)?.response?.status === 409 ||
-              (createDomain.error as any)?.response?.status === 400
-              ? t('domains.form.nameRequired')
-              : null
+      error={
+        createDomain.error
+          ? (createDomain.error as any)?.response?.status === 409
+            ? t('domains.form.nameDuplicate')
+            : (createDomain.error as any)?.response?.status === 400
+            ? t('domains.form.nameRequired')
             : null
-        }
+          : null
+      }
       />
     </PageContainer>
   );

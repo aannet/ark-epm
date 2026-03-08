@@ -139,5 +139,21 @@
         "unknown": "Une erreur inattendue est survenue."
       }
     }
+  },
+
+  "tags": {
+    "autocomplete": {
+      "placeholder": "Rechercher ou créer...",
+      "noOptions": "Aucun résultat",
+      "createOption": "Créer \"{{value}}\"",
+      "loading": "Chargement..."
+    },
+    "tooltip": {
+      "fullPath": "Chemin complet : {{path}}"
+    },
+    "errors": {
+      "invalidPath": "Valeur de tag invalide",
+      "saveFailed": "Erreur lors de la sauvegarde du tag"
+    }
   }
 }
