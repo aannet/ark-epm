@@ -1,6 +1,74 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-07 — v0.2.0_
+_Last updated: 2026-03-08 — v0.3.0_
+
+---
+
+<!-- ============================================================ -->
+<!-- RELEASE v0.3.0 — 2026-03-08                             -->
+<!-- ============================================================ -->
+
+## v0.3.0 — 2026-03-08
+
+> Dimension Tags Foundation — Hierarchical tagging system with recursive path resolution and free-form autocomplete.
+
+### Highlights
+
+- **TagsModule API** — Complete CRUD for tag dimensions with recursive path creation (Obsidian-style: `europe/france/paris`)
+- **DimensionTagInput Component** — Reusable MUI autocomplete with free creation and debounce
+- **Security Fix** — Resolved CodeQL type confusion alert with AutocompleteQueryDto validation
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| F-03 | Dimension Tags Foundation | P1 |
+
+#### Bug Fixes
+
+| Ref | Description | Area |
+|---|---|---|
+| #1 | Type confusion in `/tags/autocomplete` endpoint (CodeQL js/type-confusion-through-parameter-tampering) | backend |
+
+#### Technical Improvements
+
+| Ref | Description | Source |
+|---|---|---|
+| F-03-IMPL | TagService manual logic (normalizePath, resolveOrCreate, getAncestorPaths, labelFromPath) | F-03 |
+| F-03-DB | Prisma models: TagDimension, TagValue, EntityTag with text_pattern_ops index | F-03 |
+| F-03-SEED | Seed data: Geography, Brand, LegalEntity dimensions | F-03 |
+| F-03-DTO | AutocompleteQueryDto with @Transform validation for query params | F-03 |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-04 to FS-11 — not yet started
+- `multiValue: false` constraint not enforced in backend (P2/FS-21)
+- `entityScope` validation deferred to P2 (FS-21)
+
+### Migration Steps
+
+```bash
+# Standard deployment — migrations auto-applied
+
+docker-compose down
+docker-compose pull
+docker-compose up -d
+
+# Verify migrations applied
+docker exec ark-epm_backend_1 npx prisma migrate status
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| F-03 | Dimension Tags Foundation | ✅ done |
 
 ---
 
@@ -49,6 +117,7 @@ _Last updated: 2026-03-07 — v0.2.0_
 - FS-03 to FS-11 — not yet started
 
 ### Migration Steps
+
 ```bash
 # No manual steps required for this release
 docker-compose down
@@ -114,6 +183,7 @@ docker-compose up -d
 - FS-03 to FS-11 — not yet started
 
 ### Migration Steps
+
 ```bash
 # No manual steps required for this release
 docker-compose down
