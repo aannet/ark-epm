@@ -15,6 +15,7 @@ import { CreateTagDimensionDto } from './dto/create-tag-dimension.dto';
 import { UpdateTagDimensionDto } from './dto/update-tag-dimension.dto';
 import { ResolveTagDto } from './dto/resolve-tag.dto';
 import { PutEntityTagsDto } from './dto/put-entity-tags.dto';
+import { AutocompleteQueryDto } from './dto/autocomplete-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
 
@@ -52,15 +53,11 @@ export class TagsController {
   }
 
   @Get('tags/autocomplete')
-  async autocomplete(
-    @Query('dimension') dimension: string,
-    @Query('q') query?: string,
-    @Query('limit') limit?: string,
-  ) {
+  async autocomplete(@Query() query: AutocompleteQueryDto) {
     return this.tagsService.autocomplete(
-      dimension,
-      query,
-      limit ? parseInt(limit, 10) : 20,
+      query.dimension,
+      query.query,
+      query.limit ?? 20,
     );
   }
 
