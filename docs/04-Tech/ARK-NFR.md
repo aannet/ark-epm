@@ -1,6 +1,6 @@
 # ARK — Non-Functional Requirements
 
-_Version 0.2 — Mars 2026_
+_Version 0.3 — Mars 2026_
 
 > **Usage :** Ce document recense l'ensemble des exigences non fonctionnelles (NFR) du projet ARK. Il est produit à partir du Brief v0.5, du Setup Technique v0.4, de F-999 (Technical Debt) et du schema.sql v0.4. Il est mis à jour à chaque sprint — un NFR ne change de statut que lorsqu'une gate de validation est passée.
 
@@ -21,7 +21,7 @@ _Version 0.2 — Mars 2026_
 | **Priorité** | P1 / P2 |
 | **Statut** | `draft` |
 | **Dépend de** | F-00, F-01, F-02, F-999, FS-01 |
-| **Version** | 0.2 |
+| **Version** | 0.3 |
 | **Mode** | 🟡 Manuel — référence vivante, mise à jour à chaque sprint |
 
 ---
@@ -624,45 +624,112 @@ Toute table représentant un objet métier principal (Applications, Business Cap
 
 > **`comment` vs `description` :** `description` documente l'objet métier (visible dans le Side Drawer et la Full Page). `comment` est un champ libre pour les notes internes des architectes — visible **uniquement dans la Full Page, onglet Général**, jamais dans le Side Drawer ni les vues liste.
 
-#### Liaison Tags (n:n polymorphique)
+#### Liaison Tags (n:n polymorphique avec dimensions hiérarchiques)
 
-Une seule table `tags` partagée entre toutes les entités, reliée via une table de jonction polymorphique `entity_tags`. Ce pattern évite N tables de jonction dédiées et permet une future API transverse `/tags/:id/entities` sans migration.
+> **Mise à jour v0.3 — Mars 2026 :** Le modèle de tags a été remplacé par F-03 (Dimension Tags Foundation). Ce nouveau modèle implémente des tags hiérarchiques polymorphes avec dimensions.
+
+Le système de tags ARK repose sur trois tables :
+- `tag_dimensions` : les catégories de tags (ex: Geography, Brand, LegalEntity)
+- `tag_values` : les valeurs hiérarchiques au sein d'une dimension (ex: europe/france/paris)
+- `entity_tags` : la table de jonction polymorphique reliant une entité à des valeurs de tag
+
+**Principe :** La tagging relationship est gérée via la table de jonction polymorphique `entity_tags`. Aucune colonne supplémentaire n'est ajoutée aux entités de base (Application, IT_Component, etc.). Ce pattern évite N tables de jonction dédiées et permet une future API transverse `/tags/:id/entities` sans migration.
+
+**Spécification complète :** Voir F-03 §2 (Modèle Prisma).
 
 **Trade-off assumé :** pas de contrainte FK applicative sur `entity_id` (UUID libre) — la cohérence est garantie par le service NestJS (validation à l'écriture, nettoyage lors de la suppression de l'entité parente).
 
 ```sql
-CREATE TABLE tags (
-  id   UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL UNIQUE
+-- Tables de tags (voir F-03 pour schéma complet)
+CREATE TABLE tag_dimensions (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        VARCHAR(255) NOT NULL UNIQUE,
+  description TEXT,
+  color       VARCHAR(7),   -- ex: "#1A237E"
+  icon        VARCHAR(50),  -- nom d'icône lucide-react
+  multi_value BOOLEAN DEFAULT true,
+  entity_scope VARCHAR(50)[] DEFAULT '{}',
+  sort_order   INTEGER DEFAULT 0,
+  comment     TEXT,          -- notes internes (NFR-GOV-005)
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE tag_values (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  dimension_id UUID      NOT NULL REFERENCES tag_dimensions(id) ON DELETE CASCADE,
+  path        VARCHAR(500) NOT NULL,  -- ex: "europe/france/paris"
+  label       VARCHAR(255),            -- ex: "Paris" (casse préservée)
+  parent_id   UUID,
+  depth       SMALLINT DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (dimension_id, path)
 );
 
 CREATE TABLE entity_tags (
-  tag_id      UUID        NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  entity_type VARCHAR(50) NOT NULL,  -- 'application' | 'domain' | 'provider' | ...
-  entity_id   UUID        NOT NULL,
-  PRIMARY KEY (tag_id, entity_type, entity_id)
+  entity_type   VARCHAR(50) NOT NULL,
+  entity_id     UUID        NOT NULL,
+  tag_value_id  UUID        NOT NULL REFERENCES tag_values(id) ON DELETE CASCADE,
+  tagged_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  tagged_by     UUID,
+  PRIMARY KEY (entity_type, entity_id, tag_value_id)
 );
 CREATE INDEX idx_entity_tags_lookup ON entity_tags (entity_type, entity_id);
+CREATE INDEX idx_entity_tags_by_value ON entity_tags (tag_value_id);
 ```
 
 ```prisma
-model Tag {
-  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String      @unique @db.VarChar(100)
+-- Voir F-03 §2 pour le schéma Prisma complet
+-- Modèle TagDimension : suit les 5 champs socle (name, description, comment, createdAt, updatedAt)
+-- Modèle TagValue : structure hiérarchique, pas de champs socle
+model TagDimension {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique @db.VarChar(255)
+  description String?
+  comment     String?  @db.Text
+  color       String?  @db.VarChar(7)
+  icon        String?  @db.VarChar(50)
+  multiValue  Boolean  @default(true) @map("multi_value")
+  entityScope String[] @default([]) @map("entity_scope")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  values TagValue[]
+
+  @@map("tag_dimensions")
+}
+
+model TagValue {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dimensionId String   @map("dimension_id") @db.Uuid
+  path        String   @db.VarChar(500)
+  label       String   @db.VarChar(255)
+  parentId    String?  @map("parent_id") @db.Uuid
+  depth       Int      @default(0) @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  dimension  TagDimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  parent     TagValue?    @relation("TagValueHierarchy", fields: [parentId], references: [id])
+  children   TagValue[]   @relation("TagValueHierarchy")
   entityTags EntityTag[]
 
-  @@map("tags")
+  @@unique([dimensionId, path])
+  @@map("tag_values")
 }
 
 model EntityTag {
-  tagId      String @map("tag_id") @db.Uuid
-  entityType String @map("entity_type") @db.VarChar(50)
-  entityId   String @map("entity_id") @db.Uuid
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.Uuid
+  tagValueId String   @map("tag_value_id") @db.Uuid
+  taggedAt   DateTime @default(now()) @map("tagged_at") @db.Timestamptz
+  taggedById String?  @map("tagged_by") @db.Uuid
 
-  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagValue TagValue @relation(fields: [tagValueId], references: [id], onDelete: Cascade)
 
-  @@id([tagId, entityType, entityId])
-  @@index([entityType, entityId])
+  @@id([entityType, entityId, tagValueId])
+  @@index([entityType, entityId], name: "idx_entity_tags_lookup")
+  @@index([tagValueId], name: "idx_entity_tags_by_value")
   @@map("entity_tags")
 }
 ```
@@ -755,9 +822,10 @@ SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
 
 | Date | NFR | Modification | Auteur |
 |---|---|---|---|
+| 2026-03-08 | NFR-GOV-005 | Remplacement du modèle de tags plat par le modèle hiérarchique dimensionnel (F-03). Ajout champs socle sur TagDimension (comment, updatedAt). Référence F-03 — v0.3 | Alec |
 | 2026-03-08 | NFR-GOV-005 | Ajout champs socle obligatoires (name, description, comment, created_at, updated_at), liaison tags polymorphique, triggers audit — v0.2 | Alec |
 | 2026-03-03 | Tous | Création initiale v0.1 — 38 NFR, 8 catégories | Alec |
 
 ---
 
-_Document de travail ARK NFR v0.2 — à mettre à jour à chaque sprint_
+_Document de travail ARK NFR v0.3 — à mettre à jour à chaque sprint_

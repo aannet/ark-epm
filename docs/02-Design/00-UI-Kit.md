@@ -1,6 +1,9 @@
 # ARK — UI Kit & Charte Design
 
-_Version 0.2 — Mars 2026_
+_Version 0.3 — Mars 2026_
+
+> **Changelog v0.3 :**
+> - §10 Ajout : Composants Métier — référence vers F-03 pour DimensionTagInput
 
 > **Changelog v0.2 :**
 > - §7 Feedback & États enrichi : ajout du pattern `ArkAlert` (MUI Snackbar + Alert), règles de déclenchement, positionnement, cycle de vie et différenciation inline vs Alert
@@ -205,6 +208,19 @@ Quand un `DELETE` retourne `409 DEPENDENCY_CONFLICT` :
 | Listes | Toutes colonnes | Nom + Criticité/Statut + Actions |
 | React Flow | Graphe complet | Non affiché (EmptyState) |
 | Full Page | 3 onglets, édition | Général uniquement, lecture seule |
+
+---
+
+## 10. Composants Métier
+
+Certains composants réutilisables mais spécifiques à un domaine métier sont documentés dans leur Feature Spec respective :
+
+| Composant | Feature Spec | Usage |
+|---|---|---|
+| `DimensionTagInput` | F-03 §6 | Saisie de tags hiérarchiques par dimension (Geography, Brand, etc.) |
+| `ConfirmDialog` | F-01 §7 | Confirmation de suppression |
+
+> **Note :** Ces composants suivent les mêmes règles de design (tokens, sx prop, i18n) que les composants génériques.
 
 ---
 

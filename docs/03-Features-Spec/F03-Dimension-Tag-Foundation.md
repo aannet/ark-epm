@@ -69,7 +69,7 @@ model TagValue {
   // Séparateur : "/" — jamais d'espace autour
   label       String   @db.VarChar(255)
   // Label lisible du nœud FEUILLE uniquement, ex: "Paris"
-  // Généré automatiquement depuis le dernier segment du path si non fourni
+  // Préservé depuis l'input utilisateur (casse originale)
   parentId    String?  @map("parent_id") @db.Uuid
   // FK vers le nœud parent direct — null si racine
   // Redondant avec path mais utile pour la navigation arbre en UI
@@ -237,6 +237,10 @@ paths:
                 path:
                   type: string
                   example: "europe/france/paris"
+                label:
+                  type: string
+                  description: Label avec casse originale (optionnel). Si absent, auto-généré depuis le dernier segment.
+                  example: "Paris"
       responses:
         '200':
           content:
@@ -439,11 +443,11 @@ components:
 
 ## 4. Règles Métier Critiques ⚠️
 
-- **RM-01 — Normalisation du path :** Avant tout upsert ou lookup, le path est normalisé : `toLowerCase().trim()`, espaces internes remplacés par `-`, caractères interdits (`/` sauf séparateur, `\`, `"`, `'`, espaces de début/fin de segment) rejetés avec `400 BAD_REQUEST`. Chaque segment est trimé individuellement. Ex : `"Europe / France / Paris"` → `"europe/france/paris"`.
+- **RM-01 — Normalisation du path :** Avant tout upsert ou lookup, le path est normalisé : `toLowerCase().trim()`, espaces internes remplacés par `-`, caractères interdits (`/` sauf séparateur, `\`, `"`, `'`, espaces de début/fin de segment) rejetés avec `400 BAD_REQUEST`. Chaque segment est trimé individuellement. Ex : `"Europe / France / Paris"` → `"europe/france/paris"`. Le `label` est cependant préservé avec sa casse originale pour l'affichage.
 
-- **RM-02 — Création récursive des ancêtres :** Lors de l'upsert d'un path `a/b/c`, les nœuds `a` et `a/b` doivent exister avant `a/b/c`. Le `TagService.resolveOrCreate(dimensionId, path)` crée les ancêtres manquants dans l'ordre racine → feuille, via des upserts séquentiels. Chaque ancêtre a son propre `label` = dernier segment de son path.
+- **RM-02 — Création récursive des ancêtres :** Lors de l'upsert d'un path `a/b/c`, les nœuds `a` et `a/b` doivent exister avant `a/b/c`. Le `TagService.resolveOrCreate(dimensionId, path)` crée les ancêtres manquants dans l'ordre racine → feuille, via des upserts séquentiels. Chaque ancêtre a son propre `label` préservé depuis l'input utilisateur.
 
-- **RM-03 — Héritage implicite (lecture seulement) :** L'héritage n'est pas matérialisé en base. On ne stocke que la feuille dans `entity_tags`. La couverture d'un nœud parent se calcule à la requête via `WHERE tv.path LIKE :prefix || '%'`. Le `TagService` expose `getAncestorPaths(path): string[]` pour les cas où les ancêtres sont nécessaires.
+- **RM-03 — Héritage implicite (lecture seulement) :** L'héritage n'est pas matérialisé en base. On ne stocke que la feuille dans `entity_tags`. La couverture d'un nœud parent se calcule à la requête via `WHERE tv.path LIKE :prefix || '/%'`. Le `TagService` expose `getAncestorPaths(path): string[]` pour les cas où les ancêtres sont nécessaires.
 
 - **RM-04 — PUT sémantique sur les tags d'entité :** `PUT /tags/entity/:type/:id` remplace **tous** les tags de la dimension indiquée pour cette entité — pas un merge. Si `tagValueIds = []`, tous les tags de la dimension sont supprimés. Les tags des autres dimensions sont inchangés.
 
@@ -455,15 +459,24 @@ components:
 
 - **RM-08 — Tags non bloquants à la suppression d'entité :** La suppression d'une entité (Application, etc.) déclenche un `DELETE FROM entity_tags WHERE entity_type = X AND entity_id = Y` en cascade (ON DELETE CASCADE sur la FK implicite, ou géré applicativement). Les `TagValue` elles-mêmes ne sont pas supprimées — elles peuvent être orphelines. Le nettoyage des orphelins est une opération d'administration P2 (FS-21).
 
+- **RM-09 — Logging des opérations tag :** TagService loggue les opérations critiques : création de dimension, résolution/création de tag, mise à jour des tags d'entité. Format : `{ method, userId, dimensionId, tagValueId, result }`. Logger : `private readonly logger = new Logger(TagService.name);`
+
+> **Note (P2) :** En cas d'échec de création d'entité après que des tags ont été créés via `POST /tags/resolve`, les valeurs de tags créées peuvent devenir orphelines. Le cleanup de ces orphelins sera géré dans FS-21 (Admin des tags).
+
+> **Améliorations futures P2 :** 
+> - La contrainte `multiValue: false` n'est pas enforced côté backend en P1. Le endpoint `PUT /tags/entity/:type/:id` accepte plusieurs tags sans validation. FS-21 devra ajouter cette validation (retourner 400 si count > 1 sur une dimension `multiValue = false`).
+> - Le rate limiting sur les endpoints de tags (`POST /tags/resolve`, `PUT /tags/entity/...`) sera implémenté dans FS-21 ou une tâche P2 dédiée.
+
 ---
 
 ## 5. Comportement attendu par cas d'usage
 
-**Nominal — autocomplete et création à la volée :**
-- Quand l'utilisateur tape `"paris"` dans le champ Geography d'une Application → l'autocomplete retourne les TagValues dont le path ou label contient `"paris"` (ILIKE)
+**Nominal — autocomplete et création à volée :**
+> **Note performance :** L'autocomplete ne déclenche pas de requête si `q.length < 2`. Debounce 300ms côté frontend (voir §6). Limite par défaut : 20 résultats.
+- Quand l'utilisateur tape `"paris"` dans le champ Geography d'une Application → l'autocomplete retourne les TagValues dont le path normalisé ou le label contient `"paris"` (ILIKE sur les deux champs)
 - Quand l'utilisateur sélectionne une valeur existante → `PUT /tags/entity/application/:id` est appelé avec le tagValueId
 - Quand l'utilisateur tape `"europe/france/marseille"` et appuie Entrée → `POST /tags/resolve` est appelé → crée `europe`, `europe/france` (si manquants) et `europe/france/marseille` → retourne le TagValue feuille → `PUT /tags/entity/...` est appelé
-- Quand l'utilisateur tape `"marseille"` (sans préfixe) dans la dimension Geography → path normalisé = `"marseille"`, depth = 0, pas d'ancêtre → valeur créée à la racine de la dimension
+- Quand l'utilisateur tape `"marseille"` (sans préfixe) dans la dimension Geography → path normalisé = `"marseille"`, label préservé = `"Marseille"`, depth = 0, pas d'ancêtre → valeur créée à la racine de la dimension
 
 **Nominal — lecture avec héritage implicite :**
 - Quand une requête filtre `Geography` = `"europe/france"` → retourne toutes les entités taggées avec un path commençant par `"europe/france"` (Paris, Lyon, Marseille, etc.)
@@ -500,9 +513,9 @@ interface DimensionTagInputProps {
 **Comportement :**
 - Champ `Autocomplete` MUI avec `freeSolo` — l'utilisateur peut saisir n'importe quelle valeur
 - Appelle `GET /tags/autocomplete?dimension=:id&q=:input` à chaque keystroke (debounce 300ms)
-- Si la valeur saisie n'existe pas dans les suggestions et que l'utilisateur valide (Entrée ou blur) → appelle `POST /tags/resolve` pour créer la valeur → ajoute aux tags sélectionnés
+- Si la valeur saisie n'existe pas dans les suggestions et que l'utilisateur valide (Entrée ou blur) → extrait la casse originale du dernier segment, normalise le path en lowercase, et appelle `POST /tags/resolve` avec path normalisé et label préservé → ajoute aux tags sélectionnés
 - Les tags sélectionnés s'affichent comme MUI `Chip` avec la couleur de la dimension
-- Le path complet est affiché en tooltip au survol du chip (ex: `"europe/france/paris"`) ; le label court (`"Paris"`) est affiché dans le chip
+- Le path complet est affiché en tooltip au survol du chip (ex: `"europe/france/paris"`) ; le label court (`"Paris"`, avec casse originale) est affiché dans le chip
 - En mode création d'entité (`entityId` absent) : les tags sont stockés dans le state local et sauvegardés via `PUT /tags/entity/...` après le `POST` de création de l'entité parente
 - En mode édition : chaque modification déclenche immédiatement `PUT /tags/entity/...` (pas de bouton Save séparé pour les tags)
 
@@ -559,8 +572,8 @@ frontend/src/
 - [ ] `[Jest]` `resolveOrCreate` — path existant → retourne l'existant sans créer
 - [ ] `[Jest]` `resolveOrCreate` — path nouveau avec ancêtres manquants → crée 3 nœuds dans l'ordre
 - [ ] `[Jest]` `resolveOrCreate` — ancêtres partiellement existants → crée uniquement les manquants
-- [ ] `[Jest]` `labelFromPath('europe/france/paris')` → `'Paris'`
-- [ ] `[Jest]` `labelFromPath('europe')` → `'Europe'` (capitalisé pour affichage)
+- [ ] `[Jest]` `resolveOrCreate('geography', 'europe/france/paris', 'Paris')` → crée avec label 'Paris' (casse préservée)
+- [ ] `[Jest]` `resolveOrCreate('geography', 'europe', 'Europe')` → label 'Europe' préservé
 
 ### Tests Jest + Supertest — Contrat API
 
