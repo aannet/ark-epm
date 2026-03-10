@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Stack, Paper, Typography } from '@mui/material';
+import { Button, Stack, Paper, Typography, Chip, Box, Divider } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageContainer from '@/components/layout/PageContainer';
@@ -94,13 +94,73 @@ export default function DomainDetailPage(): JSX.Element {
         >
           <Stack spacing={2}>
             <Typography variant="h5">{domain.name}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {domain.description || t('domains.detail.noDescription')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('domains.list.columns.createdAt')}:{' '}
-              {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
-            </Typography>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {t('domains.list.columns.description')}
+              </Typography>
+              <Typography variant="body2">
+                {domain.description || t('domains.detail.noDescription')}
+              </Typography>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {t('domains.list.columns.comment')}
+              </Typography>
+              <Typography variant="body2">
+                {domain.comment || t('domains.detail.noComment')}
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            {domain.tags && domain.tags.length > 0 && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  {t('domains.list.columns.tags')}
+                </Typography>
+                <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {domain.tags.map((tag) => (
+                    <Chip
+                      key={tag.id}
+                      label={tag.label}
+                      size="small"
+                      sx={{
+                        backgroundColor: tag.dimensionName === 'Geography' ? '#2196F3' : 
+                                        tag.dimensionName === 'Brand' ? '#9C27B0' : '#FF9800',
+                        color: '#fff',
+                      }}
+                      title={tag.path}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            <Divider />
+
+            <Stack direction="row" spacing={4}>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  {t('domains.list.columns.createdAt')}
+                </Typography>
+                <Typography variant="body2">
+                  {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
+                </Typography>
+              </Box>
+              
+              {domain.updatedAt && (
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('domains.list.columns.updatedAt')}
+                  </Typography>
+                  <Typography variant="body2">
+                    {new Date(domain.updatedAt).toLocaleDateString('fr-FR')}
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
           </Stack>
         </Paper>
       </Stack>

@@ -5,6 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TagsService } from '../tags/tags.service';
 import { CreateDomainDto } from './dto/create-domain.dto';
 import { UpdateDomainDto } from './dto/update-domain.dto';
 
@@ -12,7 +13,10 @@ import { UpdateDomainDto } from './dto/update-domain.dto';
 export class DomainsService {
   private readonly logger = new Logger(DomainsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tagsService: TagsService,
+  ) {}
 
   async findAll() {
     this.logger.log({ method: 'findAll' });
@@ -21,7 +25,7 @@ export class DomainsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     this.logger.log({ method: 'findOne', id });
     const domain = await this.prisma.domain.findUnique({
       where: { id },
@@ -32,20 +36,37 @@ export class DomainsService {
         message: "Le domaine n'existe pas",
       });
     }
-    return domain;
+    
+    // Load tags via TagService
+    const tags = await this.tagsService.getEntityTags('domain', id);
+    
+    return {
+      ...domain,
+      tags,
+    };
   }
 
-  async create(createDomainDto: CreateDomainDto) {
+  async create(createDomainDto: CreateDomainDto, userId: string) {
     this.logger.log({ method: 'create', data: createDomainDto });
+    
+    await this.setCurrentUser(userId);
+    
     try {
       const domain = await this.prisma.domain.create({
         data: {
           name: createDomainDto.name.trim(),
           description: createDomainDto.description?.trim() || null,
+          comment: createDomainDto.comment?.trim() || null,
+          updatedAt: new Date(),
         },
       });
       this.logger.log({ method: 'create', result: domain.id });
-      return domain;
+      
+      // Return domain with empty tags array
+      return {
+        ...domain,
+        tags: [],
+      };
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException({
@@ -57,18 +78,30 @@ export class DomainsService {
     }
   }
 
-  async update(id: string, updateDomainDto: UpdateDomainDto) {
+  async update(id: string, updateDomainDto: UpdateDomainDto, userId: string) {
     this.logger.log({ method: 'update', id, data: updateDomainDto });
+    
+    await this.setCurrentUser(userId);
+    
     try {
       const domain = await this.prisma.domain.update({
         where: { id },
         data: {
           name: updateDomainDto.name?.trim(),
           description: updateDomainDto.description?.trim() || null,
+          comment: updateDomainDto.comment?.trim() || null,
+          updatedAt: new Date(),
         },
       });
       this.logger.log({ method: 'update', result: domain.id });
-      return domain;
+      
+      // Load tags for the response
+      const tags = await this.tagsService.getEntityTags('domain', id);
+      
+      return {
+        ...domain,
+        tags,
+      };
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException({
@@ -86,8 +119,10 @@ export class DomainsService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     this.logger.log({ method: 'remove', id });
+    
+    await this.setCurrentUser(userId);
 
     const domain = await this.prisma.domain.findUnique({
       where: { id },
@@ -116,5 +151,13 @@ export class DomainsService {
 
     await this.prisma.domain.delete({ where: { id } });
     this.logger.log({ method: 'remove', result: id });
+  }
+  
+  private async setCurrentUser(userId: string): Promise<void> {
+    try {
+      await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`;
+    } catch (error) {
+      this.logger.warn(`Failed to set current user: ${error}`);
+    }
   }
 }

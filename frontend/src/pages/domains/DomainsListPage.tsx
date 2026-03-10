@@ -11,6 +11,8 @@ import {
   Paper,
   IconButton,
   TableSortLabel,
+  Chip,
+  Box,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -122,7 +124,7 @@ export default function DomainsListPage(): JSX.Element {
     return (
       <PageContainer>
         <PageHeader title={t('domains.list.title')} />
-        <LoadingSkeleton rows={5} columns={canWrite ? 4 : 3} />
+        <LoadingSkeleton rows={5} columns={canWrite ? 5 : 4} />
       </PageContainer>
     );
   }
@@ -207,6 +209,9 @@ export default function DomainsListPage(): JSX.Element {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
+                  {t('domains.list.columns.tags')}
+                </TableCell>
+                <TableCell>
                   <TableSortLabel
                     active={sortField === 'createdAt'}
                     direction={sortField === 'createdAt' ? sortOrder : 'asc'}
@@ -232,6 +237,35 @@ export default function DomainsListPage(): JSX.Element {
                 >
                   <TableCell>{domain.name}</TableCell>
                   <TableCell>{domain.description || '—'}</TableCell>
+                  <TableCell>
+                    {domain.tags && domain.tags.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {domain.tags.slice(0, 3).map((tag) => (
+                          <Chip
+                            key={tag.id}
+                            label={tag.label}
+                            size="small"
+                            sx={{
+                              backgroundColor: tag.dimensionName === 'Geography' ? '#2196F3' : 
+                                              tag.dimensionName === 'Brand' ? '#9C27B0' : '#FF9800',
+                              color: '#fff',
+                              fontSize: '0.75rem',
+                            }}
+                            title={tag.path}
+                          />
+                        ))}
+                        {domain.tags.length > 3 && (
+                          <Chip
+                            label={`+${domain.tags.length - 3}`}
+                            size="small"
+                            sx={{ fontSize: '0.75rem' }}
+                          />
+                        )}
+                      </Box>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell>
                     {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
                   </TableCell>

@@ -1,11 +1,10 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   Autocomplete,
   TextField,
   Chip,
   CircularProgress,
   Tooltip,
-  Box,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { tagsApi } from '../../api/tags';
@@ -26,7 +25,7 @@ export function DimensionTagInput({
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<TagValueResponse[]>([]);
   const [loading, setLoading] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchOptions = useCallback(
     async (query: string) => {
@@ -53,35 +52,43 @@ export function DimensionTagInput({
     (_: React.SyntheticEvent, newInputValue: string) => {
       setInputValue(newInputValue);
 
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
 
       const timer = setTimeout(() => {
         fetchOptions(newInputValue);
       }, 300);
 
-      setDebounceTimer(timer);
+      debounceTimerRef.current = timer;
     },
-    [debounceTimer, fetchOptions],
+    [fetchOptions],
   );
 
   useEffect(() => {
     return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [debounceTimer]);
+  }, []);
 
   const handleChange = useCallback(
     async (
-      _: React.SyntheticEvent,
-      newValue: (TagValueResponse | string)[],
+      _event: React.SyntheticEvent,
+      newValue: (TagValueResponse | string)[] | TagValueResponse | string | null,
     ) => {
+      // Normalize value to array
+      const normalizedValue: (TagValueResponse | string)[] =
+        newValue === null
+          ? []
+          : Array.isArray(newValue)
+          ? newValue
+          : [newValue];
+
       const tagsToResolve: string[] = [];
 
-      const processedValue = newValue.map((item) => {
+      const processedValue = normalizedValue.map((item) => {
         if (typeof item === 'string') {
           tagsToResolve.push(item);
           return item;

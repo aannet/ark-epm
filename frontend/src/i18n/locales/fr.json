@@ -100,7 +100,10 @@
       "columns": {
         "name": "Nom",
         "description": "Description",
+        "comment": "Commentaire",
+        "tags": "Tags",
         "createdAt": "Créé le",
+        "updatedAt": "Modifié le",
         "actions": "Actions"
       },
       "emptyState": {
@@ -111,6 +114,7 @@
     },
     "detail": {
       "noDescription": "—",
+      "noComment": "Aucun commentaire",
       "editButton": "Modifier",
       "backButton": "Retour"
     },
@@ -119,6 +123,8 @@
       "editTitle": "Modifier le domaine",
       "nameLabel": "Nom",
       "descriptionLabel": "Description",
+      "commentLabel": "Commentaire interne",
+      "tagsLabel": "Tags",
       "saveButton": "Enregistrer",
       "cancelButton": "Annuler",
       "nameRequired": "Le nom est obligatoire",

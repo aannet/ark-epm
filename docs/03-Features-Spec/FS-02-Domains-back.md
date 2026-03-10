@@ -3,6 +3,7 @@
 _Version 1.2 — Mars 2026_
 
 > **Changelog v1.1 :**
+>
 > - Statut `pending` → `draft` (alignement nomenclature ARK)
 > - Suppression de F-02 des dépendances — F-02 est purement frontend, sans impact NestJS (correctif B1)
 > - Commande OpenCode §8 enrichie avec les conventions critiques inline — ne plus pointer vers AGENTS.md par référence (correctif B3)
@@ -11,24 +12,32 @@ _Version 1.2 — Mars 2026_
 > - Ajout gate de déblocage FS-02-FRONT explicite en fin de §9
 >
 > **Changelog v1.2 (Review 2026-03-07) :**
+>
 > - Statut `draft` → `done` après audit d'implémentation
 > - UpdateDomainDto: ajout `@Transform` + `@IsNotEmpty()` pour conformité RM-02
 > - Tests e2e: ajout 3 scénarios DELETE avec dépendances (applications, BC, les deux)
+>
+> **Changelog v1.3 :**
+>
+> - Ajout dépendance F-03 (Dimension Tags Foundation)
+> - Modèle Prisma : ajout champs `updatedAt`, `comment`, et relation tags via `EntityTag`
+> - API : inclusion des tags dans `DomainResponse`
+> - Conformité NFR-GOV-005 (champs socle + liaison tags)
 
 ---
 
 ## En-tête
 
-| Champ | Valeur |
-|---|---|
-| **ID** | FS-02-BACK |
-| **Titre** | Domains — API REST Backend |
-| **Priorité** | P1 |
-| **Statut** | `done` |
-| **Dépend de** | FS-01 |
-| **Spec mère** | FS-02 Domains v0.10 |
-| **Estimé** | 1 jour |
-| **Version** | 1.2 |
+| Champ         | Valeur                     |
+| ------------- | -------------------------- |
+| **ID**        | FS-02-BACK                 |
+| **Titre**     | Domains — API REST Backend |
+| **Priorité**  | P1                         |
+| **Statut**    | `done`                     |
+| **Dépend de** | FS-01, **F-03**            |
+| **Spec mère** | FS-02 Domains v0.10        |
+| **Estimé**    | 1 jour                     |
+| **Version**   | 1.2                        |
 
 ---
 
@@ -40,23 +49,117 @@ Implémenter l'API REST complète pour la gestion des Domaines métier : créati
 
 ---
 
-## 2. Modèle Prisma ⚠️
+## 2. Modèle BDD
+
+### 2.1 Modèle Relationnel 
+
+**Schéma BDD complet — F-03 Tags + FS-02 Domains**
+
+```
+┌──────────────────────────────────────────┐
+│              tag_dimensions              │
+├──────────────────────────────────────────┤
+│ id           UUID        PK              │
+│ name         VARCHAR(255) UNIQUE         │
+│ description  TEXT        nullable        │
+│ color        VARCHAR(7)  nullable        │  ← "#2196F3"
+│ icon         VARCHAR(50) nullable        │  ← lucide-react icon name
+│ multi_value  BOOLEAN     default true    │  ← non enforced P1
+│ entity_scope TEXT[]      default []      │  ← non enforced P1
+│ sort_order   INT         default 0       │
+│ created_at   TIMESTAMPTZ default now()   │
+└───────────────────┬──────────────────────┘
+                    │ 1
+                    │ N
+┌───────────────────▼──────────────────────┐
+│               tag_values                 │
+├──────────────────────────────────────────┤
+│ id            UUID       PK              │
+│ dimension_id  UUID       FK → tag_dim.   │  ← CASCADE DELETE
+│ path          VARCHAR(500)               │  ← "europe/france/paris" normalisé
+│ label         VARCHAR(255)               │  ← "Paris" casse originale préservée
+│ parent_id     UUID       FK → self null  │  ← null si racine
+│ depth         SMALLINT   default 0       │
+│ created_at    TIMESTAMPTZ default now()  │
+├──────────────────────────────────────────┤
+│ UNIQUE (dimension_id, path)              │
+│ INDEX (dimension_id, path text_pattern)  │  ← LIKE prefix queries obligatoire
+└──────┬───────────────────┬───────────────┘
+       │ self-ref 1:N      │ 1
+       │ (parent_id)       │
+       └───────────────────┘
+                    │ N
+                    │
+┌───────────────────▼──────────────────────┐
+│               entity_tags                │
+├──────────────────────────────────────────┤
+│ entity_type   VARCHAR(50)                │  ← 'domain' | 'application' | ...
+│ entity_id     UUID                       │  ← pas de FK typée (polymorphisme)
+│ tag_value_id  UUID       FK → tag_values │  ← CASCADE DELETE
+│ tagged_at     TIMESTAMPTZ default now()  │
+│ tagged_by     UUID       nullable        │  ← user_id, sans FK contrainte P1
+├──────────────────────────────────────────┤
+│ PK (entity_type, entity_id, tag_value_id)│
+│ INDEX (entity_type, entity_id)           │  ← lecture des tags d'une entité
+│ INDEX (tag_value_id)                     │  ← lookup inverse
+└───────────────────▲──────────────────────┘
+                    │ via entity_type='domain'
+                    │ entity_id = domains.id
+                    │ (lien polymorphe, pas de FK physique)
+                    │
+┌───────────────────┴──────────────────────┐
+│                 domains                  │
+├──────────────────────────────────────────┤
+│ id           UUID        PK              │
+│ name         VARCHAR(255) UNIQUE         │  ← trim, 409 si doublon (RM-01)
+│ description  TEXT        nullable        │  ← NFR-GOV-005
+│ comment      TEXT        nullable        │  ← NFR-GOV-005, Full Page only
+│ created_at   TIMESTAMPTZ default now()   │
+│ updated_at   TIMESTAMPTZ auto-update     │  ← v1.3 (align NFR-GOV-005)
+├──────────────────────────────────────────┤
+│   → applications[]         (1:N)         │
+│   → business_capabilities[] (1:N)        │
+│   Suppression bloquée si count > 0 (RM-03) — 409 DEPENDENCY_CONFLICT
+└──────────────────────────────────────────┘
+```
+
+**Vue globale des relations**
+
+```
+tag_dimensions ──1:N──► tag_values ──self 1:N──► tag_values (parent)
+                              │
+                              └──1:N──► entity_tags ◄── (entity_type, entity_id)
+                                                              ▲
+                                                              │ polymorphe
+                                                         domains.id
+                                                         applications.id
+                                                         it_components.id
+                                                         ...
+
+domains ──1:N──► applications
+domains ──1:N──► business_capabilities	
+```
+
+### 2.2 Modèle Prisma ⚠️
 
 ```prisma
 model Domain {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String   @unique @db.VarChar(255)
   description String?
+  comment     String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   applications         Application[]
   businessCapabilities BusinessCapability[]
+  entityTags           EntityTag[]
 
   @@map("domains")
 }
 ```
 
-> **Note** : `Domain` n'a pas de `updatedAt` — cohérent avec `schema.sql`. Ne pas l'ajouter.
+> **Note** : Domain suit les 5 champs socle NFR-GOV-005 (name, description, comment, createdAt, updatedAt) + liaison tags via `EntityTag`.
 
 ---
 
@@ -216,7 +319,13 @@ components:
         id:          { type: string, format: uuid }
         name:        { type: string }
         description: { type: string, nullable: true }
+        comment:     { type: string, nullable: true }
         createdAt:   { type: string, format: date-time }
+        updatedAt:   { type: string, format: date-time }
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTagResponse'
 
     CreateDomainDto:
       type: object
@@ -228,6 +337,10 @@ components:
           maxLength: 255
           example: "Finance"
         description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
           type: string
           nullable: true
           maxLength: 2000
@@ -243,6 +356,10 @@ components:
           type: string
           nullable: true
           maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
 ```
 
 ---
@@ -250,9 +367,7 @@ components:
 ## 4. Règles Métier Backend ⚠️
 
 - **RM-01 — Nom unique :** Deux domaines ne peuvent pas avoir le même nom. `409` + code `"CONFLICT"` + message `"Domain name already in use"`. Intercepter l'erreur Prisma `P2002` dans un try/catch ciblé — ne pas laisser remonter.
-
 - **RM-02 — Nom non vide :** `name` obligatoire, non vide, non uniquement espaces. `@IsNotEmpty()` + `@Transform(() => value.trim())` avant validation. Les espaces uniquement sont rejetés comme vide → `400`.
-
 - **RM-03 — Suppression bloquée si domaine utilisé :**
 
 ```typescript
@@ -280,7 +395,6 @@ async remove(id: string): Promise<void> {
 ```
 
 - **RM-04 — Droits requis :** `domains:read` sur GET. `domains:write` sur POST/PATCH/DELETE.
-
 - **RM-05 — Pas de soft delete :** Suppression physique après vérification RM-03.
 
 ---
@@ -299,6 +413,31 @@ backend/src/domains/
 
 backend/test/
 └── FS-02-domains.e2e-spec.ts    ← tests Supertest
+```
+
+---
+
+## 5.1 Integration with Tags (F-03)
+
+Domains support the dimension tags system via the polymorphic `EntityTag` relation:
+
+- **GET /api/v1/domains/:id** — Returns domain with `tags` array (loaded via `entity_tags` join)
+- **PUT /tags/entity/domain/:id** — Endpoint from F-03 to update domain tags (see F-03 §3)
+
+Implementation via `TagsModule` (global, see F-03 §4 RM-06) — inject `TagService` to load/save tags.
+
+**Service pattern:**
+
+```typescript
+// In DomainsService
+async findOne(id: string): Promise<Domain> {
+  const domain = await this.prisma.domain.findUnique({ where: { id } });
+  if (!domain) throw new NotFoundException();
+  
+  // Load tags via TagService from F-03
+  const tags = await this.tagService.getEntityTags('domain', id);
+  return { ...domain, tags };
+}
 ```
 
 ---
@@ -402,16 +541,16 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 > À valider **avant** de passer `FS-02-FRONT` au statut `stable`.
 > FS-02-FRONT reste à `draft` tant que toutes ces gates ne sont pas cochées.
 
-| # | Gate | Vérification | Bloquant |
-|---|------|--------------|----------|
-| G-01 | Migration Prisma appliquée | `\dt domains` en base → table présente | ✅ Oui |
-| G-02 | Seed permissions | `domains:read` et `domains:write` en base | ✅ Oui |
-| G-03 | Tests Jest passent | `npm run test -- --testPathPattern=domains` → 0 failed | ✅ Oui |
-| G-04 | Tests Supertest passent | `npm run test:e2e -- --testPathPattern=FS-02` → 0 failed | ✅ Oui |
-| G-05 | Tests RBAC manuels validés | Les 4 cas [Manuel] §6 vérifiés à la main | ✅ Oui |
-| G-06 | Aucune erreur TypeScript | `npm run build` → 0 error | ✅ Oui |
-| G-07 | Statut mis à jour | Passer `FS-02-BACK` à `done` dans cet en-tête | ✅ Oui |
-| G-08 | Revue TD backend | TD-1 à TD-6 du template vérifiés, F-999 mis à jour | ✅ Oui |
+| #    | Gate                       | Vérification                                             | Bloquant |
+| ---- | -------------------------- | -------------------------------------------------------- | -------- |
+| G-01 | Migration Prisma appliquée | `\dt domains` en base → table présente                   | ✅ Oui   |
+| G-02 | Seed permissions           | `domains:read` et `domains:write` en base                | ✅ Oui   |
+| G-03 | Tests Jest passent         | `npm run test -- --testPathPattern=domains` → 0 failed   | ✅ Oui   |
+| G-04 | Tests Supertest passent    | `npm run test:e2e -- --testPathPattern=FS-02` → 0 failed | ✅ Oui   |
+| G-05 | Tests RBAC manuels validés | Les 4 cas [Manuel] §6 vérifiés à la main                 | ✅ Oui   |
+| G-06 | Aucune erreur TypeScript   | `npm run build` → 0 error                                | ✅ Oui   |
+| G-07 | Statut mis à jour          | Passer `FS-02-BACK` à `done` dans cet en-tête            | ✅ Oui   |
+| G-08 | Revue TD backend           | TD-1 à TD-6 du template vérifiés, F-999 mis à jour       | ✅ Oui   |
 
 ---
 

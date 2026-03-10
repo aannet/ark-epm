@@ -10,6 +10,13 @@ _Version 1.3 — Mars 2026_
 > - 409 DEPENDENCY_CONFLICT : message formaté + bouton confirmer désactivé
 > - Tri : null values last sur description
 > - Build TypeScript validé
+>
+> **Changelog v1.4 :**
+> - Ajout dépendance F-03 (Dimension Tags Foundation)
+> - DomainForm : ajout champ `comment` et composant `DimensionTagInput`
+> - Layout Contract : ajout zone `tags` sur toutes les pages
+> - i18n : ajout clés `domains.form.commentLabel` et tags
+> - Conformité NFR-GOV-005 (champs socle + liaison tags)
 
 > **Changelog v1.2 :**
 > - Ajout du système de feedback utilisateur via `MUI Alert` (`Snackbar + Alert`) pour toutes les actions CUD
@@ -37,7 +44,7 @@ _Version 1.3 — Mars 2026_
 | **Titre** | Domains — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
 | **Statut** | `done` |
-| **Dépend de** | FS-01, F-02, **FS-02-BACK** (gate bloquante) |
+| **Dépend de** | FS-01, F-02, **FS-02-BACK** (gate bloquante), **F-03** |
 | **Estimé** | 1 jour |
 | **Version** | 1.3 |
 
@@ -221,8 +228,12 @@ zones:
         value: domain.name
       - label: t('domains.list.columns.description')
         value: domain.description ?? t('domains.detail.noDescription')
+      - label: t('domains.list.columns.comment')
+        value: domain.comment ?? t('domains.detail.noComment')
       - label: t('domains.list.columns.createdAt')
         value: domain.createdAt formaté date locale FR
+      - label: t('domains.list.columns.tags')
+        value: domain.tags | formatTagsAsChips  # F-03 integration
 
   footer:
     - component: MUI Button
@@ -267,13 +278,17 @@ zones:
   body:
     component: DomainForm
     props:
-      initialValues: { name: '', description: '' }
+      initialValues: { name: '', description: '', comment: '', tags: [] }
       isLoading: false
       onCancel: navigate('/domains')
       onSubmit: POST /api/v1/domains
+      availableDimensions: ['Geography', 'Brand', 'LegalEntity']  # From F-03 seed
 
   on_submit_success:
-    navigate: navigate('/domains/${createdDomain.id}', { state: { alert: { severity: 'success', message: t('domains.alert.created') } } })
+    # After domain created, save tags via F-03 API
+    - POST /api/v1/domains → get domainId
+    - PUT /tags/entity/domain/{domainId} with collected tags (from form state)
+    - navigate('/domains/${domainId}', { state: { alert: { severity: 'success', message: t('domains.alert.created') } } })
 
   on_submit_409_CONFLICT:
     action: erreur inline sur le champ name
@@ -328,10 +343,11 @@ zones:
     loading_state: LoadingSkeleton
     component: DomainForm
     props:
-      initialValues: { name: domain.name, description: domain.description ?? '' }
+      initialValues: { name: domain.name, description: domain.description ?? '', comment: domain.comment ?? '', tags: domain.tags }
       isLoading: false
       onCancel: navigate('/domains/${id}')
       onSubmit: PATCH /api/v1/domains/:id
+      availableDimensions: ['Geography', 'Brand', 'LegalEntity']  # From F-03 seed
 
   on_submit_success:
     navigate: navigate('/domains/${id}', { state: { alert: { severity: 'success', message: t('domains.alert.updated') } } })
@@ -379,18 +395,24 @@ interface DomainFormProps {
   onCancel: () => void;
   isLoading: boolean;
   error: string | null;       // erreur inline champ name (400, 409 CONFLICT)
+  availableDimensions?: string[];  // Tag dimension names from F-03
 }
 
 interface DomainFormValues {
   name: string;
   description: string;
+  comment: string;        // NEW - NFR-GOV-005
+  tags: TagValueResponse[]; // NEW - from F-03
 }
 
 interface DomainResponse {
   id: string;
   name: string;
   description: string | null;
+  comment: string | null;   // NEW - NFR-GOV-005
   createdAt: string;
+  updatedAt: string;        // NEW - NFR-GOV-005
+  tags: EntityTagResponse[]; // NEW - from F-03
 }
 ```
 
@@ -444,6 +466,46 @@ useEffect(() => {
 
 ---
 
+## 4.1 DimensionTagInput Integration (F-03)
+
+All domain forms use the `DimensionTagInput` component from F-03 §6:
+
+```typescript
+// In DomainForm.tsx
+import { DimensionTagInput } from '@/components/tags';
+
+// Usage - Geography dimension
+<DimensionTagInput
+  dimensionId="uuid-geography"  // From seed (F-03 RM-07)
+  dimensionName="Geography"
+  entityType="domain"
+  entityId={domainId}  // undefined for new domains
+  value={values.tags.filter(t => t.dimensionName === 'Geography')}
+  onChange={(tags) => setFieldValue('tags', [...values.tags.filter(t => t.dimensionName !== 'Geography'), ...tags])}
+  multiple={true}
+  color="#2196F3"
+/>
+
+// Usage - Brand dimension  
+<DimensionTagInput
+  dimensionId="uuid-brand"
+  dimensionName="Brand"
+  entityType="domain"
+  entityId={domainId}
+  value={values.tags.filter(t => t.dimensionName === 'Brand')}
+  onChange={(tags) => setFieldValue('tags', [...values.tags.filter(t => t.dimensionName !== 'Brand'), ...tags])}
+  multiple={true}
+  color="#9C27B0"
+/>
+```
+
+**Behavior:**
+- On create: Tags stored in local state, saved after domain POST via `PUT /tags/entity/domain/{id}` (F-03 API)
+- On edit: Immediate save via `PUT /tags/entity/domain/{id}` on each tag change (RM-11)
+- Available dimensions: Geography, Brand, LegalEntity (seeded by F-03 RM-07)
+
+---
+
 ## 5. Clés i18n — Section `domains` dans `fr.json` ⚠️
 
 > À ajouter **manuellement** dans `src/i18n/locales/fr.json` avant la session OpenCode.
@@ -458,7 +520,9 @@ useEffect(() => {
     "columns": {
       "name": "Nom",
       "description": "Description",
+      "comment": "Commentaire",
       "createdAt": "Créé le",
+      "tags": "Tags",
       "actions": "Actions"
     },
     "emptyState": {
@@ -469,6 +533,7 @@ useEffect(() => {
   },
   "detail": {
     "noDescription": "—",
+    "noComment": "Aucun commentaire",
     "editButton": "Modifier",
     "backButton": "Retour"
   },
@@ -477,6 +542,8 @@ useEffect(() => {
     "editTitle": "Modifier le domaine",
     "nameLabel": "Nom",
     "descriptionLabel": "Description",
+    "commentLabel": "Commentaire interne",
+    "tagsLabel": "Tags",
     "saveButton": "Enregistrer",
     "cancelButton": "Annuler",
     "nameRequired": "Le nom est obligatoire",
@@ -586,15 +653,17 @@ useEffect(() => {
 ## 8. Session Gate — Frontend ⚠️
 
 - [ ] **FS-02-BACK au statut `done`** — gates G-01 à G-08 toutes cochées
-- [ ] **API testée manuellement** — `GET` et `POST /api/v1/domains` validés
+- [ ] **F-03 au statut `done`** — `DimensionTagInput` et API tags disponibles
+- [ ] **API testée manuellement** — `GET` et `POST /api/v1/domains` validés, tags endpoint testé
 - [ ] **F-02 au statut `done`** — `useTranslation()` disponible
-- [ ] **Clés `domains.*` ajoutées dans `fr.json`** — y compris `domains.alert.*` et `domains.alert.errors.*`
+- [ ] **Clés `domains.*` ajoutées dans `fr.json`** — y compris `domains.alert.*`, `domains.alert.errors.*`, `domains.form.commentLabel`, `domains.form.tagsLabel`
 - [ ] **Clés `domains.snackbar.*` supprimées** de `fr.json` si elles existaient
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
+- [ ] **`DimensionTagInput` exporté depuis `@/components/tags`** (F-03)
 - [ ] **Câblage `App.tsx` réalisé manuellement** (§7)
 - [ ] **`cy.loginAsReadOnly()`** créé dans `cypress/support/commands.ts`
 - [ ] **Cypress opérationnel**
-- [ ] **Layout Contract §3 relu** — zone `alerts` présente sur chaque page
+- [ ] **Layout Contract §3 relu** — zones `alerts` et `tags` présentes sur chaque page
 - [ ] **FS-02-FRONT passé au statut `stable`** avant de lancer OpenCode
 
 ---

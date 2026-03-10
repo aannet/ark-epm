@@ -10,16 +10,16 @@ _Version 0.1 — Mars 2026_
 
 ## En-tête
 
-| Champ | Valeur |
-|---|---|
-| **ID** | F-03 |
-| **Titre** | Dimension Tags Foundation — moteur de tags hiérarchiques polymorphes |
-| **Priorité** | P1 |
-| **Statut** | `draft` |
-| **Dépend de** | F-02 (i18n), FS-01 (Auth & RBAC) |
-| **Estimé** | 1.5j |
-| **Version** | 0.1 |
-| **Mode** | 🟡 Hybride Manuel / OpenCode — voir §8 |
+| Champ         | Valeur                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| **ID**        | F-03                                                                 |
+| **Titre**     | Dimension Tags Foundation — moteur de tags hiérarchiques polymorphes |
+| **Priorité**  | P1                                                                   |
+| **Statut**    | `draft`                                                              |
+| **Dépend de** | F-02 (i18n), FS-01 (Auth & RBAC)                                     |
+| **Estimé**    | 1.5j                                                                 |
+| **Version**   | 0.1                                                                  |
+| **Mode**      | 🟡 Hybride Manuel / OpenCode — voir §8                              |
 
 ---
 
@@ -39,7 +39,74 @@ F-03 implémente le système de tags dimensionnels d'ARK : un mécanisme génér
 
 ---
 
-## 2. Modèle Prisma ⚠️
+## 2. Modèle De données 
+
+
+
+### 2.1 Schéma relationnel
+
+```
+┌─────────────────────────────────────────┐
+│              tag_dimensions             │
+├─────────────────────────────────────────┤
+│ id           UUID        PK             │
+│ name         VARCHAR(255) UNIQUE        │  ← case-insensitive à la création (RM-05)
+│ description  TEXT        nullable       │
+│ color        VARCHAR(7)  nullable       │  ← hex ex: "#2196F3"
+│ icon         VARCHAR(50) nullable       │  ← nom icône lucide-react
+│ multi_value  BOOLEAN     default true   │  ← non enforced en P1
+│ entity_scope TEXT[]      default []     │  ← [] = toutes entités (non enforced P1)
+│ sort_order   INT         default 0      │
+│ created_at   TIMESTAMPTZ default now()  │
+└──────────────────┬──────────────────────┘
+                   │ 1
+                   │
+                   │ N
+┌──────────────────▼──────────────────────┐
+│               tag_values                │
+├─────────────────────────────────────────┤
+│ id            UUID       PK             │
+│ dimension_id  UUID       FK → tag_dim.  │  ← CASCADE DELETE
+│ path          VARCHAR(500)              │  ← "europe/france/paris" normalisé lowercase
+│ label         VARCHAR(255)              │  ← "Paris" casse originale préservée
+│ parent_id     UUID       FK → self null │  ← null si nœud racine
+│ depth         SMALLINT   default 0      │  ← 0=racine, 1=enfant, etc.
+│ created_at    TIMESTAMPTZ default now() │
+├─────────────────────────────────────────┤
+│ UNIQUE (dimension_id, path)             │
+│ INDEX (dimension_id, path text_pattern) │  ← text_pattern_ops — LIKE prefix queries
+└──────┬──────────────────┬───────────────┘
+       │ self-ref 1:N     │ N
+       │ parent/children  │
+       └──────────────────┘
+                   │ N
+                   │
+┌──────────────────▼──────────────────────┐
+│               entity_tags               │
+├─────────────────────────────────────────┤
+│ entity_type   VARCHAR(50)               │  ← 'application' | 'it_component' | ...
+│ entity_id     UUID                      │  ← ID de l'entité cible (pas de FK typée)
+│ tag_value_id  UUID       FK → tag_values│  ← CASCADE DELETE
+│ tagged_at     TIMESTAMPTZ default now() │
+│ tagged_by     UUID       nullable       │  ← user_id, pas de FK contrainte P1
+├─────────────────────────────────────────┤
+│ PK (entity_type, entity_id, tag_value_id)│
+│ INDEX (entity_type, entity_id)          │  ← lecture des tags d'une entité
+│ INDEX (tag_value_id)                    │  ← lookup inverse : qui a ce tag ?
+└─────────────────────────────────────────┘
+```
+
+```
+tag_dimensions  ──1:N──  tag_values  ──1:N──  entity_tags
+
+                              │
+
+                         self-ref 1:N
+                         (parent_id)
+
+```
+
+### 2.2 Modèle Prisma ⚠️
 
 ```prisma
 model TagDimension {
@@ -444,26 +511,19 @@ components:
 ## 4. Règles Métier Critiques ⚠️
 
 - **RM-01 — Normalisation du path :** Avant tout upsert ou lookup, le path est normalisé : `toLowerCase().trim()`, espaces internes remplacés par `-`, caractères interdits (`/` sauf séparateur, `\`, `"`, `'`, espaces de début/fin de segment) rejetés avec `400 BAD_REQUEST`. Chaque segment est trimé individuellement. Ex : `"Europe / France / Paris"` → `"europe/france/paris"`. Le `label` est cependant préservé avec sa casse originale pour l'affichage.
-
 - **RM-02 — Création récursive des ancêtres :** Lors de l'upsert d'un path `a/b/c`, les nœuds `a` et `a/b` doivent exister avant `a/b/c`. Le `TagService.resolveOrCreate(dimensionId, path)` crée les ancêtres manquants dans l'ordre racine → feuille, via des upserts séquentiels. Chaque ancêtre a son propre `label` préservé depuis l'input utilisateur.
-
 - **RM-03 — Héritage implicite (lecture seulement) :** L'héritage n'est pas matérialisé en base. On ne stocke que la feuille dans `entity_tags`. La couverture d'un nœud parent se calcule à la requête via `WHERE tv.path LIKE :prefix || '/%'`. Le `TagService` expose `getAncestorPaths(path): string[]` pour les cas où les ancêtres sont nécessaires.
-
 - **RM-04 — PUT sémantique sur les tags d'entité :** `PUT /tags/entity/:type/:id` remplace **tous** les tags de la dimension indiquée pour cette entité — pas un merge. Si `tagValueIds = []`, tous les tags de la dimension sont supprimés. Les tags des autres dimensions sont inchangés.
-
 - **RM-05 — Unicité dimension par nom :** Deux dimensions ne peuvent pas avoir le même `name` (case-insensitive à la création — la normalisation se fait en `name.trim()`). `409 CONFLICT` si doublon.
-
 - **RM-06 — `TagsModule` global :** `TagsModule` est déclaré `@Global()` et exporte `TagService`. Tous les modules CRUD qui ont besoin de sauvegarder des tags importent `TagsModule` ou injectent `TagService` directement. Ne pas reimporter `PrismaModule`.
-
 - **RM-07 — Seed des dimensions de base :** À l'issue de F-03, le seed Prisma contient les 3 dimensions initiales : `Geography` (color: `#2196F3`, icon: `public`), `Brand` (color: `#9C27B0`, icon: `label`), `LegalEntity` (color: `#FF9800`, icon: `account_balance`). Ces dimensions sont vides de valeurs — les valeurs sont créées à la volée par les utilisateurs.
-
 - **RM-08 — Tags non bloquants à la suppression d'entité :** La suppression d'une entité (Application, etc.) déclenche un `DELETE FROM entity_tags WHERE entity_type = X AND entity_id = Y` en cascade (ON DELETE CASCADE sur la FK implicite, ou géré applicativement). Les `TagValue` elles-mêmes ne sont pas supprimées — elles peuvent être orphelines. Le nettoyage des orphelins est une opération d'administration P2 (FS-21).
-
 - **RM-09 — Logging des opérations tag :** TagService loggue les opérations critiques : création de dimension, résolution/création de tag, mise à jour des tags d'entité. Format : `{ method, userId, dimensionId, tagValueId, result }`. Logger : `private readonly logger = new Logger(TagService.name);`
 
 > **Note (P2) :** En cas d'échec de création d'entité après que des tags ont été créés via `POST /tags/resolve`, les valeurs de tags créées peuvent devenir orphelines. Le cleanup de ces orphelins sera géré dans FS-21 (Admin des tags).
 
 > **Améliorations futures P2 :** 
+>
 > - La contrainte `multiValue: false` n'est pas enforced côté backend en P1. Le endpoint `PUT /tags/entity/:type/:id` accepte plusieurs tags sans validation. FS-21 devra ajouter cette validation (retourner 400 si count > 1 sur une dimension `multiValue = false`).
 > - Le rate limiting sur les endpoints de tags (`POST /tags/resolve`, `PUT /tags/entity/...`) sera implémenté dans FS-21 ou une tâche P2 dédiée.
 
@@ -472,17 +532,20 @@ components:
 ## 5. Comportement attendu par cas d'usage
 
 **Nominal — autocomplete et création à volée :**
+
 > **Note performance :** L'autocomplete ne déclenche pas de requête si `q.length < 2`. Debounce 300ms côté frontend (voir §6). Limite par défaut : 20 résultats.
-- Quand l'utilisateur tape `"paris"` dans le champ Geography d'une Application → l'autocomplete retourne les TagValues dont le path normalisé ou le label contient `"paris"` (ILIKE sur les deux champs)
+
 - Quand l'utilisateur sélectionne une valeur existante → `PUT /tags/entity/application/:id` est appelé avec le tagValueId
 - Quand l'utilisateur tape `"europe/france/marseille"` et appuie Entrée → `POST /tags/resolve` est appelé → crée `europe`, `europe/france` (si manquants) et `europe/france/marseille` → retourne le TagValue feuille → `PUT /tags/entity/...` est appelé
 - Quand l'utilisateur tape `"marseille"` (sans préfixe) dans la dimension Geography → path normalisé = `"marseille"`, label préservé = `"Marseille"`, depth = 0, pas d'ancêtre → valeur créée à la racine de la dimension
 
 **Nominal — lecture avec héritage implicite :**
+
 - Quand une requête filtre `Geography` = `"europe/france"` → retourne toutes les entités taggées avec un path commençant par `"europe/france"` (Paris, Lyon, Marseille, etc.)
 - Quand on récupère les tags d'une entité → retourne uniquement les feuilles stockées, pas les ancêtres déduits
 
 **Erreurs :**
+
 - Path avec caractère interdit (ex: `"france<paris>"`) → `400 BAD_REQUEST` + code `INVALID_TAG_PATH`
 - Path vide ou uniquement slashes → `400 BAD_REQUEST` + code `INVALID_TAG_PATH`
 - Dimension inexistante dans l'autocomplete → `404 NOT_FOUND`
@@ -511,6 +574,7 @@ interface DimensionTagInputProps {
 ```
 
 **Comportement :**
+
 - Champ `Autocomplete` MUI avec `freeSolo` — l'utilisateur peut saisir n'importe quelle valeur
 - Appelle `GET /tags/autocomplete?dimension=:id&q=:input` à chaque keystroke (debounce 300ms)
 - Si la valeur saisie n'existe pas dans les suggestions et que l'utilisateur valide (Entrée ou blur) → extrait la casse originale du dernier segment, normalise le path en lowercase, et appelle `POST /tags/resolve` avec path normalisé et label préservé → ajoute aux tags sélectionnés
@@ -520,6 +584,7 @@ interface DimensionTagInputProps {
 - En mode édition : chaque modification déclenche immédiatement `PUT /tags/entity/...` (pas de bouton Save séparé pour les tags)
 
 **Structure de fichiers :**
+
 ```
 frontend/src/
 └── components/
@@ -530,6 +595,7 @@ frontend/src/
 ```
 
 **Clés i18n à ajouter dans `fr.json` :**
+
 ```json
 "tags": {
   "autocomplete": {
@@ -554,12 +620,12 @@ frontend/src/
 
 ### Outil par niveau
 
-| Niveau | Outil | Fichier cible | Délégable à OpenCode |
-|---|---|---|---|
-| Unit (TagService) | **Jest** | `src/tags/tags.service.spec.ts` | ⚠️ Partiel — logique path manuelle |
-| API / contrat HTTP | **Jest + Supertest** | `test/tags.e2e-spec.ts` | ✅ Oui |
-| Sécurité / RBAC | **Jest + Supertest** | `test/tags.e2e-spec.ts` | ❌ **Manuel** |
-| E2E browser (UI) | **Cypress** | `cypress/e2e/tags.cy.ts` | ✅ Oui (nominaux) |
+| Niveau             | Outil                | Fichier cible                   | Délégable à OpenCode                |
+| ------------------ | -------------------- | ------------------------------- | ----------------------------------- |
+| Unit (TagService)  | **Jest**             | `src/tags/tags.service.spec.ts` | ⚠️ Partiel — logique path manuelle |
+| API / contrat HTTP | **Jest + Supertest** | `test/tags.e2e-spec.ts`         | ✅ Oui                              |
+| Sécurité / RBAC    | **Jest + Supertest** | `test/tags.e2e-spec.ts`         | ❌ **Manuel**                       |
+| E2E browser (UI)   | **Cypress**          | `cypress/e2e/tags.cy.ts`        | ✅ Oui (nominaux)                   |
 
 ### Tests Jest — Unit (TagService)
 
@@ -611,11 +677,13 @@ frontend/src/
 ## 8. Contraintes Techniques
 
 **Périmètre manuel (ne pas déléguer à OpenCode) :**
+
 - `TagService.resolveOrCreate()` — logique de création récursive des ancêtres, sensible à l'ordre d'insertion et aux race conditions
 - `TagService.normalizePath()` — règles de normalisation, caractères interdits
 - `TagService.getAncestorPaths()` — logique de décomposition de path
 
 **Périmètre OpenCode (générable) :**
+
 - Migration Prisma + `schema.sql` correspondant
 - `TagsController` — CRUD dimensions + endpoints autocomplete/resolve/entity
 - `TagsModule` wiring NestJS
@@ -624,6 +692,7 @@ frontend/src/
 - Tests Supertest nominaux
 
 **Conventions à respecter :**
+
 - `TagsModule` déclaré `@Global()` dans `tags.module.ts`, exporte `TagService`
 - Pattern NestJS : suivre `DomainsModule` (FS-02) comme référence de structure
 - Toute écriture en base passe par `$executeRaw SET LOCAL ark.current_user_id`
@@ -633,6 +702,7 @@ frontend/src/
 - Toutes les strings visibles via `t('tags.*')` — clés ajoutées dans `fr.json` en même temps que les composants (F-02 RM-03)
 
 **Structure de fichiers backend cible :**
+
 ```
 src/tags/
 ├── tags.module.ts           // @Global(), exports: [TagService]
@@ -706,27 +776,27 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ### Gates TD
 
-| # | Vérification | Commande / Action |
-|---|---|---|
-| TD-1 | Aucun `TODO / FIXME / HACK` non tracé | `git grep -n "TODO\|FIXME\|HACK" -- '*.ts' '*.tsx'` |
-| TD-2 | Items F-999 activés par F-03 mis à jour | Relire F-999 §2 — ajouter Item migration `tags TEXT[]` |
-| TD-3 | Checklist F-999 §4 cases cochées | F-999 §4 |
-| TD-4 | AGENTS.md — pattern `TagService` (resolveOrCreate, DimensionTagInput) documenté | Relire AGENTS.md |
-| TD-5 | ARK-NFR.md — aucun NFR impacté par F-03 (pas de breaking change) | Vérifier NFR-MAINT-004 (migrations) |
-| TD-6 | Note de migration destructive (`DROP COLUMN tags`) ajoutée en F-999 | Créer nouvel item F-999 |
+| #    | Vérification                                                                    | Commande / Action                                      |
+| ---- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| TD-1 | Aucun `TODO / FIXME / HACK` non tracé                                           | `git grep -n "TODO\                                    |
+| TD-2 | Items F-999 activés par F-03 mis à jour                                         | Relire F-999 §2 — ajouter Item migration `tags TEXT[]` |
+| TD-3 | Checklist F-999 §4 cases cochées                                                | F-999 §4                                               |
+| TD-4 | AGENTS.md — pattern `TagService` (resolveOrCreate, DimensionTagInput) documenté | Relire AGENTS.md                                       |
+| TD-5 | ARK-NFR.md — aucun NFR impacté par F-03 (pas de breaking change)                | Vérifier NFR-MAINT-004 (migrations)                    |
+| TD-6 | Note de migration destructive (`DROP COLUMN tags`) ajoutée en F-999             | Créer nouvel item F-999                                |
 
 ### Résultat de la revue
 
-| Champ | Valeur |
-|---|---|
-| **Sprint** | *(à remplir)* |
-| **Date de revue** | *(à remplir)* |
-| **Items F-999 fermés** | *(à remplir)* |
-| **Items F-999 ouverts** | *(à remplir)* |
+| Champ                          | Valeur                                             |
+| ------------------------------ | -------------------------------------------------- |
+| **Sprint**                     | *(à remplir)*                                      |
+| **Date de revue**              | *(à remplir)*                                      |
+| **Items F-999 fermés**         | *(à remplir)*                                      |
+| **Items F-999 ouverts**        | *(à remplir)*                                      |
 | **Nouveaux items F-999 créés** | *(ex : Item XX — migration tags TEXT[] par FS-xx)* |
-| **NFR mis à jour** | *(à remplir)* |
-| **TODOs résiduels tracés** | *(à remplir)* |
-| **Statut gates TD** | *(à remplir)* |
+| **NFR mis à jour**             | *(à remplir)*                                      |
+| **TODOs résiduels tracés**     | *(à remplir)*                                      |
+| **Statut gates TD**            | *(à remplir)*                                      |
 
 ---
 
