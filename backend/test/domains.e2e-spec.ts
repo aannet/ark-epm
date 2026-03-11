@@ -56,7 +56,132 @@ describe('DomainsController (e2e)', () => {
     });
   });
 
-  describe('GET /domains/:id', () => {
+  describe('GET /domains/:id with tags', () => {
+    it('should return domain with tags including ancestor and descendant (no backend filtering)', async () => {
+      // First, create a Geography dimension if not exists
+      const dimensionResponse = await request(app.getHttpServer())
+        .get('/tag-dimensions')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      
+      let geographyDim = dimensionResponse.body.find((d: any) => d.name === 'Geography');
+      
+      if (!geographyDim) {
+        const createDimResponse = await request(app.getHttpServer())
+          .post('/tag-dimensions')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ name: 'Geography', color: '#2196F3' })
+          .expect(201);
+        geographyDim = createDimResponse.body;
+      }
+
+      // Create ancestor tag: europe/france
+      const ancestorTag = await request(app.getHttpServer())
+        .post('/tags/resolve')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ dimensionId: geographyDim.id, path: 'europe/france', label: 'France' })
+        .expect(201);
+
+      // Create descendant tag: europe/france/paris
+      const descendantTag = await request(app.getHttpServer())
+        .post('/tags/resolve')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ dimensionId: geographyDim.id, path: 'europe/france/paris', label: 'Paris' })
+        .expect(201);
+
+      // Create a domain
+      const domain = await request(app.getHttpServer())
+        .post('/domains')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `Domain With Tags ${Date.now()}` })
+        .expect(201);
+
+      // Add both tags to the domain
+      await request(app.getHttpServer())
+        .put(`/tags/entity/domain/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ dimensionId: geographyDim.id, tagValueIds: [ancestorTag.body.id, descendantTag.body.id] })
+        .expect(200);
+
+      // Get domain and verify both tags are present
+      const response = await request(app.getHttpServer())
+        .get(`/domains/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.tags).toBeDefined();
+      expect(response.body.tags).toHaveLength(2);
+      
+      // Verify both ancestor and descendant are present (no backend deduplication)
+      const tagPaths = response.body.tags.map((t: any) => t.tagValue.path);
+      expect(tagPaths).toContain('europe/france');
+      expect(tagPaths).toContain('europe/france/paris');
+    });
+
+    it('should return tags with depth and dimensionColor fields', async () => {
+      // Get the Geography dimension
+      const dimensionResponse = await request(app.getHttpServer())
+        .get('/tag-dimensions')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      
+      let geographyDim = dimensionResponse.body.find((d: any) => d.name === 'Geography');
+      
+      if (!geographyDim) {
+        const createDimResponse = await request(app.getHttpServer())
+          .post('/tag-dimensions')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ name: 'Geography', color: '#2196F3' })
+          .expect(201);
+        geographyDim = createDimResponse.body;
+      }
+
+      // Create a tag with depth > 0
+      const tagValue = await request(app.getHttpServer())
+        .post('/tags/resolve')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ dimensionId: geographyDim.id, path: 'europe/france/paris', label: 'Paris' })
+        .expect(201);
+
+      // Create a domain
+      const domain = await request(app.getHttpServer())
+        .post('/domains')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `Domain Tag Fields ${Date.now()}` })
+        .expect(201);
+
+      // Add tag to domain
+      await request(app.getHttpServer())
+        .put(`/tags/entity/domain/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ dimensionId: geographyDim.id, tagValueIds: [tagValue.body.id] })
+        .expect(200);
+
+      // Get domain and verify tag fields
+      const response = await request(app.getHttpServer())
+        .get(`/domains/${domain.body.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.tags).toBeDefined();
+      expect(response.body.tags).toHaveLength(1);
+      
+      const tagValueResponse = response.body.tags[0].tagValue;
+      
+      // Verify depth field is present
+      expect(tagValueResponse).toHaveProperty('depth');
+      expect(typeof tagValueResponse.depth).toBe('number');
+      expect(tagValueResponse.depth).toBe(2); // europe/france/paris is at depth 2
+
+      // Verify dimensionColor field is present
+      expect(tagValueResponse).toHaveProperty('dimensionColor');
+      expect(tagValueResponse.dimensionColor).toBe('#2196F3');
+
+      // Verify dimensionName field is present
+      expect(tagValueResponse).toHaveProperty('dimensionName');
+      expect(tagValueResponse.dimensionName).toBe('Geography');
+    });
+
     it('should return 404 for non-existent uuid', async () => {
       const response = await request(app.getHttpServer())
         .get('/domains/00000000-0000-0000-0000-000000000000')

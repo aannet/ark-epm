@@ -11,8 +11,6 @@ import {
   Paper,
   IconButton,
   TableSortLabel,
-  Chip,
-  Box,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -23,6 +21,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { TagChipList } from '@/components/tags';
 import { useDomains, useDeleteDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { Domain } from '@/types/domain';
@@ -238,33 +237,13 @@ export default function DomainsListPage(): JSX.Element {
                   <TableCell>{domain.name}</TableCell>
                   <TableCell>{domain.description || '—'}</TableCell>
                   <TableCell>
-                    {domain.tags && domain.tags.length > 0 ? (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {domain.tags.slice(0, 3).map((tag) => (
-                          <Chip
-                            key={tag.id}
-                            label={tag.label}
-                            size="small"
-                            sx={{
-                              backgroundColor: tag.dimensionName === 'Geography' ? '#2196F3' : 
-                                              tag.dimensionName === 'Brand' ? '#9C27B0' : '#FF9800',
-                              color: '#fff',
-                              fontSize: '0.75rem',
-                            }}
-                            title={tag.path}
-                          />
-                        ))}
-                        {domain.tags.length > 3 && (
-                          <Chip
-                            label={`+${domain.tags.length - 3}`}
-                            size="small"
-                            sx={{ fontSize: '0.75rem' }}
-                          />
-                        )}
-                      </Box>
-                    ) : (
-                      '—'
-                    )}
+                    <TagChipList
+                      tags={domain.tags || []}
+                      maxVisible={3}
+                      deduplicate={true}
+                      showMoreButton={true}
+                      size="small"
+                    />
                   </TableCell>
                   <TableCell>
                     {new Date(domain.createdAt).toLocaleDateString('fr-FR')}

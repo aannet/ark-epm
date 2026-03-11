@@ -2,6 +2,7 @@ export interface TagValueResponse {
   id: string;
   dimensionId: string;
   dimensionName: string;
+  dimensionColor?: string;
   path: string;
   label: string;
   depth: number;

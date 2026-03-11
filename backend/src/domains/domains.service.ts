@@ -20,9 +20,25 @@ export class DomainsService {
 
   async findAll() {
     this.logger.log({ method: 'findAll' });
-    return this.prisma.domain.findMany({
+    const domains = await this.prisma.domain.findMany({
       orderBy: { name: 'asc' },
     });
+
+    if (domains.length === 0) {
+      return [];
+    }
+
+    // Batch load all tags for all domains at once
+    const domainIds = domains.map((d) => d.id);
+    const allTags = await this.tagsService.getEntitiesTags('domain', domainIds);
+
+    // Map tags to their respective domains
+    return domains.map((domain) => ({
+      ...domain,
+      tags: allTags
+        .filter((tag) => tag.entityId === domain.id)
+        .map((tag) => tag.tagValue),
+    }));
   }
 
   async findOne(id: string, userId?: string) {

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Stack, Paper, Typography, Chip, Box, Divider } from '@mui/material';
+import { Button, Stack, Paper, Typography, Box, Divider } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { TagChipList } from '@/components/tags';
 import { useDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 
@@ -120,20 +121,14 @@ export default function DomainDetailPage(): JSX.Element {
                 <Typography variant="caption" color="text.secondary">
                   {t('domains.list.columns.tags')}
                 </Typography>
-                <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {domain.tags.map((tag) => (
-                    <Chip
-                      key={tag.id}
-                      label={tag.label}
-                      size="small"
-                      sx={{
-                        backgroundColor: tag.dimensionName === 'Geography' ? '#2196F3' : 
-                                        tag.dimensionName === 'Brand' ? '#9C27B0' : '#FF9800',
-                        color: '#fff',
-                      }}
-                      title={tag.path}
-                    />
-                  ))}
+                <Box sx={{ mt: 1 }}>
+                  <TagChipList
+                    tags={domain.tags}
+                    maxVisible={999}
+                    deduplicate={true}
+                    showMoreButton={false}
+                    size="small"
+                  />
                 </Box>
               </Box>
             )}

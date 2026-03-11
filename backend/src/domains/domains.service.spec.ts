@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DomainsService } from './domains.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { TagsService } from '../tags/tags.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 
 describe('DomainsService', () => {
   let service: DomainsService;
   let prisma: jest.Mocked<PrismaService>;
+  let tagsService: jest.Mocked<TagsService>;
 
   const mockDomain = {
     id: '123e4567-e89b-12d3-a456-426614174000',
@@ -25,6 +27,11 @@ describe('DomainsService', () => {
       },
     };
 
+    const mockTagsService = {
+      getEntityTags: jest.fn(),
+      getEntitiesTags: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DomainsService,
@@ -32,27 +39,69 @@ describe('DomainsService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        {
+          provide: TagsService,
+          useValue: mockTagsService,
+        },
       ],
     }).compile();
 
     service = module.get<DomainsService>(DomainsService);
     prisma = module.get(PrismaService);
+    tagsService = module.get(TagsService);
   });
 
   describe('findAll', () => {
-    it('should return an array of domains', async () => {
+    it('should return an array of domains with tags', async () => {
       prisma.domain.findMany.mockResolvedValue([mockDomain]);
+      tagsService.getEntitiesTags.mockResolvedValue([]);
+      
       const result = await service.findAll();
-      expect(result).toEqual([mockDomain]);
+      
+      expect(result).toEqual([{ ...mockDomain, tags: [] }]);
       expect(prisma.domain.findMany).toHaveBeenCalledWith({
         orderBy: { name: 'asc' },
       });
+      expect(tagsService.getEntitiesTags).toHaveBeenCalledWith('domain', [mockDomain.id]);
+    });
+
+    it('should return domains with their associated tags', async () => {
+      const domain1 = { ...mockDomain, id: 'domain-1' };
+      const domain2 = { ...mockDomain, id: 'domain-2', name: 'HR' };
+      prisma.domain.findMany.mockResolvedValue([domain1, domain2]);
+      
+      const mockTags = [
+        {
+          entityType: 'domain',
+          entityId: 'domain-1',
+          tagValue: {
+            id: 'tag-1',
+            dimensionId: 'dim-1',
+            dimensionName: 'Geography',
+            dimensionColor: '#2196F3',
+            path: 'europe/france',
+            label: 'France',
+            depth: 1,
+            parentId: null,
+          },
+          taggedAt: new Date(),
+        },
+      ];
+      tagsService.getEntitiesTags.mockResolvedValue(mockTags);
+      
+      const result = await service.findAll();
+      
+      expect(result).toHaveLength(2);
+      expect(result[0].tags).toHaveLength(1);
+      expect(result[0].tags[0].label).toBe('France');
+      expect(result[1].tags).toHaveLength(0);
     });
 
     it('should return empty array when no domains exist', async () => {
       prisma.domain.findMany.mockResolvedValue([]);
       const result = await service.findAll();
       expect(result).toEqual([]);
+      expect(tagsService.getEntitiesTags).not.toHaveBeenCalled();
     });
   });
 

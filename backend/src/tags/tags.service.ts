@@ -142,6 +142,7 @@ export class TagsService {
       id: string;
       dimensionId: string;
       dimensionName: string;
+      dimensionColor: string | null;
       path: string;
       label: string;
       depth: number;
@@ -179,13 +180,14 @@ export class TagsService {
       where: whereClause,
       orderBy: { path: 'asc' },
       take: limit,
-      include: { dimension: { select: { name: true } } },
+      include: { dimension: { select: { name: true, color: true } } },
     });
 
     return values.map((v) => ({
       id: v.id,
       dimensionId: v.dimensionId,
       dimensionName: v.dimension.name,
+      dimensionColor: v.dimension.color,
       path: v.path,
       label: v.label,
       depth: v.depth,
@@ -199,6 +201,8 @@ export class TagsService {
   ): Promise<{
     id: string;
     dimensionId: string;
+    dimensionName: string;
+    dimensionColor: string | null;
     path: string;
     label: string;
     depth: number;
@@ -237,7 +241,14 @@ export class TagsService {
     });
 
     if (existing) {
-      return existing;
+      const dimension = await this.prisma.tagDimension.findUnique({
+        where: { id: dto.dimensionId },
+      });
+      return {
+        ...existing,
+        dimensionName: dimension!.name,
+        dimensionColor: dimension!.color,
+      };
     }
 
     const ancestorPaths = this.getAncestorPaths(normalizedPath);
@@ -296,9 +307,14 @@ export class TagsService {
           path: normalizedPath,
         },
       },
+      include: { dimension: { select: { name: true, color: true } } },
     });
 
-    return createdTag!;
+    return {
+      ...createdTag!,
+      dimensionName: createdTag!.dimension.name,
+      dimensionColor: createdTag!.dimension.color,
+    };
   }
 
   async getEntityTags(
@@ -311,6 +327,8 @@ export class TagsService {
       tagValue: {
         id: string;
         dimensionId: string;
+        dimensionName: string;
+        dimensionColor: string | null;
         path: string;
         label: string;
         depth: number;
@@ -323,7 +341,7 @@ export class TagsService {
       where: { entityType, entityId },
       include: {
         tagValue: {
-          include: { dimension: { select: { name: true } } },
+          include: { dimension: { select: { name: true, color: true } } },
         },
       },
     });
@@ -334,6 +352,61 @@ export class TagsService {
       tagValue: {
         id: et.tagValue.id,
         dimensionId: et.tagValue.dimensionId,
+        dimensionName: et.tagValue.dimension.name,
+        dimensionColor: et.tagValue.dimension.color,
+        path: et.tagValue.path,
+        label: et.tagValue.label,
+        depth: et.tagValue.depth,
+        parentId: et.tagValue.parentId,
+      },
+      taggedAt: et.taggedAt,
+    }));
+  }
+
+  async getEntitiesTags(
+    entityType: string,
+    entityIds: string[],
+  ): Promise<
+    Array<{
+      entityType: string;
+      entityId: string;
+      tagValue: {
+        id: string;
+        dimensionId: string;
+        dimensionName: string;
+        dimensionColor: string | null;
+        path: string;
+        label: string;
+        depth: number;
+        parentId: string | null;
+      };
+      taggedAt: Date;
+    }>
+  > {
+    if (entityIds.length === 0) {
+      return [];
+    }
+
+    const entityTags = await this.prisma.entityTag.findMany({
+      where: {
+        entityType,
+        entityId: { in: entityIds },
+      },
+      include: {
+        tagValue: {
+          include: { dimension: { select: { name: true, color: true } } },
+        },
+      },
+    });
+
+    return entityTags.map((et) => ({
+      entityType: et.entityType,
+      entityId: et.entityId,
+      tagValue: {
+        id: et.tagValue.id,
+        dimensionId: et.tagValue.dimensionId,
+        dimensionName: et.tagValue.dimension.name,
+        dimensionColor: et.tagValue.dimension.color,
         path: et.tagValue.path,
         label: et.tagValue.label,
         depth: et.tagValue.depth,
@@ -355,6 +428,8 @@ export class TagsService {
       tagValue: {
         id: string;
         dimensionId: string;
+        dimensionName: string;
+        dimensionColor: string | null;
         path: string;
         label: string;
         depth: number;
