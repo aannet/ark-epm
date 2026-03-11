@@ -58,7 +58,7 @@ export class DomainsService {
     
     return {
       ...domain,
-      tags,
+      tags: tags.map((t) => t.tagValue),
     };
   }
 

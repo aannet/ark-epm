@@ -106,10 +106,47 @@ describe('DomainsService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a domain by id', async () => {
+    it('should return a domain by id with its tags', async () => {
       prisma.domain.findUnique.mockResolvedValue(mockDomain);
+      
+      const mockTags = [
+        {
+          entityType: 'domain',
+          entityId: mockDomain.id,
+          tagValue: {
+            id: 'tag-1',
+            dimensionId: 'dim-1',
+            dimensionName: 'Geography',
+            dimensionColor: '#2196F3',
+            path: 'europe/france',
+            label: 'France',
+            depth: 1,
+            parentId: null,
+          },
+          taggedAt: new Date(),
+        },
+      ];
+      tagsService.getEntityTags.mockResolvedValue(mockTags);
+      
       const result = await service.findOne(mockDomain.id);
-      expect(result).toEqual(mockDomain);
+      
+      expect(result).toEqual({
+        ...mockDomain,
+        tags: mockTags.map((t) => t.tagValue),
+      });
+      expect(tagsService.getEntityTags).toHaveBeenCalledWith('domain', mockDomain.id);
+    });
+
+    it('should return a domain with empty tags array when no tags exist', async () => {
+      prisma.domain.findUnique.mockResolvedValue(mockDomain);
+      tagsService.getEntityTags.mockResolvedValue([]);
+      
+      const result = await service.findOne(mockDomain.id);
+      
+      expect(result).toEqual({
+        ...mockDomain,
+        tags: [],
+      });
     });
 
     it('should throw NotFoundException when domain not found', async () => {
