@@ -51,9 +51,49 @@ _Version 0.1 — Mars 2026_
 - Backend API — couvert par `FS-XX-BACK`
 - *(autres exclusions spécifiques)*
 
+
 ---
 
-## 2. Référence Contrat API ⚠️
+## 2. User stories
+
+
+> Par US - NOM: 
+> En tant que XXX, je veux XXX, afin de XXXX
+> Critères d'acceptations en liste simple et concise
+
+### Liste 
+
+
+### Interactions Liste/Drawer (PNS-02)
+
+>>> Exemples 
+#### US-01 — Consultation Rapide
+En tant qu'utilisateur, je veux cliquer sur le corps d'une ligne du tableau (hors nom) pour ouvrir un Side Drawer, afin de consulter les métadonnées du domaine sans perdre ma position dans la liste ni mes filtres actifs.
+
+Critères d'acceptation:
+* Clic sur Description, Tags, Date ou Actions → ouvre le drawer
+* Drawer s'affiche depuis la droite (400px)
+* État de la liste préservé (scroll, filtres)
+
+#### US-02 — Accès Direct Détail
+En tant qu'utilisateur, je veux cliquer sur le nom du domaine (lien hypertexte souligné) pour naviguer directement vers la Page Détail complète.
+
+Critères d'acceptation:
+* Nom affiché comme lien souligné (couleur texte normale, primaire au hover)
+* Clic sur nom → navigation immédiate vers /domains/:id
+* Le clic sur le nom ne déclenche pas l'ouverture du drawer (stopPropagation)
+
+### Detail 
+
+### Création
+
+### Edition 
+
+
+
+---
+
+## 3. Référence Contrat API
 
 > Le contrat API complet est défini dans **FS-XX-BACK §3**. Ne pas le redéfinir ici.
 > La session OpenCode frontend doit recevoir FS-XX-BACK §3 en contexte additionnel (voir commande §10).
@@ -82,7 +122,7 @@ Codes HTTP à gérer côté frontend :
 
 ---
 
-## 3. Layout Contract ⚠️
+## 4. Layout Contract
 
 > Contrat de résolution des composants pour chaque page.
 > OpenCode **doit** utiliser le composant F-01 indiqué — jamais réinventer avec Box+Typography custom.
@@ -90,7 +130,7 @@ Codes HTTP à gérer côté frontend :
 
 ---
 
-### 3.1 `[Domaine]ListPage`
+### 4.1 `[Domaine]ListPage`
 
 ```yaml
 page: [Domaine]ListPage
@@ -179,7 +219,7 @@ zones:
 
 ---
 
-### 3.2 `[Domaine]DetailPage`
+### 4.2 `[Domaine]DetailPage`
 
 ```yaml
 page: [Domaine]DetailPage
@@ -228,7 +268,7 @@ zones:
 
 ---
 
-### 3.3 `[Domaine]NewPage`
+### 4.3 `[Domaine]NewPage`
 
 ```yaml
 page: [Domaine]NewPage
@@ -277,7 +317,7 @@ zones:
 
 ---
 
-### 3.4 `[Domaine]EditPage`
+### 4.4 `[Domaine]EditPage`
 
 ```yaml
 page: [Domaine]EditPage
@@ -327,7 +367,7 @@ zones:
 
 ---
 
-## 4. Composants à Générer
+## 5. Composants à Générer
 
 ### Structure de fichiers
 
@@ -376,7 +416,7 @@ interface [Domaine]Response {
 
 ---
 
-## 5. Clés i18n — Section `[domaine]` à ajouter dans `fr.json` ⚠️
+## 6. Clés i18n — Section `[domaine]` à ajouter dans `fr.json` ⚠️
 
 > À ajouter **manuellement** dans `src/i18n/locales/fr.json` avant de lancer la session OpenCode.
 
@@ -426,7 +466,7 @@ interface [Domaine]Response {
 
 ---
 
-## 6. Règles Métier Frontend ⚠️
+## 7. Règles Métier Frontend ⚠️
 
 - **RM-06 — Masquage conditionnel des actions d'écriture :**
 
@@ -463,7 +503,7 @@ interface [Domaine]Response {
 
 ---
 
-## 7. Câblage App.tsx — Manuel ⚠️
+## 8. Câblage App.tsx — Manuel ⚠️
 
 > À réaliser **manuellement** avant de lancer la session OpenCode.
 > OpenCode ne génère pas ce fichier. Patron de référence : `FS-02-FRONT §7`.
@@ -486,7 +526,7 @@ interface [Domaine]Response {
 
 ---
 
-## 8. Session Gate — Frontend ⚠️
+## 9. Session Gate — Frontend ⚠️
 
 > Prérequis à valider **avant** de lancer la session OpenCode et de passer cette spec à `stable`.
 
@@ -503,7 +543,7 @@ interface [Domaine]Response {
 
 ---
 
-## 9. Tests Cypress — E2E Browser ⚠️
+## 10. Tests Cypress — E2E Browser ⚠️
 
 > À remplir exhaustivement — OpenCode génère les tests Cypress nominaux à partir de cette section.
 > Assertions sur les **valeurs FR** de `fr.json` — jamais sur les clés.
@@ -543,7 +583,7 @@ interface [Domaine]Response {
 
 ---
 
-## 10. Commande OpenCode — Frontend ⚠️
+## 11. Commande OpenCode — Frontend ⚠️
 
 > Copier-coller intégralement en début de session OpenCode.
 > Ajouter le contenu de FS-XX-BACK §3 (Contrat API) à la suite.
@@ -602,7 +642,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-## 11. Checklist de Validation Frontend
+## 12. Checklist de Validation Frontend
 
 > À compléter après génération OpenCode, avant de passer FS-XX-FRONT à `done`.
 
@@ -622,7 +662,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-## 12. Revue de Dette Technique *(gate de fin de sprint — obligatoire)* ⚠️
+## 13. Revue de Dette Technique *(gate de fin de sprint — obligatoire)* ⚠️
 
 > À remplir **après** implémentation frontend, avant de clore le sprint complet.
 
