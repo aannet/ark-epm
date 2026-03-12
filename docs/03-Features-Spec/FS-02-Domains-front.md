@@ -1,6 +1,15 @@
 # ARK — Feature Spec FS-02-FRONT : Domains (Frontend)
 
-_Version 1.5 — Mars 2026_
+_Version 1.6 — Mars 2026_
+
+> **Changelog v1.6 (PNS-02 Side Drawer) :**
+>
+> - Implémentation du Side Drawer readonly pour la vue liste (PNS-02)
+> - Modification comportement clic ligne : navigate → open drawer
+> - Ajout composant `DomainDrawer.tsx` (read-only, 400px, anchor right)
+> - Layout Contract §3.1 : ajout zone `drawer` + modification `row_click`
+> - Tests Cypress §9 : nouveaux cas de test drawer
+> - i18n : ajout clés `domains.drawer.*`
 
 > **Changelog v1.5 (Alignement F-03 v0.4) :**
 >
@@ -41,7 +50,7 @@ _Version 1.5 — Mars 2026_
 | **Statut** | `done` |
 | **Dépend de** | FS-01, F-02, **FS-02-BACK** (gate bloquante), **F-03** |
 | **Estimé** | 1 jour |
-| **Version** | 1.5 |
+| **Version** | 1.6 |
 
 ---
 
@@ -75,6 +84,53 @@ Codes HTTP à gérer côté frontend :
 | `409` `CONFLICT` | Nom dupliqué | Erreur **inline** `t('domains.form.nameDuplicate')` |
 | `409` `DEPENDENCY_CONFLICT` | Suppression bloquée | Message dans `ConfirmDialog` via `format409Message()` |
 | `5xx` | Erreur serveur | Alert **error** `t('domains.alert.errors.serverError')` |
+
+---
+
+## 2.5 User Stories — Interactions Liste/Drawer (PNS-02)
+
+### US-01 — Consultation Rapide
+**En tant qu'utilisateur**, je veux cliquer sur le corps d'une ligne du tableau (hors nom) pour ouvrir un Side Drawer, afin de consulter les métadonnées du domaine sans perdre ma position dans la liste ni mes filtres actifs.
+
+**Critères d'acceptation:**
+- Clic sur Description, Tags, Date ou Actions → ouvre le drawer
+- Drawer s'affiche depuis la droite (400px)
+- État de la liste préservé (scroll, filtres)
+
+### US-02 — Accès Direct Détail
+**En tant qu'utilisateur**, je veux cliquer sur le nom du domaine (lien hypertexte souligné) pour naviguer directement vers la Page Détail complète.
+
+**Critères d'acceptation:**
+- Nom affiché comme lien souligné (couleur texte normale, primaire au hover)
+- Clic sur nom → navigation immédiate vers `/domains/:id`
+- Le clic sur le nom ne déclenche pas l'ouverture du drawer (stopPropagation)
+
+### US-03 — Transition Drawer vers Détail
+**En tant qu'utilisateur**, je veux trouver un bouton "Voir la fiche complète" dans le footer du Side Drawer.
+
+**Critères d'acceptation:**
+- Bouton positionné à droite dans le footer
+- Variant "outlined"
+- Navigation vers `/domains/:id` au clic
+
+### US-04 — Transition Drawer vers Édition
+**En tant qu'utilisateur**, je veux trouver un bouton "Modifier" dans le footer du Side Drawer.
+
+**Critères d'acceptation:**
+- Bouton positionné à gauche dans le footer (avant "Voir fiche")
+- Variant "contained"
+- **Grisé (disabled)** si l'utilisateur n'a pas la permission `domains:write`
+- Navigation vers `/domains/:id/edit` au clic (si autorisé)
+
+### US-05 — Fermeture Drawer
+**En tant qu'utilisateur**, je veux trouver une croix grise dans le coin haut droit du drawer.
+
+**Critères d'acceptation:**
+- IconButton avec CloseIcon
+- Couleur `text.secondary` (gris)
+- Positionné à droite du titre
+- Ferme le drawer au clic
+- Le backdrop click et Escape key ferment aussi le drawer
 
 ---
 
@@ -124,11 +180,23 @@ zones:
         condition: hasPermission('domains:write')
         label: t('domains.list.emptyState.cta')
         onClick: navigate('/domains/new')
+    row_click:
+      action: open DomainDrawer (toutes cellules sauf 'name')
+      handler: setSelectedDomainId(row.id)
+      condition: clic hors cellule name
+      preserve_state: [filters, scroll_position]
     columns:
       - field: name
         header: t('domains.list.columns.name')
         sortable: true
-        clickable: navigate('/domains/${row.id}')
+        component: Link (react-router-dom)
+        component_props:
+          to: '/domains/${row.id}'
+          underline: always
+          color: inherit  # texte normal
+          hover_color: primary
+        onClick: navigate('/domains/${row.id}')  # Navigation directe
+        behavior: stopPropagation pour éviter d'ouvrir le drawer
       - field: description
         header: t('domains.list.columns.description')
         sortable: true
@@ -159,6 +227,50 @@ zones:
             icon: DeleteIcon
             aria_label: t('common.actions.delete')
             onClick: open confirm-delete dialog
+
+  drawer:
+    component: DomainDrawer
+    trigger: clic sur corps de ligne (hors cellule name)
+    props:
+      domainId: string | null  # null = drawer fermé
+      open: boolean
+      onClose: () => void
+    behavior:
+      - GET /api/v1/domains/:id via useDomain() hook (avec enabled: !!domainId)
+      - Affichage skeleton pendant chargement
+      - Fermeture: bouton X (gris), backdrop click, Escape key
+    layout:
+      width: 400px
+      anchor: right
+      variant: temporary
+    sections:
+      header:
+        layout: flex row, justify-content: space-between
+        elements:
+          - title: Typography h6 (nom du domaine), word-break: break-word
+          - close_button:
+              icon: CloseIcon
+              color: text.secondary (gris)
+              aria-label: t('domains.drawer.close')
+              onClick: close drawer
+      content:
+        - Informations: Nom, Description, Commentaire (read-only)
+        - Tags: Chips via TagChipList mode drawer (maxVisible: 10 + "Voir plus")
+        - Métadonnées: Créé le, Modifié le (read-only)
+      footer:
+        layout: flex row, justify-content: flex-end, gap: 2
+        buttons:
+          - label: t('domains.drawer.edit')
+            variant: contained
+            onClick: navigate('/domains/${domainId}/edit')
+            state:
+              - disabled: !hasPermission('domains:write')  # grisé si pas permission
+          - label: t('domains.drawer.viewFullDetails')
+            variant: outlined
+            onClick: navigate('/domains/${domainId}')
+    permissions:
+      - Tous les utilisateurs: drawer accessible (read-only)
+      - Bouton Edit grisé (disabled) si pas de permission domains:write
 
   sort_state:
     default_field: name
@@ -393,7 +505,9 @@ frontend/src/
 │       └── DomainEditPage.tsx
 ├── components/
 │   ├── domains/
-│   │   └── DomainForm.tsx
+│   │   ├── DomainForm.tsx
+│   │   └── DomainDrawer.tsx      # NEW — PNS-02 Side Drawer read-only
+│   │   └── index.ts              # NEW — export { DomainForm, DomainDrawer }
 │   └── shared/
 │       └── ArkAlert.tsx
 ├── utils/
@@ -669,7 +783,13 @@ import { DimensionTagInput } from '@/components/tags';
 - [ ] `[Cypress]` Tri par défaut sur `name` ascendant
 - [ ] `[Cypress]` Clic sur en-tête "Nom" inverse le tri
 - [ ] `[Cypress]` Clic sur en-tête "Créé le" trie par date croissante
-- [ ] `[Cypress]` Clic sur une ligne → redirect vers `/domains/:id`
+- [ ] `[Cypress]` Clic sur une ligne → ouvre DomainDrawer (pas de navigation)
+- [ ] `[Cypress]` DomainDrawer affiche nom, description, tags, dates (read-only)
+- [ ] `[Cypress]` DomainDrawer affiche skeleton pendant chargement
+- [ ] `[Cypress]` Clic bouton "Voir la fiche complète" dans drawer → navigate vers `/domains/:id`
+- [ ] `[Cypress]` Clic bouton X ou backdrop → drawer fermé, reste sur liste
+- [ ] `[Cypress]` Touche Escape → drawer fermé
+- [ ] `[Cypress]` DomainDrawer accessible pour tous les rôles (read-only)
 - [ ] `[Cypress]` `DomainDetailPage` affiche nom, description et date
 - [ ] `[Cypress]` Créer un domaine → redirect vers `/domains/<new-id>` + Alert success contenant "Domaine créé avec succès"
 - [ ] `[Cypress]` Alert success disparaît automatiquement après 5 secondes

@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { DomainFormValues } from '@/types/domain';
@@ -28,32 +29,43 @@ export default function DomainForm({
   entityId,
 }: DomainFormProps): JSX.Element {
   const { t } = useTranslation();
+  
+  // Maintain reactive state for tags
+  const [tags, setTags] = useState<TagValueResponse[]>(initialValues?.tags || []);
+  
+  console.log('=== DomainForm render ===');
+  console.log('Current tags state:', tags);
+  console.log('Initial values:', initialValues?.tags);
+
+  const handleDimensionTagsChange = useCallback((dimensionName: string, dimensionTags: TagValueResponse[]) => {
+    console.log('=== handleDimensionTagsChange called ===');
+    console.log('dimensionName:', dimensionName);
+    console.log('dimensionTags:', dimensionTags);
+    console.log('Current tags before update:', tags);
+    
+    setTags((prevTags) => {
+      console.log('Inside setTags callback, prevTags:', prevTags);
+      // Remove all tags for this dimension
+      const tagsWithoutDimension = prevTags.filter(
+        (tag) => tag.dimensionName !== dimensionName
+      );
+      console.log('tagsWithoutDimension:', tagsWithoutDimension);
+      // Add new tags for this dimension
+      const newTags = [...tagsWithoutDimension, ...dimensionTags];
+      console.log('New tags state:', newTags);
+      return newTags;
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    // Get tags from each dimension input
-    const tags: TagValueResponse[] = [];
-    availableDimensions.forEach((dim) => {
-      const dimTags = (e.currentTarget as any)[`tags_${dim.name}`]?.value;
-      if (dimTags) {
-        try {
-          const parsed = JSON.parse(dimTags);
-          if (Array.isArray(parsed)) {
-            tags.push(...parsed);
-          }
-        } catch {
-          // Ignore parse errors
-        }
-      }
-    });
-    
     await onSubmit({
       name: formData.get('name') as string,
       description: (formData.get('description') as string) || '',
       comment: (formData.get('comment') as string) || '',
-      tags,
+      tags, // Use reactive state instead of DOM query
     });
   };
 
@@ -102,17 +114,13 @@ export default function DomainForm({
                   dimensionName={dimension.name}
                   entityType="domain"
                   entityId={entityId}
-                  value={initialValues?.tags?.filter(
+                  value={tags.filter(
                     (t) => t.dimensionName === dimension.name
-                  ) || []}
-                  onChange={(tags) => {
-                    // Store tags in a hidden input for form submission
-                    const input = document.getElementById(
-                      `tags_${dimension.name}`
-                    ) as HTMLInputElement;
-                    if (input) {
-                      input.value = JSON.stringify(tags);
-                    }
+                  )}
+                  onChange={(dimensionTags) => {
+                    console.log('=== DimensionTagInput onChange in DomainForm ===');
+                    console.log('dimensionTags received:', dimensionTags);
+                    handleDimensionTagsChange(dimension.name, dimensionTags);
                   }}
                   multiple={true}
                   color={dimension.color}
@@ -120,19 +128,6 @@ export default function DomainForm({
                 />
               ))}
             </Stack>
-            {availableDimensions.map((dimension) => (
-              <input
-                key={`hidden_${dimension.id}`}
-                type="hidden"
-                id={`tags_${dimension.name}`}
-                name={`tags_${dimension.name}`}
-                value={JSON.stringify(
-                  initialValues?.tags?.filter(
-                    (t) => t.dimensionName === dimension.name
-                  ) || []
-                )}
-              />
-            ))}
           </Box>
         )}
         

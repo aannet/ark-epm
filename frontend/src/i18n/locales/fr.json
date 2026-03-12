@@ -144,6 +144,18 @@
         "notFound": "Ce domaine n'existe plus.",
         "unknown": "Une erreur inattendue est survenue."
       }
+    },
+    "drawer": {
+      "title": "Détails du domaine",
+      "viewFullDetails": "Voir la fiche complète",
+      "edit": "Modifier",
+      "close": "Fermer",
+      "showMoreTags": "Voir les {{count}} tags supplémentaires",
+      "section": {
+        "info": "Informations",
+        "tags": "Tags",
+        "metadata": "Métadonnées"
+      }
     }
   },
 

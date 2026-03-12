@@ -13,14 +13,14 @@ export function useDomains() {
   });
 }
 
-export function useDomain(id: string) {
+export function useDomain(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['domains', id],
     queryFn: async () => {
       const response = await client.get<Domain>(`/domains/${id}`);
       return response.data;
     },
-    enabled: !!id,
+    enabled: options?.enabled ?? !!id,
   });
 }
 

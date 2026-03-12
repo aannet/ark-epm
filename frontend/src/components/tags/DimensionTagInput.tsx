@@ -4,7 +4,6 @@ import {
   TextField,
   Chip,
   CircularProgress,
-  Tooltip,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { tagsApi } from '../../api/tags';
@@ -13,8 +12,8 @@ import { TagValueResponse, DimensionTagInputProps } from './DimensionTagInput.ty
 export function DimensionTagInput({
   dimensionId,
   dimensionName,
-  entityType,
-  entityId,
+  entityType: _entityType,
+  entityId: _entityId,
   value,
   onChange,
   disabled = false,
@@ -78,6 +77,10 @@ export function DimensionTagInput({
       _event: React.SyntheticEvent,
       newValue: (TagValueResponse | string)[] | TagValueResponse | string | null,
     ) => {
+      console.log('=== DimensionTagInput handleChange called ===');
+      console.log('newValue:', newValue);
+      console.log('Current value:', value);
+      
       // Normalize value to array
       const normalizedValue: (TagValueResponse | string)[] =
         newValue === null
@@ -85,6 +88,8 @@ export function DimensionTagInput({
           : Array.isArray(newValue)
           ? newValue
           : [newValue];
+
+      console.log('normalizedValue:', normalizedValue);
 
       const tagsToResolve: string[] = [];
 
@@ -96,7 +101,13 @@ export function DimensionTagInput({
         return item;
       });
 
+      console.log('tagsToResolve:', tagsToResolve);
+      console.log('processedValue:', processedValue);
+
+      let finalTags: TagValueResponse[] = [];
+
       if (tagsToResolve.length > 0) {
+        // Resolve new tags (freeSolo mode)
         try {
           const resolvedTags: TagValueResponse[] = [];
           for (const tagInput of tagsToResolve) {
@@ -109,47 +120,30 @@ export function DimensionTagInput({
 
             const resolved = await tagsApi.resolve(dimensionId, path, label);
             resolvedTags.push(resolved);
-
-            if (entityId) {
-              await tagsApi.putEntityTags(
-                entityType,
-                entityId,
-                dimensionId,
-                [...value.map((v) => v.id), resolved.id],
-              );
-            }
           }
-
-          const newTags = [...value, ...resolvedTags];
-          onChange(newTags);
+          finalTags = [...value, ...resolvedTags];
         } catch (error) {
           console.error('Error resolving tags:', error);
+          // Rollback: keep current value
+          finalTags = value;
         }
       } else {
-        const finalValue = processedValue.filter(
+        // Existing tags selected or removed
+        finalTags = processedValue.filter(
           (item): item is TagValueResponse => typeof item !== 'string',
         );
-
-        if (entityId && finalValue.length !== value.length) {
-          try {
-            await tagsApi.putEntityTags(
-              entityType,
-              entityId,
-              dimensionId,
-              finalValue.map((v) => v.id),
-            );
-          } catch (error) {
-            console.error('Error updating entity tags:', error);
-          }
-        }
-
-        onChange(finalValue);
       }
+
+      console.log('finalTags:', finalTags);
+      console.log('Calling onChange with:', finalTags);
+
+      // ALWAYS update UI - NO API calls here
+      onChange(finalTags);
 
       setInputValue('');
       setOptions([]);
     },
-    [dimensionId, entityId, entityType, onChange, value],
+    [dimensionId, onChange, value],
   );
 
   const chipColor = useMemo(() => {
@@ -192,25 +186,22 @@ export function DimensionTagInput({
         tagValue.map((option, index) => {
           const { key, ...tagProps } = getTagProps({ index });
           return (
-            <Tooltip
+            <Chip
               key={key}
+              {...tagProps}
+              label={option.label}
               title={t('tags.tooltip.fullPath', { path: option.path })}
-            >
-              <Chip
-                {...tagProps}
-                label={option.label}
-                sx={{
-                  backgroundColor: chipColor,
-                  color: '#fff',
-                  '& .MuiChip-deleteIcon': {
-                    color: 'rgba(255,255,255,0.7)',
-                    '&:hover': {
-                      color: '#fff',
-                    },
+              sx={{
+                backgroundColor: chipColor,
+                color: '#fff',
+                '& .MuiChip-deleteIcon': {
+                  color: 'rgba(255,255,255,0.7)',
+                  '&:hover': {
+                    color: '#fff',
                   },
-                }}
-              />
-            </Tooltip>
+                },
+              }}
+            />
           );
         })
       }
