@@ -170,9 +170,9 @@
       "fullPath": "Chemin complet : {{path}}"
     },
     "drawer": {
-      "title": "Tous les tags",
-      "showAll": "Voir les {{count}} tags supplémentaires"
+      "title": "Tous les tags"
     },
+    "showAllChip": "+ {{count}}",
     "errors": {
       "invalidPath": "Valeur de tag invalide",
       "saveFailed": "Erreur lors de la sauvegarde du tag"
