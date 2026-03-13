@@ -1,6 +1,17 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.8 — Mars 2026_
+_Version 0.9 — Mars 2026_
+
+> **Changelog v0.9 :**
+> - FS-06-BACK (Applications backend) remonté en Sprint 2 — déblocage des FK entrantes pour FS-03/04/05
+> - FS-06-FRONT reste en Sprint 3 (feature frontend la plus riche — non bloquant pour les satellites)
+> - Sprint 2 renommé "Entités racines + backbone Applications"
+> - Sprint 3 recentré sur "Applications frontend & Capacités"
+> - Tableau "Ordre de rédaction" mis à jour : FS-06-BACK passe en position 2 (avant FS-09-BACK et FS-07-BACK)
+> - Vue synthétique dépendances mise à jour : FS-06-BACK rattaché au Sprint 2
+> - Dépendances FS-03/04/05-BACK mises à jour : ajout de `FS-06-BACK` (relations `_count.applications`, onglet Relations)
+> - Note de pattern FK entrantes ajoutée dans §Règle de séquencement
+> - Estimé Sprint 2 mis à jour (+1.5j pour FS-06-BACK)
 
 > **Changelog v0.8 :**
 > - Ajout de F-03 (Dimension Tags Foundation) dans la section Fondation
@@ -32,6 +43,8 @@ _Version 0.8 — Mars 2026_
 | `done` | Implémentée, testée, mergée |
 
 > **Règle de séquencement back/front :** La spec FRONT ne peut passer à `stable` que si la spec BACK est `done`. Une feature est `done` au sens sprint uniquement quand BACK **et** FRONT sont `done`.
+
+> **Règle de séquencement FK entrantes :** Toute entité satellite exposant un `_count.applications`, un endpoint `GET /[ressource]/:id/applications`, ou un onglet Relations liant des Applications, doit lister `FS-06-BACK` dans ses dépendances BACK — indépendamment de `FS-06-FRONT`. C'est le cas de FS-03, FS-04 et FS-05. Implémenter ces specs sans `FS-06-BACK` `done` produit des onglets Relations vides et des tests Supertest incomplets (impossible de tester `DEPENDENCY_CONFLICT` sans Applications existantes).
 
 ---
 
@@ -77,34 +90,39 @@ _Version 0.8 — Mars 2026_
 
 ---
 
-### Sprint 2 — Entités racines end-to-end
+### Sprint 2 — Entités racines + backbone Applications
 
 > **Convention à partir de ce sprint :** chaque feature = `FS-XX-BACK` + `FS-XX-FRONT`. Templates : `_template-back.md` / `_template-front.md`.
 > **Prérequis bloquants :** F-02 `done` (frontend) **et** F-03 `done` (tags) — les deux gates doivent être franchies avant toute session OpenCode Sprint 2.
 
+> **Principe de ce sprint :** `FS-06-BACK` est livré **en backend uniquement** dès ce sprint pour débloquer les FK entrantes (`provider_id`, `domain_id`, `owner_id`) et permettre à FS-03/04/05 d'implémenter leurs onglets Relations et leurs tests `DEPENDENCY_CONFLICT` avec des données réelles. `FS-06-FRONT` (la page la plus riche du produit) reste en Sprint 3.
+
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
 | FS-02 | **Domains** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-02-BACK, F-02, F-03 | `in-progress` | `draft` | 0.5j + 1j |
-| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-03-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 0.5j |
-| FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans | FS-01, F-03 | FS-04-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
-| FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans | FS-01, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
+| **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend en Sprint 3.* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 3)* | `draft` | *(Sprint 3)* | **1.5j** |
+| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 0.5j |
+| FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
+| FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
 
 > FS-02 et FS-03 sont les **modules de référence** — backend (FS-02-BACK) et frontend (FS-02-FRONT) — pour OpenCode sur tous les modules suivants. Valider soigneusement avant de démarrer FS-03.
+
+> **Ordre d'implémentation dans le sprint :** FS-02-BACK → FS-06-BACK → FS-03-BACK / FS-04-BACK / FS-05-BACK (parallélisables) → fronts satellites → FS-02-FRONT.
 
 > ⚠️ La migration F-03 retire les colonnes `tags TEXT[]` sur chaque table au fil des sprints. Chaque FS-xx est responsable du `DROP COLUMN tags` sur sa propre table (documenté en F-999 §2).
 
 ---
 
-### Sprint 3 — Applications & Capacités end-to-end
+### Sprint 3 — Applications frontend & Capacités end-to-end
 
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
-| FS-06 | **Applications** — CRUD complet + liaisons `domains`/`providers`/`users` + `DimensionTagInput` + écran inventaire + fiche détail | FS-02-BACK, FS-03-BACK, F-03 | FS-06-BACK, F-02, F-03 | `draft` | `draft` | 1.5j + 1.5j |
+| FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | `draft` | 1.5j |
 | FS-07 | **Business Capabilities** — CRUD + récursion `WITH RECURSIVE` + `DimensionTagInput` + écran arbre hiérarchique | FS-02-BACK, F-03 | FS-07-BACK, F-02, F-03 | `draft` | `draft` | 1.5j + 1.5j |
 
 > FS-07-BACK contient la requête `WITH RECURSIVE` — à écrire et tester manuellement en SQL avant de rédiger la spec back. **Tâche 0.9 à réaliser pendant Sprint 2** (0.5j R&D SQL pur).
 
-> FS-06 est la première feature à intégrer `DimensionTagInput` dans un formulaire réel — les tests Cypress F-03 (`DimensionTagInput`) sont complétés dans la spec FS-06-FRONT.
+> FS-06-FRONT est la première spec frontend à intégrer `DimensionTagInput` dans un formulaire réel — les tests Cypress F-03 (`DimensionTagInput`) sont complétés dans cette spec.
 
 ---
 
@@ -147,22 +165,28 @@ F-00 (Fondation technique) ✅
                     └── F-03 (Dimension Tags Foundation) — bloque FS-02 et toute la chaîne CRUD
                           │  TagsModule @Global, DimensionTagInput, seed dimensions
                           │
-                          ├── FS-02-BACK ──gate──► FS-02-FRONT (Domains)
-                          │     └── FS-06-BACK ──gate──► FS-06-FRONT (Applications)
-                          │           ├── FS-08-BACK ──gate──► FS-08-FRONT (Interfaces)
-                          │           │     └── FS-09-BACK ──gate──► FS-09-FRONT (Dependency Graph)
-                          │           └── FS-10-BACK ──gate──► FS-10-FRONT (Import Excel)
-                          ├── FS-03-BACK ──gate──► FS-03-FRONT (Providers)
-                          │     └── FS-06-BACK (déjà listé)
-                          ├── FS-04-BACK ──gate──► FS-04-FRONT (IT Components)
-                          ├── FS-05-BACK ──gate──► FS-05-FRONT (Data Objects)
-                          └── FS-07-BACK ──gate──► FS-07-FRONT (Business Capabilities)
+                          ├── FS-02-BACK ──gate──► FS-02-FRONT (Domains)          [Sprint 2]
+                          │
+                          ├── FS-06-BACK [Sprint 2 — backend only]
+                          │     │  Débloque les FK entrantes pour FS-03/04/05
+                          │     │
+                          │     ├── FS-03-BACK ──gate──► FS-03-FRONT (Providers)  [Sprint 2]
+                          │     ├── FS-04-BACK ──gate──► FS-04-FRONT (IT Comps)   [Sprint 2]
+                          │     ├── FS-05-BACK ──gate──► FS-05-FRONT (Data Obj)   [Sprint 2]
+                          │     │
+                          │     ├──gate──► FS-06-FRONT (Applications)             [Sprint 3]
+                          │     │
+                          │     ├── FS-08-BACK ──gate──► FS-08-FRONT (Interfaces) [Sprint 4]
+                          │     │     └── FS-09-BACK ──gate──► FS-09-FRONT (Graph)[Sprint 4]
+                          │     └── FS-10-BACK ──gate──► FS-10-FRONT (Import)     [Sprint 5]
+                          │
+                          └── FS-07-BACK ──gate──► FS-07-FRONT (Business Cap.)    [Sprint 3]
                                 └── FS-10-BACK (déjà listé)
 
 F-03 ──(P2)──► FS-21 (Tag Dimensions Administration — UI admin)
 ```
 
-> **Lecture :** `──gate──►` = la spec FRONT ne peut passer à `stable` qu'après que la spec BACK est `done`. F-03 est un gate global sur toute la chaîne CRUD Sprint 2+.
+> **Lecture :** `──gate──►` = la spec FRONT ne peut passer à `stable` qu'après que la spec BACK est `done`. F-03 est un gate global sur toute la chaîne CRUD Sprint 2+. `FS-06-BACK` est un gate secondaire sur tous les modules ayant des FK vers `applications`.
 
 ---
 
@@ -175,12 +199,12 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | — | **F-02** (i18n Foundation) | Bloque tout le frontend Sprint 2+ | `stable` | — |
 | **0** | **F-03** (Dimension Tags Foundation) | **Gate global — bloque FS-02 et toute la chaîne CRUD. TagService manuel à écrire en premier.** | `draft` | — |
 | 1 | **FS-02-BACK** | Module de référence backend — patron pour FS-03 à FS-11 | `in-progress` | — |
-| 2 | **FS-02-FRONT** | Module de référence frontend — valider le Layout Contract en premier | — | `draft` |
-| 3 | **FS-09-BACK** | La plus risquée — valider le POC React Flow avant FS-09-FRONT | `draft` | — |
-| 4 | **FS-07-BACK** | La plus complexe techniquement — valider `WITH RECURSIVE` en SQL avant | `draft` | — |
-| 5 | **FS-06-BACK** | Feature centrale du MVP — la plus riche en règles métier | `draft` | — |
-| 6–10 | Reste des specs BACK | Dans l'ordre du tableau roadmap | `draft` | — |
-| 11+ | Specs FRONT | Dans l'ordre des gates BACK validées | — | `draft` |
+| **2** | **FS-06-BACK** | **Backbone Applications — débloque les FK entrantes de FS-03/04/05. À livrer avant les backs satellites.** | `draft` | — |
+| 3 | **FS-02-FRONT** | Module de référence frontend — valider le Layout Contract en premier | — | `draft` |
+| 4 | **FS-09-BACK** | La plus risquée — valider le POC React Flow avant FS-09-FRONT | `draft` | — |
+| 5 | **FS-07-BACK** | La plus complexe techniquement — valider `WITH RECURSIVE` en SQL avant | `draft` | — |
+| 6–9 | **FS-03/04/05-BACK** puis **FS-06-FRONT** | Satellites débloqués par FS-06-BACK. FS-06-FRONT après les backs satellites. | `draft` | — |
+| 10+ | Reste des specs BACK puis FRONT | Dans l'ordre des gates BACK validées | `draft` | — |
 
 ---
 
@@ -203,6 +227,7 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 - [ ] Seed contient les permissions `[domaine]:read` et `[domaine]:write`
 - [ ] Jest + Supertest opérationnels
 - [ ] Spec BACK au statut `stable`
+- [ ] Si entité avec FK vers `applications` : vérifier que `FS-06-BACK` est `done` avant d'implémenter l'onglet Relations et les tests `DEPENDENCY_CONFLICT`
 
 ### Prérequis session OpenCode Frontend (FS-XX-FRONT)
 
@@ -226,4 +251,4 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 
 ---
 
-_Roadmap v0.8 — Projet ARK_
+_Roadmap v0.9 — Projet ARK_
