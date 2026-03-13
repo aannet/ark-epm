@@ -1,11 +1,9 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   Autocomplete,
   TextField,
   Chip,
   CircularProgress,
-  Tooltip,
-  Box,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { tagsApi } from '../../api/tags';
@@ -14,8 +12,8 @@ import { TagValueResponse, DimensionTagInputProps } from './DimensionTagInput.ty
 export function DimensionTagInput({
   dimensionId,
   dimensionName,
-  entityType,
-  entityId,
+  entityType: _entityType,
+  entityId: _entityId,
   value,
   onChange,
   disabled = false,
@@ -26,7 +24,7 @@ export function DimensionTagInput({
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<TagValueResponse[]>([]);
   const [loading, setLoading] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchOptions = useCallback(
     async (query: string) => {
@@ -53,35 +51,49 @@ export function DimensionTagInput({
     (_: React.SyntheticEvent, newInputValue: string) => {
       setInputValue(newInputValue);
 
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
 
       const timer = setTimeout(() => {
         fetchOptions(newInputValue);
       }, 300);
 
-      setDebounceTimer(timer);
+      debounceTimerRef.current = timer;
     },
-    [debounceTimer, fetchOptions],
+    [fetchOptions],
   );
 
   useEffect(() => {
     return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [debounceTimer]);
+  }, []);
 
   const handleChange = useCallback(
     async (
-      _: React.SyntheticEvent,
-      newValue: (TagValueResponse | string)[],
+      _event: React.SyntheticEvent,
+      newValue: (TagValueResponse | string)[] | TagValueResponse | string | null,
     ) => {
+      console.log('=== DimensionTagInput handleChange called ===');
+      console.log('newValue:', newValue);
+      console.log('Current value:', value);
+      
+      // Normalize value to array
+      const normalizedValue: (TagValueResponse | string)[] =
+        newValue === null
+          ? []
+          : Array.isArray(newValue)
+          ? newValue
+          : [newValue];
+
+      console.log('normalizedValue:', normalizedValue);
+
       const tagsToResolve: string[] = [];
 
-      const processedValue = newValue.map((item) => {
+      const processedValue = normalizedValue.map((item) => {
         if (typeof item === 'string') {
           tagsToResolve.push(item);
           return item;
@@ -89,7 +101,13 @@ export function DimensionTagInput({
         return item;
       });
 
+      console.log('tagsToResolve:', tagsToResolve);
+      console.log('processedValue:', processedValue);
+
+      let finalTags: TagValueResponse[] = [];
+
       if (tagsToResolve.length > 0) {
+        // Resolve new tags (freeSolo mode)
         try {
           const resolvedTags: TagValueResponse[] = [];
           for (const tagInput of tagsToResolve) {
@@ -102,47 +120,30 @@ export function DimensionTagInput({
 
             const resolved = await tagsApi.resolve(dimensionId, path, label);
             resolvedTags.push(resolved);
-
-            if (entityId) {
-              await tagsApi.putEntityTags(
-                entityType,
-                entityId,
-                dimensionId,
-                [...value.map((v) => v.id), resolved.id],
-              );
-            }
           }
-
-          const newTags = [...value, ...resolvedTags];
-          onChange(newTags);
+          finalTags = [...value, ...resolvedTags];
         } catch (error) {
           console.error('Error resolving tags:', error);
+          // Rollback: keep current value
+          finalTags = value;
         }
       } else {
-        const finalValue = processedValue.filter(
+        // Existing tags selected or removed
+        finalTags = processedValue.filter(
           (item): item is TagValueResponse => typeof item !== 'string',
         );
-
-        if (entityId && finalValue.length !== value.length) {
-          try {
-            await tagsApi.putEntityTags(
-              entityType,
-              entityId,
-              dimensionId,
-              finalValue.map((v) => v.id),
-            );
-          } catch (error) {
-            console.error('Error updating entity tags:', error);
-          }
-        }
-
-        onChange(finalValue);
       }
+
+      console.log('finalTags:', finalTags);
+      console.log('Calling onChange with:', finalTags);
+
+      // ALWAYS update UI - NO API calls here
+      onChange(finalTags);
 
       setInputValue('');
       setOptions([]);
     },
-    [dimensionId, entityId, entityType, onChange, value],
+    [dimensionId, onChange, value],
   );
 
   const chipColor = useMemo(() => {
@@ -185,25 +186,22 @@ export function DimensionTagInput({
         tagValue.map((option, index) => {
           const { key, ...tagProps } = getTagProps({ index });
           return (
-            <Tooltip
+            <Chip
               key={key}
+              {...tagProps}
+              label={option.label}
               title={t('tags.tooltip.fullPath', { path: option.path })}
-            >
-              <Chip
-                {...tagProps}
-                label={option.label}
-                sx={{
-                  backgroundColor: chipColor,
-                  color: '#fff',
-                  '& .MuiChip-deleteIcon': {
-                    color: 'rgba(255,255,255,0.7)',
-                    '&:hover': {
-                      color: '#fff',
-                    },
+              sx={{
+                backgroundColor: chipColor,
+                color: '#fff',
+                '& .MuiChip-deleteIcon': {
+                  color: 'rgba(255,255,255,0.7)',
+                  '&:hover': {
+                    color: '#fff',
                   },
-                }}
-              />
-            </Tooltip>
+                },
+              }}
+            />
           );
         })
       }

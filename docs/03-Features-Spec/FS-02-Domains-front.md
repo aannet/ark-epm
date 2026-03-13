@@ -1,31 +1,42 @@
 # ARK — Feature Spec FS-02-FRONT : Domains (Frontend)
 
-_Version 1.3 — Mars 2026_
+_Version 1.6 — Mars 2026_
+
+> **Changelog v1.6 (PNS-02 Side Drawer) :**
+>
+> - Implémentation du Side Drawer readonly pour la vue liste (PNS-02)
+> - Modification comportement clic ligne : navigate → open drawer
+> - Ajout composant `DomainDrawer.tsx` (read-only, 400px, anchor right)
+> - Layout Contract §3.1 : ajout zone `drawer` + modification `row_click`
+> - Tests Cypress §9 : nouveaux cas de test drawer
+> - i18n : ajout clés `domains.drawer.*`
+
+> **Changelog v1.5 (Alignement F-03 v0.4) :**
+>
+> - §3.1 `DomainsListPage` : ajout colonne `tags` avec `TagChipList` mode liste (`maxVisible=3`) + `deduplicateByDepth()` appliqué avant rendu
+> - §3.2 `DomainDetailPage` : zone `tags` précisée — `TagChipList` mode drawer avec `deduplicateByDepth()` + dimensions vides masquées
+> - §3.3 / §3.4 `DomainForm` : note explicite — `DimensionTagInput` n'applique **pas** `deduplicateByDepth()` (mode édition, réalité des données)
+> - §4 Composants : clarification des imports — `DimensionTagInput` pour l'édition, `TagChipList` pour la lecture
+> - §6 Règles Métier : ajout RM-12 (séparation lecture/édition des tags)
+> - §8 Session Gate : ajout gate `TagChipList` exporté depuis `@/components/tags`
+> - §9 Tests Cypress : ajout 3 cas de test déduplication et masquage dimensions vides
+> - §10 Commande OpenCode : imports mis à jour, note déduplication
+
+> **Changelog v1.4 :**
+>
+> - Ajout dépendance F-03 (Dimension Tags Foundation)
+> - DomainForm : ajout champ `comment` et composant `DimensionTagInput`
+> - Layout Contract : ajout zone `tags` sur toutes les pages
+> - i18n : ajout clés `domains.form.commentLabel` et tags
+> - Conformité NFR-GOV-005 (champs socle + liaison tags)
 
 > **Changelog v1.3 (Delta Fixes) :**
+>
 > - Implémentation complète du système ArkAlert manquant
 > - Correction i18n : `domains.snackbar.*` → `domains.alert.*` + ajout `domains.alert.errors.*`
 > - Ajout `resolveAlertMessage` dans domain.utils.ts
 > - Pages : navigation avec state alert, affichage ArkAlert sur toutes les pages
 > - 409 DEPENDENCY_CONFLICT : message formaté + bouton confirmer désactivé
-> - Tri : null values last sur description
-> - Build TypeScript validé
-
-> **Changelog v1.2 :**
-> - Ajout du système de feedback utilisateur via `MUI Alert` (`Snackbar + Alert`) pour toutes les actions CUD
-> - Feedbacks couverts : confirmation d'ajout (success), confirmation d'édition (success), confirmation de suppression (success), affichage d'erreur avec raison (error)
-> - Nouveau composant partagé `ArkAlert` — wrapper `MUI Snackbar + Alert`, patron pour tous les modules
-> - Ajout clés i18n `domains.alert.*` (succès) et `domains.alert.errors.*` (erreurs typées)
-> - Clés `domains.snackbar.*` supprimées — remplacées par `domains.alert.*`
-> - Nouvelle RM-09 (résolution des messages d'erreur par code HTTP)
-> - Nouvelle RM-10 (comportement post-suppression) : `DELETE` réussi → `navigate('/domains')` + Alert success
-> - Nouvelle RM-11 (cycle de vie des alertes) : success via navigation state, error via état local
-> - Layout Contract §3 mis à jour : zone `alerts` ajoutée sur toutes les pages
-> - Tests Cypress §9 enrichis : assertions sur l'affichage, le contenu et le comportement des alertes
-
-> **Changelog v1.1 :** Layout Contract YAML ajouté (§3). Corrections B1–B5 et A1–A4.
-
-> **Changelog v1.0 :** Création initiale.
 
 ---
 
@@ -37,9 +48,9 @@ _Version 1.3 — Mars 2026_
 | **Titre** | Domains — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
 | **Statut** | `done` |
-| **Dépend de** | FS-01, F-02, **FS-02-BACK** (gate bloquante) |
+| **Dépend de** | FS-01, F-02, **FS-02-BACK** (gate bloquante), **F-03** |
 | **Estimé** | 1 jour |
-| **Version** | 1.3 |
+| **Version** | 1.6 |
 
 ---
 
@@ -76,6 +87,53 @@ Codes HTTP à gérer côté frontend :
 
 ---
 
+## 2.5 User Stories — Interactions Liste/Drawer (PNS-02)
+
+### US-01 — Consultation Rapide
+**En tant qu'utilisateur**, je veux cliquer sur le corps d'une ligne du tableau (hors nom) pour ouvrir un Side Drawer, afin de consulter les métadonnées du domaine sans perdre ma position dans la liste ni mes filtres actifs.
+
+**Critères d'acceptation:**
+- Clic sur Description, Tags, Date ou Actions → ouvre le drawer
+- Drawer s'affiche depuis la droite (400px)
+- État de la liste préservé (scroll, filtres)
+
+### US-02 — Accès Direct Détail
+**En tant qu'utilisateur**, je veux cliquer sur le nom du domaine (lien hypertexte souligné) pour naviguer directement vers la Page Détail complète.
+
+**Critères d'acceptation:**
+- Nom affiché comme lien souligné (couleur texte normale, primaire au hover)
+- Clic sur nom → navigation immédiate vers `/domains/:id`
+- Le clic sur le nom ne déclenche pas l'ouverture du drawer (stopPropagation)
+
+### US-03 — Transition Drawer vers Détail
+**En tant qu'utilisateur**, je veux trouver un bouton "Voir la fiche complète" dans le footer du Side Drawer.
+
+**Critères d'acceptation:**
+- Bouton positionné à droite dans le footer
+- Variant "outlined"
+- Navigation vers `/domains/:id` au clic
+
+### US-04 — Transition Drawer vers Édition
+**En tant qu'utilisateur**, je veux trouver un bouton "Modifier" dans le footer du Side Drawer.
+
+**Critères d'acceptation:**
+- Bouton positionné à gauche dans le footer (avant "Voir fiche")
+- Variant "contained"
+- **Grisé (disabled)** si l'utilisateur n'a pas la permission `domains:write`
+- Navigation vers `/domains/:id/edit` au clic (si autorisé)
+
+### US-05 — Fermeture Drawer
+**En tant qu'utilisateur**, je veux trouver une croix grise dans le coin haut droit du drawer.
+
+**Critères d'acceptation:**
+- IconButton avec CloseIcon
+- Couleur `text.secondary` (gris)
+- Positionné à droite du titre
+- Ferme le drawer au clic
+- Le backdrop click et Escape key ferment aussi le drawer
+
+---
+
 ## 3. Layout Contract
 
 ### 3.1 `DomainsListPage`
@@ -105,12 +163,11 @@ zones:
         icon: AddIcon
 
   alerts:
-    # Alert reçue en navigation state depuis New/Edit/Delete
     - trigger: location.state?.alert
       component: ArkAlert
       position: sous PageHeader, au-dessus du tableau
       auto_dismiss: 5000ms
-      on_mount: window.history.replaceState({}, '') pour effacer le state
+      on_mount: window.history.replaceState({}, '')
 
   body:
     component: MUI Table avec TableSortLabel
@@ -123,15 +180,37 @@ zones:
         condition: hasPermission('domains:write')
         label: t('domains.list.emptyState.cta')
         onClick: navigate('/domains/new')
+    row_click:
+      action: open DomainDrawer (toutes cellules sauf 'name')
+      handler: setSelectedDomainId(row.id)
+      condition: clic hors cellule name
+      preserve_state: [filters, scroll_position]
     columns:
       - field: name
         header: t('domains.list.columns.name')
         sortable: true
-        clickable: navigate('/domains/${row.id}')
+        component: Link (react-router-dom)
+        component_props:
+          to: '/domains/${row.id}'
+          underline: always
+          color: inherit  # texte normal
+          hover_color: primary
+        onClick: navigate('/domains/${row.id}')  # Navigation directe
+        behavior: stopPropagation pour éviter d'ouvrir le drawer
       - field: description
         header: t('domains.list.columns.description')
         sortable: true
         sort_null_behavior: null values last
+      - field: tags
+        header: t('domains.list.columns.tags')
+        sortable: false
+        component: TagChipList
+        component_props:
+          tags: deduplicateByDepth(row.tags)   # RM-11 F-03 — déduplication avant rendu
+          maxVisible: 3                         # badge "+X" si plus de 3 chips
+          size: small
+        # Note : deduplicateByDepth() importé depuis @/components/tags/DimensionTagInput.utils
+        # La fonction reçoit row.tags (toutes dimensions confondues) — elle opère par dimension
       - field: createdAt
         header: t('domains.list.columns.createdAt')
         sortable: true
@@ -148,6 +227,50 @@ zones:
             icon: DeleteIcon
             aria_label: t('common.actions.delete')
             onClick: open confirm-delete dialog
+
+  drawer:
+    component: DomainDrawer
+    trigger: clic sur corps de ligne (hors cellule name)
+    props:
+      domainId: string | null  # null = drawer fermé
+      open: boolean
+      onClose: () => void
+    behavior:
+      - GET /api/v1/domains/:id via useDomain() hook (avec enabled: !!domainId)
+      - Affichage skeleton pendant chargement
+      - Fermeture: bouton X (gris), backdrop click, Escape key
+    layout:
+      width: 400px
+      anchor: right
+      variant: temporary
+    sections:
+      header:
+        layout: flex row, justify-content: space-between
+        elements:
+          - title: Typography h6 (nom du domaine), word-break: break-word
+          - close_button:
+              icon: CloseIcon
+              color: text.secondary (gris)
+              aria-label: t('domains.drawer.close')
+              onClick: close drawer
+      content:
+        - Informations: Nom, Description, Commentaire (read-only)
+        - Tags: Chips via TagChipList mode drawer (maxVisible: 10 + "Voir plus")
+        - Métadonnées: Créé le, Modifié le (read-only)
+      footer:
+        layout: flex row, justify-content: flex-end, gap: 2
+        buttons:
+          - label: t('domains.drawer.edit')
+            variant: contained
+            onClick: navigate('/domains/${domainId}/edit')
+            state:
+              - disabled: !hasPermission('domains:write')  # grisé si pas permission
+          - label: t('domains.drawer.viewFullDetails')
+            variant: outlined
+            onClick: navigate('/domains/${domainId}')
+    permissions:
+      - Tous les utilisateurs: drawer accessible (read-only)
+      - Bouton Edit grisé (disabled) si pas de permission domains:write
 
   sort_state:
     default_field: name
@@ -167,11 +290,9 @@ zones:
       on_success:
         navigate: navigate('/domains', { state: { alert: { severity: 'success', message: t('domains.alert.deleted') } } })
       on_409_DEPENDENCY_CONFLICT:
-        # Remplace le message du dialog — ne ferme PAS le dialog
         message: format409Message(t, appCount, bcCount)
         confirm_button: masqué ou désactivé
       on_5xx:
-        # Ferme le dialog, affiche Alert error sur la liste
         alert: severity=error message=t('domains.alert.errors.serverError')
 ```
 
@@ -207,7 +328,6 @@ zones:
         icon: EditIcon
 
   alerts:
-    # Alert reçue en navigation state depuis New ou Edit
     - trigger: location.state?.alert
       component: ArkAlert
       position: sous PageHeader
@@ -221,8 +341,22 @@ zones:
         value: domain.name
       - label: t('domains.list.columns.description')
         value: domain.description ?? t('domains.detail.noDescription')
+      - label: t('domains.list.columns.comment')
+        value: domain.comment ?? t('domains.detail.noComment')
       - label: t('domains.list.columns.createdAt')
         value: domain.createdAt formaté date locale FR
+      - label: t('domains.list.columns.tags')
+        component: TagChipList
+        component_props:
+          tags: deduplicateByDepth(domain.tags)   # RM-11 F-03 — déduplication avant rendu
+          maxVisible: undefined                    # mode drawer — tous les chips affichés
+          size: small
+        # Comportement TagChipList mode drawer :
+        # - Regroupement par dimensionId — label dimension en Typography variant="caption"
+        # - flexWrap: 'wrap' — tous les chips visibles
+        # - Dimensions sans tags masquées (RM-10 F-03) — le filtrage est fait sur deduplicateByDepth(domain.tags)
+        # - Tooltip path complet sur chaque chip (t('tags.tooltip.fullPath'))
+        # - Chips colorés via alpha(dimensionColor, 0.12)
 
   footer:
     - component: MUI Button
@@ -256,24 +390,30 @@ zones:
       action: null
 
   alerts:
-    # Alert error locale — erreur 5xx sur submit
     - trigger: submitError state (local)
       component: ArkAlert
       severity: error
       position: sous PageHeader, au-dessus du formulaire
-      auto_dismiss: false   # reste jusqu'à correction ou navigation
-      message: resolveAlertMessage(t, status, code) — voir RM-09
+      auto_dismiss: false
+      message: resolveAlertMessage(t, status, code)
 
   body:
     component: DomainForm
     props:
-      initialValues: { name: '', description: '' }
+      initialValues: { name: '', description: '', comment: '', tags: [] }
       isLoading: false
       onCancel: navigate('/domains')
       onSubmit: POST /api/v1/domains
+      availableDimensions: ['Geography', 'Brand', 'LegalEntity']  # From F-03 seed
+    # Note DimensionTagInput (mode édition) :
+    # deduplicateByDepth() N'EST PAS appliquée ici — l'utilisateur voit la réalité des données.
+    # Si l'utilisateur a posé [France] et [Paris], les deux chips sont affichés dans l'input.
+    # L'incohérence visuelle avec le drawer (1 chip) est intentionnelle (F-03 RM-11).
 
   on_submit_success:
-    navigate: navigate('/domains/${createdDomain.id}', { state: { alert: { severity: 'success', message: t('domains.alert.created') } } })
+    - POST /api/v1/domains → get domainId
+    - PUT /tags/entity/domain/{domainId} with collected tags (from form state)
+    - navigate('/domains/${domainId}', { state: { alert: { severity: 'success', message: t('domains.alert.created') } } })
 
   on_submit_409_CONFLICT:
     action: erreur inline sur le champ name
@@ -316,22 +456,26 @@ zones:
       action: null
 
   alerts:
-    # Alert error locale — erreur 5xx sur submit
     - trigger: submitError state (local)
       component: ArkAlert
       severity: error
       position: sous PageHeader, au-dessus du formulaire
       auto_dismiss: false
-      message: resolveAlertMessage(t, status, code) — voir RM-09
+      message: resolveAlertMessage(t, status, code)
 
   body:
     loading_state: LoadingSkeleton
     component: DomainForm
     props:
-      initialValues: { name: domain.name, description: domain.description ?? '' }
+      initialValues: { name: domain.name, description: domain.description ?? '', comment: domain.comment ?? '', tags: domain.tags }
       isLoading: false
       onCancel: navigate('/domains/${id}')
       onSubmit: PATCH /api/v1/domains/:id
+      availableDimensions: ['Geography', 'Brand', 'LegalEntity']  # From F-03 seed
+    # Note DimensionTagInput (mode édition) :
+    # deduplicateByDepth() N'EST PAS appliquée ici — domain.tags est passé tel quel à DimensionTagInput.
+    # L'utilisateur voit et peut supprimer explicitement chaque tag posé, y compris les ancêtres.
+    # Ne pas filtrer les tags avant de les passer à initialValues.
 
   on_submit_success:
     navigate: navigate('/domains/${id}', { state: { alert: { severity: 'success', message: t('domains.alert.updated') } } })
@@ -361,14 +505,36 @@ frontend/src/
 │       └── DomainEditPage.tsx
 ├── components/
 │   ├── domains/
-│   │   └── DomainForm.tsx
+│   │   ├── DomainForm.tsx
+│   │   └── DomainDrawer.tsx      # NEW — PNS-02 Side Drawer read-only
+│   │   └── index.ts              # NEW — export { DomainForm, DomainDrawer }
 │   └── shared/
-│       └── ArkAlert.tsx          ← NOUVEAU — wrapper MUI Snackbar + Alert
+│       └── ArkAlert.tsx
 ├── utils/
 │   └── domain.utils.ts           ← format409Message() + resolveAlertMessage()
 └── types/
     └── domain.ts
 ```
+
+**Composants F-03 consommés (déjà générés par F-03, NE PAS régénérer) :**
+
+```
+frontend/src/components/tags/
+├── DimensionTagInput.tsx          ← édition uniquement — pas de deduplicateByDepth()
+├── DimensionTagInput.utils.ts     ← contient deduplicateByDepth() — importer depuis ici
+├── TagChipList.tsx                ← lecture seule — appelle deduplicateByDepth() en interne
+└── index.ts                       ← export { DimensionTagInput, TagChipList }
+```
+
+> ⚠️ `deduplicateByDepth()` est définie dans `DimensionTagInput.utils.ts` et appelée **en interne** par `TagChipList` avant chaque rendu. Les pages et composants hôtes n'ont pas à l'appeler eux-mêmes — passer `domain.tags` brut à `TagChipList` suffit. La notation `deduplicateByDepth(row.tags)` dans le Layout Contract §3 est illustrative du comportement interne de `TagChipList`, pas un appel explicite à faire dans les pages.
+
+### Règle d'import par contexte
+
+| Contexte | Composant à utiliser | `deduplicateByDepth()` |
+|----------|---------------------|------------------------|
+| Formulaire (création / édition) | `DimensionTagInput` | ❌ Non appliquée |
+| Colonne liste (tableau) | `TagChipList` (`maxVisible=3`) | ✅ Appliquée en interne |
+| Vue détail / drawer | `TagChipList` (`maxVisible=undefined`) | ✅ Appliquée en interne |
 
 ### DomainForm Props
 
@@ -378,76 +544,76 @@ interface DomainFormProps {
   onSubmit: (values: DomainFormValues) => Promise<void>;
   onCancel: () => void;
   isLoading: boolean;
-  error: string | null;       // erreur inline champ name (400, 409 CONFLICT)
+  error: string | null;
+  availableDimensions?: string[];  // ['Geography', 'Brand', 'LegalEntity']
 }
 
 interface DomainFormValues {
   name: string;
   description: string;
+  comment: string;
+  tags: TagValueResponse[];   // tags bruts — pas de déduplication en édition (RM-12)
 }
 
 interface DomainResponse {
   id: string;
   name: string;
   description: string | null;
+  comment: string | null;
   createdAt: string;
+  updatedAt: string;
+  tags: EntityTagResponse[];  // tous les entity_tags — sans filtrage backend (FS-02-BACK §5.1)
 }
 ```
 
 ### ArkAlert Props
 
 ```typescript
-// src/components/shared/ArkAlert.tsx
-// Patron réutilisable pour tous les modules suivants — ne pas réimplémenter inline
-
 interface ArkAlertProps {
   severity: 'success' | 'error' | 'warning' | 'info';
   message: string;
   open: boolean;
   onClose: () => void;
-  autoDismiss?: number;   // ms — undefined = pas d'auto-dismiss
+  autoDismiss?: number;
 }
-
-// Implémentation attendue :
-// <Snackbar
-//   open={open}
-//   autoHideDuration={autoDismiss ?? null}
-//   onClose={onClose}
-//   anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-// >
-//   <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }}>
-//     {message}
-//   </Alert>
-// </Snackbar>
 ```
 
-### Transmission des alertes succès
+---
+
+## 4.1 DimensionTagInput Integration (F-03)
+
+Tous les formulaires de domaine utilisent `DimensionTagInput` depuis F-03 §6.
 
 ```typescript
-// Émetteur (DomainNewPage, DomainEditPage, DomainsListPage après delete)
-navigate('/domains/' + id, {
-  state: { alert: { severity: 'success', message: t('domains.alert.created') } }
-});
+// In DomainForm.tsx
+import { DimensionTagInput } from '@/components/tags';
+// ⚠️ NE PAS importer TagChipList dans DomainForm — réservé aux vues lecture
 
-// Récepteur (DomainDetailPage, DomainsListPage)
-const location = useLocation();
-const [alert, setAlert] = useState<{ severity: string; message: string } | null>(
-  location.state?.alert ?? null
-);
-
-useEffect(() => {
-  if (location.state?.alert) {
-    window.history.replaceState({}, ''); // évite réaffichage au refresh
-  }
-}, []);
+// Usage — Geography dimension (mode édition, pas de déduplication)
+<DimensionTagInput
+  dimensionId="uuid-geography"
+  dimensionName="Geography"
+  dimensionColor="#2196F3"
+  entityType="domain"
+  entityId={domainId}    // undefined en mode création
+  value={values.tags.filter(t => t.dimensionName === 'Geography')}
+  onChange={(tags) => setFieldValue('tags', [
+    ...values.tags.filter(t => t.dimensionName !== 'Geography'),
+    ...tags
+  ])}
+  multiple={true}
+/>
 ```
+
+**Comportement sur create :** Tags stockés en state local → sauvegardés via `PUT /tags/entity/domain/{id}` après le POST du domaine.
+
+**Comportement sur edit :** Chaque `onChange` déclenche immédiatement `PUT /tags/entity/domain/{id}`.
 
 ---
 
 ## 5. Clés i18n — Section `domains` dans `fr.json` ⚠️
 
 > À ajouter **manuellement** dans `src/i18n/locales/fr.json` avant la session OpenCode.
-> ⚠️ Supprimer `domains.snackbar.*` si ces clés existent déjà — remplacées par `domains.alert.*`.
 
 ```json
 "domains": {
@@ -458,7 +624,9 @@ useEffect(() => {
     "columns": {
       "name": "Nom",
       "description": "Description",
+      "comment": "Commentaire",
       "createdAt": "Créé le",
+      "tags": "Tags",
       "actions": "Actions"
     },
     "emptyState": {
@@ -469,6 +637,7 @@ useEffect(() => {
   },
   "detail": {
     "noDescription": "—",
+    "noComment": "Aucun commentaire",
     "editButton": "Modifier",
     "backButton": "Retour"
   },
@@ -477,6 +646,8 @@ useEffect(() => {
     "editTitle": "Modifier le domaine",
     "nameLabel": "Nom",
     "descriptionLabel": "Description",
+    "commentLabel": "Commentaire interne",
+    "tagsLabel": "Tags",
     "saveButton": "Enregistrer",
     "cancelButton": "Annuler",
     "nameRequired": "Le nom est obligatoire",
@@ -507,13 +678,12 @@ useEffect(() => {
 - **RM-06 — Masquage conditionnel des actions d'écriture :**
 
   ```typescript
-  const canWrite = hasPermission('domains:write'); // import depuis @/store/auth
+  const canWrite = hasPermission('domains:write');
   ```
 
 - **RM-07 — Formatage des messages 409 DEPENDENCY_CONFLICT :**
 
   ```typescript
-  // src/utils/domain.utils.ts — généré par OpenCode
   export function format409Message(t: TFunction, appCount: number, bcCount: number): string {
     return t('domains.delete.blockedMessage', { apps: appCount, bcs: bcCount });
   }
@@ -531,24 +701,17 @@ useEffect(() => {
 - **RM-09 — Résolution des messages d'erreur par code HTTP :**
 
   ```typescript
-  // src/utils/domain.utils.ts — généré par OpenCode
-  export function resolveAlertMessage(
-    t: TFunction,
-    status: number,
-    code?: string
-  ): string {
+  export function resolveAlertMessage(t: TFunction, status: number, code?: string): string {
     if (status === 404)   return t('domains.alert.errors.notFound');
     if (status >= 500)    return t('domains.alert.errors.serverError');
     return t('domains.alert.errors.unknown');
   }
-  // Note : 400 et 409 CONFLICT ne passent PAS par cette fonction
-  // → ils sont affichés en inline sur le champ name du DomainForm
+  // 400 et 409 CONFLICT → inline sur le champ name, PAS via cette fonction
   ```
 
 - **RM-10 — Comportement post-suppression :**
 
-  Après `DELETE /api/v1/domains/:id` réussi → toujours `navigate('/domains', { state: { alert: { severity: 'success', message: t('domains.alert.deleted') } } })`.
-  Ne jamais rester sur la page courante après une suppression.
+  Après `DELETE` réussi → toujours `navigate('/domains', { state: { alert: ... } })`. Ne jamais rester sur la page courante.
 
 - **RM-11 — Cycle de vie des alertes :**
 
@@ -560,6 +723,14 @@ useEffect(() => {
   | Error (5xx) | any 5xx | useState local | aucun | Affiché sur la page courante, reste jusqu'à navigation |
   | Error (409 DEPENDENCY_CONFLICT) | DELETE 409 | dans ConfirmDialog | aucun | Remplace le message du dialog |
   | Inline (400 / 409 CONFLICT) | POST/PATCH 4xx | prop `error` du DomainForm | aucun | Sous le champ name, pas dans ArkAlert |
+
+- **RM-12 — Séparation lecture / édition des tags (F-03 RM-11) :**
+
+  > Cette règle est critique pour la cohérence avec F-03. Ne pas la contourner.
+
+  - **Mode lecture** (`DomainsListPage` colonne tags, `DomainDetailPage`) → `TagChipList` — `deduplicateByDepth()` appliquée **en interne** par le composant. Passer `domain.tags` brut.
+  - **Mode édition** (`DomainForm` via `DimensionTagInput`) → `deduplicateByDepth()` **non appliquée**. L'utilisateur voit la réalité des données stockées (`entity_tags`). Si `[France]` et `[Paris]` sont tous deux posés, les deux chips sont affichés.
+  - L'incohérence visuelle entre le drawer (1 chip dédupliqué) et la Full Page (2 chips réels) est **intentionnelle** — documentée dans F-03 §6.
 
 ---
 
@@ -585,16 +756,18 @@ useEffect(() => {
 
 ## 8. Session Gate — Frontend ⚠️
 
-- [ ] **FS-02-BACK au statut `done`** — gates G-01 à G-08 toutes cochées
-- [ ] **API testée manuellement** — `GET` et `POST /api/v1/domains` validés
+- [ ] **FS-02-BACK au statut `done`** — gates G-01 à G-09 toutes cochées
+- [ ] **F-03 au statut `done`** — `DimensionTagInput`, `TagChipList` et API tags disponibles
+- [ ] **`TagChipList` exporté depuis `@/components/tags`** (F-03) — vérifié dans `index.ts`
+- [ ] **`deduplicateByDepth()` exportée depuis `@/components/tags/DimensionTagInput.utils`** (F-03)
+- [ ] **API testée manuellement** — `GET /api/v1/domains/:id` retourne `depth` et `dimensionColor` dans les tags
 - [ ] **F-02 au statut `done`** — `useTranslation()` disponible
-- [ ] **Clés `domains.*` ajoutées dans `fr.json`** — y compris `domains.alert.*` et `domains.alert.errors.*`
-- [ ] **Clés `domains.snackbar.*` supprimées** de `fr.json` si elles existaient
+- [ ] **Clés `domains.*` ajoutées dans `fr.json`** — y compris `domains.alert.*`, `domains.form.commentLabel`, `domains.form.tagsLabel`
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
 - [ ] **Câblage `App.tsx` réalisé manuellement** (§7)
 - [ ] **`cy.loginAsReadOnly()`** créé dans `cypress/support/commands.ts`
 - [ ] **Cypress opérationnel**
-- [ ] **Layout Contract §3 relu** — zone `alerts` présente sur chaque page
+- [ ] **Layout Contract §3 relu** — zones `tags` précisées sur chaque page avec le bon mode `TagChipList`
 - [ ] **FS-02-FRONT passé au statut `stable`** avant de lancer OpenCode
 
 ---
@@ -610,7 +783,13 @@ useEffect(() => {
 - [ ] `[Cypress]` Tri par défaut sur `name` ascendant
 - [ ] `[Cypress]` Clic sur en-tête "Nom" inverse le tri
 - [ ] `[Cypress]` Clic sur en-tête "Créé le" trie par date croissante
-- [ ] `[Cypress]` Clic sur une ligne → redirect vers `/domains/:id`
+- [ ] `[Cypress]` Clic sur une ligne → ouvre DomainDrawer (pas de navigation)
+- [ ] `[Cypress]` DomainDrawer affiche nom, description, tags, dates (read-only)
+- [ ] `[Cypress]` DomainDrawer affiche skeleton pendant chargement
+- [ ] `[Cypress]` Clic bouton "Voir la fiche complète" dans drawer → navigate vers `/domains/:id`
+- [ ] `[Cypress]` Clic bouton X ou backdrop → drawer fermé, reste sur liste
+- [ ] `[Cypress]` Touche Escape → drawer fermé
+- [ ] `[Cypress]` DomainDrawer accessible pour tous les rôles (read-only)
 - [ ] `[Cypress]` `DomainDetailPage` affiche nom, description et date
 - [ ] `[Cypress]` Créer un domaine → redirect vers `/domains/<new-id>` + Alert success contenant "Domaine créé avec succès"
 - [ ] `[Cypress]` Alert success disparaît automatiquement après 5 secondes
@@ -620,6 +799,14 @@ useEffect(() => {
 - [ ] `[Cypress]` Cancel sur `DomainEditPage` → redirect vers `/domains/:id`, pas d'Alert
 - [ ] `[Cypress]` Supprimer un domaine sans entités liées → redirect vers `/domains` + Alert success contenant "Domaine supprimé avec succès" + domaine absent de la liste
 - [ ] `[Cypress]` Cancel suppression → dialog fermé, domaine toujours présent, pas d'Alert
+
+### Tags — rendu et déduplication (F-03 v0.4)
+
+- [ ] `[Cypress]` `DomainsListPage` — domaine avec 5 tags → colonne "Tags" affiche 3 chips + badge "+2"
+- [ ] `[Cypress]` `DomainsListPage` — domaine avec tags ancêtre (`europe/france`) ET descendant (`europe/france/paris`) tous deux posés → colonne "Tags" affiche uniquement `Paris` (déduplication `deduplicateByDepth()`)
+- [ ] `[Cypress]` `DomainDetailPage` — domaine avec tags ancêtre + descendant → section Tags affiche uniquement le descendant (déduplication en mode drawer)
+- [ ] `[Cypress]` `DomainDetailPage` — dimension sans tags (ex : LegalEntity vide) → section de cette dimension absente du drawer
+- [ ] `[Cypress]` `DomainEditPage` — domaine avec tags ancêtre + descendant → `DimensionTagInput` affiche les **deux** chips (pas de déduplication en mode édition)
 
 ### Parcours d'erreur
 
@@ -657,7 +844,7 @@ Règles MUI obligatoires :
 
 i18n :
 - Toute string visible via t('clé') — JAMAIS de string en dur
-- Clés domains.* présentes dans fr.json — y compris domains.alert.* et domains.alert.errors.*
+- Clés domains.* présentes dans fr.json — y compris domains.alert.* et domains.form.commentLabel
 - Clés domains.snackbar.* supprimées — utiliser domains.alert.* uniquement
 
 RBAC : hasPermission() importé depuis @/store/auth
@@ -666,41 +853,44 @@ Composants F-01 OBLIGATOIRES :
   import { PageHeader, ConfirmDialog, EmptyState, LoadingSkeleton } from '@/components/shared'
   import { AppShell, PageContainer } from '@/components/layout'
 
+Composants F-03 OBLIGATOIRES (déjà générés — NE PAS régénérer) :
+  import { DimensionTagInput, TagChipList } from '@/components/tags'
+  import { deduplicateByDepth } from '@/components/tags/DimensionTagInput.utils'
+
+  Règle d'usage CRITIQUE (RM-12) :
+  - DimensionTagInput  → formulaires uniquement (création / édition) — PAS de deduplicateByDepth()
+  - TagChipList        → vues lecture uniquement (liste, détail/drawer) — deduplicateByDepth() appliquée EN INTERNE par TagChipList, ne pas l'appeler explicitement dans les pages
+  - TagChipList mode liste   : maxVisible=3, size="small"
+  - TagChipList mode drawer  : maxVisible=undefined (tous les chips), regroupement par dimension
+
 Nouveau composant à générer dans cette session :
   src/components/shared/ArkAlert.tsx
-  - Encapsule MUI Snackbar + Alert (https://mui.com/material-ui/react-alert/)
+  - Encapsule MUI Snackbar + Alert
   - anchorOrigin : { vertical: 'top', horizontal: 'center' }
   - Props : severity, message, open, onClose, autoDismiss? (ms)
-  - Générique et réutilisable — patron pour tous les modules suivants
-  - Ne pas créer de Snackbar/Alert inline dans les pages
 
 Gestion des alertes (RM-11) :
-  Success → navigate state : navigate('/path', { state: { alert: { severity: 'success', message: t('...') } } })
-  Récepteur lit location.state?.alert puis window.history.replaceState({}, '') en useEffect
-  Error 5xx → useState local dans la page, pas d'auto-dismiss
-  Inline (400, 409 CONFLICT) → prop error du DomainForm, pas dans ArkAlert
+  Success → navigate state
+  Error 5xx → useState local, pas d'auto-dismiss
+  Inline (400, 409 CONFLICT) → prop error du DomainForm
 
 Post-suppression (RM-10) :
-  DELETE réussi → navigate('/domains', { state: { alert: { severity: 'success', message: t('domains.alert.deleted') } } })
-  NE PAS rester sur la page courante après DELETE
+  DELETE réussi → navigate('/domains', { state: { alert: ... } })
 
 409 DEPENDENCY_CONFLICT dans ConfirmDialog :
-  Remplacer le message du dialog par format409Message(t, appCount, bcCount)
-  Masquer ou désactiver le bouton Confirmer
+  Remplacer le message, masquer ou désactiver le bouton Confirmer
 
-JWT : token en mémoire uniquement — jamais sessionStorage / localStorage
+JWT : token en mémoire uniquement
 Routing : react-router-dom v6
 Câblage App.tsx : déjà réalisé manuellement — ne pas le générer
 
-Pattern de référence : ce module FS-02-FRONT est le patron de référence pour tous les suivants.
-Respecter impérativement le Layout Contract §3 — composant F-01 exact, clé i18n exacte, zone alerts par page.
-
-Génère : 4 pages React, DomainForm, ArkAlert, domain.utils.ts (format409Message + resolveAlertMessage), domain.ts, tests Cypress §9.
+Génère : 4 pages React, DomainForm, ArkAlert, domain.utils.ts, domain.ts, tests Cypress §9.
 Ne génère PAS le câblage App.tsx.
+Ne génère PAS les composants tags (DimensionTagInput, TagChipList) — déjà présents via F-03.
 Ne génère PAS les tests marqués [Manuel].
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
 
-[COLLER LE CONTENU COMPLET DE FS-02-FRONT v1.2 ICI]
+[COLLER LE CONTENU COMPLET DE FS-02-FRONT v1.5 ICI]
 [COLLER LE CONTENU DE FS-02-BACK §3 (Contrat API OpenAPI) ICI]
 ```
 
@@ -708,16 +898,21 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ## 11. Checklist de Validation Frontend
 
-- [ ] Alert success affichée après create — message "Domaine créé avec succès" sur `DomainDetailPage`
-- [ ] Alert success affichée après edit — message "Domaine mis à jour avec succès" sur `DomainDetailPage`
-- [ ] Alert success affichée après delete — message "Domaine supprimé avec succès" sur `DomainsListPage`
-- [ ] Suppression réussie → redirect vers `/domains` (jamais rester sur la page)
+- [ ] Alert success affichée après create — "Domaine créé avec succès" sur `DomainDetailPage`
+- [ ] Alert success affichée après edit — "Domaine mis à jour avec succès" sur `DomainDetailPage`
+- [ ] Alert success affichée après delete — "Domaine supprimé avec succès" sur `DomainsListPage`
+- [ ] Suppression réussie → redirect vers `/domains`
 - [ ] Alert success auto-dismiss après 5000ms
-- [ ] Alert success ne réapparaît pas après refresh (navigation state effacé)
+- [ ] Alert success ne réapparaît pas après refresh
 - [ ] Alert error affichée sur 5xx — pas d'auto-dismiss, formulaire reste affiché
-- [ ] Erreurs 400 et 409 CONFLICT affichées **inline** sur le champ name, pas en Alert
+- [ ] Erreurs 400 et 409 CONFLICT affichées **inline** sur le champ name
 - [ ] 409 DEPENDENCY_CONFLICT affiché dans le `ConfirmDialog` via `format409Message()`
-- [ ] `ArkAlert` utilisé systématiquement — aucun Snackbar/Alert inline custom dans les pages
+- [ ] `ArkAlert` utilisé systématiquement — aucun Snackbar/Alert inline custom
+- [ ] Colonne "Tags" sur `DomainsListPage` — `TagChipList` mode liste, max 3 chips + badge "+X"
+- [ ] Déduplication active sur `DomainsListPage` — ancêtre + descendant → seul le descendant affiché
+- [ ] Déduplication active sur `DomainDetailPage` — idem, mode drawer
+- [ ] Dimensions vides masquées sur `DomainDetailPage` (RM-10 F-03)
+- [ ] `DomainEditPage` — `DimensionTagInput` affiche ancêtre ET descendant sans déduplication (RM-12)
 - [ ] Bouton "Ajouter un domaine" masqué si pas `domains:write`
 - [ ] Colonne "Actions" masquée si pas `domains:write`
 - [ ] Bouton "Modifier" masqué sur détail si pas `domains:write`
@@ -728,4 +923,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_FS-02-FRONT v1.3 — ARK_
+_FS-02-FRONT v1.5 — ARK_

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Table,
@@ -11,6 +11,7 @@ import {
   Paper,
   IconButton,
   TableSortLabel,
+  Link as MuiLink,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,6 +22,8 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { TagChipList } from '@/components/tags';
+import { DomainDrawer } from '@/components/domains';
 import { useDomains, useDeleteDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { Domain } from '@/types/domain';
@@ -47,6 +50,7 @@ export default function DomainsListPage(): JSX.Element {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [deleteDialog, setDeleteDialog] = useState<Domain | null>(null);
   const [alert, setAlert] = useState<AlertState | null>(null);
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
 
   useEffect(() => {
     if (location.state?.alert) {
@@ -115,14 +119,14 @@ export default function DomainsListPage(): JSX.Element {
   };
 
   const handleRowClick = (id: string) => {
-    navigate(`/domains/${id}`);
+    setSelectedDomainId(id);
   };
 
   if (isLoading) {
     return (
       <PageContainer>
         <PageHeader title={t('domains.list.title')} />
-        <LoadingSkeleton rows={5} columns={canWrite ? 4 : 3} />
+        <LoadingSkeleton rows={5} columns={canWrite ? 5 : 4} />
       </PageContainer>
     );
   }
@@ -207,6 +211,9 @@ export default function DomainsListPage(): JSX.Element {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
+                  {t('domains.list.columns.tags')}
+                </TableCell>
+                <TableCell>
                   <TableSortLabel
                     active={sortField === 'createdAt'}
                     direction={sortField === 'createdAt' ? sortOrder : 'asc'}
@@ -230,8 +237,31 @@ export default function DomainsListPage(): JSX.Element {
                   onClick={() => handleRowClick(domain.id)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell>{domain.name}</TableCell>
+                  <TableCell>
+                    <MuiLink
+                      component={Link}
+                      to={`/domains/${domain.id}`}
+                      underline="always"
+                      sx={{ 
+                        color: 'inherit',
+                        '&:hover': { color: 'primary.main' },
+                        textDecoration: 'underline',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {domain.name}
+                    </MuiLink>
+                  </TableCell>
                   <TableCell>{domain.description || '—'}</TableCell>
+                  <TableCell>
+                    <TagChipList
+                      tags={domain.tags || []}
+                      maxVisible={3}
+                      deduplicate={true}
+                      showMoreButton={true}
+                      size="small"
+                    />
+                  </TableCell>
                   <TableCell>
                     {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
                   </TableCell>
@@ -277,6 +307,12 @@ export default function DomainsListPage(): JSX.Element {
         onCancel={() => setDeleteDialog(null)}
         isLoading={deleteDomain.isPending}
         severity={isDependencyConflict ? 'error' : undefined}
+      />
+
+      <DomainDrawer
+        domainId={selectedDomainId}
+        open={!!selectedDomainId}
+        onClose={() => setSelectedDomainId(null)}
       />
     </PageContainer>
   );

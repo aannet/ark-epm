@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Stack, Paper, Typography } from '@mui/material';
+import { Button, Stack, Paper, Typography, Box, Divider } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { TagChipList } from '@/components/tags';
 import { useDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 
@@ -94,13 +95,67 @@ export default function DomainDetailPage(): JSX.Element {
         >
           <Stack spacing={2}>
             <Typography variant="h5">{domain.name}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {domain.description || t('domains.detail.noDescription')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('domains.list.columns.createdAt')}:{' '}
-              {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
-            </Typography>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {t('domains.list.columns.description')}
+              </Typography>
+              <Typography variant="body2">
+                {domain.description || t('domains.detail.noDescription')}
+              </Typography>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {t('domains.list.columns.comment')}
+              </Typography>
+              <Typography variant="body2">
+                {domain.comment || t('domains.detail.noComment')}
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            {domain.tags && domain.tags.length > 0 && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  {t('domains.list.columns.tags')}
+                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <TagChipList
+                    tags={domain.tags}
+                    maxVisible={999}
+                    deduplicate={true}
+                    showMoreButton={false}
+                    size="small"
+                  />
+                </Box>
+              </Box>
+            )}
+
+            <Divider />
+
+            <Stack direction="row" spacing={4}>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  {t('domains.list.columns.createdAt')}
+                </Typography>
+                <Typography variant="body2">
+                  {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
+                </Typography>
+              </Box>
+              
+              {domain.updatedAt && (
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('domains.list.columns.updatedAt')}
+                  </Typography>
+                  <Typography variant="body2">
+                    {new Date(domain.updatedAt).toLocaleDateString('fr-FR')}
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
           </Stack>
         </Paper>
       </Stack>

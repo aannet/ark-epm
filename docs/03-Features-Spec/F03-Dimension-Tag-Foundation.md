@@ -1,6 +1,23 @@
 # ARK — Feature Spec F-03 : Dimension Tags Foundation
 
-_Version 0.1 — Mars 2026_
+_Version 0.4 — Mars 2026_
+
+> **Changelog v0.4 :**
+> - §4 RM-11 — Déduplication par profondeur en lecture : par dimension, seul le tag le plus profond est affiché si un ancêtre et un descendant coexistent sur la même entité
+> - §6 `TagChipList` — ajout fonction `deduplicateByDepth()` + règle appliquée avant rendu dans les deux modes (liste et drawer)
+> - §6 `DimensionTagInput` — déduplication explicitement **non appliquée** en mode édition (l'utilisateur voit la réalité des données)
+> - §7 Tests Jest (utilitaire) + Cypress (rendu dédupliqué) ajoutés
+
+> **Changelog v0.3 :**
+> - §6 Ajout composant `TagChipList` — rendu lecture seule pour vue liste (N chips + badge "+X") et Side Drawer
+> - §6 Règles d'affichage : dimensions sans tags masquées, tooltip path complet sur chaque chip
+> - §7 Tests Cypress enrichis : TagChipList (débordement, tooltip, drawer)
+> - §8 Contraintes techniques : ajout règles TagChipList
+
+> **Changelog v0.2 :**
+> - §6 `DimensionTagInput` entièrement réécrit — rendu MUI Chip, comportements de validation détaillés (Entrée, Virgule, Tab, Blur, Escape, Backspace), option freeSolo "Créer X", états visuels exhaustifs
+> - §7 Tests Cypress enrichis (comportements clavier, états visuels)
+> - §8 Contraintes techniques : ajout règles MUI Chip/sx
 
 > **Usage :** F-03 installe le moteur de tags dimensionnels d'ARK. C'est une spec de fondation : elle ne livre aucun écran utilisateur final, mais pose le `TagsModule` NestJS global, les migrations Prisma, et le composant `DimensionTagInput` réutilisé dans tous les modules CRUD suivants. **Ne pas commencer FS-02 sans F-03 terminé.**
 
@@ -10,16 +27,16 @@ _Version 0.1 — Mars 2026_
 
 ## En-tête
 
-| Champ | Valeur |
-|---|---|
-| **ID** | F-03 |
-| **Titre** | Dimension Tags Foundation — moteur de tags hiérarchiques polymorphes |
-| **Priorité** | P1 |
-| **Statut** | `draft` |
-| **Dépend de** | F-02 (i18n), FS-01 (Auth & RBAC) |
-| **Estimé** | 1.5j |
-| **Version** | 0.1 |
-| **Mode** | 🟡 Hybride Manuel / OpenCode — voir §8 |
+| Champ         | Valeur                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| **ID**        | F-03                                                                 |
+| **Titre**     | Dimension Tags Foundation — moteur de tags hiérarchiques polymorphes |
+| **Priorité**  | P1                                                                   |
+| **Statut**    | `draft`                                                              |
+| **Dépend de** | F-02 (i18n), FS-01 (Auth & RBAC)                                     |
+| **Estimé**    | 1.5j                                                                 |
+| **Version**   | 0.4                                                                  |
+| **Mode**      | 🟡 Hybride Manuel / OpenCode — voir §8                              |
 
 ---
 
@@ -39,7 +56,71 @@ F-03 implémente le système de tags dimensionnels d'ARK : un mécanisme génér
 
 ---
 
-## 2. Modèle Prisma ⚠️
+
+### 2.1 Schéma relationnel
+
+```
+┌─────────────────────────────────────────┐
+│              tag_dimensions             │
+├─────────────────────────────────────────┤
+│ id           UUID        PK             │
+│ name         VARCHAR(255) UNIQUE        │  ← case-insensitive à la création (RM-05)
+│ description  TEXT        nullable       │
+│ color        VARCHAR(7)  nullable       │  ← hex ex: "#2196F3"
+│ icon         VARCHAR(50) nullable       │  ← nom icône lucide-react
+│ multi_value  BOOLEAN     default true   │  ← non enforced en P1
+│ entity_scope TEXT[]      default []     │  ← [] = toutes entités (non enforced P1)
+│ sort_order   INT         default 0      │
+│ created_at   TIMESTAMPTZ default now()  │
+└──────────────────┬──────────────────────┘
+                   │ 1
+                   │
+                   │ N
+┌──────────────────▼──────────────────────┐
+│               tag_values                │
+├─────────────────────────────────────────┤
+│ id            UUID       PK             │
+│ dimension_id  UUID       FK → tag_dim.  │  ← CASCADE DELETE
+│ path          VARCHAR(500)              │  ← "europe/france/paris" normalisé lowercase
+│ label         VARCHAR(255)              │  ← "Paris" casse originale préservée
+│ parent_id     UUID       FK → self null │  ← null si nœud racine
+│ depth         SMALLINT   default 0      │  ← 0=racine, 1=enfant, etc.
+│ created_at    TIMESTAMPTZ default now() │
+├─────────────────────────────────────────┤
+│ UNIQUE (dimension_id, path)             │
+│ INDEX (dimension_id, path text_pattern) │  ← text_pattern_ops — LIKE prefix queries
+└──────┬──────────────────┬───────────────┘
+       │ self-ref 1:N     │ N
+       │ parent/children  │
+       └──────────────────┘
+                   │ N
+                   │
+┌──────────────────▼──────────────────────┐
+│               entity_tags               │
+├─────────────────────────────────────────┤
+│ entity_type   VARCHAR(50)               │  ← 'application' | 'it_component' | ...
+│ entity_id     UUID                      │  ← ID de l'entité cible (pas de FK typée)
+│ tag_value_id  UUID       FK → tag_values│  ← CASCADE DELETE
+│ tagged_at     TIMESTAMPTZ default now() │
+│ tagged_by     UUID       nullable       │  ← user_id, pas de FK contrainte P1
+├─────────────────────────────────────────┤
+│ PK (entity_type, entity_id, tag_value_id)│
+│ INDEX (entity_type, entity_id)          │  ← lecture des tags d'une entité
+│ INDEX (tag_value_id)                    │  ← lookup inverse : qui a ce tag ?
+└─────────────────────────────────────────┘
+```
+
+```
+tag_dimensions  ──1:N──  tag_values  ──1:N──  entity_tags
+
+                              │
+
+                         self-ref 1:N
+                         (parent_id)
+
+```
+
+### 2.2 Modèle Prisma ⚠️
 
 ```prisma
 model TagDimension {
@@ -181,7 +262,7 @@ paths:
       description: |
         Retourne les TagValues dont le path ou le label contient la query.
         Utilisé par DimensionTagInput pour le autocomplete libre.
-        Crée la valeur à la volée si `createIfMissing=true` (POST implicite).
+        Ne déclenche pas de requête si q.length < 2 (géré côté frontend).
       tags: [Tags]
       security:
         - bearerAuth: []
@@ -411,6 +492,11 @@ components:
           format: uuid
         dimensionName:
           type: string
+        dimensionColor:
+          type: string
+          nullable: true
+          example: "#2196F3"
+          description: Couleur hex de la dimension — incluse pour permettre le rendu coloré sans appel supplémentaire (TagChipList)
         path:
           type: string
           example: "europe/france/paris"
@@ -437,6 +523,9 @@ components:
         taggedAt:
           type: string
           format: date-time
+
+    # Note : TagValueResponse expose dimensionName — ajouter dimensionColor
+    # pour permettre à TagChipList de colorer les chips sans appel supplémentaire
 ```
 
 ---
@@ -444,106 +533,513 @@ components:
 ## 4. Règles Métier Critiques ⚠️
 
 - **RM-01 — Normalisation du path :** Avant tout upsert ou lookup, le path est normalisé : `toLowerCase().trim()`, espaces internes remplacés par `-`, caractères interdits (`/` sauf séparateur, `\`, `"`, `'`, espaces de début/fin de segment) rejetés avec `400 BAD_REQUEST`. Chaque segment est trimé individuellement. Ex : `"Europe / France / Paris"` → `"europe/france/paris"`. Le `label` est cependant préservé avec sa casse originale pour l'affichage.
-
 - **RM-02 — Création récursive des ancêtres :** Lors de l'upsert d'un path `a/b/c`, les nœuds `a` et `a/b` doivent exister avant `a/b/c`. Le `TagService.resolveOrCreate(dimensionId, path)` crée les ancêtres manquants dans l'ordre racine → feuille, via des upserts séquentiels. Chaque ancêtre a son propre `label` préservé depuis l'input utilisateur.
-
 - **RM-03 — Héritage implicite (lecture seulement) :** L'héritage n'est pas matérialisé en base. On ne stocke que la feuille dans `entity_tags`. La couverture d'un nœud parent se calcule à la requête via `WHERE tv.path LIKE :prefix || '/%'`. Le `TagService` expose `getAncestorPaths(path): string[]` pour les cas où les ancêtres sont nécessaires.
-
 - **RM-04 — PUT sémantique sur les tags d'entité :** `PUT /tags/entity/:type/:id` remplace **tous** les tags de la dimension indiquée pour cette entité — pas un merge. Si `tagValueIds = []`, tous les tags de la dimension sont supprimés. Les tags des autres dimensions sont inchangés.
-
 - **RM-05 — Unicité dimension par nom :** Deux dimensions ne peuvent pas avoir le même `name` (case-insensitive à la création — la normalisation se fait en `name.trim()`). `409 CONFLICT` si doublon.
-
 - **RM-06 — `TagsModule` global :** `TagsModule` est déclaré `@Global()` et exporte `TagService`. Tous les modules CRUD qui ont besoin de sauvegarder des tags importent `TagsModule` ou injectent `TagService` directement. Ne pas reimporter `PrismaModule`.
-
 - **RM-07 — Seed des dimensions de base :** À l'issue de F-03, le seed Prisma contient les 3 dimensions initiales : `Geography` (color: `#2196F3`, icon: `public`), `Brand` (color: `#9C27B0`, icon: `label`), `LegalEntity` (color: `#FF9800`, icon: `account_balance`). Ces dimensions sont vides de valeurs — les valeurs sont créées à la volée par les utilisateurs.
-
-- **RM-08 — Tags non bloquants à la suppression d'entité :** La suppression d'une entité (Application, etc.) déclenche un `DELETE FROM entity_tags WHERE entity_type = X AND entity_id = Y` en cascade (ON DELETE CASCADE sur la FK implicite, ou géré applicativement). Les `TagValue` elles-mêmes ne sont pas supprimées — elles peuvent être orphelines. Le nettoyage des orphelins est une opération d'administration P2 (FS-21).
-
+- **RM-08 — Tags non bloquants à la suppression d'entité :** La suppression d'une entité (Application, etc.) déclenche un `DELETE FROM entity_tags WHERE entity_type = X AND entity_id = Y` en cascade. Les `TagValue` elles-mêmes ne sont pas supprimées — elles peuvent être orphelines. Le nettoyage des orphelins est une opération d'administration P2 (FS-21).
 - **RM-09 — Logging des opérations tag :** TagService loggue les opérations critiques : création de dimension, résolution/création de tag, mise à jour des tags d'entité. Format : `{ method, userId, dimensionId, tagValueId, result }`. Logger : `private readonly logger = new Logger(TagService.name);`
+- **RM-10 — Dimensions sans tags masquées en lecture :** Dans `TagChipList` (vue liste et Side Drawer), seules les dimensions ayant au moins un tag renseigné sur l'entité courante sont affichées. Le filtrage est côté frontend sur les données reçues — aucune logique backend dédiée.
+- **RM-11 — Déduplication par profondeur en lecture :** Dans `TagChipList`, pour chaque dimension, si une entité possède à la fois un tag ancêtre et un tag descendant (ex : `europe/france` **et** `europe/france/paris`), seul le descendant le plus profond est affiché. La déduplication est **purement cosmétique** — `entity_tags` conserve tous les tags posés explicitement. Elle s'applique dans les deux contextes de `TagChipList` (liste et drawer). Elle n'est **pas appliquée** dans `DimensionTagInput` (mode édition) : l'utilisateur voit et gère la réalité des données.
 
-> **Note (P2) :** En cas d'échec de création d'entité après que des tags ont été créés via `POST /tags/resolve`, les valeurs de tags créées peuvent devenir orphelines. Le cleanup de ces orphelins sera géré dans FS-21 (Admin des tags).
+> **Note (P2) :** En cas d'échec de création d'entité après que des tags ont été créés via `POST /tags/resolve`, les valeurs de tags créées peuvent devenir orphelines. Le cleanup sera géré dans FS-21.
 
-> **Améliorations futures P2 :** 
-> - La contrainte `multiValue: false` n'est pas enforced côté backend en P1. Le endpoint `PUT /tags/entity/:type/:id` accepte plusieurs tags sans validation. FS-21 devra ajouter cette validation (retourner 400 si count > 1 sur une dimension `multiValue = false`).
-> - Le rate limiting sur les endpoints de tags (`POST /tags/resolve`, `PUT /tags/entity/...`) sera implémenté dans FS-21 ou une tâche P2 dédiée.
+> **Améliorations futures P2 :**
+> - La contrainte `multiValue: false` n'est pas enforced côté backend en P1. FS-21 devra ajouter cette validation.
+> - Le rate limiting sur les endpoints de tags sera implémenté dans FS-21 ou une tâche P2 dédiée.
 
 ---
 
 ## 5. Comportement attendu par cas d'usage
 
 **Nominal — autocomplete et création à volée :**
+
 > **Note performance :** L'autocomplete ne déclenche pas de requête si `q.length < 2`. Debounce 300ms côté frontend (voir §6). Limite par défaut : 20 résultats.
-- Quand l'utilisateur tape `"paris"` dans le champ Geography d'une Application → l'autocomplete retourne les TagValues dont le path normalisé ou le label contient `"paris"` (ILIKE sur les deux champs)
+
 - Quand l'utilisateur sélectionne une valeur existante → `PUT /tags/entity/application/:id` est appelé avec le tagValueId
 - Quand l'utilisateur tape `"europe/france/marseille"` et appuie Entrée → `POST /tags/resolve` est appelé → crée `europe`, `europe/france` (si manquants) et `europe/france/marseille` → retourne le TagValue feuille → `PUT /tags/entity/...` est appelé
 - Quand l'utilisateur tape `"marseille"` (sans préfixe) dans la dimension Geography → path normalisé = `"marseille"`, label préservé = `"Marseille"`, depth = 0, pas d'ancêtre → valeur créée à la racine de la dimension
 
 **Nominal — lecture avec héritage implicite :**
-- Quand une requête filtre `Geography` = `"europe/france"` → retourne toutes les entités taggées avec un path commençant par `"europe/france"` (Paris, Lyon, Marseille, etc.)
+
+- Quand une requête filtre `Geography` = `"europe/france"` → retourne toutes les entités taggées avec un path commençant par `"europe/france"`
 - Quand on récupère les tags d'une entité → retourne uniquement les feuilles stockées, pas les ancêtres déduits
 
 **Erreurs :**
+
 - Path avec caractère interdit (ex: `"france<paris>"`) → `400 BAD_REQUEST` + code `INVALID_TAG_PATH`
 - Path vide ou uniquement slashes → `400 BAD_REQUEST` + code `INVALID_TAG_PATH`
 - Dimension inexistante dans l'autocomplete → `404 NOT_FOUND`
-- `PUT /tags/entity/...` avec un `tagValueId` appartenant à une autre dimension que `dimensionId` → `400 BAD_REQUEST` + code `TAG_DIMENSION_MISMATCH`
+- `PUT /tags/entity/...` avec un `tagValueId` appartenant à une autre dimension → `400 BAD_REQUEST` + code `TAG_DIMENSION_MISMATCH`
 
 ---
 
-## 6. Composants Frontend
+## 6. Composants Frontend ⚠️
 
 ### `DimensionTagInput`
 
-Composant MUI autocomplete réutilisable, consommé par tous les formulaires CRUD des entités P1.
+Composant MUI Autocomplete + Chip réutilisable, consommé par tous les formulaires CRUD des entités P1.
+
+#### Interface TypeScript
 
 ```typescript
 interface DimensionTagInputProps {
-  dimensionId: string         // UUID de la dimension
-  dimensionName: string       // Affiché en label du champ
-  entityType: string          // 'application' | 'it_component' | ...
-  entityId?: string           // undefined en mode création (tags sauvegardés après POST entité)
-  value: TagValueResponse[]   // tags actuellement sélectionnés
+  dimensionId: string           // UUID de la dimension
+  dimensionName: string         // Affiché en label du champ
+  dimensionColor: string        // Couleur hex de la dimension, ex: "#2196F3"
+  entityType: string            // 'application' | 'it_component' | ...
+  entityId?: string             // undefined en mode création (tags sauvegardés après POST entité)
+  value: TagValueResponse[]     // tags actuellement sélectionnés
   onChange: (tags: TagValueResponse[]) => void
   disabled?: boolean
-  multiple?: boolean          // default: true (respecte multiValue de la dimension)
-  color?: string              // couleur de la dimension pour les chips
+  multiple?: boolean            // default: true (respecte multiValue de la dimension)
 }
 ```
 
-**Comportement :**
-- Champ `Autocomplete` MUI avec `freeSolo` — l'utilisateur peut saisir n'importe quelle valeur
-- Appelle `GET /tags/autocomplete?dimension=:id&q=:input` à chaque keystroke (debounce 300ms)
-- Si la valeur saisie n'existe pas dans les suggestions et que l'utilisateur valide (Entrée ou blur) → extrait la casse originale du dernier segment, normalise le path en lowercase, et appelle `POST /tags/resolve` avec path normalisé et label préservé → ajoute aux tags sélectionnés
-- Les tags sélectionnés s'affichent comme MUI `Chip` avec la couleur de la dimension
-- Le path complet est affiché en tooltip au survol du chip (ex: `"europe/france/paris"`) ; le label court (`"Paris"`, avec casse originale) est affiché dans le chip
-- En mode création d'entité (`entityId` absent) : les tags sont stockés dans le state local et sauvegardés via `PUT /tags/entity/...` après le `POST` de création de l'entité parente
-- En mode édition : chaque modification déclenche immédiatement `PUT /tags/entity/...` (pas de bouton Save séparé pour les tags)
+#### Structure visuelle
 
-**Structure de fichiers :**
+```
+┌─────────────────────────────────────────────────────────┐
+│  🌍 Geography                                           │  ← label MUI (dimensionName)
+├─────────────────────────────────────────────────────────┤
+│  [Paris ×] [Lyon ×]  [saisie libre____________]  [⟳]  │  ← Chips + input inline + loader
+└─────────────────────────────────────────────────────────┘
+                     ↓ dropdown (dès q ≥ 2 chars)
+              ┌──────────────────────────────────┐
+              │  Paris                           │  ← label court
+              │  europe/france/paris             │  ← path complet en caption
+              │  Lyon                            │
+              │  europe/france/lyon              │
+              │  ➕ Créer "marseille"            │  ← option __isNew__ (freeSolo)
+              └──────────────────────────────────┘
+```
+
+#### Implémentation MUI v5
+
+```tsx
+import { alpha } from '@mui/material/styles';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import AddIcon from '@mui/icons-material/Add';
+
+// Type augmenté pour l'option freeSolo "Créer X"
+type TagOption = TagValueResponse & { __isNew__?: boolean };
+
+// filterOptions : injecte l'option "Créer X" si aucun match exact sur le path normalisé
+const filter = createFilterOptions<TagOption>();
+
+<Autocomplete<TagOption, true, false, true>
+  multiple
+  freeSolo
+  options={suggestions}                    // TagOption[] depuis GET /tags/autocomplete
+  value={selectedTags}                     // TagValueResponse[]
+  inputValue={inputValue}                  // contrôlé
+  loading={isLoading}
+  disabled={disabled}
+  onInputChange={(_e, newValue, reason) => {
+    if (reason === 'input') {
+      setInputValue(newValue);
+      // debounce 300ms → appel GET /tags/autocomplete si newValue.length >= 2
+    }
+    if (reason === 'reset') setInputValue('');
+  }}
+  onChange={(_e, newValue, reason) => {
+    // newValue est TagOption[] | string[] (freeSolo)
+    handleChange(newValue, reason);
+  }}
+  getOptionLabel={(opt) =>
+    typeof opt === 'string' ? opt : opt.label
+  }
+  isOptionEqualToValue={(opt, val) => opt.id === val.id}
+  filterOptions={(options, params) => {
+    const filtered = filter(options, params);
+    const inputTrimmed = params.inputValue.trim();
+    const normalizedInput = normalizePath(inputTrimmed);
+    const hasExactMatch = options.some(o => o.path === normalizedInput);
+    // Injecter "Créer X" si : input non vide + aucun match exact
+    if (inputTrimmed.length >= 1 && !hasExactMatch) {
+      filtered.push({
+        __isNew__: true,
+        id: '__new__',
+        dimensionId,
+        dimensionName,
+        path: normalizedInput,
+        label: inputTrimmed,   // casse originale préservée pour le label
+        depth: 0,
+        parentId: null,
+      } as TagOption);
+    }
+    return filtered;
+  }}
+  renderTags={(value, getTagProps) =>
+    value.map((tag, index) => (
+      <Tooltip
+        key={tag.id}
+        title={t('tags.tooltip.fullPath', { path: tag.path })}
+        placement="top"
+        arrow
+      >
+        <Chip
+          label={tag.label}
+          {...getTagProps({ index })}
+          size="small"
+          sx={{
+            bgcolor: alpha(dimensionColor, 0.12),
+            color: dimensionColor,
+            border: `1px solid ${alpha(dimensionColor, 0.3)}`,
+            fontWeight: 500,
+            height: 24,
+            '& .MuiChip-label': { px: 1 },
+            '& .MuiChip-deleteIcon': {
+              color: alpha(dimensionColor, 0.5),
+              fontSize: 14,
+              '&:hover': { color: dimensionColor },
+            },
+          }}
+        />
+      </Tooltip>
+    ))
+  }
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      variant="outlined"
+      size="small"
+      label={dimensionName}
+      placeholder={selectedTags.length === 0 ? t('tags.autocomplete.placeholder') : ''}
+      onKeyDown={(e) => {
+        // Virgule → valide le tag en cours (même comportement qu'Entrée)
+        if (e.key === ',') {
+          e.preventDefault();
+          validateAndAddCurrentInput();
+        }
+        // Escape → vide l'input sans créer de tag
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          setInputValue('');
+        }
+        // Backspace sur input vide → supprime le dernier chip (comportement MUI natif)
+        // Tab → géré nativement par Autocomplete freeSolo
+      }}
+      InputProps={{
+        ...params.InputProps,
+        endAdornment: (
+          <>
+            {isLoading && <CircularProgress size={16} sx={{ mr: 1 }} />}
+            {params.InputProps.endAdornment}
+          </>
+        ),
+      }}
+    />
+  )}
+  renderOption={(props, option) => (
+    <li {...props} key={option.__isNew__ ? '__new__' : option.id}>
+      {option.__isNew__ ? (
+        // Option "Créer X" — toujours en bas de liste
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AddIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {t('tags.autocomplete.createOption', { value: option.label })}
+          </Typography>
+        </Box>
+      ) : (
+        // Option existante — label + path en caption
+        <Box sx={{ display: 'flex', flexDirection: 'column', py: 0.25 }}>
+          <Typography variant="body2">{option.label}</Typography>
+          {option.depth > 0 && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.2 }}>
+              {option.path}
+            </Typography>
+          )}
+        </Box>
+      )}
+    </li>
+  )}
+  noOptionsText={
+    inputValue.length < 2
+      ? t('tags.autocomplete.typeToSearch')
+      : t('tags.autocomplete.noOptions')
+  }
+  loadingText={t('tags.autocomplete.loading')}
+  sx={{ width: '100%' }}
+/>
+```
+
+#### Flux de validation d'un tag libre
+
+```
+User tape "marseille" + presse Entrée (ou Virgule, ou Tab, ou blur)
+       │
+       ▼
+normalizePath("marseille") → "marseille"
+label extrait : "marseille" → capitalize → "Marseille" (casse préservée depuis input)
+       │
+       ▼
+POST /tags/resolve { dimensionId, path: "marseille", label: "Marseille" }
+       │
+  ┌────┴────┐
+  │ 200 OK  │ → TagValueResponse { id, path: "marseille", label: "Marseille", ... }
+  └────┬────┘
+       │
+Ajout dans selectedTags → re-render chip "Marseille"
+       │
+PUT /tags/entity/:entityType/:entityId { dimensionId, tagValueIds: [...existants, newId] }
+  (mode édition uniquement — différé en mode création jusqu'au POST de l'entité parente)
+```
+
+#### Tableau des comportements de validation
+
+| Geste utilisateur | Action attendue |
+|---|---|
+| **Entrée** sur une suggestion existante | Ajoute le tag existant · ferme dropdown |
+| **Entrée** sur "Créer X" (option __isNew__) | `POST /tags/resolve` → chip créé |
+| **Entrée** sur input libre (aucun dropdown visible) | `POST /tags/resolve` → chip créé |
+| **Virgule** (`,`) | Identique à Entrée — valide et remet input à vide |
+| **Tab** | Identique à Entrée (comportement natif freeSolo MUI) |
+| **Blur** avec valeur non vide | Identique à Entrée |
+| **Escape** | Vide l'input · ferme dropdown · **aucun tag créé** |
+| **Backspace** sur input vide | Supprime le dernier chip (natif MUI Autocomplete) |
+| **Clic ×** sur un chip | Supprime ce tag · `PUT /tags/entity/...` mis à jour |
+
+#### États visuels
+
+```
+── Repos (tags présents, champ inactif) ──────────────────────────────────
+  [Paris ×] [Lyon ×]                     champ grisé, placeholder caché
+
+── Focus (click dans le champ) ───────────────────────────────────────────
+  [Paris ×] [Lyon ×] [|_____________]    curseur actif, placeholder visible
+
+── Chargement autocomplete ───────────────────────────────────────────────
+  [Paris ×] [Lyon ×] [franc|_______] ⟳  CircularProgress size=16 dans endAdornment
+
+── Résultats dropdown ────────────────────────────────────────────────────
+  [Paris ×] [Lyon ×] [franc|_______]
+  ┌────────────────────────────────┐
+  │ france                        │
+  │ europe/france                 │  ← caption grisé si depth > 0
+  │ Bordeaux                      │
+  │ europe/france/bordeaux        │
+  │ ➕ Créer "france-test"        │  ← option __isNew__ si input sans match exact
+  └────────────────────────────────┘
+
+── Erreur de création ────────────────────────────────────────────────────
+  [Paris ×] [Lyon ×]
+  ⚠ Erreur lors de la sauvegarde du tag   ← helper text rouge sous le champ
+
+── Path invalide (400) ───────────────────────────────────────────────────
+  [Paris ×] [Lyon ×]
+  ⚠ Valeur de tag invalide                ← helper text rouge sous le champ
+
+── Disabled (lecture seule) ──────────────────────────────────────────────
+  [Paris] [Lyon]                          chips sans ×, champ grisé non cliquable
+```
+
+#### Gestion de l'état local (mode création vs édition)
+
+```typescript
+// Mode création (entityId absent) :
+// - selectedTags stockés dans state local
+// - PUT /tags/entity/... appelé APRÈS le POST de l'entité parente (dans le handler onSubmit du formulaire hôte)
+// - Le formulaire hôte passe entityId après création pour déclencher la sauvegarde
+
+// Mode édition (entityId présent) :
+// - Chaque onChange déclenche immédiatement PUT /tags/entity/...
+// - Pas de bouton Save séparé pour les tags
+// - En cas d'erreur PUT → afficher helper text + rollback visuel du state local
+```
+
+---
+
+### `TagChipList`
+
+Composant de rendu **lecture seule** des tags d'une entité. Utilisé dans deux contextes :
+- **Vue liste (tableau)** : colonne "Tags" — N premiers chips + badge "+X" si débordement
+- **Side Drawer** : section tags — tous les chips affichés, édition réservée à la Full Page
+
+#### Interface TypeScript
+
+```typescript
+interface TagChipListProps {
+  tags: TagValueResponse[]     // tags de l'entité (toutes dimensions confondues)
+  maxVisible?: number          // nb max de chips avant badge "+X" — default: 3 (liste), undefined (drawer)
+  size?: 'small' | 'medium'   // default: 'small'
+}
+```
+
+#### Règle d'affichage — dimensions sans tags masquées
+
+> **Décision RM-10 :** Seules les dimensions ayant au moins un tag renseigné sur l'entité sont affichées. Une dimension vide n'occupe pas d'espace dans la liste ni dans le drawer. Ce filtrage est côté frontend, sur les `tags` reçus — aucun endpoint dédié.
+
+Les tags sont regroupés par `dimensionId` pour l'affichage. L'ordre de regroupement suit `sortOrder` de la dimension.
+
+#### Comportement — vue liste (maxVisible défini)
+
+```
+Entité avec 5 tags : [Paris] [Acme] [SAS France] [Lyon] [Marseille]
+maxVisible = 3
+
+Rendu :
+  [Paris] [Acme] [SAS France]  +2
+
+  ↑ 3 premiers chips             ↑ Badge MUI Chip
+  couleur de leur dimension        variant="outlined", non cliquable
+                                   tooltip : liste des labels masqués
+```
+
+```tsx
+// Logique de débordement
+const visible = tags.slice(0, maxVisible);
+const hidden  = tags.slice(maxVisible);   // hidden.length > 0 → afficher badge
+
+// Badge "+X"
+{hidden.length > 0 && (
+  <Tooltip title={hidden.map(t => t.label).join(', ')} placement="top" arrow>
+    <Chip
+      label={`+${hidden.length}`}
+      size="small"
+      variant="outlined"
+      sx={{ cursor: 'default', fontWeight: 500, color: 'text.secondary' }}
+    />
+  </Tooltip>
+)}
+```
+
+#### Comportement — Side Drawer (maxVisible absent)
+
+Tous les tags sont affichés, regroupés par dimension. Chaque groupe affiche le nom de la dimension en label.
+
+```
+┌─────────────────────────────────────────┐
+│  Tags                                   │
+│                                         │
+│  🌍 Geography                           │  ← nom dimension (Typography caption)
+│  [Paris] [Lyon]                         │  ← chips lecture seule, sans ×
+│                                         │
+│  🏷 Brand                               │
+│  [Acme Corp]                            │
+│                                         │
+│  _(LegalEntity vide → non affiché)_     │
+└─────────────────────────────────────────┘
+```
+
+```tsx
+// Regroupement par dimension
+const byDimension = tags.reduce((acc, tag) => {
+  const key = tag.dimensionId;
+  if (!acc[key]) acc[key] = { name: tag.dimensionName, color: tag.dimensionColor, tags: [] };
+  acc[key].tags.push(tag);
+  return acc;
+}, {} as Record<string, { name: string; color: string; tags: TagValueResponse[] }>);
+
+// Rendu par groupe — uniquement les dimensions non vides
+Object.values(byDimension).map(group => (
+  <Box key={group.name} sx={{ mb: 1 }}>
+    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.5, display: 'block' }}>
+      {group.name}
+    </Typography>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+      {group.tags.map(tag => (
+        <Tooltip key={tag.id} title={t('tags.tooltip.fullPath', { path: tag.path })} placement="top" arrow>
+          <Chip
+            label={tag.label}
+            size="small"
+            sx={{
+              bgcolor: alpha(group.color, 0.12),
+              color: group.color,
+              border: `1px solid ${alpha(group.color, 0.3)}`,
+              fontWeight: 500,
+              cursor: 'default',
+              '& .MuiChip-label': { px: 1 },
+            }}
+          />
+        </Tooltip>
+      ))}
+    </Box>
+  </Box>
+))
+```
+
+> **Note :** `TagValueResponse` doit exposer `dimensionColor` pour que `TagChipList` puisse colorer les chips sans appel supplémentaire. Vérifier que l'endpoint `GET /tags/entity/:type/:id` inclut `dimensionColor` dans sa réponse (à ajouter à `EntityTagResponse` si absent — voir §3).
+
+#### Déduplication par profondeur (RM-11)
+
+Avant tout rendu, `TagChipList` applique `deduplicateByDepth()` sur chaque groupe de tags par dimension. Un tag est masqué si un autre tag du même groupe a un path qui commence par `tag.path + "/"` — c'est-à-dire si un descendant direct ou indirect est présent.
+
+```typescript
+// src/components/tags/DimensionTagInput.utils.ts
+
+/**
+ * Pour un tableau de tags d'une même dimension,
+ * conserve uniquement les tags dont aucun descendant n'est présent.
+ * Ex : [europe, europe/france, europe/france/paris, lyon]
+ *   → [europe/france/paris, lyon]
+ */
+export function deduplicateByDepth(tags: TagValueResponse[]): TagValueResponse[] {
+  return tags.filter(tag =>
+    !tags.some(other => other.path.startsWith(tag.path + '/'))
+  );
+}
+```
+
+Cette fonction est appelée **après** le regroupement par dimension, **avant** le rendu des chips — dans les deux modes (liste et drawer).
+
+```typescript
+// Appel dans TagChipList — après groupBy dimensionId
+const deduplicated = deduplicateByDepth(group.tags);
+// → rendu sur deduplicated, pas sur group.tags
+```
+
+> **Comportement intentionnel :** `DimensionTagInput` (mode édition Full Page) n'applique **pas** `deduplicateByDepth`. L'utilisateur voit `[France] [Paris]` et peut supprimer `France` explicitement. L'incohérence visuelle entre drawer (1 chip) et Full Page (2 chips) est assumée — la Full Page reflète la réalité des données stockées.
+
+#### Résumé des deux contextes
+
+| Contexte | `maxVisible` | Regroupement par dimension | Édition inline |
+|---|---|---|---|
+| **Colonne liste** | 3 (défaut) | Non — chips mélangés | ❌ Non |
+| **Side Drawer** | absent | Oui — avec label dimension | ❌ Non — Full Page uniquement |
+
+#### Structure de fichiers
+
 ```
 frontend/src/
 └── components/
     └── tags/
         ├── DimensionTagInput.tsx
         ├── DimensionTagInput.types.ts
-        └── index.ts
+        ├── DimensionTagInput.utils.ts
+        ├── TagChipList.tsx                // lecture seule — liste + drawer
+        └── index.ts                       // export { DimensionTagInput, TagChipList }
 ```
 
-**Clés i18n à ajouter dans `fr.json` :**
+#### Clés i18n à ajouter dans `fr.json`
+
 ```json
 "tags": {
   "autocomplete": {
-    "placeholder": "Rechercher ou créer...",
+    "placeholder": "Ajouter un tag...",
+    "typeToSearch": "Tapez au moins 2 caractères",
     "noOptions": "Aucun résultat",
     "createOption": "Créer \"{{value}}\"",
     "loading": "Chargement..."
   },
   "tooltip": {
-    "fullPath": "Chemin complet : {{path}}"
+    "fullPath": "Chemin complet : {{path}}",
+    "hiddenTags": "{{tags}}"
   },
   "errors": {
     "invalidPath": "Valeur de tag invalide",
     "saveFailed": "Erreur lors de la sauvegarde du tag"
+  },
+  "drawer": {
+    "sectionTitle": "Tags"
   }
 }
 ```
@@ -554,12 +1050,12 @@ frontend/src/
 
 ### Outil par niveau
 
-| Niveau | Outil | Fichier cible | Délégable à OpenCode |
-|---|---|---|---|
-| Unit (TagService) | **Jest** | `src/tags/tags.service.spec.ts` | ⚠️ Partiel — logique path manuelle |
-| API / contrat HTTP | **Jest + Supertest** | `test/tags.e2e-spec.ts` | ✅ Oui |
-| Sécurité / RBAC | **Jest + Supertest** | `test/tags.e2e-spec.ts` | ❌ **Manuel** |
-| E2E browser (UI) | **Cypress** | `cypress/e2e/tags.cy.ts` | ✅ Oui (nominaux) |
+| Niveau             | Outil                | Fichier cible                   | Délégable à OpenCode                |
+| ------------------ | -------------------- | ------------------------------- | ----------------------------------- |
+| Unit (TagService)  | **Jest**             | `src/tags/tags.service.spec.ts` | ⚠️ Partiel — logique path manuelle |
+| API / contrat HTTP | **Jest + Supertest** | `test/tags.e2e-spec.ts`         | ✅ Oui                              |
+| Sécurité / RBAC    | **Jest + Supertest** | `test/tags.e2e-spec.ts`         | ❌ **Manuel**                       |
+| E2E browser (UI)   | **Cypress**          | `cypress/e2e/tags.cy.ts`        | ✅ Oui (nominaux)                   |
 
 ### Tests Jest — Unit (TagService)
 
@@ -574,6 +1070,15 @@ frontend/src/
 - [ ] `[Jest]` `resolveOrCreate` — ancêtres partiellement existants → crée uniquement les manquants
 - [ ] `[Jest]` `resolveOrCreate('geography', 'europe/france/paris', 'Paris')` → crée avec label 'Paris' (casse préservée)
 - [ ] `[Jest]` `resolveOrCreate('geography', 'europe', 'Europe')` → label 'Europe' préservé
+
+### Tests Jest — Unit (deduplicateByDepth)
+
+- [ ] `[Jest]` `deduplicateByDepth([europe, europe/france, europe/france/paris, lyon])` → `[europe/france/paris, lyon]`
+- [ ] `[Jest]` `deduplicateByDepth([europe/france, europe/france/paris])` → `[europe/france/paris]`
+- [ ] `[Jest]` `deduplicateByDepth([europe/france/paris])` → `[europe/france/paris]` (seul élément, inchangé)
+- [ ] `[Jest]` `deduplicateByDepth([europe, lyon])` → `[europe, lyon]` (aucun ancêtre/descendant — inchangé)
+- [ ] `[Jest]` `deduplicateByDepth([])` → `[]`
+- [ ] `[Jest]` `deduplicateByDepth([europe/france, europe/france2])` → `[europe/france, europe/france2]` (pas de relation ancêtre — inchangé, `startsWith('europe/france/')` ne matche pas `europe/france2`)
 
 ### Tests Jest + Supertest — Contrat API
 
@@ -601,21 +1106,70 @@ frontend/src/
 
 > F-03 ne livre pas d'écran dédié. Les tests Cypress sont sur `DimensionTagInput` intégré dans un formulaire hôte — à compléter dans les specs FS-xx consommatrices (FS-06 Applications en premier).
 
-- [ ] `[Cypress]` `DimensionTagInput` — saisie d'une valeur existante → chip affiché avec label court
-- [ ] `[Cypress]` `DimensionTagInput` — saisie d'une valeur inexistante + Entrée → chip créé avec label
-- [ ] `[Cypress]` `DimensionTagInput` — survol chip → tooltip affiche path complet
-- [ ] `[Cypress]` `DimensionTagInput` — suppression chip → tag retiré de la liste
+**Rendu des chips :**
+- [ ] `[Cypress]` Saisie d'une valeur existante + sélection → chip affiché avec label court (casse originale)
+- [ ] `[Cypress]` Chip affiché avec couleur de fond issue de `dimensionColor` (alpha 12%)
+- [ ] `[Cypress]` Survol chip → Tooltip MUI affiche le path complet
+- [ ] `[Cypress]` Clic × sur chip → chip retiré, PUT /tags/entity/... appelé
+
+**Création freeSolo :**
+- [ ] `[Cypress]` Saisie d'une valeur inexistante + Entrée → `POST /tags/resolve` appelé → chip créé
+- [ ] `[Cypress]` Saisie d'une valeur inexistante + Virgule → même résultat qu'Entrée
+- [ ] `[Cypress]` Saisie d'une valeur inexistante + Tab → même résultat qu'Entrée
+- [ ] `[Cypress]` Option "Créer X" apparaît dans le dropdown si aucun match exact
+- [ ] `[Cypress]` Clic sur "Créer X" → chip créé
+
+**Comportements clavier :**
+- [ ] `[Cypress]` Escape sur input avec texte en cours → input vidé, aucun tag créé, dropdown fermé
+- [ ] `[Cypress]` Backspace sur input vide → dernier chip supprimé
+- [ ] `[Cypress]` Path invalide (ex: `france<>`) → helper text rouge affiché, aucun chip créé
+
+**Autocomplete :**
+- [ ] `[Cypress]` Saisie < 2 chars → aucun appel réseau, message "Tapez au moins 2 caractères"
+- [ ] `[Cypress]` Saisie ≥ 2 chars → appel GET /tags/autocomplete avec debounce 300ms
+- [ ] `[Cypress]` Pendant chargement → CircularProgress visible dans le champ
+
+**Mode création (entityId absent) :**
+- [ ] `[Cypress]` Tags sélectionnés sans entityId → stockés en state local, pas de PUT immédiat
+- [ ] `[Cypress]` Après submit du formulaire hôte → PUT /tags/entity/... appelé avec les tags accumulés
+
+**Disabled :**
+- [ ] `[Cypress]` `disabled=true` → chips sans icône ×, input non interactif
+
+**TagChipList — vue liste (maxVisible=3) :**
+- [ ] `[Cypress]` Entité avec ≤ 3 tags → tous les chips affichés, pas de badge "+X"
+- [ ] `[Cypress]` Entité avec 5 tags → 3 chips + badge "+2" affiché
+- [ ] `[Cypress]` Survol badge "+X" → tooltip liste les labels masqués (ex: "Lyon, Marseille")
+- [ ] `[Cypress]` Survol chip → tooltip affiche le path complet
+- [ ] `[Cypress]` Entité sans tag → cellule vide (aucun chip, aucun badge)
+- [ ] `[Cypress]` Chips non cliquables (cursor: default) — aucune navigation au clic
+
+**TagChipList — Side Drawer :**
+- [ ] `[Cypress]` Section "Tags" absente si entité sans tag renseigné
+- [ ] `[Cypress]` Section "Tags" visible si ≥ 1 tag renseigné
+- [ ] `[Cypress]` Dimensions sans tags masquées — seules les dimensions avec tags affichées
+- [ ] `[Cypress]` Regroupement visible : label dimension en caption au-dessus des chips
+- [ ] `[Cypress]` Chips sans icône × (lecture seule)
+- [ ] `[Cypress]` Survol chip → tooltip path complet
+
+**TagChipList — déduplication RM-11 :**
+- [ ] `[Cypress]` Entité avec `europe/france` et `europe/france/paris` → seul chip "Paris" affiché dans liste et drawer
+- [ ] `[Cypress]` Entité avec `europe/france/paris` seul → chip "Paris" affiché (aucune déduplication nécessaire)
+- [ ] `[Cypress]` Entité avec `europe` et `lyon` (aucune relation ancêtre) → deux chips affichés, aucune déduplication
+- [ ] `[Cypress]` `DimensionTagInput` (Full Page) avec `europe/france` et `europe/france/paris` → les **deux** chips affichés (déduplication non appliquée en mode édition)
 
 ---
 
 ## 8. Contraintes Techniques
 
 **Périmètre manuel (ne pas déléguer à OpenCode) :**
+
 - `TagService.resolveOrCreate()` — logique de création récursive des ancêtres, sensible à l'ordre d'insertion et aux race conditions
 - `TagService.normalizePath()` — règles de normalisation, caractères interdits
 - `TagService.getAncestorPaths()` — logique de décomposition de path
 
 **Périmètre OpenCode (générable) :**
+
 - Migration Prisma + `schema.sql` correspondant
 - `TagsController` — CRUD dimensions + endpoints autocomplete/resolve/entity
 - `TagsModule` wiring NestJS
@@ -624,15 +1178,29 @@ frontend/src/
 - Tests Supertest nominaux
 
 **Conventions à respecter :**
+
 - `TagsModule` déclaré `@Global()` dans `tags.module.ts`, exporte `TagService`
 - Pattern NestJS : suivre `DomainsModule` (FS-02) comme référence de structure
 - Toute écriture en base passe par `$executeRaw SET LOCAL ark.current_user_id`
 - Index `text_pattern_ops` sur `tag_values.path` — obligatoire pour les LIKE prefix, à inclure dans la migration Prisma via `@@index` avec `ops: raw("text_pattern_ops")`
-- `DimensionTagInput` utilise `sx` prop exclusivement — pas de styled-components, pas de CSS modules
+- **MUI v5 exclusivement** — `sx` prop uniquement, pas de `styled-components`, pas de CSS modules
+- **`Chip` MUI** pour tous les tags sélectionnés — couleur via `alpha(dimensionColor, 0.12)` de `@mui/material/styles`
+- **`Tooltip` MUI** wrappant chaque `Chip` — path complet au survol (DimensionTagInput et TagChipList)
+- **`TagChipList`** — chips avec `cursor: 'default'`, sans `onDelete`, sans `onClick` — lecture seule stricte
+- **`TagChipList`** — appliquer `deduplicateByDepth()` avant rendu dans les deux modes ; **ne pas** l'appliquer dans `DimensionTagInput`
+- **`deduplicateByDepth()`** — dans `DimensionTagInput.utils.ts` ; algorithme : `tags.filter(t => !tags.some(o => o.path.startsWith(t.path + '/')))`
+- **`TagChipList` liste** — `maxVisible` default 3, badge "+X" via `Chip variant="outlined"` wrappé dans `Tooltip` listant les labels masqués
+- **`TagChipList` drawer** — regroupement par `dimensionId`, label dimension en `Typography variant="caption"`, `flexWrap: 'wrap'`
+- **`TagValueResponse`** doit inclure `dimensionColor` — le backend le peuple depuis `tag_dimensions.color` au moment du join. Sans ce champ, `TagChipList` ne peut pas colorer les chips sans appel supplémentaire.
+- **`Autocomplete` MUI v5** avec `multiple`, `freeSolo`, `filterOptions` pour l'option `__isNew__`
+- **`CircularProgress`** size=16 dans `endAdornment` pendant le chargement autocomplete — pas de spinner externe
 - Debounce 300ms sur les appels autocomplete — utiliser `useMemo` + `useCallback`, pas de librairie externe
+- Clé `__isNew__` dans les options freeSolo pour distinguer "Créer X" des valeurs existantes
+- L'option "Créer X" n'apparaît que si : input non vide + aucun match exact sur le path normalisé
 - Toutes les strings visibles via `t('tags.*')` — clés ajoutées dans `fr.json` en même temps que les composants (F-02 RM-03)
 
 **Structure de fichiers backend cible :**
+
 ```
 src/tags/
 ├── tags.module.ts           // @Global(), exports: [TagService]
@@ -646,6 +1214,19 @@ src/tags/
     └── put-entity-tags.dto.ts
 test/
 └── tags.e2e-spec.ts
+```
+
+**Structure de fichiers frontend cible :**
+
+```
+frontend/src/
+└── components/
+    └── tags/
+        ├── DimensionTagInput.tsx          // édition — Autocomplete + Chips
+        ├── DimensionTagInput.types.ts     // TagOption, DimensionTagInputProps
+        ├── DimensionTagInput.utils.ts     // normalizePath front, validateAndAddCurrentInput
+        ├── TagChipList.tsx                // lecture seule — liste + drawer
+        └── index.ts                       // export { DimensionTagInput, TagChipList }
 ```
 
 ---
@@ -663,6 +1244,10 @@ Contexte projet ARK :
 - JwtAuthGuard global — @Public() uniquement sur routes explicitement publiques
 - Pattern de référence : module Domains (FS-02)
 - MUI v5 — sx prop uniquement, pas de styled-components, variant="outlined" sur les inputs
+- MUI Chip avec alpha(color, 0.12) pour fond coloré — import alpha depuis @mui/material/styles
+- MUI Autocomplete avec multiple + freeSolo + filterOptions(__isNew__) — voir spec §6
+- MUI Tooltip wrappant chaque Chip — path complet en title
+- CircularProgress size=16 dans endAdornment pendant loading autocomplete
 - i18n : toutes les strings via t('key') — fichier src/i18n/locales/fr.json
 - TagService (resolveOrCreate, normalizePath, getAncestorPaths) déjà écrit manuellement — NE PAS régénérer
 
@@ -675,8 +1260,10 @@ Implémente la feature "Dimension Tags Foundation" (F-03) — parties délégabl
 1. Migration Prisma (tag_dimensions, tag_values, entity_tags) + index text_pattern_ops
 2. TagsController + DTOs + TagsModule wiring (TagService déjà présent)
 3. Seed des 3 dimensions de base (Geography, Brand, LegalEntity)
-4. Composant DimensionTagInput (spec §6)
-5. Tests Supertest nominaux (§7) — NE PAS générer les tests [Manuel]
+4. Composant `DimensionTagInput` (spec §6) — respecter EXACTEMENT le tableau des comportements clavier et les états visuels
+5. Composant `TagChipList` (spec §6) — deux modes : liste (maxVisible=3, badge "+X") et drawer (regroupement par dimension, label caption)
+6. `TagValueResponse` doit inclure `dimensionColor` — à peupler via join sur `tag_dimensions` dans le service
+7. Tests Supertest nominaux (§7) — NE PAS générer les tests [Manuel]
 
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
 
@@ -694,8 +1281,11 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Index `text_pattern_ops` présent (vérifier via `\d tag_values` dans psql)
 - [ ] Seed des 3 dimensions exécuté — `SELECT * FROM tag_dimensions` retourne 3 lignes
 - [ ] `TagsModule` importé dans `AppModule`
-- [ ] Clés `tags.*` ajoutées dans `fr.json`
+- [ ] Clés `tags.*` ajoutées dans `fr.json` (incluant `typeToSearch`)
 - [ ] `DimensionTagInput` exporté depuis `src/components/tags/index.ts`
+- [ ] `TagChipList` exporté depuis `src/components/tags/index.ts`
+- [ ] `TagValueResponse` inclut `dimensionColor` — vérifier que le backend peuple le champ depuis le join `tag_dimensions`
+- [ ] Vérifier que `alpha` est importé depuis `@mui/material/styles` (MUI v5) et non depuis `@mui/system`
 - [ ] Spec relue — aucune règle implicite non documentée
 
 ---
@@ -706,30 +1296,31 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ### Gates TD
 
-| # | Vérification | Commande / Action |
-|---|---|---|
-| TD-1 | Aucun `TODO / FIXME / HACK` non tracé | `git grep -n "TODO\|FIXME\|HACK" -- '*.ts' '*.tsx'` |
-| TD-2 | Items F-999 activés par F-03 mis à jour | Relire F-999 §2 — ajouter Item migration `tags TEXT[]` |
-| TD-3 | Checklist F-999 §4 cases cochées | F-999 §4 |
-| TD-4 | AGENTS.md — pattern `TagService` (resolveOrCreate, DimensionTagInput) documenté | Relire AGENTS.md |
-| TD-5 | ARK-NFR.md — aucun NFR impacté par F-03 (pas de breaking change) | Vérifier NFR-MAINT-004 (migrations) |
-| TD-6 | Note de migration destructive (`DROP COLUMN tags`) ajoutée en F-999 | Créer nouvel item F-999 |
+| #    | Vérification                                                                    | Commande / Action                                      |
+| ---- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| TD-1 | Aucun `TODO / FIXME / HACK` non tracé                                           | `git grep -n "TODO\|FIXME\|HACK"` → relire chaque occurrence |
+| TD-2 | Items F-999 activés par F-03 mis à jour                                         | Relire F-999 §2 — ajouter Item migration `tags TEXT[]` |
+| TD-3 | Checklist F-999 §4 cases cochées                                                | F-999 §4                                               |
+| TD-4 | AGENTS.md — pattern `TagService` (resolveOrCreate, DimensionTagInput) documenté | Relire AGENTS.md                                       |
+| TD-5 | ARK-NFR.md — aucun NFR impacté par F-03 (pas de breaking change)                | Vérifier NFR-MAINT-004 (migrations)                    |
+| TD-6 | Note de migration destructive (`DROP COLUMN tags`) ajoutée en F-999             | Créer nouvel item F-999                                |
 
 ### Résultat de la revue
 
-| Champ | Valeur |
-|---|---|
-| **Sprint** | *(à remplir)* |
-| **Date de revue** | *(à remplir)* |
-| **Items F-999 fermés** | *(à remplir)* |
-| **Items F-999 ouverts** | *(à remplir)* |
+| Champ                          | Valeur                                             |
+| ------------------------------ | -------------------------------------------------- |
+| **Sprint**                     | *(à remplir)*                                      |
+| **Date de revue**              | *(à remplir)*                                      |
+| **Items F-999 fermés**         | *(à remplir)*                                      |
+| **Items F-999 ouverts**        | *(à remplir)*                                      |
 | **Nouveaux items F-999 créés** | *(ex : Item XX — migration tags TEXT[] par FS-xx)* |
-| **NFR mis à jour** | *(à remplir)* |
-| **TODOs résiduels tracés** | *(à remplir)* |
-| **Statut gates TD** | *(à remplir)* |
+| **NFR mis à jour**             | *(à remplir)*                                      |
+| **TODOs résiduels tracés**     | *(à remplir)*                                      |
+| **Statut gates TD**            | *(à remplir)*                                      |
 
 ---
 
-_Feature Spec F-03 v0.1 — Projet ARK — Document de travail, à valider avant démarrage_
+_Feature Spec F-03 v0.2 — Projet ARK — Document de travail, à valider avant démarrage_
 
 > **Probabilité que ce modèle tienne jusqu'en production sans migration majeure : ~80%.** Principal risque résiduel : la décision P2 sur le renommage de path (cascade vs alias) peut forcer une modification de schéma si elle n'est pas anticipée. Documenter en F-999 dès maintenant.
+---

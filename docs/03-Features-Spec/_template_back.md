@@ -51,7 +51,21 @@ _Version 0.1 — Mars 2026_
 
 ---
 
-## 2. Modèle Prisma ⚠️
+## 2. Modèle BDD  ⚠️
+
+### 2.1 Schema relationnel 
+
+**Schéma BDD complet**
+
+> Bloc datamodele en mode texte de la table et de ses relations
+
+
+**Vue des relations globales**
+
+> Bloc texte des relations entre l'entité et les autres tables
+
+
+### 2.2 Modèle Prisma
 
 > Bloc Prisma exact pour cette feature. Source de vérité TypeScript — OpenCode génère les types et requêtes à partir de ce bloc. Ce contrat est également référencé par la spec front.
 

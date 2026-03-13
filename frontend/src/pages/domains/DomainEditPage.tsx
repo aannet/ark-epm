@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import DomainForm from '@/components/domains/DomainForm';
@@ -11,6 +12,7 @@ import { useDomain, useUpdateDomain } from '@/api/domains';
 import { DomainFormValues } from '@/types/domain';
 import { resolveAlertMessage } from '@/utils/domain.utils';
 import { hasPermission } from '@/store/auth';
+import { tagsApi } from '@/api/tags';
 
 export default function DomainEditPage(): JSX.Element {
   if (!hasPermission('domains:write')) {
@@ -26,6 +28,12 @@ export default function DomainEditPage(): JSX.Element {
 
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
 
+  // Fetch available dimensions for tags
+  const { data: dimensions, isLoading: isLoadingDimensions } = useQuery({
+    queryKey: ['tag-dimensions'],
+    queryFn: () => tagsApi.getDimensions(),
+  });
+
   useEffect(() => {
     if (error && (error as any)?.response?.status === 404) {
       navigate('/domains');
@@ -34,7 +42,31 @@ export default function DomainEditPage(): JSX.Element {
 
   const handleSubmit = async (values: DomainFormValues) => {
     try {
-      await updateDomain.mutateAsync(values);
+      // Update domain basic info
+      await updateDomain.mutateAsync({
+        name: values.name,
+        description: values.description,
+        comment: values.comment,
+        tags: [], // Tags handled separately
+      });
+
+      // Save tags for each dimension (handled by DimensionTagInput onChange)
+      // But we need to handle any pending tags that weren't saved yet
+      if (values.tags && values.tags.length > 0 && dimensions && id) {
+        const tagsByDimension = new Map<string, string[]>();
+        
+        values.tags.forEach((tag) => {
+          const existing = tagsByDimension.get(tag.dimensionId) || [];
+          existing.push(tag.id);
+          tagsByDimension.set(tag.dimensionId, existing);
+        });
+
+        // Save tags for each dimension
+        for (const [dimensionId, tagIds] of tagsByDimension.entries()) {
+          await tagsApi.putEntityTags('domain', id, dimensionId, tagIds);
+        }
+      }
+
       navigate(`/domains/${id}`, {
         state: {
           alert: { severity: 'success', message: t('domains.alert.updated') },
@@ -55,11 +87,11 @@ export default function DomainEditPage(): JSX.Element {
     navigate(`/domains/${id}`);
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingDimensions) {
     return (
       <PageContainer>
         <PageHeader title={t('domains.form.editTitle')} />
-        <LoadingSkeleton rows={2} columns={2} />
+        <LoadingSkeleton rows={3} columns={1} />
       </PageContainer>
     );
   }
@@ -74,6 +106,12 @@ export default function DomainEditPage(): JSX.Element {
       </PageContainer>
     );
   }
+
+  const availableDimensions = dimensions?.map((d) => ({
+    id: d.id,
+    name: d.name,
+    color: d.color || '#1976d2',
+  })) || [];
 
   return (
     <PageContainer>
@@ -90,19 +128,23 @@ export default function DomainEditPage(): JSX.Element {
         initialValues={{
           name: domain.name,
           description: domain.description || '',
+          comment: domain.comment || '',
+          tags: domain.tags || [],
         }}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={updateDomain.isPending}
-      error={
-        updateDomain.error
-          ? (updateDomain.error as any)?.response?.status === 409
-            ? t('domains.form.nameDuplicate')
-            : (updateDomain.error as any)?.response?.status === 400
-            ? t('domains.form.nameRequired')
+        availableDimensions={availableDimensions}
+        entityId={id}
+        error={
+          updateDomain.error
+            ? (updateDomain.error as any)?.response?.status === 409
+              ? t('domains.form.nameDuplicate')
+              : (updateDomain.error as any)?.response?.status === 400
+              ? t('domains.form.nameRequired')
+              : null
             : null
-          : null
-      }
+        }
       />
     </PageContainer>
   );

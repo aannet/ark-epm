@@ -58,10 +58,12 @@ model User {
 }
 
 model Domain {
-  id                   String               @id @default(uuid()) @db.Uuid
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                 String               @unique @db.VarChar(255)
   description          String?
-  createdAt            DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
+  comment              String?              @db.Text
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime?            @map("updated_at") @db.Timestamptz(6)
   applications         Application[]
   businessCapabilities BusinessCapability[]
 

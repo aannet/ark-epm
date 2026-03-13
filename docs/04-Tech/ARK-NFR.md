@@ -610,7 +610,7 @@ Explicitement exclus : Azure Application Insights, CMDB (ServiceNow/iTop), JIRA/
 
 Toute table représentant un objet métier principal (Applications, Business Capabilities, Data Objects, Interfaces, IT Components, Providers, Domains) doit obligatoirement exposer les **5 champs socle**, la **liaison tags** et les **triggers d'audit trail** décrits ci-dessous.
 
-> **Note sur `Domain` :** l'entité `Domain` est actuellement non conforme (`updatedAt` absent, pas de liaison tags, trigger à vérifier). Elle sera mise en conformité lors du sprint de correction du schéma n:n — elle n'est pas exclue de cette règle.
+> **Note sur `Domain` :** ✅ Domain est conforme NFR-GOV-005 depuis FS-02 v1.3. Champs socle présents (`updatedAt`, `comment`), liaison tags via `EntityTag` (F-03), trigger audit `trg_audit_domain` actif.
 
 #### 5 champs socle obligatoires
 
@@ -808,11 +808,11 @@ SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
 | NFR-GOV-002 | Intégrité référentielle | Gouvernance | P1 | ❌ `missing` |
 | NFR-GOV-003 | Import Excel | Gouvernance | P1 | ⚠️ `partial` |
 | NFR-GOV-004 | Intégrations exclues | Gouvernance | — | N/A |
-| NFR-GOV-005 | Champs socle + tags + audit trigger | Gouvernance | P1 | ⚠️ `partial` |
+| NFR-GOV-005 | Champs socle + tags + audit trigger | Gouvernance | P1 | ✅ `covered` |
 
 **Bilan P1 (31 NFR) :**
-- ✅ Couverts : 16
-- ⚠️ Partiels : 9
+- ✅ Couverts : 17
+- ⚠️ Partiels : 8
 - ❌ Manquants : 5 (tous dans F-999 — à implémenter avant Sprint 2)
 - 🔵 Différés P2 : 5
 
@@ -824,6 +824,7 @@ SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
 |---|---|---|---|
 | 2026-03-08 | NFR-GOV-005 | Remplacement du modèle de tags plat par le modèle hiérarchique dimensionnel (F-03). Ajout champs socle sur TagDimension (comment, updatedAt). Référence F-03 — v0.3 | Alec |
 | 2026-03-08 | NFR-GOV-005 | Ajout champs socle obligatoires (name, description, comment, created_at, updated_at), liaison tags polymorphique, triggers audit — v0.2 | Alec |
+| 2026-03-08 | NFR-GOV-005 | Domain marqué comme conforme suite à FS-02 v1.3 (champs socle, tags via F-03, audit trigger) | OpenCode |
 | 2026-03-03 | Tous | Création initiale v0.1 — 38 NFR, 8 catégories | Alec |
 
 ---

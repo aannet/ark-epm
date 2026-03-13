@@ -1,11 +1,12 @@
 openapi: 3.0.0
 info:
   title: Ark EPM API
-  version: 1.0.0
-  description: Enterprise Project Management API
+  version: 1.1.0
+  description: Enterprise Project Management API - Dimension Tags Support
 servers:
-  - url: http://localhost:3000/api
+  - url: http://localhost:3000/api/v1
     description: Development server
+
 paths:
   /health:
     get:
@@ -14,7 +15,7 @@ paths:
         '200':
           description: OK
 
-  /api/v1/domains:
+  /domains:
     get:
       summary: Liste de tous les domaines
       tags: [Domains]
@@ -59,25 +60,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: integer
-                    example: 409
-                  code:
-                    type: string
-                    example: "CONFLICT"
-                  message:
-                    type: string
-                  timestamp:
-                    type: string
-                    format: date-time
-                  path:
-                    type: string
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/domains/{id}:
+  /domains/{id}:
     get:
-      summary: Détail d'un domaine
+      summary: Détail d'un domaine avec ses tags
       tags: [Domains]
       security:
         - bearerAuth: []
@@ -128,21 +115,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: integer
-                    example: 409
-                  code:
-                    type: string
-                    example: "CONFLICT"
-                  message:
-                    type: string
-                  timestamp:
-                    type: string
-                    format: date-time
-                  path:
-                    type: string
+                $ref: '#/components/schemas/ErrorResponse'
 
     delete:
       summary: Supprimer un domaine
@@ -166,24 +139,310 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  statusCode:
-                    type: integer
-                    example: 409
-                  code:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tags/dimensions:
+    get:
+      summary: Liste toutes les dimensions de tags
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagDimension'
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer une nouvelle dimension de tag
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTagDimensionDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagDimension'
+        '409':
+          description: Dimension déjà existante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tags/dimensions/{dimensionId}/autocomplete:
+    get:
+      summary: Recherche autocomplétion des valeurs de tag
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dimensionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Terme de recherche (min 2 caractères)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagValueResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Dimension introuvable
+
+  /tags/dimensions/{dimensionId}/resolve:
+    post:
+      summary: Résoudre/créer une valeur de tag (création avec hiérarchie automatique)
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dimensionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                  description: 'Chemin hiérarchique (ex: europe/france/paris)'
+                label:
+                  type: string
+                  description: 'Label affiché (ex: Paris)'
+              required: [path, label]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagValueResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Dimension introuvable
+        '400':
+          description: Chemin invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tags/entities/{entityType}/{entityId}:
+    get:
+      summary: Récupérer les tags d'une entité
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [domain, application, business-capability, provider, data-object, it-component, interface]
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    entityType:
+                      type: string
+                    entityId:
+                      type: string
+                    tagValue:
+                      $ref: '#/components/schemas/TagValueResponse'
+                    taggedAt:
+                      type: string
+                      format: date-time
+        '401':
+          description: Non authentifié
+
+    put:
+      summary: Remplacer tous les tags d'une entité pour une dimension
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dimensionId:
+                  type: string
+                  format: uuid
+                tagValueIds:
+                  type: array
+                  items:
                     type: string
-                    example: "DEPENDENCY_CONFLICT"
-                  message:
-                    type: string
-                  timestamp:
-                    type: string
-                    format: date-time
-                  path:
-                    type: string
+                    format: uuid
+              required: [dimensionId, tagValueIds]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    entityType:
+                      type: string
+                    entityId:
+                      type: string
+                    tagValue:
+                      $ref: '#/components/schemas/TagValueResponse'
+                    taggedAt:
+                      type: string
+                      format: date-time
+        '401':
+          description: Non authentifié
+        '404':
+          description: Dimension ou valeur de tag introuvable
 
 components:
   schemas:
+
+    TagValueResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dimensionId:
+          type: string
+          format: uuid
+        dimensionName:
+          type: string
+          description: 'Nom de la dimension (ex: Geography)'
+        dimensionColor:
+          type: string
+          nullable: true
+          description: 'Couleur hexadécimale (ex: #2196F3)'
+        path:
+          type: string
+          description: 'Chemin hiérarchique complet (ex: europe/france)'
+        label:
+          type: string
+          description: 'Label affiché (ex: France)'
+        depth:
+          type: integer
+          description: Profondeur dans la hiérarchie (0=racine)
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+
+    TagDimension:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Nom unique de la dimension
+        description:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+          description: Couleur hexadécimale pour l'UI
+        icon:
+          type: string
+          nullable: true
+        multiValue:
+          type: boolean
+          default: true
+          description: Autorise plusieurs tags par entité
+        entityScope:
+          type: array
+          items:
+            type: string
+          description: Types d'entités concernées
+        sortOrder:
+          type: integer
+          default: 0
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateTagDimensionDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: Nom unique de la dimension
+        description:
+          type: string
+        color:
+          type: string
+          description: 'Couleur hexadécimale (ex: #2196F3)'
+        icon:
+          type: string
+        multiValue:
+          type: boolean
+          default: true
+        entityScope:
+          type: array
+          items:
+            type: string
 
     DomainResponse:
       type: object
@@ -196,9 +455,20 @@ components:
         description:
           type: string
           nullable: true
+        comment:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
         createdAt:
           type: string
           format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
 
     CreateDomainDto:
       type: object
@@ -210,6 +480,10 @@ components:
           maxLength: 255
           example: "Finance"
         description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
           type: string
           nullable: true
           maxLength: 2000
@@ -225,6 +499,27 @@ components:
           type: string
           nullable: true
           maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 409
+        code:
+          type: string
+          example: "CONFLICT"
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
 
   securitySchemes:
     bearerAuth:

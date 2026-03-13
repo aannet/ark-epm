@@ -2,6 +2,12 @@
 
 AI agent guidance for ARK-EPM codebase (Enterprise Architecture Mapping tool).
 
+> **Quick Checklist — Avant chaque session :**
+> - [ ] Ambiguïté sur spec ? → 1 question max, puis exécuter
+> - [ ] Modification UI prévue ? → Prévoir hard refresh navigateur
+> - [ ] Bug malgré code correct ? → Vérifier cache TS/Navigateur 1er
+> - [ ] Pas d'explication préalable → Code d'abord, résumer après
+
 ## Project Stack
 
 - **Backend**: NestJS + Prisma ORM + PostgreSQL
@@ -29,6 +35,16 @@ cd frontend
 npm run dev           # hot reload (port 5173)
 npm run build
 npm run preview
+```
+
+### After UI Changes (Cache Issues)
+```bash
+# Hard refresh browser (systematic after CSS/React changes)
+Ctrl + F5                    # Windows/Linux
+Cmd + Shift + R              # Mac
+
+# Restart VSCode TS Server (if unexplained import errors)
+Ctrl + Shift + P → "TypeScript: Restart TS Server"
 ```
 
 ### Docker
@@ -164,3 +180,51 @@ backend/src/
 ├── audit/
 └── main.ts
 ```
+
+---
+
+## Communication Patterns
+
+### Code First, Explain Later
+- **Ne pas expliquer** avant de faire — modifier le code directement
+- Résumer brièvement **après** l'action (1-2 phrases max)
+- ❌ Éviter : "Je vais maintenant...", "Permettez-moi de...", "Je vais créer..."
+
+### Spécifications UI
+- Vérifier l'état visuel actuel avant toute modification CSS
+- **Toujours mentionner** après changement styling : "Vérifiez dans le navigateur (Ctrl+F5 pour hard refresh)"
+- Anticiper les problèmes de cache VSCode : "Si erreur import → Restart TS Server"
+
+### Debugging
+- Code semble correct mais comportement étrange ? → **Suggérer cache 1er**
+  - VSCode : `Ctrl + Shift + P` → "TypeScript: Restart TS Server"
+  - Navigateur : `Ctrl + F5` (hard refresh)
+- Valider que le code source est correct avant d'approfondir sur les explications
+
+### Ambiguïtés
+- Clarifier immédiatement :
+  - "Drawer readonly ou éditable ?"
+  - "Quelles zones du tableau ouvrent le drawer ?"
+  - "Style exact du lien (souligné ? couleur ?)"
+- 1 question max, puis exécuter
+
+### Concision
+- Actions simples : 1 phrase ou juste le code
+- Explications détaillées : uniquement pour décisions architecturales
+
+---
+
+## Anti-Patterns Learned
+
+### UI Components
+1. **Drawer PNS-02** : Toujours clarifier "readonly avec lien détail" vs "éditable inline"
+2. **Zones de clic tableau** : Spécifier explicitement :
+   - Nom = navigation directe (lien)
+   - Corps = drawer
+   - Actions = navigation édition/suppression
+3. **Styling MUI** : Toujours vérifier `backgroundColor`, `color`, `z-index` après création composant
+
+### Cache Issues
+- VSCode TS Server : erreurs d'import fantômes après création fichiers
+- Navigateur : comportements UI étranges malgré code correct
+- **Solution** : Mentionner systématiquement hard refresh / restart TS Server

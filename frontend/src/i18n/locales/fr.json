@@ -100,7 +100,10 @@
       "columns": {
         "name": "Nom",
         "description": "Description",
+        "comment": "Commentaire",
+        "tags": "Tags",
         "createdAt": "Créé le",
+        "updatedAt": "Modifié le",
         "actions": "Actions"
       },
       "emptyState": {
@@ -111,6 +114,7 @@
     },
     "detail": {
       "noDescription": "—",
+      "noComment": "Aucun commentaire",
       "editButton": "Modifier",
       "backButton": "Retour"
     },
@@ -119,6 +123,8 @@
       "editTitle": "Modifier le domaine",
       "nameLabel": "Nom",
       "descriptionLabel": "Description",
+      "commentLabel": "Commentaire interne",
+      "tagsLabel": "Tags",
       "saveButton": "Enregistrer",
       "cancelButton": "Annuler",
       "nameRequired": "Le nom est obligatoire",
@@ -138,6 +144,18 @@
         "notFound": "Ce domaine n'existe plus.",
         "unknown": "Une erreur inattendue est survenue."
       }
+    },
+    "drawer": {
+      "title": "Détails du domaine",
+      "viewFullDetails": "Voir la fiche complète",
+      "edit": "Modifier",
+      "close": "Fermer",
+      "showMoreTags": "Voir les {{count}} tags supplémentaires",
+      "section": {
+        "info": "Informations",
+        "tags": "Tags",
+        "metadata": "Métadonnées"
+      }
     }
   },
 
@@ -150,6 +168,10 @@
     },
     "tooltip": {
       "fullPath": "Chemin complet : {{path}}"
+    },
+    "drawer": {
+      "title": "Tous les tags",
+      "showAll": "Voir les {{count}} tags supplémentaires"
     },
     "errors": {
       "invalidPath": "Valeur de tag invalide",

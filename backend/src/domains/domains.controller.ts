@@ -9,12 +9,16 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { DomainsService } from './domains.service';
 import { CreateDomainDto } from './dto/create-domain.dto';
 import { UpdateDomainDto } from './dto/update-domain.dto';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
-import { Public } from '../common/decorators/public.decorator';
+
+interface AuthenticatedRequest {
+  user: { id: string };
+}
 
 @Controller('domains')
 export class DomainsController {
@@ -35,8 +39,11 @@ export class DomainsController {
   @Post()
   @RequirePermissions('domains:write')
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createDomainDto: CreateDomainDto) {
-    return this.domainsService.create(createDomainDto);
+  create(
+    @Body() createDomainDto: CreateDomainDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.domainsService.create(createDomainDto, req.user.id);
   }
 
   @Patch(':id')
@@ -44,14 +51,18 @@ export class DomainsController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDomainDto: UpdateDomainDto,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.domainsService.update(id, updateDomainDto);
+    return this.domainsService.update(id, updateDomainDto, req.user.id);
   }
 
   @Delete(':id')
   @RequirePermissions('domains:write')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.domainsService.remove(id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.domainsService.remove(id, req.user.id);
   }
 }
