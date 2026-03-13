@@ -1,13 +1,41 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-08 — v0.3.0_
+_Last updated: 2026-03-12 — v0.4.0_
+
 
 ---
+---
+## v0.4.0 — 2026-03-12 
 
-<!-- ============================================================ -->
-<!-- RELEASE v0.3.0 — 2026-03-08                             -->
-<!-- ============================================================ -->
+> Dimension Tags
+> Session Domain Drawer (PNS-02)
 
+🎯 TLDR
+- **Les domaines peuvent maintenant être tagués par dimension** (Geography, Brand, etc.) avec gestion hierarchique automatique. Plus besoin de scroller des listes interminables : les tags se dédupliquent intelligemment et s'affichent de manière compacte. Les suppressions/ajouts de tags attendent désormais la validation du formulaire, évitant les erreurs de manipulation.
+- **Consultation rapide sans perte de contexte**. Les utilisateurs peuvent désormais cliquer sur n'importe quelle ligne du tableau de domaines pour consulter instantanément les métadonnées dans un panneau latéral, sans quitter leur liste ni perdre leurs filtres. Le nom du domaine reste un lien direct vers la fiche complète pour un accès rapide aux détails avancés.
+
+✨ NEW
+Tagging : 
+  - Tagging hiérarchique : Les tags ont une profondeur (Europe → France → Paris), l'affichage garde automatiquement le niveau le plus précis par dimension
+  - Vue compacte : Max 3 tags visibles en liste, drawer complet accessible en un clic  
+  - Autocomplete intelligent : Création rapide de nouveaux tags avec suggestion existante
+  - Couleurs par dimension : Chaque type de tag (Geography=bleu, Brand=violet...) identifiable visuellement
+- SideDrawer
+  - Side Drawer sur la liste des domaines : Clic sur le corps d'une ligne ouvre un panneau latéral (400px) affichant nom, description, tags et dates
+  - Double mode d'accès : 
+    - Clic sur le nom → navigation directe vers la page détail complète
+    - Clic sur le reste de la ligne → ouverture du drawer
+  - Transition fluide depuis le drawer : Boutons "Modifier" (grisé si pas de droits) et "Voir la fiche complète" pour basculer vers les vues édition/détail
+  - Gestion des tags dans le drawer : Affichage des 10 premiers tags avec option "Voir plus" pour les listes longues
+- Fermeture intuitive : Bouton croix grisé, clic hors du drawer, ou touche Escape
+
+🔧 FIX
+- Suppression de tags : Les chips disparaissaient de la base mais restaient visibles à l'écran jusqu'au refresh
+- Sauvegarde immédiate : Les tags étaient persistés dès le clic sans attendre "Enregistrer", rendant le bouton "Annuler" inefficace
+-  Couleur de fond du drawer : Passage de la couleur primaire à la couleur de fond standard (blanc/papier)
+
+---
+---
 ## v0.3.0 — 2026-03-08
 
 > Dimension Tags Foundation — Hierarchical tagging system with recursive path resolution and free-form autocomplete.
@@ -71,11 +99,7 @@ docker exec ark-epm_backend_1 npx prisma migrate status
 | F-03 | Dimension Tags Foundation | ✅ done |
 
 ---
-
-<!-- ============================================================ -->
-<!-- RELEASE v0.2.0 — 2026-03-07                             -->
-<!-- ============================================================ -->
-
+---
 ## v0.2.0 — 2026-03-07
 
 > First frontend feature release — Domains UI complete.
