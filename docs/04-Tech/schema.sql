@@ -1,17 +1,58 @@
 -- =============================================================================
--- ARK DATABASE SCHEMA - Version 0.5
--- Date: Février 2026
--- Changelog v0.4 :
---   - Suppression CHECK (level BETWEEN 1 AND 5) sur business-capabilities
---   - Ajout des tables de liaison app_data_object_map et app_it_component_map
---   - Ajout first_name / last_name sur users
---   - Ajout index idx_applications_provider pour navigabilité depuis providers
---   - Ajout colonnes latency_ms et error_rate sur interfaces (indicateurs P1 conservés)
---   - Ajout triggers d'audit trail automatiques (base autonome)
+-- ARK DATABASE SCHEMA - Version 0.6
+-- Date: Mars 2026
+-- Changelog v0.6 :
+--   - Migration du système de tags vers modèle relationnel (tag_dimensions, tag_values, entity_tags)
+--   - Suppression des colonnes tags TEXT[] sur les tables métier
+--   - Ajout des triggers d'audit pour les nouvelles tables de tags
 -- =============================================================================
 
 -- Extension pour UUID
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+---
+--- 0. DIMENSION TAGS SYSTEM
+---
+
+-- Dimensions de tag (ex: Geography, Brand, BusinessUnit)
+CREATE TABLE tag_dimensions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    color VARCHAR(7), -- Format hex: #RRGGBB
+    icon VARCHAR(50),
+    multi_value BOOLEAN DEFAULT true,
+    entity_scope VARCHAR(50)[] DEFAULT '{}', -- Entités concernées: ['domain', 'application', ...]
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Valeurs de tag avec hiérarchie (ex: Europe -> France -> Paris)
+CREATE TABLE tag_values (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    dimension_id UUID NOT NULL REFERENCES tag_dimensions(id) ON DELETE CASCADE,
+    path VARCHAR(500) NOT NULL, -- Chemin complet: "europe/france/paris"
+    label VARCHAR(255) NOT NULL, -- Label affiché: "Paris"
+    parent_id UUID REFERENCES tag_values(id) ON DELETE SET NULL,
+    depth SMALLINT DEFAULT 0, -- Niveau dans la hiérarchie (0=racine)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (dimension_id, path)
+);
+
+-- Association tags <-> entités (domaines, applications, etc.)
+CREATE TABLE entity_tags (
+    entity_type VARCHAR(50) NOT NULL, -- 'domain', 'application', etc.
+    entity_id UUID NOT NULL,
+    tag_value_id UUID NOT NULL REFERENCES tag_values(id) ON DELETE CASCADE,
+    tagged_at TIMESTAMPTZ DEFAULT NOW(),
+    tagged_by UUID REFERENCES users(id),
+    PRIMARY KEY (entity_type, entity_id, tag_value_id)
+);
+
+-- Index pour performance des recherches par entité
+CREATE INDEX idx_entity_tags_lookup ON entity_tags(entity_type, entity_id);
+CREATE INDEX idx_entity_tags_by_value ON entity_tags(tag_value_id);
+CREATE INDEX idx_tag_values_path ON tag_values(dimension_id, path);
 
 ---
 --- 1. AUTHENTIFICATION & SÉCURITÉ (RBAC)
@@ -57,15 +98,16 @@ CREATE TABLE domains (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    comment TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ---
 --- 3. MÉTA-MODÈLE APPLICATIF (P1)
 ---
 
--- Business Capabilities : Hiérarchie récursive — max 5 niveaux en MVP
--- Le niveau est calculé applicativement et contrôlé via trigger (voir section 5)
+-- Business Capabilities : Hiérarchie récursive
 CREATE TABLE business_capabilities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
@@ -73,7 +115,6 @@ CREATE TABLE business_capabilities (
     parent_id UUID REFERENCES business_capabilities(id) ON DELETE SET NULL,
     level SMALLINT NOT NULL,
     domain_id UUID REFERENCES domains(id),
-    tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -83,7 +124,6 @@ CREATE TABLE providers (
     name VARCHAR(255) NOT NULL,
     contract_type VARCHAR(100),
     expiry_date DATE,
-    tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -95,7 +135,6 @@ CREATE TABLE applications (
     domain_id UUID REFERENCES domains(id),
     criticality VARCHAR(50) CHECK (criticality IN ('low', 'medium', 'high', 'mission-critical')),
     lifecycle_status VARCHAR(50),
-    tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -108,9 +147,6 @@ CREATE TABLE app_capability_map (
 );
 
 -- Interfaces : Relation unidirectionnelle Source -> Cible
--- Pas de contrainte UNIQUE globale : plusieurs interfaces distinctes peuvent exister
--- entre les mêmes apps (ex : deux API avec SLA différents). L'unicité métier
--- est gérée applicativement si nécessaire.
 CREATE TABLE interfaces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255),
@@ -120,9 +156,8 @@ CREATE TABLE interfaces (
     frequency VARCHAR(50),
     criticality VARCHAR(50) CHECK (criticality IN ('low', 'medium', 'high', 'mission-critical')),
     technical_contact_id UUID REFERENCES users(id),
-    latency_ms INTEGER,         -- indicateur de performance : latence en ms
-    error_rate DECIMAL(5,2),    -- indicateur de performance : taux d'erreur en %
-    tags TEXT[] DEFAULT '{}',
+    latency_ms INTEGER,
+    error_rate DECIMAL(5,2),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -132,13 +167,10 @@ CREATE TABLE data_objects (
     name VARCHAR(255) NOT NULL,
     type VARCHAR(100) CHECK (type IN ('database', 'dataset', 'file')),
     is_source_of_truth BOOLEAN DEFAULT false,
-    tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Table de liaison Application <-> Data Object (n:n)
--- Une application peut consommer plusieurs data objects, un data object peut être
--- consommé par plusieurs applications.
 CREATE TABLE app_data_object_map (
     application_id UUID REFERENCES applications(id) ON DELETE CASCADE,
     data_object_id UUID REFERENCES data_objects(id) ON DELETE CASCADE,
@@ -151,13 +183,10 @@ CREATE TABLE it_components (
     name VARCHAR(255) NOT NULL,
     technology VARCHAR(255),
     type VARCHAR(100),
-    tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Table de liaison Application <-> IT Component (n:n)
--- Un composant peut héberger plusieurs applications, une application peut reposer
--- sur plusieurs composants.
 CREATE TABLE app_it_component_map (
     application_id UUID REFERENCES applications(id) ON DELETE CASCADE,
     it_component_id UUID REFERENCES it_components(id) ON DELETE CASCADE,
@@ -180,11 +209,7 @@ CREATE TABLE audit_trail (
 );
 
 ---
---- 5. TRIGGERS D'AUDIT (base autonome)
----
---- Stratégie : une fonction générique appelée par chaque trigger de table.
---- Le changed_by est passé via une variable de session PostgreSQL (ark.current_user_id)
---- que le backend positionne à chaque connexion : SET LOCAL ark.current_user_id = '<uuid>';
+--- 5. TRIGGERS D'AUDIT
 ---
 
 CREATE OR REPLACE FUNCTION fn_audit_trigger()
@@ -193,7 +218,6 @@ DECLARE
     v_user_id UUID;
     v_entity_type TEXT;
 BEGIN
-    -- Récupération de l'utilisateur courant depuis la variable de session
     BEGIN
         v_user_id := current_setting('ark.current_user_id')::UUID;
     EXCEPTION WHEN OTHERS THEN
@@ -219,7 +243,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger sur chaque table métier P1
+-- Triggers sur tables métier P1
 CREATE TRIGGER trg_audit_applications
     AFTER INSERT OR UPDATE OR DELETE ON applications
     FOR EACH ROW EXECUTE FUNCTION fn_audit_trigger();
@@ -246,6 +270,15 @@ CREATE TRIGGER trg_audit_providers
 
 CREATE TRIGGER trg_audit_users
     AFTER INSERT OR UPDATE OR DELETE ON users
+    FOR EACH ROW EXECUTE FUNCTION fn_audit_trigger();
+
+-- Triggers sur tables de tags
+CREATE TRIGGER trg_audit_tag_dimensions
+    AFTER INSERT OR UPDATE OR DELETE ON tag_dimensions
+    FOR EACH ROW EXECUTE FUNCTION fn_audit_trigger();
+
+CREATE TRIGGER trg_audit_tag_values
+    AFTER INSERT OR UPDATE OR DELETE ON tag_values
     FOR EACH ROW EXECUTE FUNCTION fn_audit_trigger();
 
 ---
