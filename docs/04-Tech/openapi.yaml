@@ -15,6 +15,95 @@ paths:
         '200':
           description: OK
 
+  /auth/login:
+    post:
+      summary: Connexion email/password
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentification réussie
+          headers:
+            Set-Cookie:
+              description: Cookie httpOnly contenant le refresh token
+              schema:
+                type: string
+                example: "refresh_token=xxx; HttpOnly; Path=/auth; Max-Age=604800"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Identifiants invalides ou compte désactivé
+
+  /auth/refresh:
+    post:
+      summary: Rafraîchir le token d'accès
+      description: Génère un nouveau access token et rotate le refresh token (cookie httpOnly requis)
+      tags: [Auth]
+      security: []
+      parameters:
+        - name: Cookie
+          in: header
+          required: true
+          description: Cookie contenant refresh_token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Nouveau access token généré
+          headers:
+            Set-Cookie:
+              description: Nouveau cookie httpOnly avec refresh token rotaté
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Refresh token manquant, invalide ou expiré
+
+  /auth/logout:
+    post:
+      summary: Déconnexion
+      description: Révoque le refresh token et supprime le cookie
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Déconnexion réussie
+          headers:
+            Set-Cookie:
+              description: Cookie refresh_token supprimé
+              schema:
+                type: string
+                example: "refresh_token=; HttpOnly; Path=/auth; Max-Age=0"
+        '401':
+          description: Token d'accès absent ou invalide
+
+  /auth/me:
+    get:
+      summary: Profil de l'utilisateur connecté
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Token absent ou invalide
+
   /domains:
     get:
       summary: Liste de tous les domaines
@@ -520,6 +609,90 @@ components:
           format: date-time
         path:
           type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@ark.io"
+        password:
+          type: string
+          minLength: 8
+          example: "SecurePass123!"
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token (15 minutes)
+          example: "eyJhbGciOiJIUzI1NiIs..."
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    RefreshResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Nouveau JWT access token
+          example: "eyJhbGciOiJIUzI1NiIs..."
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          example: "user@ark.io"
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        role:
+          $ref: '#/components/schemas/RoleResponse'
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Admin"
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        permissions:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "users:write"
+              description:
+                type: string
+                nullable: true
 
   securitySchemes:
     bearerAuth:

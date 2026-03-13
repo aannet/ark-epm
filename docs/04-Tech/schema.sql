@@ -1,6 +1,9 @@
 -- =============================================================================
--- ARK DATABASE SCHEMA - Version 0.6
+-- ARK DATABASE SCHEMA - Version 0.7
 -- Date: Mars 2026
+-- Changelog v0.7 :
+--   - Ajout du système de refresh tokens (table refresh_tokens)
+--   - Support de la rotation des refresh tokens
 -- Changelog v0.6 :
 --   - Migration du système de tags vers modèle relationnel (tag_dimensions, tag_values, entity_tags)
 --   - Suppression des colonnes tags TEXT[] sur les tables métier
@@ -89,6 +92,18 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Refresh Tokens : Un seul par utilisateur avec rotation
+CREATE TABLE refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    token_hash VARCHAR(255) NOT NULL, -- Hash bcrypt du token
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+CREATE INDEX idx_refresh_tokens_user ON refresh_tokens(user_id);
 
 ---
 --- 2. STRUCTURE & GOUVERNANCE

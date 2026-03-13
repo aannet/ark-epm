@@ -1,6 +1,8 @@
 # ARK — Template Feature-Spec Backend
 
-_Version 0.1 — Mars 2026_
+_Version 0.2 — Mars 2026_
+
+> **Changelog v0.2 :** Ajout du pattern "FK entrantes Applications" — note dans §1 (Périmètre) et §4 (Règles Métier). Indique explicitement quand `FS-06-BACK` doit figurer dans les dépendances BACK et comment structurer les tests Supertest en conséquence. Issu de la décision de séquençage v0.9 de la Roadmap (FS-06-BACK remonté en Sprint 2).
 
 > **Changelog v0.1 :** Création — split du template unifié v0.3 en deux templates distincts (back / front). Issu de la décision architecture de session OpenCode du Sprint FS-02. Ce template couvre la partie backend (NestJS + Prisma + tests Jest/Supertest). La partie frontend est couverte par `_template-front.md`.
 
@@ -36,6 +38,8 @@ _Version 0.1 — Mars 2026_
 | **Estimé** | Nb de jours (backend seul) |
 | **Version** | 0.1 |
 
+> **Note FK entrantes :** Si cette entité expose `_count.applications`, `GET /[ressource]/:id/applications`, ou un onglet Relations liant des Applications, ajouter `FS-06-BACK` dans le champ `Dépend de` ci-dessus. Voir §1 et §4 pour le détail du pattern.
+
 ---
 
 ## 1. Objectif & Périmètre ⚠️
@@ -48,6 +52,17 @@ _Version 0.1 — Mars 2026_
 **Hors périmètre :**
 - Frontend — couvert par `FS-XX-FRONT`
 - *(autres exclusions spécifiques)*
+
+---
+
+> **Pattern FK entrantes Applications :** Si cette entité est référencée par la table `applications` (FK directe ou table de jonction), distinguer deux niveaux d'implémentation :
+>
+> | Niveau | Contenu | Dépendance |
+> |---|---|---|
+> | **BACK sans Applications** | CRUD de base + `_count.applications = 0` hardcodé acceptable | `FS-01`, `F-03` seulement |
+> | **BACK complet** | `_count.applications` réel + `GET /:id/applications` + test `DEPENDENCY_CONFLICT` avec données réelles | `FS-06-BACK` requis |
+>
+> **Décision P1 :** Toujours implémenter le niveau "BACK complet". La spec BACK doit donc lister `FS-06-BACK` en dépendance et ses tests Supertest doivent créer des Applications de test pour valider le blocage de suppression. Ne jamais simuler cette contrainte avec un mock — la tester avec des données réelles en base e2e.
 
 ---
 
@@ -206,6 +221,8 @@ async remove(id: string): Promise<void> {
 }
 ```
 
+> **Pattern FK entrantes — `_count.applications` :** Si `applications` est l'une des relations à vérifier dans `_count`, inclure `applications: true` dans le select ci-dessus et ajouter le cas d'erreur correspondant dans §5. Ce pattern nécessite que `FS-06-BACK` soit `done` pour être testé avec des données réelles (voir §7).
+
 - **RM-04 — Droits requis :** `[domaine]:read` sur GET. `[domaine]:write` sur POST/PATCH/DELETE.
 
 - **RM-05 — Pas de soft delete :** Suppression physique après vérification RM-03.
@@ -294,6 +311,13 @@ backend/test/
 - [ ] `[Supertest]` `DELETE /api/v1/[ressource]/{id}` sans entités liées → `204`
 - [ ] `[Supertest]` `DELETE /api/v1/[ressource]/{id}` avec entités liées → `409` + `code: "DEPENDENCY_CONFLICT"` + compteurs
 
+> **FK entrantes — test `DEPENDENCY_CONFLICT` avec Applications :** Si `applications` figure dans les dépendances à vérifier avant suppression, le test Supertest correspondant doit :
+> 1. Créer l'entité cible (`POST /[ressource]`)
+> 2. Créer une Application liée (`POST /applications` avec `[ressource]Id` rempli) — **requiert `FS-06-BACK` `done`**
+> 3. Tenter `DELETE /[ressource]/{id}` → vérifier `409` + `code: "DEPENDENCY_CONFLICT"`
+>
+> Ne pas simuler cette contrainte avec un mock Jest — la tester en base réelle via Supertest uniquement.
+
 ### Tests Sécurité / RBAC — Manuel ❌
 
 > À écrire et valider à la main. Ne pas déléguer à OpenCode.
@@ -329,6 +353,7 @@ Conventions obligatoires :
 - Requêtes raw : tagged template backtick uniquement — jamais Prisma.raw() avec interpolation
 - Tests unit : jest.mock() sur PrismaService — pas de base réelle
 - Fichier test e2e : backend/test/FS-XX-[domaine].e2e-spec.ts
+- Tests DEPENDENCY_CONFLICT avec Applications : créer une Application réelle en base (POST /applications) dans le beforeEach du test — ne pas mocker
 
 Pattern de référence NestJS : module Domains (FS-02-BACK) — s'y conformer pour la structure et le style.
 
@@ -358,6 +383,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 | G-06 | Aucune erreur TypeScript | `npm run build` → 0 error | ✅ Oui |
 | G-07 | Statut mis à jour | Passer `FS-XX-BACK` à `done` dans cet en-tête | ✅ Oui |
 | G-08 | Revue TD backend | TD-1 à TD-6 vérifiés, F-999 mis à jour | ✅ Oui |
+| G-09 | Si FK vers applications : test `DEPENDENCY_CONFLICT` exécuté avec Application réelle en base | Vérifier le test Supertest §7 — pas de mock | ✅ Oui si applicable |
 
 ---
 
@@ -372,6 +398,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Aucun `TODO / FIXME / HACK` non tracé
 - [ ] Aucune erreur TypeScript strict
 - [ ] Conventions `$executeRaw`, structure modules, mock Prisma respectées
+- [ ] Si FK vers applications : test `DEPENDENCY_CONFLICT` avec Application créée réellement en base (pas mockée)
 
 ---
 
@@ -405,4 +432,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_Template Backend v0.1 — Projet ARK_
+_Template Backend v0.2 — Projet ARK_

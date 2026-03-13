@@ -1,10 +1,23 @@
 import axios from 'axios';
-import { clearAuth, getToken } from '../store/auth';
+import { clearAuth, getToken, setAuth } from '../store/auth';
+import { refreshToken } from './auth';
 
 const apiClient = axios.create({
-  baseURL: (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000') + '/api/v1',
-  //baseURL: (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'),
+  baseURL: '/api/v1',
+  withCredentials: true,
 });
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function subscribeTokenRefresh(callback: (token: string) => void) {
+  refreshSubscribers.push(callback);
+}
+
+function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers = [];
+}
 
 apiClient.interceptors.request.use((config) => {
   const token = getToken();
@@ -16,9 +29,44 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.config?.url === '/auth/login') {
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.config?.url === '/auth/login' || error.config?.url === '/auth/refresh') {
       return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshResult = await refreshToken();
+        
+        if (refreshResult.success && refreshResult.data) {
+          setAuth(refreshResult.data.accessToken, refreshResult.data.user);
+          onTokenRefreshed(refreshResult.data.accessToken);
+          originalRequest.headers.Authorization = `Bearer ${refreshResult.data.accessToken}`;
+          return apiClient(originalRequest);
+        } else {
+          throw new Error('Refresh failed');
+        }
+      } catch (refreshError) {
+        clearAuth();
+        window.location.href = '/login?reason=session_expired';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
     if (error.response?.status === 401) {
@@ -30,9 +78,11 @@ apiClient.interceptors.response.use(
         window.location.href = '/401';
       }
     }
+
     if (error.response?.status === 403) {
       window.location.href = '/403';
     }
+
     return Promise.reject(error);
   },
 );
