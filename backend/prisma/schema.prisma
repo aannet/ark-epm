@@ -103,14 +103,15 @@ model Provider {
 }
 
 model Application {
-  id               String              @id @default(uuid()) @db.Uuid
-  name             String              @db.VarChar(255)
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String              @unique @db.VarChar(255)
+  description      String?             @db.Text
+  comment          String?             @db.Text
   ownerId          String?             @map("owner_id") @db.Uuid
   providerId       String?             @map("provider_id") @db.Uuid
   domainId         String?             @map("domain_id") @db.Uuid
   criticality      String?             @map("criticality") @db.VarChar(50)
   lifecycleStatus  String?             @map("lifecycle_status") @db.VarChar(50)
-  tags             String[]            @default([])
   createdAt        DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?           @default(now()) @map("updated_at") @db.Timestamptz(6)
   capabilities     AppCapabilityMap[]
