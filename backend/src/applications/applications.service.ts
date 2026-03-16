@@ -177,7 +177,7 @@ export class ApplicationsService {
   async create(createDto: CreateApplicationDto, userId: string) {
     this.logger.log({ method: 'create', data: createDto });
 
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
     await this.validateForeignKeys(createDto);
 
     try {
@@ -221,7 +221,7 @@ export class ApplicationsService {
   async update(id: string, updateDto: UpdateApplicationDto, userId: string) {
     this.logger.log({ method: 'update', id, data: updateDto });
 
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
     await this.validateForeignKeys(updateDto);
 
     try {
@@ -273,7 +273,7 @@ export class ApplicationsService {
   async remove(id: string, userId: string) {
     this.logger.log({ method: 'remove', id });
 
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const dependencies = await this.getDependencies(id);
 
@@ -327,11 +327,4 @@ export class ApplicationsService {
     }
   }
 
-  private async setCurrentUser(userId: string): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`SET LOCAL "ark.current_user_id" = ${userId}`;
-    } catch (error) {
-      this.logger.warn(`Failed to set current user: ${error}`);
-    }
-  }
 }

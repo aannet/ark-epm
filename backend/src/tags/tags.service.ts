@@ -52,7 +52,7 @@ export class TagsService {
     sortOrder: number;
     createdAt: Date;
   }> {
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const existing = await this.prisma.tagDimension.findUnique({
       where: { name: dto.name.trim() },
@@ -101,7 +101,7 @@ export class TagsService {
     sortOrder: number;
     createdAt: Date;
   }> {
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const existing = await this.prisma.tagDimension.findUnique({
       where: { id },
@@ -209,7 +209,7 @@ export class TagsService {
     parentId: string | null;
     createdAt: Date;
   }> {
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const normalizedPath = this.normalizePath(dto.path);
 
@@ -438,7 +438,7 @@ export class TagsService {
       taggedAt: Date;
     }>
   > {
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const dimension = await this.prisma.tagDimension.findUnique({
       where: { id: dto.dimensionId },
@@ -551,11 +551,4 @@ export class TagsService {
       .join(' ');
   }
 
-  private async setCurrentUser(userId: string): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`;
-    } catch (error) {
-      this.logger.warn(`Failed to set current user: ${error}`);
-    }
-  }
 }

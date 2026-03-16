@@ -65,7 +65,7 @@ export class DomainsService {
   async create(createDomainDto: CreateDomainDto, userId: string) {
     this.logger.log({ method: 'create', data: createDomainDto });
     
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
     
     try {
       const domain = await this.prisma.domain.create({
@@ -97,7 +97,7 @@ export class DomainsService {
   async update(id: string, updateDomainDto: UpdateDomainDto, userId: string) {
     this.logger.log({ method: 'update', id, data: updateDomainDto });
     
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
     
     try {
       const domain = await this.prisma.domain.update({
@@ -138,7 +138,7 @@ export class DomainsService {
   async remove(id: string, userId: string) {
     this.logger.log({ method: 'remove', id });
     
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const domain = await this.prisma.domain.findUnique({
       where: { id },
@@ -169,11 +169,4 @@ export class DomainsService {
     this.logger.log({ method: 'remove', result: id });
   }
   
-  private async setCurrentUser(userId: string): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`;
-    } catch (error) {
-      this.logger.warn(`Failed to set current user: ${error}`);
-    }
-  }
 }
