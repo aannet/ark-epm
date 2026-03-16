@@ -1,0 +1,16 @@
+{
+  "name": "ark-epm-e2e",
+  "version": "1.0.0",
+  "description": "End-to-end tests for ARK-EPM",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report reports/html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.0",
+    "playwright": "^1.41.0"
+  }
+}

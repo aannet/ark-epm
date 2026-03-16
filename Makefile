@@ -70,6 +70,27 @@ test-backend-unit:
 test-backend-e2e:
 	cd backend && npm run test:e2e
 
+# E2E Tests (Playwright)
+test-e2e:
+	@echo "Running E2E tests against dev environment..."
+	docker-compose run --rm playwright
+
+test-e2e-ci:
+	@echo "Running E2E tests in isolated environment..."
+	docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit
+
+test-e2e-report:
+	@echo "Opening E2E test report..."
+	cd e2e && npm run test:report
+
+test-e2e-build:
+	@echo "Building Playwright image..."
+	docker-compose build playwright
+
+test-e2e-debug:
+	@echo "Running E2E tests with debug output..."
+	docker-compose run --rm playwright sh -c "npx wait-on http://frontend:5173 http://backend:3000 --timeout 60000 && npm run test:headed"
+
 # Full validation pipeline
 validate-backend: build-backend
 	docker restart ark-epm_backend_1

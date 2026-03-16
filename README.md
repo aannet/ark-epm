@@ -79,6 +79,25 @@ await this.prisma.application.create({ data: { ... } });
 
 This ensures `audit_trail.changed_by` is populated correctly.
 
+## E2E Testing
+
+Playwright tests in isolated Docker container:
+
+```bash
+# Against running dev environment
+make test-e2e
+
+# Or in isolated environment (CI)
+make test-e2e-ci
+
+# View HTML reports
+make test-e2e-report
+```
+
+Tests located in `e2e/tests/`. Reports saved to `e2e/reports/html/`.
+
+See `e2e/README.md` for detailed documentation.
+
 ## Project Structure
 
 ```
