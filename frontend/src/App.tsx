@@ -9,10 +9,18 @@ import PrivateRoute from '@/components/PrivateRoute';
 import { initializeAuth, clearAuth } from '@/store/auth';
 import { logout } from '@/api/auth';
 import { useEffect } from 'react';
+
+// Domain pages
 import DomainsListPage from '@/pages/domains/DomainsListPage';
 import DomainNewPage from '@/pages/domains/DomainNewPage';
 import DomainDetailPage from '@/pages/domains/DomainDetailPage';
 import DomainEditPage from '@/pages/domains/DomainEditPage';
+
+// Application pages
+import ApplicationsListPage from '@/pages/applications/ApplicationsListPage';
+import ApplicationNewPage from '@/pages/applications/ApplicationNewPage';
+import ApplicationDetailPage from '@/pages/applications/ApplicationDetailPage';
+import ApplicationEditPage from '@/pages/applications/ApplicationEditPage';
 
 function App(): JSX.Element {
   useEffect(() => {
@@ -40,12 +48,23 @@ function App(): JSX.Element {
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<AppShell onLogout={handleLogout} />}>
             <Route index element={<Navigate to="/applications" replace />} />
-            <Route path="applications/*" element={<div />} />
+            
+            {/* Applications routes */}
+            <Route path="applications" element={<Outlet />}>
+              <Route index element={<ApplicationsListPage />} />
+              <Route path="new" element={<ApplicationNewPage />} />
+              <Route path=":id" element={<ApplicationDetailPage />} />
+              <Route path=":id/edit" element={<ApplicationEditPage />} />
+            </Route>
+            
+            {/* Placeholder routes for other modules */}
             <Route path="business-capabilities/*" element={<div />} />
             <Route path="interfaces/*" element={<div />} />
             <Route path="data-objects/*" element={<div />} />
             <Route path="it-components/*" element={<div />} />
             <Route path="providers/*" element={<div />} />
+            
+            {/* Domains routes */}
             <Route path="domains" element={<Outlet />}>
               <Route index element={<DomainsListPage />} />
               <Route path="new" element={<DomainNewPage />} />
