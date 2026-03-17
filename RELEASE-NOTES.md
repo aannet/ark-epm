@@ -1,9 +1,36 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-12 — v0.4.0_
+_Last updated: 2026-03-18 — v0.5.1_
 
 
 ---
+## v0.5.1 — 2026-03-18 
+
+> Module CRUD Application
+
+## TLDR
+Les utilisateurs peuvent désormais gérer leur inventaire d'applications via une interface complète : liste paginée avec filtres par cycle de vie et tags, consultation rapide via drawer, fiche détail avec toutes les relations (domaine, fournisseur, responsable), et création/modification avec gestion des tags dimensionnels.
+
+## NEW
+### Applications — Module Frontend (P1)
+**Pages disponibles :**
+- `/applications` — Liste paginée avec tri, filtres cycle de vie et tags
+- `/applications/:id` — Détail complet (infos, relations, tags, métadonnées)
+- `/applications/new` — Création avec formulaire complet
+- `/applications/:id/edit` — Modification avec pré-remplissage
+
+* Pagination paginée avec URL : page, lignes/page, tri et filtres synchronisés dans l'URL (?page=2&limit=20&sortBy=criticality)
+* Colonne Criticité : ajout dans la vue liste avec tri backend activé
+* Navigation historique : boutons Précédent/Suivant du navigateur fonctionnent sur les changements de page/tri/filtre
+* Sélecteur lignes/page : choix 10/20/50 éléments avec persistance URL
+
+## FIX
+* Uniformisation chips : criticité et cycle de vie affichés de façon identique entre liste, drawer et détail (chips colorés i18n)
+* Tri backend : correction erreur 400 sur tri par criticité/cycle de vie
+* Valeurs lifecycle : alignement des valeurs acceptées (draft, in_progress, production, deprecated, retired)
+* Labels i18n : remplacement des textes hardcodés anglais par traductions françaises
+
+
 ---
 ## v0.4.0 — 2026-03-12 
 

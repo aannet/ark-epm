@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Table,
@@ -8,6 +8,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
   IconButton,
   TableSortLabel,
@@ -22,8 +23,11 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import StatusChip from '@/components/shared/StatusChip';
 import { TagChipList } from '@/components/tags';
 import { ApplicationFilters, ApplicationDrawer } from '@/components/applications';
+import { useTagDimensions } from '@/hooks/useTagDimensions';
+import { TagValueResponse } from '@/components/tags/DimensionTagInput.types';
 import {
   useApplications,
   useDeleteApplication,
@@ -33,7 +37,7 @@ import { hasPermission } from '@/store/auth';
 import { ApplicationListItem, ApplicationFilters as FiltersType } from '@/types/application';
 import { format409Message } from '@/utils/application.utils';
 
-type SortField = 'name' | 'domain' | 'provider' | 'lifecycleStatus' | 'createdAt';
+type SortField = 'name' | 'domain' | 'provider' | 'criticality' | 'lifecycleStatus' | 'createdAt';
 type SortOrder = 'asc' | 'desc';
 
 interface AlertState {
@@ -48,32 +52,84 @@ const DEFAULT_FILTERS: FiltersType = {
 
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
 
-// Hardcoded dimensions for now (until F-03 provides a real API)
-const AVAILABLE_DIMENSIONS = [
-  { id: 'geography-dim', name: 'Geography', color: '#2196F3' },
-  { id: 'brand-dim', name: 'Brand', color: '#9C27B0' },
-  { id: 'legal-dim', name: 'LegalEntity', color: '#FF9800' },
-];
-
 export default function ApplicationsListPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const canWrite = hasPermission('applications:write');
+  const { dimensions: availableDimensions } = useTagDimensions();
 
-  const [page, setPage] = useState(1);
-  const [limit] = useState(20);
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [filters, setFilters] = useState<FiltersType>(DEFAULT_FILTERS);
+  // Parse URL params
+  const getPageFromUrl = () => {
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    return isNaN(page) || page < 1 ? 1 : page;
+  };
+
+  const getLimitFromUrl = () => {
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    return [10, 20, 50].includes(limit) ? limit : 20;
+  };
+
+  const getSortFieldFromUrl = (): SortField => {
+    const sortBy = searchParams.get('sortBy') as SortField;
+    const validFields: SortField[] = ['name', 'domain', 'provider', 'criticality', 'lifecycleStatus', 'createdAt'];
+    return validFields.includes(sortBy) ? sortBy : 'name';
+  };
+
+  const getSortOrderFromUrl = (): SortOrder => {
+    const order = searchParams.get('sortOrder');
+    return order === 'desc' ? 'desc' : 'asc';
+  };
+
+  const getFiltersFromUrl = (): FiltersType => {
+    const lifecycleStatus = searchParams.get('lifecycleStatus');
+    const tagValueIds = searchParams.getAll('tagValueIds');
+    return {
+      lifecycleStatus: lifecycleStatus || null,
+      tagValueIds: tagValueIds.length > 0 ? tagValueIds : [],
+    };
+  };
+
+  const [page, setPage] = useState(getPageFromUrl());
+  const [rowsPerPage, setRowsPerPage] = useState(getLimitFromUrl());
+  const [sortField, setSortField] = useState<SortField>(getSortFieldFromUrl());
+  const [sortOrder, setSortOrder] = useState<SortOrder>(getSortOrderFromUrl());
+  const [filters, setFilters] = useState<FiltersType>(getFiltersFromUrl());
+  const [selectedTags, setSelectedTags] = useState<TagValueResponse[]>([]);
   const [deleteDialog, setDeleteDialog] = useState<ApplicationListItem | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
 
+  // Sync URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (page !== 1) params.set('page', page.toString());
+    if (rowsPerPage !== 20) params.set('limit', rowsPerPage.toString());
+    if (sortField !== 'name') params.set('sortBy', sortField);
+    if (sortOrder !== 'asc') params.set('sortOrder', sortOrder);
+    if (filters.lifecycleStatus) params.set('lifecycleStatus', filters.lifecycleStatus);
+    filters.tagValueIds.forEach(id => params.append('tagValueIds', id));
+    
+    setSearchParams(params, { replace: false });
+  }, [page, rowsPerPage, sortField, sortOrder, filters, setSearchParams]);
+
+  // Update selectedTags when filters change (from URL or manual)
+  // Update state when URL changes (back/forward navigation)
+  useEffect(() => {
+    setPage(getPageFromUrl());
+    setRowsPerPage(getLimitFromUrl());
+    setSortField(getSortFieldFromUrl());
+    setSortOrder(getSortOrderFromUrl());
+    setFilters(getFiltersFromUrl());
+    // Note: selectedTags cannot be reconstructed from URL alone without tag values data
+  }, [searchParams]);
+
   const { data, isLoading, error } = useApplications({
     page,
-    limit,
+    limit: rowsPerPage,
     sortBy: sortField,
     sortOrder,
     lifecycleStatus: filters.lifecycleStatus,
@@ -100,6 +156,7 @@ export default function ApplicationsListPage(): JSX.Element {
       setSortField(field);
       setSortOrder('asc');
     }
+    setPage(1); // Reset page when sort changes
   };
 
   const handleDeleteClick = (application: ApplicationListItem) => {
@@ -147,6 +204,24 @@ export default function ApplicationsListPage(): JSX.Element {
 
   const handleResetFilters = () => {
     setFilters(DEFAULT_FILTERS);
+    setSelectedTags([]);
+    setPage(1);
+  };
+
+  const handleFiltersChange = (newFilters: FiltersType, newSelectedTags?: TagValueResponse[]) => {
+    setFilters(newFilters);
+    if (newSelectedTags !== undefined) {
+      setSelectedTags(newSelectedTags);
+    }
+    setPage(1);
+  };
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage + 1);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
     setPage(1);
   };
 
@@ -200,9 +275,10 @@ export default function ApplicationsListPage(): JSX.Element {
 
       <ApplicationFilters
         lifecycleStatusOptions={LIFECYCLE_STATUSES}
-        availableDimensions={AVAILABLE_DIMENSIONS}
+        availableDimensions={availableDimensions}
         filters={filters}
-        onFiltersChange={setFilters}
+        selectedTags={selectedTags}
+        onFiltersChange={handleFiltersChange}
         onReset={handleResetFilters}
       />
 
@@ -220,6 +296,7 @@ export default function ApplicationsListPage(): JSX.Element {
           }
         />
       ) : (
+        <>
         <TableContainer
           component={Paper}
           elevation={0}
@@ -253,6 +330,15 @@ export default function ApplicationsListPage(): JSX.Element {
                     onClick={() => handleSort('provider')}
                   >
                     {t('applications.list.columns.provider')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'criticality'}
+                    direction={sortField === 'criticality' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('criticality')}
+                  >
+                    {t('applications.list.columns.criticality')}
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
@@ -309,10 +395,19 @@ export default function ApplicationsListPage(): JSX.Element {
                   <TableCell onClick={() => handleRowClick(application.id, 'provider')}>
                     {application.provider?.name || '—'}
                   </TableCell>
+                  <TableCell onClick={() => handleRowClick(application.id, 'criticality')}>
+                    {application.criticality ? (
+                      <StatusChip type="criticality" value={application.criticality as any} />
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell onClick={() => handleRowClick(application.id, 'lifecycle')}>
-                    {application.lifecycleStatus
-                      ? t(`applications.lifecycle.${application.lifecycleStatus}`)
-                      : '—'}
+                    {application.lifecycleStatus ? (
+                      <StatusChip type="lifecycle" value={application.lifecycleStatus as any} />
+                    ) : (
+                      '—'
+                    )}
                   </TableCell>
                   <TableCell onClick={() => handleRowClick(application.id, 'tags')}>
                     <TagChipList
@@ -347,6 +442,18 @@ export default function ApplicationsListPage(): JSX.Element {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={data?.meta?.total || 0}
+          page={(data?.meta?.page || 1) - 1}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[10, 20, 50]}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage={t('applications.list.pagination.rowsPerPage')}
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`}
+        />
+        </>
       )}
 
       <ConfirmDialog

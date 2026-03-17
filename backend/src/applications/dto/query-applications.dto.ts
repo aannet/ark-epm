@@ -22,7 +22,7 @@ export class QueryApplicationsDto {
   @Type(() => Number)
   limit?: number = 20;
 
-  @IsEnum(['name', 'createdAt', 'domain', 'provider'])
+  @IsEnum(['name', 'createdAt', 'domain', 'provider', 'criticality', 'lifecycleStatus'])
   @IsOptional()
   sortBy?: string = 'name';
 

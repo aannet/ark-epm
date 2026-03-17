@@ -6,6 +6,7 @@ import {
   Select,
   MenuItem,
   Button,
+  Chip,
 } from '@mui/material';
 import { DimensionTagInput } from '@/components/tags';
 import { TagValueResponse } from '@/components/tags/DimensionTagInput.types';
@@ -21,7 +22,8 @@ interface ApplicationFiltersProps {
   lifecycleStatusOptions: string[];
   availableDimensions: DimensionOption[];
   filters: FiltersType;
-  onFiltersChange: (filters: FiltersType) => void;
+  selectedTags?: TagValueResponse[];
+  onFiltersChange: (filters: FiltersType, selectedTags?: TagValueResponse[]) => void;
   onReset: () => void;
 }
 
@@ -29,6 +31,7 @@ export default function ApplicationFilters({
   lifecycleStatusOptions,
   availableDimensions,
   filters,
+  selectedTags = [],
   onFiltersChange,
   onReset,
 }: ApplicationFiltersProps): JSX.Element {
@@ -41,17 +44,38 @@ export default function ApplicationFilters({
     });
   };
 
-  const handleDimensionTagsChange = (dimensionName: string, tags: TagValueResponse[]) => {
-    const otherTags = filters.tagValueIds.filter((_id) => {
-      const tag = availableDimensions.find((d) => d.name === dimensionName);
-      return tag ? false : true;
-    });
+  const getTagsForDimension = (dimensionId: string): TagValueResponse[] => {
+    return selectedTags.filter((tag) => tag.dimensionId === dimensionId);
+  };
+
+  const handleDimensionTagsChange = (dimensionId: string, tags: TagValueResponse[]) => {
+    // Get all tags from other dimensions
+    const otherTags = selectedTags.filter((tag) => tag.dimensionId !== dimensionId);
     
-    const newTagIds = tags.map((t) => t.id);
-    onFiltersChange({
-      ...filters,
-      tagValueIds: [...otherTags, ...newTagIds],
-    });
+    // Combine with new tags for this dimension
+    const newSelectedTags = [...otherTags, ...tags];
+    
+    // Update filters with just the IDs for API
+    const newTagIds = newSelectedTags.map((t) => t.id);
+    onFiltersChange(
+      {
+        ...filters,
+        tagValueIds: newTagIds,
+      },
+      newSelectedTags
+    );
+  };
+
+  const handleRemoveTag = (tagId: string) => {
+    const newSelectedTags = selectedTags.filter((tag) => tag.id !== tagId);
+    const newTagIds = newSelectedTags.map((t) => t.id);
+    onFiltersChange(
+      {
+        ...filters,
+        tagValueIds: newTagIds,
+      },
+      newSelectedTags
+    );
   };
 
   return (
@@ -84,13 +108,36 @@ export default function ApplicationFilters({
             dimensionId={dimension.id}
             dimensionName={dimension.name}
             entityType="application"
-            value={[]} // Filter mode doesn't track specific values
-            onChange={(tags) => handleDimensionTagsChange(dimension.name, tags)}
+            value={getTagsForDimension(dimension.id)}
+            onChange={(tags) => handleDimensionTagsChange(dimension.id, tags)}
             multiple={true}
             color={dimension.color}
           />
         </Box>
       ))}
+
+      {selectedTags.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+          {selectedTags.map((tag) => (
+            <Chip
+              key={tag.id}
+              label={`${tag.dimensionName}: ${tag.label}`}
+              onDelete={() => handleRemoveTag(tag.id)}
+              size="small"
+              sx={{
+                backgroundColor: tag.dimensionColor || '#2196F3',
+                color: '#fff',
+                '& .MuiChip-deleteIcon': {
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  '&:hover': {
+                    color: '#fff',
+                  },
+                },
+              }}
+            />
+          ))}
+        </Box>
+      )}
 
       <Button variant="text" onClick={onReset} sx={{ alignSelf: 'center' }}>
         {t('common.actions.cancel')}

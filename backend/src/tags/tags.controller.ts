@@ -15,6 +15,7 @@ import { CreateTagDimensionDto } from './dto/create-tag-dimension.dto';
 import { UpdateTagDimensionDto } from './dto/update-tag-dimension.dto';
 import { ResolveTagDto } from './dto/resolve-tag.dto';
 import { PutEntityTagsDto } from './dto/put-entity-tags.dto';
+import { BatchEntityTagsDto } from './dto/batch-entity-tags.dto';
 import { AutocompleteQueryDto } from './dto/autocomplete-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
@@ -85,5 +86,15 @@ export class TagsController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.tagsService.putEntityTags(entityType, entityId, dto, req.user.id);
+  }
+
+  @Put('tags/entity/:entityType/:entityId/batch')
+  async batchEntityTags(
+    @Param('entityType') entityType: string,
+    @Param('entityId') entityId: string,
+    @Body() dto: BatchEntityTagsDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.tagsService.batchEntityTags(entityType, entityId, dto, req.user.id);
   }
 }

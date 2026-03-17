@@ -10,9 +10,12 @@ import { CreateTagDimensionDto } from './dto/create-tag-dimension.dto';
 import { UpdateTagDimensionDto } from './dto/update-tag-dimension.dto';
 import { ResolveTagDto } from './dto/resolve-tag.dto';
 import { PutEntityTagsDto } from './dto/put-entity-tags.dto';
+import { BatchEntityTagsDto } from './dto/batch-entity-tags.dto';
 
 const INVALID_PATH_CHARS = /[\\"'\x00-\x1F<>]/;
 const MAX_PATH_LENGTH = 500;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 @Injectable()
 export class TagsService {
@@ -149,12 +152,30 @@ export class TagsService {
       parentId: string | null;
     }>
   > {
-    let dimensionId = dimensionIdOrName;
+    const dimensionParam = dimensionIdOrName?.trim();
+
+    if (!dimensionParam) {
+      throw new BadRequestException({
+        code: 'DIMENSION_INVALID',
+        message: 'Dimension parameter is required',
+      });
+    }
+
+    const searchConditions: Array<Record<string, unknown>> = [];
+
+    if (this.isUuid(dimensionParam)) {
+      searchConditions.push({ id: dimensionParam });
+    }
+
+    searchConditions.push({
+      name: {
+        equals: dimensionParam,
+        mode: 'insensitive',
+      },
+    });
 
     const dimension = await this.prisma.tagDimension.findFirst({
-      where: {
-        OR: [{ id: dimensionIdOrName }, { name: dimensionIdOrName }],
-      },
+      where: searchConditions.length > 0 ? { OR: searchConditions } : undefined,
     });
 
     if (!dimension) {
@@ -164,7 +185,7 @@ export class TagsService {
       });
     }
 
-    dimensionId = dimension.id;
+    const dimensionId = dimension.id;
 
     const whereClause: Record<string, unknown> = { dimensionId };
 
@@ -500,6 +521,77 @@ export class TagsService {
     return this.getEntityTags(entityType, entityId);
   }
 
+  async batchEntityTags(
+    entityType: string,
+    entityId: string,
+    dto: BatchEntityTagsDto,
+    userId: string,
+  ): Promise<
+    Array<{
+      entityType: string;
+      entityId: string;
+      tagValue: {
+        id: string;
+        dimensionId: string;
+        dimensionName: string;
+        dimensionColor: string | null;
+        path: string;
+        label: string;
+        depth: number;
+        parentId: string | null;
+      };
+      taggedAt: Date;
+    }>
+  > {
+    await this.prisma.setCurrentUser(userId);
+
+    // Validate all tag values exist
+    let tagValues: Array<{ id: string; dimensionId: string }> = [];
+    if (dto.tagValueIds.length > 0) {
+      tagValues = await this.prisma.tagValue.findMany({
+        where: { id: { in: dto.tagValueIds } },
+        select: { id: true, dimensionId: true },
+      });
+
+      if (tagValues.length !== dto.tagValueIds.length) {
+        const foundIds = new Set(tagValues.map((tv) => tv.id));
+        const missingIds = dto.tagValueIds.filter((id) => !foundIds.has(id));
+        throw new NotFoundException({
+          code: 'TAG_VALUES_NOT_FOUND',
+          message: `Tag values not found: ${missingIds.join(', ')}`,
+        });
+      }
+    }
+
+    // Delete all existing entity tags
+    await this.prisma.entityTag.deleteMany({
+      where: { entityType, entityId },
+    });
+
+    // Create new entity tags
+    if (dto.tagValueIds.length > 0) {
+      await this.prisma.entityTag.createMany({
+        data: dto.tagValueIds.map((tagValueId) => ({
+          entityType,
+          entityId,
+          tagValueId,
+          taggedById: userId,
+        })),
+      });
+    }
+
+    this.logger.log({
+      method: 'batchEntityTags',
+      userId,
+      entityType,
+      entityId,
+      tagValueIds: dto.tagValueIds,
+      result: 'updated',
+    });
+
+    return this.getEntityTags(entityType, entityId);
+  }
+
   normalizePath(path: string): string {
     const trimmed = path.trim();
     const segments = trimmed.split('/').map((s) => s.trim().toLowerCase().replace(/\s+/g, '-'));
@@ -551,4 +643,7 @@ export class TagsService {
       .join(' ');
   }
 
+  private isUuid(str: string): boolean {
+    return UUID_REGEX.test(str);
+  }
 }

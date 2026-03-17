@@ -11,6 +11,7 @@
 
   "common": {
     "user": "Utilisateur",
+    "of": "sur",
     "actions": {
       "add": "Ajouter",
       "edit": "Modifier",
@@ -188,15 +189,20 @@
         "name": "Nom",
         "domain": "Domaine",
         "provider": "Fournisseur",
+        "criticality": "Criticité",
         "lifecycleStatus": "Cycle de vie",
         "tags": "Tags",
         "createdAt": "Créé le",
-        "actions": "Actions"
+        "actions": "Actions",
+        "description": "Description"
       },
       "emptyState": {
         "title": "Aucune application créée",
         "description": "Commencez par créer votre première application.",
         "cta": "Créer votre première application"
+      },
+      "pagination": {
+        "rowsPerPage": "Lignes par page"
       }
     },
     "filters": {

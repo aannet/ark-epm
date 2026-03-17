@@ -9,15 +9,9 @@ import ArkAlert from '@/components/shared/ArkAlert';
 import { ApplicationForm } from '@/components/applications';
 import { useCreateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
+import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
-
-// Hardcoded dimensions for now
-const AVAILABLE_DIMENSIONS = [
-  { id: 'geography-dim', name: 'Geography', color: '#2196F3' },
-  { id: 'brand-dim', name: 'Brand', color: '#9C27B0' },
-  { id: 'legal-dim', name: 'LegalEntity', color: '#FF9800' },
-];
 
 const CRITICALITIES = ['low', 'medium', 'high', 'mission-critical'];
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
@@ -30,6 +24,7 @@ export default function ApplicationNewPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const createApplication = useCreateApplication();
+  const { dimensions: availableDimensions } = useTagDimensions();
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -126,7 +121,7 @@ export default function ApplicationNewPage(): JSX.Element {
           criticalities: CRITICALITIES,
           lifecycleStatuses: LIFECYCLE_STATUSES,
         }}
-        availableDimensions={AVAILABLE_DIMENSIONS}
+        availableDimensions={availableDimensions}
       />
     </PageContainer>
   );
