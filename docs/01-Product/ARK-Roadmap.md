@@ -1,6 +1,13 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.9 — Mars 2026_
+_Version 0.10 — Mars 2026_
+
+> **Changelog v0.10 :**
+> - Ajout de 4 features P2 (FS-22 à FS-25) basées sur l'analyse des personae
+> - FS-22: Export/Reporting pour Marc (communication direction)
+> - FS-23: Vue filtrée Owner pour Sophie (anti-abandon)
+> - FS-24: Gestion contrats fournisseurs pour Sophie (alertes expiration)
+> - FS-25: Dashboard risques pour Thierry (positionnement anti-LeanIX)
 
 > **Changelog v0.9 :**
 > - FS-06-BACK (Applications backend) remonté en Sprint 2 — déblocage des FK entrantes pour FS-03/04/05
@@ -151,6 +158,10 @@ _Version 0.9 — Mars 2026_
 | ID | Feature | Dépend de | Priorité | Note |
 |---|---|---|---|---|
 | FS-21 | **Tag Dimensions Administration** — UI d'admin des dimensions (renommage, fusion, réordonnancement, contrainte `multi_value`, `entity_scope`) | F-03 | P2 | Hors périmètre MVP — F-03 pose les fondations, FS-21 expose l'UI de gestion |
+| **FS-22** | **Export / Reporting** — Export Excel/PDF du catalogue, vues présentables pour comité direction | FS-06, FS-09 | P2 | **Marc** — US-01: "En tant qu'architecte, je veux exporter une vue filtrée en PDF afin de la présenter en comité sans refaire de PowerPoint". US-02: "En tant qu'architecte, je veux générer un rapport Excel de mon périmètre applicatif afin de communiquer avec les équipes projets" |
+| **FS-23** | **Vue filtrée Owner Applicatif** — Dashboard "Mes applications" filtré par owner + visibilité consommateurs | FS-06 | P2 | **Sophie** — US-01: "En tant qu'owner applicatif, je veux voir uniquement mes 5 applications afin de ne pas être noyée dans les 200 apps du catalogue". US-02: "En tant qu'owner, je veux voir immédiatement qui consomme mon CRM afin de ne pas envoyer de mail et attendre 3 jours". Critère anti-abandon : valeur visible immédiatement |
+| **FS-24** | **Gestion des Contrats Fournisseurs** — Dates d'expiration, alertes renouvellement, dashboard risque contractuel | FS-03, FS-06 | P2 | **Sophie** — US-01: "En tant qu'owner, je veux voir la date d'expiration du contrat Salesforce dans ARK afin d'éviter la surprise d'un non-renouvellement". US-02: "En tant qu'owner, je veux recevoir une alerte 3 mois avant expiration afin d'anticiper le renouvellement". Intégration possible avec nouvelle dimension "Contract" ou entité dédiée |
+| **FS-25** | **Dashboard Risques** — Vue consolidée : apps en fin de vie, contrats expirants, systèmes critiques sans PRA/PCA | FS-06, FS-09, FS-24 | P2 | **Thierry** — US-01: "En tant que DSI, je veux un dashboard des risques du patrimoine afin d'identifier les bombes à retardement". US-02: "En tant que DSI, je veux voir les apps en fin de vie sans plan de continuité afin de prioriser les actions". Positionnement anti-LeanIX : simple, pas de TOGAF complet |
 
 ---
 
