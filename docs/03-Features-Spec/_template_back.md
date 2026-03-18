@@ -1,9 +1,13 @@
 # ARK — Template Feature-Spec Backend
 
-_Version 0.2 — Mars 2026_
+_Version 0.4 — Mars 2026_
 
+> **Changelog v0.4 :** Ajout exigence mise à jour `docs/04-Tech/openapi.yaml` — instruction §8, gate G-11, checklist §10. Conformité NFR-GOV-001 (API-first / OpenAPI) désormais traçable et déléguable à OpenCode.
+>
+> **Changelog v0.3 :** Ajout section §12 Données de seed standardisée. Enrichissement §7 (test audit trail obligatoire), §9 (gate G-XX audit trail), §10 (checklist audit trail). Template désormais exige explicitement la vérification NFR-SEC-009 pour toutes les specs backend.
+>
 > **Changelog v0.2 :** Ajout du pattern "FK entrantes Applications" — note dans §1 (Périmètre) et §4 (Règles Métier). Indique explicitement quand `FS-06-BACK` doit figurer dans les dépendances BACK et comment structurer les tests Supertest en conséquence. Issu de la décision de séquençage v0.9 de la Roadmap (FS-06-BACK remonté en Sprint 2).
-
+>
 > **Changelog v0.1 :** Création — split du template unifié v0.3 en deux templates distincts (back / front). Issu de la décision architecture de session OpenCode du Sprint FS-02. Ce template couvre la partie backend (NestJS + Prisma + tests Jest/Supertest). La partie frontend est couverte par `_template-front.md`.
 
 > **Usage :** Ce template est le format standard des Feature-Specs **backend** ARK. Chaque spec est un document autonome, versionné, directement injectable dans OpenCode sans reformatage.
@@ -301,6 +305,7 @@ backend/test/
 - [ ] `[Supertest]` `GET /api/v1/[ressource]` authentifié → `200` avec tableau
 - [ ] `[Supertest]` `GET /api/v1/[ressource]` liste vide → `200` avec `[]`
 - [ ] `[Supertest]` `POST /api/v1/[ressource]` valide → `201` avec entité
+- [ ] `[Supertest]` `POST /api/v1/[ressource]` valide → audit_trail contient 1 ligne avec entity_type='[table]' et changed_by non NULL
 - [ ] `[Supertest]` `POST /api/v1/[ressource]` nom dupliqué → `409` + `code: "CONFLICT"`
 - [ ] `[Supertest]` `POST /api/v1/[ressource]` sans `name` → `400`
 - [ ] `[Supertest]` `POST /api/v1/[ressource]` name uniquement espaces → `400`
@@ -317,6 +322,10 @@ backend/test/
 > 3. Tenter `DELETE /[ressource]/{id}` → vérifier `409` + `code: "DEPENDENCY_CONFLICT"`
 >
 > Ne pas simuler cette contrainte avec un mock Jest — la tester en base réelle via Supertest uniquement.
+
+> **Audit trail — test obligatoire (NFR-SEC-009) :** Le trigger `fn_audit_trigger()` est actif sur toutes les tables métier. Tout `INSERT/UPDATE/DELETE` sans `SET LOCAL ark.current_user_id` positionné par le middleware génère un rollback silencieux (voir AGENTS.md §Troubleshooting). Ce test Supertest vérifie que l'audit context middleware est correctement câblé et que le trigger remplit bien le champ `changed_by`.
+>
+> Format du test : après un `POST /[ressource]` valide, requêter `audit_trail` sur `entity_type='[table]'` et `entity_id=[id_créée]` → vérifier `changed_by IS NOT NULL`.
 
 ### Tests Sécurité / RBAC — Manuel ❌
 
@@ -355,6 +364,12 @@ Conventions obligatoires :
 - Fichier test e2e : backend/test/FS-XX-[domaine].e2e-spec.ts
 - Tests DEPENDENCY_CONFLICT avec Applications : créer une Application réelle en base (POST /applications) dans le beforeEach du test — ne pas mocker
 
+Documentation obligatoire (NFR-GOV-001) :
+- À la fin de la session, recopier le contenu YAML de la section §3 (Contrat API) de cette spec dans le fichier `docs/04-Tech/openapi.yaml`
+  en remplaçant la section `paths:` correspondante
+  OU en ajoutant les nouveaux paths si l'entité n'existait pas
+- Ne pas générer de documentation OpenAPI/Swagger automatique — le fichier YAML central est la source de vérité
+
 Pattern de référence NestJS : module Domains (FS-02-BACK) — s'y conformer pour la structure et le style.
 
 Implémente la feature "[TITRE]" backend (FS-XX-BACK) en respectant strictement le contrat ci-dessous.
@@ -384,6 +399,8 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 | G-07 | Statut mis à jour | Passer `FS-XX-BACK` à `done` dans cet en-tête | ✅ Oui |
 | G-08 | Revue TD backend | TD-1 à TD-6 vérifiés, F-999 mis à jour | ✅ Oui |
 | G-09 | Si FK vers applications : test `DEPENDENCY_CONFLICT` exécuté avec Application réelle en base | Vérifier le test Supertest §7 — pas de mock | ✅ Oui si applicable |
+| G-10 | Audit trail actif | `POST /[ressource]` → vérifier ligne dans audit_trail (changed_by non NULL) | ✅ Oui |
+| G-11 | `openapi.yaml` mis à jour | Paths `/[ressource]` présents dans `docs/04-Tech/openapi.yaml` (recopiés de §3) | ✅ Oui |
 
 ---
 
@@ -392,6 +409,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 > À compléter après génération OpenCode, avant de cocher les gates §9.
 
 - [ ] `POST` retourne `201` avec réponse complète conforme au schéma
+- [ ] `POST` → audit_trail.changed_by non NULL (NFR-SEC-009)
 - [ ] `DELETE` avec entités liées retourne `409` + `code: "DEPENDENCY_CONFLICT"`
 - [ ] Toutes les réponses `409` incluent le champ `code` explicite (NFR-MAINT-001)
 - [ ] `name` uniquement espaces → `400`
@@ -399,6 +417,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Aucune erreur TypeScript strict
 - [ ] Conventions `$executeRaw`, structure modules, mock Prisma respectées
 - [ ] Si FK vers applications : test `DEPENDENCY_CONFLICT` avec Application créée réellement en base (pas mockée)
+- [ ] `docs/04-Tech/openapi.yaml` mis à jour avec les paths de cette feature (NFR-GOV-001)
 
 ---
 
@@ -432,4 +451,53 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_Template Backend v0.2 — Projet ARK_
+## 12. Données de Seed ⚠️
+
+> Documenter ici les données de démonstration à insérer dans `backend/prisma/seed.ts`.
+> Pattern obligatoire : vérifier existence avant insert (idempotent).
+> S'assurer que ces données sont créées AVANT les seeds dépendants
+> (ex: providers avant seed-applications).
+
+### Pertinence
+
+> Évaluer si un seed est utile pour cette entité :
+> - ✅ **Utile** si l'entité est un référentiel sélectionnable dans un formulaire (ex: providers, domains)
+> - ⚠️ **Optionnel** si l'entité est purement créée par l'utilisateur en production
+> - ❌ **Inutile** si l'entité ne sera jamais pré-chargée (ex: données métier pures)
+
+### Données de démonstration
+
+> Lister les entrées à seeder avec leurs champs.
+> 
+> | # | Champ | Valeur | Description |
+> |---|-------|--------|-------------|
+> | 1 | `name` | "Entrée 1" | Contexte |
+> | 2 | `name` | "Entrée 2" | Contexte |
+
+### Bloc de code seed
+
+> Bloc TypeScript prêt à copier dans seed.ts, avec pattern idempotent.
+
+```typescript
+// Insert sample [ressources] if they don't exist
+const sample[Ressources] = [
+  { name: 'Entrée 1', description: 'Contexte' },
+  { name: 'Entrée 2', description: 'Contexte' },
+];
+
+for (const item of sample[Ressources]) {
+  const existing = await prisma.[model].findUnique({ where: { name: item.name } });
+  if (!existing) {
+    await prisma.$executeRaw`INSERT INTO [table] (id, name, description) 
+      VALUES (gen_random_uuid(), ${item.name}::varchar, ${item.description}::text)`;
+    console.log(`✓ Created: ${item.name}`);
+  }
+}
+console.log('Seed [ressources] completed');
+```
+
+> **Rappel F-999 Item 8 :** Utiliser le tagged template `$executeRaw` — jamais `$executeRawUnsafe` avec interpolation de string.
+
+---
+
+_Template Backend v0.4 — Projet ARK_
