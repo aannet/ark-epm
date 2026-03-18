@@ -1,6 +1,9 @@
 -- =============================================================================
--- ARK DATABASE SCHEMA - Version 0.7
+-- ARK DATABASE SCHEMA - Version 0.8
 -- Date: Mars 2026
+-- Changelog v0.8 :
+--   - Providers : conformité NFR-GOV-005 (description, comment, updated_at)
+--   - Ajout contrainte UNIQUE sur providers.name
 -- Changelog v0.7 :
 --   - Ajout du système de refresh tokens (table refresh_tokens)
 --   - Support de la rotation des refresh tokens
@@ -136,10 +139,13 @@ CREATE TABLE business_capabilities (
 
 CREATE TABLE providers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    comment TEXT,
     contract_type VARCHAR(100),
     expiry_date DATE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE applications (
