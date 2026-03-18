@@ -336,7 +336,7 @@ async remove(id: string): Promise<void> {
 | **Priorité** | Faible — utile pour les équipes IT on-premise |
 
 **Décision :**
-Exposer `GET /api/health` (non authentifié) retournant :
+Exposer `GET /api/v1/health` (non authentifié) retournant :
 ```json
 { "status": "ok", "db": "ok", "timestamp": "..." }
 ```
