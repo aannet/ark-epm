@@ -85,7 +85,7 @@ npm run test:e2e       # G-04: E2E tests (optionnel)
 docker restart ark-epm_backend_1  # Deploy
 
 # Quick API test
-curl http://localhost:3000/health  # ou endpoint healthcheck
+curl http://localhost:3000/api/v1/health  # ou endpoint healthcheck
 ```
 
 ### Database Schema Verification

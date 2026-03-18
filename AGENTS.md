@@ -163,6 +163,41 @@ Key points:
 - All visible strings via `t('key')` — never hardcoded
 - Key format: `domain.page.element` (e.g., `common.actions.save`)
 
+### i18n Security Check
+
+**Checklist avant commit avec texte UI:**
+- [ ] Tous labels visibles utilisent `t('key')` (pas de string literals)
+- [ ] Chips/badges: labels via i18n, pas hardcoded (ex: `StatusChip.tsx` session fix)
+- [ ] Uniformité: même clé utilisée entre liste/détail/drawer
+- [ ] Valeurs enum: vérifier alignment backend/i18n (ex: `lifecycleStatus`)
+
+**Commande de validation:**
+```bash
+# Détecter strings hardcodées potentielles
+grep -E "label.*:.*['\"][A-Z]" frontend/src --include="*.tsx" -r
+```
+
+---
+
+## E2E Testing (Playwright)
+
+Tests dans conteneur Docker isolé. Voir `e2e/README.md` pour détails.
+
+### Commands
+```bash
+make test-e2e         # Tests contre dev local
+make test-e2e-ci      # Tests isolés (CI)
+make test-e2e-report  # Visualiser rapport HTML
+```
+
+### Conventions Tests
+- **Location**: `e2e/tests/*.spec.ts`
+- **Selectors**: Priorité `getByRole()` > `getByText()` > `getByTestId()`
+- **Base URL**: `http://frontend:5173` (accessible via `BASE_URL`)
+- **Backend**: Accessible via `http://backend:3000`
+
+Les tests attendent automatiquement que les services soient prêts (timeout 60-120s).
+
 ---
 
 ## File Structure
