@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsInt,
   IsOptional,
@@ -34,6 +34,7 @@ export class QueryApplicationsDto {
   @IsOptional()
   lifecycleStatus?: string;
 
+  @Transform(({ value }) => typeof value === 'string' ? [value] : value)
   @IsArray()
   @IsUUID('all', { each: true })
   @IsOptional()
