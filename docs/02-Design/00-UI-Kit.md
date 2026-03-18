@@ -127,7 +127,7 @@ Le composant `ArkAlert` (`src/components/shared/ArkAlert.tsx`) est le **seul** m
 </Snackbar>
 ```
 
-**Positionnement :** `anchorOrigin: { vertical: 'top', horizontal: 'center' }` — systématique sur toutes les pages.
+**Positionnement :** `anchorOrigin: { vertical: 'top', horizontal: 'center' }` — ou sous `PageHeader` pour les pages liste (ex: FS-06 Applications). Systématique sur toutes les pages.
 
 **Règles de déclenchement :**
 

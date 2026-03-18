@@ -17,6 +17,7 @@ import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { DomainsModule } from './domains/domains.module';
+import { ApplicationsModule } from './applications/applications.module';
 import { TagsModule } from './tags/tags.module';
 
 @Module({
@@ -47,6 +48,7 @@ import { TagsModule } from './tags/tags.module';
     RolesModule,
     PermissionsModule,
     DomainsModule,
+    ApplicationsModule,
     TagsModule,
   ],
   controllers: [AppController],

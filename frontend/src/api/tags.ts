@@ -48,4 +48,37 @@ export const tagsApi = {
         { dimensionId, tagValueIds },
       )
       .then((r) => r.data.map((t) => t.tagValue)),
+
+  // Helper to set all tags for an entity (calls API for each dimension)
+  setEntityTags: async (
+    entityType: string,
+    entityId: string,
+    tagValueIds: string[],
+  ): Promise<void> => {
+    // Get current entity tags to understand dimensions
+    const currentTags = await tagsApi.getEntityTags(entityType, entityId);
+    
+    // Group tags by dimension
+    const currentByDimension = new Map<string, string[]>();
+    currentTags.forEach((tag) => {
+      if (!currentByDimension.has(tag.dimensionId)) {
+        currentByDimension.set(tag.dimensionId, []);
+      }
+      currentByDimension.get(tag.dimensionId)!.push(tag.id);
+    });
+
+    // Clear all current tags first by setting empty arrays per dimension
+    for (const dimensionId of currentByDimension.keys()) {
+      await tagsApi.putEntityTags(entityType, entityId, dimensionId, []);
+    }
+
+    // Group new tags by dimension and set them
+    // We need to fetch tag details to get dimension info
+    if (tagValueIds.length > 0) {
+      // Call the backend batch endpoint which handles tag assignment
+      await apiClient.put(`/tags/entity/${entityType}/${entityId}/batch`, {
+        tagValueIds,
+      });
+    }
+  },
 };

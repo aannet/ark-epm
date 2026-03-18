@@ -1,7 +1,9 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.4 — Mars 2026_
+_Version 0.5 — Mars 2026_
 
+> **Changelog v0.5 :** Ajout Item 11 — Description Markdown pour Applications (différé P2). Drawer Applications confirmé read-only (exception PNS-02).
+>
 > **Changelog v0.4 :** Ajout §6 — Historique des revues de sprint. Mémoire longitudinale de la dette technique, alimentée à partir des gates TD §11 de chaque Feature-Spec. Pré-rempli avec Sprint 1 (F-00, F-01, FS-01, F-999).
 > - Item 1 : HttpExceptionFilter créé dans src/common/filters/
 > - Item 2 : JWT TTL 15min, redirect /login?reason=session_expired, page login avec message
@@ -27,8 +29,8 @@ _Version 0.1 — Mars 2026_
 |---|---|
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
-| **Priorité** | P1 (items 1–5, 8, 10) / P2 (items 6–7, 9) |
-| **Statut** | `done` (items 1, 2, 3, 4, 9, 10) / `pending` (items 5, 8) / `P2` (items 6, 7) |
+| **Priorité** | P1 (items 1–5, 8, 10) / P2 (items 6–7, 9, 11) |
+| **Statut** | `done` (items 1, 2, 3, 4, 9, 10) / `pending` (items 5, 8) / `P2` (items 6, 7, 11) |
 | **Estimé** | 1 jour (items P1) — Items 1,2,3,4,9,10 implémentés |
 | **Version** | 0.3 |
 
@@ -466,6 +468,124 @@ En développement local, CORS permissif (`*`). En production on-premise, restrei
 
 ---
 
+### Item 11 — Description Markdown pour Applications *(P2)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Documenté — implémentation différée P2 |
+| **Priorité** | Moyenne — amélioration UX, pas bloquant P1 |
+
+**Contexte :**
+La spec PNS-09 définit que le champ `description` doit être rendu en Markdown avec éditeur simplifié. FS-06 (Applications) implémente actuellement le champ `description` en texte simple (v1.1), sans support Markdown. Cette feature doit être ajoutée en P2 pour uniformiser l'expérience avec Business Capabilities.
+
+**Décision :**
+- **P1 (FS-06 v1.1)** : Champ `description` en texte simple, textarea standard
+- **P2** : Remplacer par éditeur Markdown simplifié (barre d'outils : gras, italique, liste, lien)
+  - Rendu Markdown en mode lecture (fiche détail et drawer)
+  - Éditeur avec preview side-by-side ou toggle édition/prévisualisation
+  - Migration transparente : texte existant reste valide (Markdown interprète le texte simple comme du paragraphe)
+
+**Références :**
+- PNS-09 : Description Markdown
+- FS-06-FRONT §4.3, §4.4 : Formulaire Applications (champ description actuellement texte simple)
+
+**Implémentation P2 suggérée :**
+```typescript
+// frontend/src/components/shared/MarkdownEditor.tsx
+// Basé sur react-markdown + react-textarea-autosize
+// Props : value, onChange, preview?: boolean
+```
+
+---
+
+### Item 12 — APIs Providers et Users mockées *(P1 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 En cours — FS-06-FRONT livré avec mocks |
+| **Priorité** | Haute — blocage UX sur formulaire Application |
+
+**Contexte :**
+FS-06-FRONT implémente les sélecteurs de Provider et Owner dans le formulaire Application (`ApplicationForm.tsx`), mais les APIs `/providers` (liste) et `/users` (liste filtrée des utilisateurs actifs) ne sont pas encore disponibles. Les composants utilisent des données mockées (arrays vides).
+
+**Décision :**
+- Livraison FS-06-FRONT avec mocks vides — formulaire fonctionnel mais sélecteurs vides
+- **Déblocage :** 
+  - FS-03-BACK (Providers CRUD + endpoint liste)
+  - FS-09-BACK (Users endpoint liste `GET /users?isActive=true&role=member`)
+- **Migration :** Remplacer `MOCK_PROVIDERS` et `MOCK_USERS` par les appels `useProviders()` et `useUsers()` quand disponibles
+
+**Fichiers concernés :**
+- `frontend/src/pages/applications/ApplicationNewPage.tsx`
+- `frontend/src/pages/applications/ApplicationEditPage.tsx`
+- `frontend/src/components/applications/ApplicationForm.tsx`
+
+**Gate de validation :** Formulaire Application affiche les sélecteurs peuplés avec données réelles — test avec création d'une app liée à un provider existant
+
+---
+
+### Item 13 — Dimensions de tags hardcodées *(P1 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 En cours — attente API F-03 |
+| **Priorité** | Haute — impact maintenance si dimensions modifiées |
+
+**Contexte :**
+Le composant `DimensionTagInput` est disponible (F-03), mais l'API qui liste les dimensions (`GET /tag-dimensions`) n'est pas encore exposée côté backend. Les dimensions Geography, Brand, LegalEntity sont hardcodées en dur dans le frontend FS-06.
+
+**Décision :**
+- Hardcoder les 3 dimensions de seed avec leurs IDs et couleurs :
+  - `geography-dim` (#2196F3) — Geography
+  - `brand-dim` (#9C27B0) — Brand  
+  - `legal-dim` (#FF9800) — LegalEntity
+- **Déblocage :** F-03-BACK (endpoint `/tag-dimensions`) + FS-03-FRONT (hook `useDimensions`)
+- **Refactoring :** Centraliser dans un hook `useDimensions()` quand API disponible
+
+**Fichiers concernés :**
+```
+frontend/src/pages/applications/ApplicationsListPage.tsx   (ApplicationFilters)
+frontend/src/pages/applications/ApplicationNewPage.tsx      (ApplicationForm)
+frontend/src/pages/applications/ApplicationEditPage.tsx       (ApplicationForm)
+```
+
+**Risque :** Si les IDs de dimensions changent en base, les composants front casseront silencieusement (autocomplete vide).
+
+---
+
+### Item 14 — Endpoint batch pour tags d'entité *(P1 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — FS-06-FRONT en attente |
+| **Priorité** | Haute — blocage sauvegarde tags Application |
+
+**Contexte :**
+Le service `tagsApi.setEntityTags()` (frontend) appelle un endpoint backend `PUT /tags/entity/:type/:id/batch` qui n'existe pas encore. L'API actuelle (`putEntityTags`) nécessite un `dimensionId` par appel, mais le frontend n'a pas cette information lors de la sauvegarde du formulaire.
+
+**Décision :**
+- Créer endpoint backend : `PUT /api/v1/tags/entity/:entityType/:entityId/batch`
+- Body : `{ tagValueIds: string[] }` — remplace tous les tags de l'entité par ceux fournis
+- Atomicité : transaction SQL — rollback si erreur sur un tag
+- **Impact :** Sans cet endpoint, la sauvegarde des tags en création/édition d'Application échouera
+
+**Implémentation backend suggérée :**
+```typescript
+// tags.controller.ts
+@Put('entity/:entityType/:entityId/batch')
+async setEntityTagsBatch(
+  @Param('entityType') entityType: string,
+  @Param('entityId') entityId: string,
+  @Body() dto: { tagValueIds: string[] },
+) {
+  return this.tagsService.setEntityTagsBatch(entityType, entityId, dto.tagValueIds);
+}
+```
+
+**Référence frontend :** `frontend/src/api/tags.ts` ligne 85-88 (commentaire TODO)
+
+---
+
 ## 3. Bloc contexte OpenCode — à injecter (complément F-00)
 
 > Ce bloc s'ajoute au bloc contexte standard de F-00. Il doit être injecté dans **chaque session OpenCode Sprint 2+** pour que les conventions ci-dessus soient respectées automatiquement.
@@ -505,6 +625,11 @@ Requêtes raw Prisma :
 Request ID :
 - Chaque requête génère ou propage X-Request-ID
 - Header présent dans la réponse et les logs
+
+**Dette technique Sprint 3 (à résorber) :**
+- Item 12 : Remplacer mocks Providers/Users par vraies APIs (FS-03, FS-09)
+- Item 13 : Remplacer dimensions hardcodées par API `/tag-dimensions` (F-03)
+- Item 14 : Implémenter endpoint `PUT /tags/entity/:type/:id/batch` pour sauvegarde tags
 ```
 
 ---
@@ -526,6 +651,9 @@ Request ID :
 - [x] **Item 9** — API prefix `/api/v1` configuré dans `main.ts`
 - [x] **Item 10** — RequestIdMiddleware créé et enregistré dans AppModule
 - [x] **Item 10** — Header `X-Request-ID` présent sur toutes les réponses
+- [ ] **Item 12** — APIs Providers et Users remplacent les mocks dans ApplicationForm
+- [ ] **Item 13** — Dimensions dynamiques via `/tag-dimensions` (remplacent hardcode)
+- [ ] **Item 14** — Endpoint `PUT /tags/entity/:type/:id/batch` implémenté et testé
 ---
 
 ## 5. Journal des décisions
@@ -540,6 +668,8 @@ Request ID :
 | 2026-03-03 | Item 10 | Ajout Request ID / Correlation ID — X-Request-ID | Alec |
 | 2026-03-03 | Items 1,2,3,4,9,10 | Implémentation complète — HttpExceptionFilter, JWT 15min, Throttler, PaginationDto, API v1, RequestId | Alec |
 | 2026-03-04 | §6 | Ajout section Historique des Revues de Sprint — revue de dette obligatoire en fin de sprint | Alec |
+| 2026-03-14 | Item 11 | Ajout Description Markdown pour Applications — différé P2 | Alec |
+| 2026-03-15 | Items 12, 13, 14 | Dette technique FS-06-FRONT — mocks Providers/Users, dimensions hardcodées, endpoint batch tags manquant | Alec |
 
 ---
 

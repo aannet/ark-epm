@@ -863,11 +863,19 @@ Composants F-03 OBLIGATOIRES (déjà générés — NE PAS régénérer) :
   - TagChipList mode liste   : maxVisible=3, size="small"
   - TagChipList mode drawer  : maxVisible=undefined (tous les chips), regroupement par dimension
 
-Nouveau composant à générer dans cette session :
+Nouveaux composants à générer dans cette session :
   src/components/shared/ArkAlert.tsx
   - Encapsule MUI Snackbar + Alert
   - anchorOrigin : { vertical: 'top', horizontal: 'center' }
   - Props : severity, message, open, onClose, autoDismiss? (ms)
+
+  src/components/domains/DomainDrawer.tsx    # PNS-02 Side Drawer
+  - width: 400px, anchor: right, variant: temporary
+  - read-only: nom, description, comment, tags (max 10 + "Voir plus"), dates
+  - header: titre + bouton fermeture gris (text.secondary)
+  - footer: bouton "Modifier" (contained, disabled si !domains:write) + "Voir fiche complète" (outlined)
+  - GET /api/v1/domains/:id via useDomain() avec enabled: !!domainId
+  - skeleton pendant chargement
 
 Gestion des alertes (RM-11) :
   Success → navigate state
@@ -884,7 +892,7 @@ JWT : token en mémoire uniquement
 Routing : react-router-dom v6
 Câblage App.tsx : déjà réalisé manuellement — ne pas le générer
 
-Génère : 4 pages React, DomainForm, ArkAlert, domain.utils.ts, domain.ts, tests Cypress §9.
+Génère : 4 pages React, DomainForm, DomainDrawer, ArkAlert, domain.utils.ts, domain.ts, tests Cypress §9.
 Ne génère PAS le câblage App.tsx.
 Ne génère PAS les composants tags (DimensionTagInput, TagChipList) — déjà présents via F-03.
 Ne génère PAS les tests marqués [Manuel].
@@ -913,6 +921,11 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Déduplication active sur `DomainDetailPage` — idem, mode drawer
 - [ ] Dimensions vides masquées sur `DomainDetailPage` (RM-10 F-03)
 - [ ] `DomainEditPage` — `DimensionTagInput` affiche ancêtre ET descendant sans déduplication (RM-12)
+- [ ] **PNS-02** — Clic sur corps de ligne ouvre `DomainDrawer` (pas clic sur nom)
+- [ ] **PNS-02** — Clic sur nom du domaine navigue vers `/domains/:id` (lien souligné, couleur primaire au hover)
+- [ ] **PNS-02** — `DomainDrawer` header: bouton fermeture gris (`text.secondary`)
+- [ ] **PNS-02** — `DomainDrawer` footer: bouton "Modifier" grisé si pas `domains:write`
+- [ ] **PNS-02** — `DomainDrawer` footer: bouton "Voir fiche complète" navigate vers détail
 - [ ] Bouton "Ajouter un domaine" masqué si pas `domains:write`
 - [ ] Colonne "Actions" masquée si pas `domains:write`
 - [ ] Bouton "Modifier" masqué sur détail si pas `domains:write`
@@ -923,4 +936,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_FS-02-FRONT v1.5 — ARK_
+_FS-02-FRONT v1.6 — ARK_

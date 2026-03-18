@@ -4,15 +4,12 @@ import {
   Box,
   Chip,
   IconButton,
-  Tooltip,
   Drawer,
   Typography,
   List,
   ListItem,
-  ListItemText,
   Divider,
 } from '@mui/material';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CloseIcon from '@mui/icons-material/Close';
 import { TagValueResponse } from './DimensionTagInput.types';
 import { deduplicateByDepth, getTagColor, groupByDimension } from './DimensionTagInput.utils';
@@ -69,38 +66,39 @@ export function TagChipList({
     <>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
         {visibleTags.map((tag) => (
-          <Tooltip
+          <Chip
             key={tag.id}
-            title={t('tags.tooltip.fullPath', { path: tag.path })}
-          >
-            <Chip
-              label={tag.label}
-              size={size}
-              sx={{
-                backgroundColor: getTagColor(tag),
-                color: '#fff',
-                fontSize: size === 'small' ? '0.75rem' : '0.875rem',
-              }}
-            />
-          </Tooltip>
+            label={tag.path}
+            size={size}
+            sx={{
+              backgroundColor: getTagColor(tag),
+              color: '#fff',
+              fontSize: size === 'small' ? '0.75rem' : '0.875rem',
+              maxWidth: '200px',
+              '& .MuiChip-label': {
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              },
+            }}
+          />
         ))}
         
         {hasMore && showMoreButton && (
-          <Tooltip title={t('tags.drawer.showAll', { count: moreCount })}>
-            <IconButton
-              size={size}
-              onClick={handleOpenDrawer}
-              sx={{
-                ml: 0.5,
-                p: size === 'small' ? 0.25 : 0.5,
-                '& .MuiSvgIcon-root': {
-                  fontSize: size === 'small' ? '1rem' : '1.25rem',
-                },
-              }}
-            >
-              <MoreHorizIcon />
-            </IconButton>
-          </Tooltip>
+          <Chip
+            label={t('tags.showAllChip', { count: moreCount })}
+            size={size}
+            onClick={handleOpenDrawer}
+            sx={{
+              backgroundColor: '#9e9e9e',
+              color: '#fff',
+              fontSize: size === 'small' ? '0.75rem' : '0.875rem',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: '#757575',
+              },
+            }}
+          />
         )}
       </Box>
 
@@ -145,23 +143,17 @@ export function TagChipList({
                     disablePadding
                     sx={{ py: 0.5 }}
                   >
-                    <Tooltip title={t('tags.tooltip.fullPath', { path: tag.path })}>
-                      <Chip
-                        label={tag.label}
-                        size="small"
-                        sx={{
-                          backgroundColor: getTagColor(tag),
-                          color: '#fff',
-                        }}
-                      />
-                    </Tooltip>
-                    <ListItemText
-                      primary={tag.path}
+                    <Chip
+                      label={tag.path}
+                      size="small"
                       sx={{
-                        ml: 1,
-                        '& .MuiListItemText-primary': {
-                          fontSize: '0.75rem',
-                          color: 'text.secondary',
+                        backgroundColor: getTagColor(tag),
+                        color: '#fff',
+                        maxWidth: '100%',
+                        '& .MuiChip-label': {
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         },
                       }}
                     />

@@ -2,6 +2,8 @@
 
 _Version 0.5 — Février 2026_
 
+> **Changelog v0.7 :** Ajout du système de refresh tokens avec rotation (httpOnly cookie) et endpoint `/auth/refresh`. Token access: 15min, refresh: 7jours. Limite 1 session/utilisateur.
+
 > **Changelog v0.6 :** OpenCode implémente l'ensemble des tâches (1.2 à 1.7), y compris le backend Auth avec bcrypt + JWT.
 
 > **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`. Fichiers cibles précisés. Section 9 mise à jour.
@@ -37,7 +39,7 @@ FS-01 implémente la couche d'authentification et de contrôle d'accès du MVP. 
 - Pas de droits différenciés par domaine métier — P2
 - Pas de workflow d'approbation d'inscription
 - Pas de reset password / forgot password — P2
-- Pas de refresh token — le token expire après `JWT_EXPIRES_IN` (défaut : 8h)
+- ~~Pas de refresh token~~ ✅ **Implémenté v0.7** : access token 15min + refresh token 7jours (httpOnly cookie, rotation, limite 1 session/utilisateur)
 
 ---
 
@@ -127,6 +129,12 @@ paths:
       responses:
         '200':
           description: Authentification réussie
+          headers:
+            Set-Cookie:
+              description: Cookie httpOnly contenant le refresh token (7j)
+              schema:
+                type: string
+                example: "refresh_token=xxx; HttpOnly; Path=/auth; Max-Age=604800"
           content:
             application/json:
               schema:
@@ -154,9 +162,43 @@ paths:
         '401':
           description: Token absent ou invalide
 
+  /auth/refresh:
+    post:
+      summary: Rafraîchir le token d'accès
+      description: Génère un nouveau access token et rotate le refresh token (cookie httpOnly requis)
+      tags: [Auth]
+      security: []
+      parameters:
+        - name: Cookie
+          in: header
+          required: true
+          description: Cookie httpOnly contenant refresh_token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Nouveau access token et refresh token générés
+          headers:
+            Set-Cookie:
+              description: Nouveau cookie httpOnly avec refresh token rotaté (7j)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Refresh token manquant, invalide ou expiré
+
   /auth/logout:
     post:
-      summary: Déconnexion (stateless)
+      summary: Déconnexion (révoque le refresh token)
+      description: Supprime le refresh token de la base et efface le cookie httpOnly
       tags: [Auth]
       security:
         - bearerAuth: []
@@ -572,29 +614,38 @@ components:
 
 - **RM-01 — Hash Bcrypt obligatoire :** `bcrypt.hash(password, 12)` (async). Ne jamais utiliser la variante sync.
 - **RM-02 — `passwordHash` jamais exposé :** `@Exclude()` sur le champ. `ClassSerializerInterceptor` global.
-- **RM-03 — JWT stateless :** `POST /auth/logout` → `204`, le client supprime le token. Pas de blacklist en P1.
+- **RM-03 — Logout révoque le refresh token :** `POST /auth/logout` supprime le refresh token de la base + efface le cookie httpOnly. Le client purge aussi le access token en mémoire.
 - **RM-04 — Suppression d'utilisateur = soft delete :** `isActive = false`. Un utilisateur désactivé ne peut plus se connecter (`401` + `"Account disabled"`).
 - **RM-05 — Suppression de rôle bloquée si assigné :** `409 Conflict` si au moins un utilisateur possède ce rôle.
 - **RM-06 — Modification des permissions = remplacement complet :** `PUT /roles/{id}/permissions` = delete-and-insert en transaction.
 - **RM-07 — Admin uniquement pour CRUD users/roles/permissions :** Permission `users:write`, `roles:write`, `permissions:write`.
 - **RM-08 — Nomenclature permissions :** Format `<ressource>:<action>`. Vérification sur le nom.
 - **RM-09 — Seed obligatoire :** Rôle `Admin` + toutes permissions P1 + `admin@ark.io`.
+- **RM-10 — Refresh Token (v0.7) :**
+  - Access token JWT : 15 minutes (header Authorization)
+  - Refresh token opaque : 7 jours (cookie httpOnly, path=/auth)
+  - Rotation : nouveau refresh token généré à chaque usage de `/auth/refresh`
+  - Limite : 1 refresh token actif par utilisateur (nouveau login = invalide l'ancien)
+  - Stockage : hash bcrypt du token en base (pas le token en clair)
 
 ---
 
 ## 5. Comportement Attendu par Cas d'Usage
 
 **Nominal :**
-- `POST /auth/login` credentials valides + `isActive = true` → `200` avec `{ accessToken, user }` (sans `passwordHash`)
+- `POST /auth/login` credentials valides + `isActive = true` → `200` avec `{ accessToken, user }` + cookie `refresh_token` httpOnly
 - `GET /auth/me` token valide → `200` profil utilisateur
+- `POST /auth/refresh` avec cookie valide → `200` nouveau `{ accessToken, user }` + nouveau cookie rotaté
 - Admin `POST /users` → `201` mot de passe hashé en base
 - Admin `PUT /roles/{id}/permissions` → `200` nouvelles permissions (anciennes supprimées)
+- Intercepteur 401 → appel automatique `/auth/refresh` → retry requête originale avec nouveau token
 
 **Erreurs :**
 - `POST /auth/login` email inconnu → `401` + `"Invalid credentials"` (ne pas distinguer email/password)
 - `POST /auth/login` `isActive = false` → `401` + `"Account disabled"`
 - Route protégée sans token → `401`
-- Route protégée token expiré → `401` + `"Token expired"`
+- Route protégée token expiré → Intercepteur tente refresh automatique
+- `POST /auth/refresh` refresh token invalide/expiré → `401` + redirect `/login?reason=session_expired`
 - Non-Admin `POST /users` → `403`
 - `POST /users` email dupliqué → `409` + `"Email already in use"`
 - `DELETE /roles/{id}` utilisateurs assignés → `409` + `"Role is assigned to X user(s)"`
@@ -717,18 +768,64 @@ export default function PrivateRoute({ permission }: PrivateRouteProps): JSX.Ele
 }
 ```
 
-**Intercepteur Axios 401/403 :**
+**Intercepteur Axios 401/403 (avec Refresh Token) :**
 
 ```typescript
-// frontend/src/api/client.ts — compléter le fichier existant de F-01
-// Ajouter l'intercepteur de réponse après l'intercepteur de requête existant :
+// frontend/src/api/client.ts — compléter le fichier existant
+// L'intercepteur gère maintenant automatiquement le refresh des tokens
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Ne pas intercepter les erreurs de login/refresh
+    if (error.config?.url === '/auth/login' || error.config?.url === '/auth/refresh') {
+      return Promise.reject(error);
+    }
+
+    // 401 → tentative de refresh automatique
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Attendre que le refresh en cours termine
+        return new Promise((resolve) => {
+          refreshSubscribers.push((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshResult = await refreshToken(); // POST /auth/refresh
+        
+        if (refreshResult.success) {
+          setAuth(refreshResult.data.accessToken, refreshResult.data.user);
+          // Notifier tous les subscribers
+          refreshSubscribers.forEach(cb => cb(refreshResult.data.accessToken));
+          refreshSubscribers = [];
+          
+          originalRequest.headers.Authorization = `Bearer ${refreshResult.data.accessToken}`;
+          return apiClient(originalRequest);
+        }
+      } catch (refreshError) {
+        // Refresh échoué → déconnexion
+        clearAuth();
+        window.location.href = '/login?reason=session_expired';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     if (error.response?.status === 401) {
       clearAuth();
-      // Redirection hard (window.location) pour purger le state React en mémoire
       window.location.href = '/401';
     }
     if (error.response?.status === 403) {
@@ -737,10 +834,14 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+```
 
-// ⚠️ Exception : NE PAS intercepter le 401 de POST /auth/login
-// → Cette route gère son propre état d'erreur inline dans LoginPage
-// → Utiliser un flag ou une instance Axios séparée pour /auth/login si nécessaire
+**Configuration Axios (withCredentials) :**
+```typescript
+const apiClient = axios.create({
+  baseURL: 'http://localhost:3000/api/v1',
+  withCredentials: true,  // ← Important pour envoyer/recevoir cookies httpOnly
+});
 ```
 
 **Bouton de déconnexion (Sidebar — bas) :**

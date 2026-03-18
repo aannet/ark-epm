@@ -40,6 +40,8 @@ Cliquer sur une ligne d'une liste ouvre un **Side Drawer** à droite. **Tout obj
 
 **Règle fonctionnelle critique :** pour qu'une sauvegarde depuis le drawer soit valide, aucun champ obligatoire ne doit manquer dans le drawer. Les champs structurels (relations n:n, hiérarchie) ne sont jamais modifiables depuis le drawer — ils passent par la Full Page.
 
+> **Exception PNS-02-APP :** Le drawer **Applications** (FS-06) est en **lecture seule uniquement**. Toute modification passe par la Full Page via le bouton "Modifier". Les champs sont affichés en mode consultation sans édition inline.
+
 **Contenu standard du drawer :**
 - Avatar + nom de l'Owner (si applicable) — affiché en lecture seule en haut du drawer
 - Champs simples de l'objet (modifiables inline)

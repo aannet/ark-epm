@@ -1,0 +1,22 @@
+version: '3.9'
+
+# Override pour tests E2E isolés
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit
+
+services:
+  playwright:
+    extends:
+      file: docker-compose.yml
+      service: playwright
+    environment:
+      - CI=true
+    # Force l'exécution immédiate et arrêt après tests
+    command: >
+      sh -c "
+        echo 'Waiting for services...' &&
+        npx wait-on http://frontend:5173 http://backend:3000 --timeout 120000 &&
+        echo 'Services ready, running tests...' &&
+        npm test &&
+        echo 'Tests completed, shutting down...' &&
+        exit 0
+      "

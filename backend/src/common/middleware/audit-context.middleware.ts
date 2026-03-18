@@ -23,8 +23,8 @@ export class AuditContextMiddleware implements NestMiddleware {
       try {
         const token = authHeader.slice(7);
         const payload = this.jwt.verify<{ sub: string }>(token);
-        
-        await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${payload.sub}`;
+
+        await this.prisma.setCurrentUser(payload.sub);
         this.logger.debug({ message: 'Audit context set', userId: payload.sub });
       } catch {
         this.logger.debug('Invalid token - audit context not set');

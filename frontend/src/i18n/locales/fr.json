@@ -11,6 +11,7 @@
 
   "common": {
     "user": "Utilisateur",
+    "of": "sur",
     "actions": {
       "add": "Ajouter",
       "edit": "Modifier",
@@ -170,12 +171,112 @@
       "fullPath": "Chemin complet : {{path}}"
     },
     "drawer": {
-      "title": "Tous les tags",
-      "showAll": "Voir les {{count}} tags supplémentaires"
+      "title": "Tous les tags"
     },
+    "showAllChip": "+ {{count}}",
     "errors": {
       "invalidPath": "Valeur de tag invalide",
       "saveFailed": "Erreur lors de la sauvegarde du tag"
+    }
+  },
+
+  "applications": {
+    "list": {
+      "title": "Applications",
+      "subtitle": "Inventaire des applications métier",
+      "addButton": "Ajouter une application",
+      "columns": {
+        "name": "Nom",
+        "domain": "Domaine",
+        "provider": "Fournisseur",
+        "criticality": "Criticité",
+        "lifecycleStatus": "Cycle de vie",
+        "tags": "Tags",
+        "createdAt": "Créé le",
+        "actions": "Actions",
+        "description": "Description"
+      },
+      "emptyState": {
+        "title": "Aucune application créée",
+        "description": "Commencez par créer votre première application.",
+        "cta": "Créer votre première application"
+      },
+      "pagination": {
+        "rowsPerPage": "Lignes par page"
+      }
+    },
+    "filters": {
+      "title": "Filtres",
+      "lifecycleStatus": "Cycle de vie",
+      "tags": "Tags",
+      "reset": "Réinitialiser"
+    },
+    "detail": {
+      "noDescription": "—",
+      "noComment": "Aucun commentaire",
+      "noValue": "Non défini",
+      "editButton": "Modifier",
+      "backButton": "Retour à la liste",
+      "section": {
+        "general": "Informations générales",
+        "relations": "Relations",
+        "tags": "Tags",
+        "metadata": "Métadonnées"
+      },
+      "criticality": "Criticité",
+      "owner": "Responsable",
+      "comment": "Commentaire interne",
+      "updatedAt": "Modifié le"
+    },
+    "form": {
+      "createTitle": "Nouvelle application",
+      "editTitle": "Modifier l'application",
+      "nameLabel": "Nom",
+      "descriptionLabel": "Description",
+      "commentLabel": "Commentaire interne",
+      "domainLabel": "Domaine",
+      "providerLabel": "Fournisseur",
+      "ownerLabel": "Responsable",
+      "criticalityLabel": "Criticité",
+      "lifecycleStatusLabel": "Cycle de vie",
+      "tagsLabel": "Tags",
+      "saveButton": "Enregistrer",
+      "cancelButton": "Annuler",
+      "nameRequired": "Le nom est obligatoire",
+      "nameDuplicate": "Ce nom d'application est déjà utilisé"
+    },
+    "drawer": {
+      "close": "Fermer",
+      "edit": "Modifier",
+      "viewFullDetails": "Voir la fiche complète"
+    },
+    "delete": {
+      "confirmTitle": "Supprimer l'application",
+      "confirmMessage": "Êtes-vous sûr de vouloir supprimer l'application \"{{name}}\" ?",
+      "blockedMessage": "Cette application est utilisée par : {{capabilities}} capacité(s), {{dataObjects}} objet(s) de données, {{itComponents}} composant(s) IT, {{sourceInterfaces}} interface(s) source, {{targetInterfaces}} interface(s) cible. Elle ne peut pas être supprimée."
+    },
+    "alert": {
+      "created": "Application créée avec succès",
+      "updated": "Application mise à jour avec succès",
+      "deleted": "Application supprimée avec succès",
+      "errors": {
+        "serverError": "Une erreur serveur est survenue. Veuillez réessayer.",
+        "notFound": "Cette application n'existe plus.",
+        "unknown": "Une erreur inattendue est survenue."
+      }
+    },
+    "criticality": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "mission-critical": "Critique"
+    },
+    "lifecycle": {
+      "draft": "Brouillon",
+      "in_progress": "En développement",
+      "production": "En production",
+      "deprecated": "Dépréciée",
+      "retired": "Retirée"
     }
   }
 }

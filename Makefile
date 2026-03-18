@@ -17,7 +17,7 @@ build-frontend:
 	cd frontend && npm run build
 
 build-backend:
-	cd backend && npm run build
+	docker exec ark-epm_backend_1 sh -c "cd /app && rm -rf dist && npm run build"
 
 start-backend:
 	cd backend && npm start
@@ -36,3 +36,67 @@ docker-down:
 
 docker-restart:
 	docker-compose down && docker-compose up -d
+
+# Backend utilities
+backend-rebuild:
+	docker exec ark-epm_backend_1 sh -c "cd /app && rm -rf dist && npm run build"
+	docker restart ark-epm_backend_1
+
+backend-logs:
+	docker logs ark-epm_backend_1 -f
+
+db-shell:
+	docker exec -it ark-epm_postgres_1 psql -U arkepm -d arkepm
+
+db-push:
+	docker exec ark-epm_backend_1 npx prisma db push --accept-data-loss
+
+db-generate:
+	docker exec ark-epm_backend_1 npx prisma generate
+
+db-reset-id:
+	docker exec ark-epm_postgres_1 psql -U arkepm -d arkepm -c "ALTER TABLE audit_trail ALTER COLUMN id SET DEFAULT gen_random_uuid();"
+
+get-token:
+	@./backend/scripts/get-token.sh
+
+# Test utilities
+test-backend:
+	cd backend && npm test
+
+test-backend-unit:
+	cd backend && npm test -- --testPathPattern='.spec.ts$$' --passWithNoTests
+
+test-backend-e2e:
+	cd backend && npm run test:e2e
+
+# E2E Tests (Playwright)
+test-e2e:
+	@echo "Running E2E tests against dev environment..."
+	docker-compose run --rm playwright
+
+test-e2e-ci:
+	@echo "Running E2E tests in isolated environment..."
+	docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit
+
+test-e2e-report:
+	@echo "Opening E2E test report..."
+	cd e2e && npm run test:report
+
+test-e2e-build:
+	@echo "Building Playwright image..."
+	docker-compose build playwright
+
+test-e2e-debug:
+	@echo "Running E2E tests with debug output..."
+	docker-compose run --rm playwright sh -c "npx wait-on http://frontend:5173 http://backend:3000 --timeout 60000 && npm run test:headed"
+
+# Full validation pipeline
+validate-backend: build-backend
+	docker restart ark-epm_backend_1
+	@echo "Validating backend..."
+	@sleep 3
+	@TOKEN=$$(./backend/scripts/get-token.sh) && \
+	curl -s http://localhost:3000/api/v1/applications -H "Authorization: Bearer $$TOKEN" > /dev/null && \
+	echo "✅ Backend validation passed" || \
+	echo "❌ Backend validation failed"

@@ -46,9 +46,10 @@ export default function DesignSystemPage(): JSX.Element {
         StatusChip — Lifecycle
       </Typography>
       <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        <StatusChip type="lifecycle" value="active" />
+        <StatusChip type="lifecycle" value="draft" />
+        <StatusChip type="lifecycle" value="in_progress" />
+        <StatusChip type="lifecycle" value="production" />
         <StatusChip type="lifecycle" value="deprecated" />
-        <StatusChip type="lifecycle" value="planned" />
         <StatusChip type="lifecycle" value="retired" />
       </Box>
 

@@ -48,5 +48,22 @@ services:
     depends_on:
       - backend
 
+  playwright:
+    build:
+      context: ./e2e
+      dockerfile: Dockerfile
+    environment:
+      - BASE_URL=http://frontend:5173
+      - CI=true
+    volumes:
+      - ./e2e/tests:/e2e/tests
+      - ./e2e/reports:/e2e/reports
+    depends_on:
+      - frontend
+      - backend
+    profiles:
+      - e2e
+    command: sh -c "npx wait-on http://frontend:5173 http://backend:3000 --timeout 60000 && npm test"
+
 volumes:
   postgres_data:

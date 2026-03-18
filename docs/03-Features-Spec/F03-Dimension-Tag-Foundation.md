@@ -1,6 +1,14 @@
 # ARK — Feature Spec F-03 : Dimension Tags Foundation
 
-_Version 0.4 — Mars 2026_
+_Version 0.5 — Mars 2026_
+
+> **Changelog v0.5 :**
+> - §6 `TagChipList` (vue liste) — **label** : le chip affiche maintenant le **path complet** (`niveau1/niveau2/niveau3`) au lieu du seul label court
+> - §6 `TagChipList` — **suppression du Tooltip** : le path étant visible directement sur le chip, le tooltip devient redondant
+> - §6 `TagChipList` — **badge "+N"** : remplacé par un chip gris cliquable `+ {{count}}` qui ouvre le drawer
+> - §6 `TagChipList` (drawer) — affiche uniquement les **tags dédupliqués** avec leur path complet
+> - §6 `TagChipList` — ajout de styles `textOverflow: 'ellipsis'` pour gérer les chemins longs
+> - §7 Tests — mise à jour des assertions : label devient path, suppression tooltip, clic sur chip gris
 
 > **Changelog v0.4 :**
 > - §4 RM-11 — Déduplication par profondeur en lecture : par dimension, seul le tag le plus profond est affiché si un ancêtre et un descendant coexistent sur la même entité
@@ -35,7 +43,7 @@ _Version 0.4 — Mars 2026_
 | **Statut**    | `draft`                                                              |
 | **Dépend de** | F-02 (i18n), FS-01 (Auth & RBAC)                                     |
 | **Estimé**    | 1.5j                                                                 |
-| **Version**   | 0.4                                                                  |
+| **Version**   | 0.5                                                                  |
 | **Mode**      | 🟡 Hybride Manuel / OpenCode — voir §8                              |
 
 ---
@@ -861,8 +869,8 @@ PUT /tags/entity/:entityType/:entityId { dimensionId, tagValueIds: [...existants
 ### `TagChipList`
 
 Composant de rendu **lecture seule** des tags d'une entité. Utilisé dans deux contextes :
-- **Vue liste (tableau)** : colonne "Tags" — N premiers chips + badge "+X" si débordement
-- **Side Drawer** : section tags — tous les chips affichés, édition réservée à la Full Page
+- **Vue liste (tableau)** : colonne "Tags" — N premiers chips avec path complet + badge "+X" cliquable si débordement
+- **Side Drawer** : section tags — tous les chips affichés (dédupliqués), édition réservée à la Full Page
 
 #### Interface TypeScript
 
@@ -870,6 +878,8 @@ Composant de rendu **lecture seule** des tags d'une entité. Utilisé dans deux 
 interface TagChipListProps {
   tags: TagValueResponse[]     // tags de l'entité (toutes dimensions confondues)
   maxVisible?: number          // nb max de chips avant badge "+X" — default: 3 (liste), undefined (drawer)
+  deduplicate?: boolean        // default: true — applique deduplicateByDepth()
+  showMoreButton?: boolean     // default: true (liste), false (drawer) — affiche le chip "+X"
   size?: 'small' | 'medium'   // default: 'small'
 }
 ```
@@ -878,133 +888,153 @@ interface TagChipListProps {
 
 > **Décision RM-10 :** Seules les dimensions ayant au moins un tag renseigné sur l'entité sont affichées. Une dimension vide n'occupe pas d'espace dans la liste ni dans le drawer. Ce filtrage est côté frontend, sur les `tags` reçus — aucun endpoint dédié.
 
-Les tags sont regroupés par `dimensionId` pour l'affichage. L'ordre de regroupement suit `sortOrder` de la dimension.
+#### Affichage du path complet sur les chips
+
+Conformément à l'US utilisateur, chaque chip affiche le **chemin complet** (`tag.path`) au lieu du seul label. Exemple :
+- Avant : chip `[Paris]` avec tooltip "europe/france/paris"
+- Après : chip `[europe/france/paris]` directement visible
+
+Les chemins longs sont tronqués avec `...` via `textOverflow: 'ellipsis'`.
 
 #### Comportement — vue liste (maxVisible défini)
 
 ```
-Entité avec 5 tags : [Paris] [Acme] [SAS France] [Lyon] [Marseille]
+Entité avec 5 tags dédupliqués : [europe/france/paris] [brand/acme] [legal/sas] [tech/cloud] [status/active]
 maxVisible = 3
 
 Rendu :
-  [Paris] [Acme] [SAS France]  +2
-
-  ↑ 3 premiers chips             ↑ Badge MUI Chip
-  couleur de leur dimension        variant="outlined", non cliquable
-                                   tooltip : liste des labels masqués
+  [europe/france/paris] [brand/acme] [legal/sas]  + 2
+                                                      ↑
+                                               Chip gris cliquable
+                                               ouvre le drawer
 ```
 
 ```tsx
-// Logique de débordement
-const visible = tags.slice(0, maxVisible);
-const hidden  = tags.slice(maxVisible);   // hidden.length > 0 → afficher badge
+// Logique de débordement — APRÈS déduplication
+const processedTags = deduplicate ? deduplicateByDepth(tags) : tags;
+const visible = processedTags.slice(0, maxVisible);
+const hiddenCount = processedTags.length - maxVisible;
 
-// Badge "+X"
-{hidden.length > 0 && (
-  <Tooltip title={hidden.map(t => t.label).join(', ')} placement="top" arrow>
-    <Chip
-      label={`+${hidden.length}`}
-      size="small"
-      variant="outlined"
-      sx={{ cursor: 'default', fontWeight: 500, color: 'text.secondary' }}
-    />
-  </Tooltip>
+// Badge "+X" — chip gris cliquable
+{hiddenCount > 0 && showMoreButton && (
+  <Chip
+    label={t('tags.showAllChip', { count: hiddenCount })}  // "+ 2"
+    size={size}
+    onClick={handleOpenDrawer}
+    sx={{
+      backgroundColor: '#9e9e9e',
+      color: '#fff',
+      cursor: 'pointer',
+      fontSize: size === 'small' ? '0.75rem' : '0.875rem',
+      '&:hover': {
+        backgroundColor: '#757575',
+      },
+    }}
+  />
 )}
 ```
 
 #### Comportement — Side Drawer (maxVisible absent)
 
-Tous les tags sont affichés, regroupés par dimension. Chaque groupe affiche le nom de la dimension en label.
+Tous les tags **dédupliqués** sont affichés, regroupés par dimension. Chaque groupe affiche le nom de la dimension en label.
 
 ```
 ┌─────────────────────────────────────────┐
-│  Tags                                   │
+│  Tags                              [X]  │
 │                                         │
-│  🌍 Geography                           │  ← nom dimension (Typography caption)
-│  [Paris] [Lyon]                         │  ← chips lecture seule, sans ×
+│  🌍 GEOGRAPHY                           │  ← nom dimension (Typography subtitle2)
+│  [europe/france/paris]                  │  ← chip avec path complet
 │                                         │
-│  🏷 Brand                               │
-│  [Acme Corp]                            │
+│  🏷 BRAND                               │
+│  [brand/acme-corp]                      │
 │                                         │
 │  _(LegalEntity vide → non affiché)_     │
 └─────────────────────────────────────────┘
 ```
 
 ```tsx
-// Regroupement par dimension
-const byDimension = tags.reduce((acc, tag) => {
-  const key = tag.dimensionId;
-  if (!acc[key]) acc[key] = { name: tag.dimensionName, color: tag.dimensionColor, tags: [] };
-  acc[key].tags.push(tag);
-  return acc;
-}, {} as Record<string, { name: string; color: string; tags: TagValueResponse[] }>);
+// Tags dédupliqués avant affichage
+const processedTags = deduplicateByDepth(tags);
+const groupedByDimension = groupByDimension(processedTags);
 
-// Rendu par groupe — uniquement les dimensions non vides
-Object.values(byDimension).map(group => (
-  <Box key={group.name} sx={{ mb: 1 }}>
-    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.5, display: 'block' }}>
+// Rendu par groupe
+Object.values(groupedByDimension).map(group => (
+  <Box key={group.name} sx={{ mb: 3 }}>
+    <Typography
+      variant="subtitle2"
+      sx={{
+        color: 'text.secondary',
+        textTransform: 'uppercase',
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        mb: 1,
+      }}
+    >
       {group.name}
     </Typography>
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+    <List dense disablePadding>
       {group.tags.map(tag => (
-        <Tooltip key={tag.id} title={t('tags.tooltip.fullPath', { path: tag.path })} placement="top" arrow>
+        <ListItem key={tag.id} disablePadding sx={{ py: 0.5 }}>
           <Chip
-            label={tag.label}
+            label={tag.path}  // ← path complet, pas label
             size="small"
             sx={{
-              bgcolor: alpha(group.color, 0.12),
-              color: group.color,
-              border: `1px solid ${alpha(group.color, 0.3)}`,
-              fontWeight: 500,
-              cursor: 'default',
-              '& .MuiChip-label': { px: 1 },
+              backgroundColor: tag.dimensionColor || '#757575',
+              color: '#fff',
+              maxWidth: '100%',
+              '& .MuiChip-label': {
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              },
             }}
           />
-        </Tooltip>
+        </ListItem>
       ))}
-    </Box>
+    </List>
   </Box>
 ))
 ```
 
-> **Note :** `TagValueResponse` doit exposer `dimensionColor` pour que `TagChipList` puisse colorer les chips sans appel supplémentaire. Vérifier que l'endpoint `GET /tags/entity/:type/:id` inclut `dimensionColor` dans sa réponse (à ajouter à `EntityTagResponse` si absent — voir §3).
-
 #### Déduplication par profondeur (RM-11)
 
-Avant tout rendu, `TagChipList` applique `deduplicateByDepth()` sur chaque groupe de tags par dimension. Un tag est masqué si un autre tag du même groupe a un path qui commence par `tag.path + "/"` — c'est-à-dire si un descendant direct ou indirect est présent.
+Avant tout rendu, `TagChipList` applique `deduplicateByDepth()` sur les tags. Seul le tag le plus profond par dimension est conservé.
 
 ```typescript
 // src/components/tags/DimensionTagInput.utils.ts
 
 /**
- * Pour un tableau de tags d'une même dimension,
- * conserve uniquement les tags dont aucun descendant n'est présent.
- * Ex : [europe, europe/france, europe/france/paris, lyon]
- *   → [europe/france/paris, lyon]
+ * Pour un tableau de tags, conserve uniquement le tag avec la profondeur maximale
+ * par dimension. Ex : [europe, europe/france, europe/france/paris, lyon]
+ *   → [europe/france/paris, lyon] (Paris depth=2 > France depth=1 > Europe depth=0)
  */
 export function deduplicateByDepth(tags: TagValueResponse[]): TagValueResponse[] {
-  return tags.filter(tag =>
-    !tags.some(other => other.path.startsWith(tag.path + '/'))
-  );
+  if (!tags || tags.length === 0) {
+    return [];
+  }
+
+  const dimensionMap = new Map<string, TagValueResponse>();
+
+  for (const tag of tags) {
+    const existing = dimensionMap.get(tag.dimensionId);
+    
+    if (!existing || tag.depth > existing.depth) {
+      dimensionMap.set(tag.dimensionId, tag);
+    }
+  }
+
+  return Array.from(dimensionMap.values());
 }
 ```
 
-Cette fonction est appelée **après** le regroupement par dimension, **avant** le rendu des chips — dans les deux modes (liste et drawer).
-
-```typescript
-// Appel dans TagChipList — après groupBy dimensionId
-const deduplicated = deduplicateByDepth(group.tags);
-// → rendu sur deduplicated, pas sur group.tags
-```
-
-> **Comportement intentionnel :** `DimensionTagInput` (mode édition Full Page) n'applique **pas** `deduplicateByDepth`. L'utilisateur voit `[France] [Paris]` et peut supprimer `France` explicitement. L'incohérence visuelle entre drawer (1 chip) et Full Page (2 chips) est assumée — la Full Page reflète la réalité des données stockées.
+Cette fonction est appelée **avant** tout calcul de débordement (`maxVisible`) — l'indicateur "+N" reflète le nombre de tags **après déduplication**.
 
 #### Résumé des deux contextes
 
-| Contexte | `maxVisible` | Regroupement par dimension | Édition inline |
-|---|---|---|---|
-| **Colonne liste** | 3 (défaut) | Non — chips mélangés | ❌ Non |
-| **Side Drawer** | absent | Oui — avec label dimension | ❌ Non — Full Page uniquement |
+| Contexte | `maxVisible` | `deduplicate` | Chip affiche | Édition inline |
+|---|---|---|---|---|
+| **Colonne liste** | 3 (défaut) | true | `tag.path` (tronqué si long) | ❌ Non |
+| **Side Drawer** | undefined | true | `tag.path` complet | ❌ Non — Full Page uniquement |
 
 #### Structure de fichiers
 
@@ -1014,9 +1044,9 @@ frontend/src/
     └── tags/
         ├── DimensionTagInput.tsx
         ├── DimensionTagInput.types.ts
-        ├── DimensionTagInput.utils.ts
-        ├── TagChipList.tsx                // lecture seule — liste + drawer
-        └── index.ts                       // export { DimensionTagInput, TagChipList }
+        ├── DimensionTagInput.utils.ts    // + deduplicateByDepth(), groupByDimension()
+        ├── TagChipList.tsx                 // lecture seule — liste + drawer
+        └── index.ts
 ```
 
 #### Clés i18n à ajouter dans `fr.json`
@@ -1031,15 +1061,15 @@ frontend/src/
     "loading": "Chargement..."
   },
   "tooltip": {
-    "fullPath": "Chemin complet : {{path}}",
-    "hiddenTags": "{{tags}}"
+    "fullPath": "Chemin complet : {{path}}"  // conservé pour DimensionTagInput
   },
+  "drawer": {
+    "title": "Tous les tags"
+  },
+  "showAllChip": "+ {{count}}",  // nouveau : badge "+ 2"
   "errors": {
     "invalidPath": "Valeur de tag invalide",
     "saveFailed": "Erreur lors de la sauvegarde du tag"
-  },
-  "drawer": {
-    "sectionTitle": "Tags"
   }
 }
 ```
@@ -1137,25 +1167,28 @@ frontend/src/
 - [ ] `[Cypress]` `disabled=true` → chips sans icône ×, input non interactif
 
 **TagChipList — vue liste (maxVisible=3) :**
-- [ ] `[Cypress]` Entité avec ≤ 3 tags → tous les chips affichés, pas de badge "+X"
-- [ ] `[Cypress]` Entité avec 5 tags → 3 chips + badge "+2" affiché
-- [ ] `[Cypress]` Survol badge "+X" → tooltip liste les labels masqués (ex: "Lyon, Marseille")
-- [ ] `[Cypress]` Survol chip → tooltip affiche le path complet
+- [ ] `[Cypress]` Entité avec ≤ 3 tags dédupliqués → tous les chips affichés avec leur path, pas de badge "+X"
+- [ ] `[Cypress]` Entité avec 5 tags dédupliqués → 3 chips (path complet) + badge "+ 2" affiché
+- [ ] `[Cypress]` Clic sur badge "+ 2" → ouvre le drawer avec tous les tags dédupliqués
+- [ ] `[Cypress]` Path long tronqué avec "..." dans le chip (style ellipsis appliqué)
 - [ ] `[Cypress]` Entité sans tag → cellule vide (aucun chip, aucun badge)
 - [ ] `[Cypress]` Chips non cliquables (cursor: default) — aucune navigation au clic
+- [ ] `[Cypress]` Pas de tooltip sur les chips (path déjà visible)
 
 **TagChipList — Side Drawer :**
 - [ ] `[Cypress]` Section "Tags" absente si entité sans tag renseigné
 - [ ] `[Cypress]` Section "Tags" visible si ≥ 1 tag renseigné
-- [ ] `[Cypress]` Dimensions sans tags masquées — seules les dimensions avec tags affichées
-- [ ] `[Cypress]` Regroupement visible : label dimension en caption au-dessus des chips
+- [ ] `[Cypress]` Dimension sans tags après déduplication → non affichée
+- [ ] `[Cypress]` Regroupement visible : nom dimension en subtitle2 uppercase
+- [ ] `[Cypress]` Chips affichent le path complet (pas seulement le label)
 - [ ] `[Cypress]` Chips sans icône × (lecture seule)
-- [ ] `[Cypress]` Survol chip → tooltip path complet
+- [ ] `[Cypress]` Pas de tooltip sur les chips du drawer
 
 **TagChipList — déduplication RM-11 :**
-- [ ] `[Cypress]` Entité avec `europe/france` et `europe/france/paris` → seul chip "Paris" affiché dans liste et drawer
-- [ ] `[Cypress]` Entité avec `europe/france/paris` seul → chip "Paris" affiché (aucune déduplication nécessaire)
-- [ ] `[Cypress]` Entité avec `europe` et `lyon` (aucune relation ancêtre) → deux chips affichés, aucune déduplication
+- [ ] `[Cypress]` Entité avec `europe/france` (depth=1) et `europe/france/paris` (depth=2) → seul chip "europe/france/paris" affiché dans liste et drawer
+- [ ] `[Cypress]` Badge "+N" calculé après déduplication (ex: 8 tags bruts, 5 après déduplication, maxVisible=3 → affiche "+ 2")
+- [ ] `[Cypress]` Entité avec `europe/france/paris` seul → chip "europe/france/paris" affiché
+- [ ] `[Cypress]` Entité avec `europe` (depth=0) et `lyon` (depth=0, autre dimension) → deux chips affichés
 - [ ] `[Cypress]` `DimensionTagInput` (Full Page) avec `europe/france` et `europe/france/paris` → les **deux** chips affichés (déduplication non appliquée en mode édition)
 
 ---
@@ -1184,13 +1217,13 @@ frontend/src/
 - Toute écriture en base passe par `$executeRaw SET LOCAL ark.current_user_id`
 - Index `text_pattern_ops` sur `tag_values.path` — obligatoire pour les LIKE prefix, à inclure dans la migration Prisma via `@@index` avec `ops: raw("text_pattern_ops")`
 - **MUI v5 exclusivement** — `sx` prop uniquement, pas de `styled-components`, pas de CSS modules
-- **`Chip` MUI** pour tous les tags sélectionnés — couleur via `alpha(dimensionColor, 0.12)` de `@mui/material/styles`
-- **`Tooltip` MUI** wrappant chaque `Chip` — path complet au survol (DimensionTagInput et TagChipList)
-- **`TagChipList`** — chips avec `cursor: 'default'`, sans `onDelete`, sans `onClick` — lecture seule stricte
-- **`TagChipList`** — appliquer `deduplicateByDepth()` avant rendu dans les deux modes ; **ne pas** l'appliquer dans `DimensionTagInput`
-- **`deduplicateByDepth()`** — dans `DimensionTagInput.utils.ts` ; algorithme : `tags.filter(t => !tags.some(o => o.path.startsWith(t.path + '/')))`
-- **`TagChipList` liste** — `maxVisible` default 3, badge "+X" via `Chip variant="outlined"` wrappé dans `Tooltip` listant les labels masqués
-- **`TagChipList` drawer** — regroupement par `dimensionId`, label dimension en `Typography variant="caption"`, `flexWrap: 'wrap'`
+- **`Chip` MUI** pour tous les tags sélectionnés — couleur via `tag.dimensionColor` directement (backgroundColor plein, pas alpha)
+- **`Tooltip` MUI** wrappant chaque `Chip` — path complet au survol **uniquement pour DimensionTagInput**
+- **`TagChipList`** — chips avec `cursor: 'default'`, sans `onDelete`, sans `onClick`, **sans Tooltip** — lecture seule stricte avec path visible directement
+- **`TagChipList`** — appliquer `deduplicateByDepth()` avant calcul du débordement ; **ne pas** l'appliquer dans `DimensionTagInput`
+- **`deduplicateByDepth()`** — dans `DimensionTagInput.utils.ts` ; algorithme : conserve le tag avec `depth` maximal par `dimensionId`
+- **`TagChipList` liste** — `maxVisible` default 3, badge "+X" via `Chip` gris cliquable (`backgroundColor: '#9e9e9e'`) qui ouvre le drawer
+- **`TagChipList` drawer** — regroupement par `dimensionId`, nom dimension en `Typography variant="subtitle2"` uppercase, chips avec `textOverflow: 'ellipsis'`
 - **`TagValueResponse`** doit inclure `dimensionColor` — le backend le peuple depuis `tag_dimensions.color` au moment du join. Sans ce champ, `TagChipList` ne peut pas colorer les chips sans appel supplémentaire.
 - **`Autocomplete` MUI v5** avec `multiple`, `freeSolo`, `filterOptions` pour l'option `__isNew__`
 - **`CircularProgress`** size=16 dans `endAdornment` pendant le chargement autocomplete — pas de spinner externe
@@ -1261,7 +1294,7 @@ Implémente la feature "Dimension Tags Foundation" (F-03) — parties délégabl
 2. TagsController + DTOs + TagsModule wiring (TagService déjà présent)
 3. Seed des 3 dimensions de base (Geography, Brand, LegalEntity)
 4. Composant `DimensionTagInput` (spec §6) — respecter EXACTEMENT le tableau des comportements clavier et les états visuels
-5. Composant `TagChipList` (spec §6) — deux modes : liste (maxVisible=3, badge "+X") et drawer (regroupement par dimension, label caption)
+5. Composant `TagChipList` (spec §6) — deux modes : liste (maxVisible=3, chip "+X" gris cliquable ouvrant drawer, path complet sur chips) et drawer (regroupement par dimension avec tags dédupliqués, nom dimension en subtitle2 uppercase)
 6. `TagValueResponse` doit inclure `dimensionColor` — à peupler via join sur `tag_dimensions` dans le service
 7. Tests Supertest nominaux (§7) — NE PAS générer les tests [Manuel]
 

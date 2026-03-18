@@ -1,7 +1,8 @@
 import { Chip, ChipProps } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export type CriticalityValue = 'low' | 'medium' | 'high' | 'mission-critical';
-export type LifecycleValue = 'active' | 'deprecated' | 'planned' | 'retired';
+export type LifecycleValue = 'draft' | 'in_progress' | 'production' | 'deprecated' | 'retired';
 
 interface StatusChipProps {
   type: 'criticality' | 'lifecycle' | 'active';
@@ -16,9 +17,10 @@ const criticalityColors: Record<CriticalityValue, ChipProps['color']> = {
 };
 
 const lifecycleColors: Record<LifecycleValue, ChipProps['color']> = {
-  active: 'success',
+  draft: 'default',
+  in_progress: 'info',
+  production: 'success',
   deprecated: 'warning',
-  planned: 'info',
   retired: 'default',
 };
 
@@ -27,37 +29,29 @@ const activeColors: Record<string, ChipProps['color']> = {
   false: 'default',
 };
 
-const labels: Record<string, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  'mission-critical': 'Mission Critical',
-  active: 'Active',
-  deprecated: 'Deprecated',
-  planned: 'Planned',
-  retired: 'Retired',
-  true: 'Active',
-  false: 'Inactive',
-};
-
 export default function StatusChip({ type, value }: StatusChipProps): JSX.Element {
+  const { t } = useTranslation();
   const valueStr = String(value);
   
   let color: ChipProps['color'] = 'default';
+  let label: string = valueStr;
   
   if (type === 'criticality') {
     color = criticalityColors[value as CriticalityValue];
+    label = t(`applications.criticality.${valueStr}`);
   } else if (type === 'lifecycle') {
     color = lifecycleColors[value as LifecycleValue];
+    label = t(`applications.lifecycle.${valueStr}`);
   } else if (type === 'active') {
     color = activeColors[valueStr];
+    label = t(`common.status.${valueStr === 'true' ? 'active' : 'inactive'}`);
   }
 
   const isBold = type === 'criticality' && (value === 'high' || value === 'mission-critical');
 
   return (
     <Chip
-      label={labels[valueStr] || valueStr}
+      label={label}
       color={color}
       size="small"
       sx={{
