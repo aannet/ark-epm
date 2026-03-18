@@ -6,12 +6,13 @@ import {
   IsUUID,
   IsEnum,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateApplicationDto {
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @MaxLength(255)
   name?: string;
 
   @IsString()
