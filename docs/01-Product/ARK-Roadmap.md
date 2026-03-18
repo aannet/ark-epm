@@ -1,6 +1,11 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.10 — Mars 2026_
+_Version 0.11 — Mars 2026_
+
+> **Changelog v0.11 :**
+> - FS-03-BACK : spec rédigée et stabilisée (statut `stable`)
+> - schema.sql v0.8 : migration `providers` conforme NFR-GOV-005 (description, comment, updated_at, UNIQUE name)
+> - FS-06-BACK : statut mis à jour `done` (implémentation complète)
 
 > **Changelog v0.10 :**
 > - Ajout de 4 features P2 (FS-22 à FS-25) basées sur l'analyse des personae
@@ -107,8 +112,8 @@ _Version 0.10 — Mars 2026_
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
 | FS-02 | **Domains** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-02-BACK, F-02, F-03 | `in-progress` | `draft` | 0.5j + 1j |
-| **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend en Sprint 3.* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 3)* | `draft` | *(Sprint 3)* | **1.5j** |
-| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 0.5j |
+| **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend en Sprint 3.* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 3)* | ✅ `done` | *(Sprint 3)* | **1.5j** |
+| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | `stable` | `draft` | 0.5j + 0.5j |
 | FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
 | FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
 
