@@ -3,6 +3,43 @@
 _Last updated: 2026-03-18 — v0.5.1_
 
 
+
+## XXXXXX
+
+
+FS-03-BACK Providers API
+### TLDR
+Les utilisateurs peuvent désormais gérer les fournisseurs (SaaS, éditeurs, consultants) dans l'annuaire EPM : création, modification, suppression avec protection si contrats actifs, et visualisation des applications liées. 8 fournisseurs pré-enregistrés (Salesforce, SAP, Microsoft...) pour démarrer immédiatement.
+
+GET    /api/v1/providers              (list paginée + search)
+POST   /api/v1/providers              (création)
+GET    /api/v1/providers/:id          (détail avec _count + tags)
+PATCH  /api/v1/providers/:id          (mise à jour)
+DELETE /api/v1/providers/:id          (suppression avec vérification dépendances)
+GET    /api/v1/providers/:id/applications  (apps liées paginées)
+
+
+### FS-04-BACK : IT Components API
+---
+TLDR
+Les composants IT (serveurs, bases de données, middleware...) sont désormais gérables dans ARK. Les utilisateurs peuvent créer, consulter, modifier et supprimer des composants techniques, et voir quelles applications y sont rattachées.
+---
+NEW
+- CRUD IT Components — API REST complète sous /api/v1/it-components (GET list, POST, GET detail, PATCH, DELETE)
+- Endpoint applications liées — GET /api/v1/it-components/:id/applications retourne la liste paginée des applications rattachées
+- Compteur _count.applications — présent dans toutes les réponses (list + detail)
+- Filtres — recherche textuelle sur name, filtrage par type et technology, tri sur 4 colonnes
+- Tags dimensionnels — support F-03 intégré (EntityTag polymorphe, chargement batch en liste)
+- Seed — 8 composants de démonstration (PostgreSQL, Redis, Kafka, RabbitMQ, Nginx, K8s, Elasticsearch, MinIO)
+- OpenAPI — docs/04-Tech/openapi.yaml mis à jour avec paths et schemas IT Components
+FIX
+- Audit trail fiable — les écritures (create/update/delete) utilisent $transaction interactive pour garantir que SET LOCAL ark.current_user_id persiste dans la même transaction que l'opération. Le champ changed_by est désormais systématiquement renseigné dans audit_trail (corrige un défaut latent du pattern existant sur les autres modules)
+
+
+
+
+
+
 ---
 ## v0.5.1 — 2026-03-18 
 
