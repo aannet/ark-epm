@@ -78,6 +78,51 @@ async function main() {
   }
 
   console.log('Seed completed: Tag dimensions created');
+
+  // Insert sample IT Components if they don't exist
+  const sampleItComponents = [
+    { name: 'PostgreSQL Primary', type: 'database', technology: 'PostgreSQL 16', description: 'Base de données principale ARK' },
+    { name: 'Redis Cache', type: 'cache', technology: 'Redis 7.2', description: 'Cache applicatif et sessions' },
+    { name: 'Kafka Cluster', type: 'messaging', technology: 'Apache Kafka 3.6', description: 'Streaming events et bus de messages' },
+    { name: 'RabbitMQ', type: 'messaging', technology: 'RabbitMQ 3.12', description: 'Queue messages asynchrones' },
+    { name: 'Nginx Reverse Proxy', type: 'web-server', technology: 'Nginx 1.24', description: 'Load balancer et reverse proxy' },
+    { name: 'Kubernetes Production', type: 'container-orchestration', technology: 'Kubernetes 1.28', description: 'Orchestration containers production' },
+    { name: 'Elasticsearch Logs', type: 'search-engine', technology: 'Elasticsearch 8.11', description: 'Indexation et recherche logs' },
+    { name: 'MinIO Object Storage', type: 'storage', technology: 'MinIO', description: 'Stockage objets S3-compatible' },
+  ];
+
+  for (const item of sampleItComponents) {
+    const existing = await prisma.itComponent.findUnique({ where: { name: item.name } });
+    if (!existing) {
+      await prisma.$executeRaw`INSERT INTO it_components (id, name, description, type, technology, created_at, updated_at) 
+        VALUES (gen_random_uuid(), ${item.name}::varchar, ${item.description}::text, ${item.type}::varchar, ${item.technology}::varchar, NOW(), NOW())`;
+      console.log(`✓ Created IT Component: ${item.name}`);
+    }
+  }
+  console.log('Seed IT Components completed');
+
+  // Insert sample providers if they don't exist
+  const sampleProviders = [
+    { name: 'Salesforce', contractType: 'SaaS', expiryDate: '2026-12-31', description: 'CRM cloud leader' },
+    { name: 'SAP', contractType: 'Licence', expiryDate: '2027-06-30', description: 'ERP legacy' },
+    { name: 'Microsoft', contractType: 'SaaS', expiryDate: '2026-09-30', description: 'Suite Office 365 et Azure' },
+    { name: 'Atlassian', contractType: 'SaaS', expiryDate: '2026-12-31', description: 'Jira, Confluence' },
+    { name: 'ServiceNow', contractType: 'SaaS', expiryDate: '2027-03-31', description: 'ITSM et CMDB' },
+    { name: 'GitLab', contractType: 'SaaS', expiryDate: '2026-06-30', description: 'DevOps CI/CD' },
+    { name: 'AWS', contractType: 'SaaS', expiryDate: null, description: 'Infrastructure cloud' },
+    { name: 'Snowflake', contractType: 'SaaS', expiryDate: '2027-12-31', description: 'Data warehouse cloud' },
+  ];
+
+  for (const provider of sampleProviders) {
+    const existing = await prisma.provider.findUnique({ where: { name: provider.name } });
+    if (!existing) {
+      await prisma.$executeRaw`INSERT INTO providers (id, name, contract_type, expiry_date, description, updated_at) 
+        VALUES (gen_random_uuid(), ${provider.name}::varchar, ${provider.contractType}::varchar, 
+        ${provider.expiryDate}::date, ${provider.description}::text, NOW())`;
+      console.log(`✓ Created provider: ${provider.name}`);
+    }
+  }
+  console.log('Seed providers completed');
 }
 
 main()

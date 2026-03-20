@@ -91,13 +91,16 @@ model BusinessCapability {
 }
 
 model Provider {
-  id           String        @id @default(uuid()) @db.Uuid
-  name         String        @db.VarChar(255)
-  contractType String?       @map("contract_type") @db.VarChar(100)
-  expiryDate   DateTime?     @map("expiry_date") @db.Date
-  tags         String[]      @default([])
-  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications Application[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String        @unique @db.VarChar(255)
+  description   String?       @db.Text
+  comment       String?       @db.Text
+  contractType  String?       @map("contract_type") @db.VarChar(100)
+  expiryDate    DateTime?     @map("expiry_date") @db.Date
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  applications  Application[]
 
   @@map("providers")
 }
@@ -186,12 +189,15 @@ model AppDataObjectMap {
 }
 
 model ItComponent {
-  id           String              @id @default(uuid()) @db.Uuid
-  name         String              @db.VarChar(255)
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String              @unique @db.VarChar(255)
+  description  String?             @db.Text
+  comment      String?             @db.Text
   technology   String?             @db.VarChar(255)
   type         String?             @db.VarChar(100)
-  tags         String[]            @default([])
-  createdAt    DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
   applications AppItComponentMap[]
 
   @@map("it_components")

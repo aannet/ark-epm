@@ -230,6 +230,456 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /providers:
+    get:
+      summary: Liste de tous les providers
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, createdAt, expiryDate], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle sur le nom
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProviderListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer un provider
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProviderDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '409':
+          description: Nom de provider déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+  /providers/{id}:
+    get:
+      summary: Détail d'un provider
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Provider introuvable
+
+    patch:
+      summary: Modifier un provider
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProviderDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Provider introuvable
+        '409':
+          description: Nom de provider déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+    delete:
+      summary: Supprimer un provider
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Provider supprimé
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Provider introuvable
+        '409':
+          description: Provider utilisé par des applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "DEPENDENCY_CONFLICT" }
+                  message:    { type: string, example: "Provider is used by 3 application(s)" }
+                  details:
+                    type: object
+                    properties:
+                      applicationsCount: { type: integer }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+  /providers/{id}/applications:
+    get:
+      summary: Liste des applications liées à un provider
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Provider introuvable
+
+  /it-components:
+    get:
+      summary: Liste de tous les IT Components
+      tags: [IT Components]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, createdAt, type, technology], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle sur le nom
+        - name: type
+          in: query
+          schema: { type: string }
+          description: Filtrer par type de composant
+        - name: technology
+          in: query
+          schema: { type: string }
+          description: Filtrer par technologie
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ITComponentListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer un IT Component
+      tags: [IT Components]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateITComponentDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITComponentResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '409':
+          description: Nom d'IT Component déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+  /it-components/{id}:
+    get:
+      summary: Détail d'un IT Component
+      tags: [IT Components]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITComponentResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: IT Component introuvable
+
+    patch:
+      summary: Modifier un IT Component
+      tags: [IT Components]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateITComponentDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITComponentResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: IT Component introuvable
+        '409':
+          description: Nom d'IT Component déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+    delete:
+      summary: Supprimer un IT Component
+      tags: [IT Components]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: IT Component supprimé
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: IT Component introuvable
+        '409':
+          description: IT Component utilisé par des applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "DEPENDENCY_CONFLICT" }
+                  message:    { type: string, example: "IT Component is used by 3 application(s)" }
+                  details:
+                    type: object
+                    properties:
+                      applicationsCount: { type: integer }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+  /it-components/{id}/applications:
+    get:
+      summary: Liste des applications liées à un IT Component
+      tags: [IT Components]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: IT Component introuvable
+
   /tags/dimensions:
     get:
       summary: Liste toutes les dimensions de tags
@@ -446,6 +896,95 @@ paths:
 components:
   schemas:
 
+    ITComponentListItem:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        technology:  { type: string, nullable: true }
+        type:        { type: string, nullable: true }
+        createdAt:   { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applications: { type: integer, example: 5 }
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
+
+    ITComponentResponse:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        description: { type: string, nullable: true }
+        comment:     { type: string, nullable: true }
+        technology:  { type: string, nullable: true }
+        type:        { type: string, nullable: true }
+        createdAt:   { type: string, format: date-time }
+        updatedAt:   { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applications: { type: integer, example: 5 }
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
+
+    CreateITComponentDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "PostgreSQL Primary"
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        technology:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: "PostgreSQL 16"
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: "database"
+
+    UpdateITComponentDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        technology:
+          type: string
+          nullable: true
+          maxLength: 255
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
+
     TagValueResponse:
       type: object
       properties:
@@ -592,6 +1131,115 @@ components:
           type: string
           nullable: true
           maxLength: 2000
+
+    ProviderListItem:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        contractType: { type: string, nullable: true }
+        expiryDate:  { type: string, format: date, nullable: true }
+        createdAt:   { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applications: { type: integer, example: 5 }
+
+    ProviderResponse:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        description: { type: string, nullable: true }
+        comment:     { type: string, nullable: true }
+        contractType: { type: string, nullable: true }
+        expiryDate:  { type: string, format: date, nullable: true }
+        createdAt:   { type: string, format: date-time }
+        updatedAt:   { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applications: { type: integer, example: 5 }
+        tags:
+          type: array
+          description: Tous les entity_tags sans filtrage (déduplication côté frontend)
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
+
+    CreateProviderDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Salesforce"
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        contractType:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: "SaaS"
+        expiryDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-12-31"
+
+    UpdateProviderDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        contractType:
+          type: string
+          nullable: true
+          maxLength: 100
+        expiryDate:
+          type: string
+          format: date
+          nullable: true
+
+    ApplicationListItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        domain:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+        owner:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            firstName: { type: string }
+            lastName: { type: string }
+        criticality: { type: string, nullable: true }
+        lifecycleStatus: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
 
     ErrorResponse:
       type: object

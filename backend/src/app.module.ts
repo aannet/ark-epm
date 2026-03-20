@@ -20,6 +20,9 @@ import { DomainsModule } from './domains/domains.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { TagsModule } from './tags/tags.module';
 
+import { ProvidersModule } from './providers/providers.module';
+import { ItComponentsModule } from './it-components/it-components.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -50,6 +53,8 @@ import { TagsModule } from './tags/tags.module';
     DomainsModule,
     ApplicationsModule,
     TagsModule,
+    ProvidersModule,
+    ItComponentsModule,
   ],
   controllers: [AppController],
   providers: [
