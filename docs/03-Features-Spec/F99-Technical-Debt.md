@@ -586,6 +586,81 @@ async setEntityTagsBatch(
 
 ---
 
+### Item 15 — Routes Providers commentées dans App.tsx *(P1 — Sprint 2)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 En cours — FS-03-FRONT implémentation en attente |
+| **Priorité** | Moyenne — bloque navigation vers module Providers |
+
+**Contexte :**
+Lors de l'implémentation de FS-04-IT-Components-front, les routes Providers dans `App.tsx` importaient des composants (`ProvidersListPage`, `ProviderNewPage`, `ProviderDetailPage`, `ProviderEditPage`) qui n'existaient pas encore dans le repository. Pour permettre la compilation TypeScript sans erreur, les routes ont été temporairement commentées.
+
+**Décision :**
+- Les routes Providers sont commentées dans `App.tsx` (lignes 71-77)
+- Les imports des composants Providers sont également commentés (lignes 20-23)
+- **Déblocage :** FS-03-FRONT (Providers frontend) doit implémenter les 4 composants manquants
+- **Migration :** Décommenter les lignes après livraison de FS-03-FRONT
+
+**Fichier concerné :**
+```
+frontend/src/App.tsx
+```
+
+**Code à décommenter :**
+```typescript
+// Provider pages - TODO: implement when needed
+// import ProvidersListPage from '@/pages/providers/ProvidersListPage';
+// import ProviderNewPage from '@/pages/providers/ProviderNewPage';
+// import ProviderDetailPage from '@/pages/providers/ProviderDetailPage';
+// import ProviderEditPage from '@/pages/providers/ProviderEditPage';
+
+// ...
+
+/* Providers routes - TODO: implement when needed
+<Route path="providers" element={<Outlet />}>
+  <Route index element={<ProvidersListPage />} />
+  <Route path="new" element={<ProviderNewPage />} />
+  <Route path=":id" element={<ProviderDetailPage />} />
+  <Route path=":id/edit" element={<ProviderEditPage />} />
+</Route> */
+```
+
+**Gate de validation :** Routes `/providers` fonctionnelles avec navigation sidebar, liste, création, édition, suppression
+
+---
+
+### Item 16 — Customisation des couleurs provider roles *(P2)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Différé P2 — Documentation de dette |
+| **Priorité** | Basse — UI/UX, pas bloquant |
+| **Gate de validation** | Admin dashboard avec interface color picker pour rôles |
+
+**Contexte :**
+La spec FS-03-FRONT v1.1 implémente l'affichage des `provider_role` via badges MUI avec couleurs hardcodées dans le code TypeScript (`editor → primary`, `integrator → secondary`, etc.). Bien que cette solution soit fonctionnelle et UX correcte pour v1.0, elle ne permet pas aux administrateurs de personnaliser les couleurs sans modification du code et redéploiement.
+
+**Décision :**
+- **v1.1 (actuel)** : Couleurs hardcodées dans `roleColorMap` TypeScript (FS-03-FRONT ProvidersDrawer, ProviderDetailPage)
+- **v2.0 (P2)** : Admin dashboard avec UI de customisation des couleurs par rôle
+  - Endpointe API : `GET/PUT /api/v1/admin/settings/provider-role-colors` (ou similaire — à concevoir)
+  - Persistance : Configurations stockées dans table `settings` ou nouvelle table `role_color_configs`
+  - Frontend : Page admin `/admin/settings/provider-roles-colors` avec color picker MUI + preview en temps réel
+  - Fallback : Si configuration absente en DB, utiliser les hardcodes v1.1 par défaut
+
+**Impact :**
+- Nécessite : concevoir endpoint API + table persistance + page admin
+- N'impacte pas : logique métier providers/applications, audit trail, permissions
+- Timing : Sprint 4+ (post-MVP)
+
+**Fichiers affectés (future implémentation) :**
+- `backend/src/settings/` — nouveau module
+- `frontend/src/pages/admin/ProviderRoleColorsPage.tsx` — nouvelle page
+- `frontend/src/utils/roleColors.ts` — refactor pour consommer API
+
+---
+
 ## 3. Bloc contexte OpenCode — à injecter (complément F-00)
 
 > Ce bloc s'ajoute au bloc contexte standard de F-00. Il doit être injecté dans **chaque session OpenCode Sprint 2+** pour que les conventions ci-dessus soient respectées automatiquement.
@@ -654,6 +729,8 @@ Request ID :
 - [ ] **Item 12** — APIs Providers et Users remplacent les mocks dans ApplicationForm
 - [ ] **Item 13** — Dimensions dynamiques via `/tag-dimensions` (remplacent hardcode)
 - [ ] **Item 14** — Endpoint `PUT /tags/entity/:type/:id/batch` implémenté et testé
+- [ ] **Item 15** — Routes Providers décommentées et fonctionnelles après FS-03-FRONT
+- [ ] **Item 16** — Admin dashboard pour customisation couleurs provider roles (P2 — Sprint 4+)
 ---
 
 ## 5. Journal des décisions
@@ -670,6 +747,8 @@ Request ID :
 | 2026-03-04 | §6 | Ajout section Historique des Revues de Sprint — revue de dette obligatoire en fin de sprint | Alec |
 | 2026-03-14 | Item 11 | Ajout Description Markdown pour Applications — différé P2 | Alec |
 | 2026-03-15 | Items 12, 13, 14 | Dette technique FS-06-FRONT — mocks Providers/Users, dimensions hardcodées, endpoint batch tags manquant | Alec |
+| 2026-03-21 | Item 15 | Routes Providers commentées — fichiers FS-03-FRONT manquants | OpenCode |
+| 2026-03-21 | Item 16 | Customisation couleurs provider roles — couleurs hardcodées v1.1, admin dashboard P2 | OpenCode | |
 
 ---
 
