@@ -1,6 +1,12 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.11 — Mars 2026_
+_Version 0.12 — Mars 2026_
+
+> **Changelog v0.12 :**
+> - FS-04-BACK : statut `done` (implémentation backend complète)
+> - FS-04-FRONT : statut `done` — pattern PNS-02 (drawer read-only), filtres server-side, gestion 409 DEPENDENCY_CONFLICT
+> - F-03 : seed des 3 dimensions (Geography, Brand, LegalEntity) considéré `done`
+> - F-999 Item 15 : Routes Providers temporairement commentées dans App.tsx (FS-03-FRONT en attente)
 
 > **Changelog v0.11 :**
 > - FS-03-BACK : spec rédigée et stabilisée (statut `stable`)
@@ -69,7 +75,7 @@ _Version 0.11 — Mars 2026_
 | F-00 | **Scaffolding** — NestJS + Prisma + Docker + JWT + PrismaService + middleware `ark.current_user_id` | — | ✅ `done` | 2j | Manuel |
 | F-01 | **Design System & UI Foundation** — Theme MUI, Layout Shell (Sidebar/TopBar), composants partagés, `NotFoundPage`, `ErrorBoundary` | F-00 | ✅ `done` | 1j | Manuel |
 | F-02 | **i18n Foundation** — react-i18next, langue unique FR, externalisation strings F-01 + FS-01 | FS-01 | `stable` | 0.5j | Manuel |
-| F-03 | **Dimension Tags Foundation** — `TagsModule` global, migrations Prisma (`tag_dimensions`, `tag_values`, `entity_tags`), `TagService` (resolveOrCreate, path récursif), `DimensionTagInput` React, seed 3 dimensions de base | F-02, FS-01 | `draft` | 1.5j | 🟡 Hybride |
+| F-03 | **Dimension Tags Foundation** — `TagsModule` global, migrations Prisma (`tag_dimensions`, `tag_values`, `entity_tags`), `TagService` (resolveOrCreate, path récursif), `DimensionTagInput` React, seed 3 dimensions de base | F-02, FS-01 | `stable` | 1.5j | 🟡 Hybride |
 
 > F-00, F-01, F-02 sont entièrement manuels. F-03 est **hybride** : `TagService` (resolveOrCreate, normalizePath, getAncestorPaths) est écrit manuellement — migrations, controller, DTOs, module wiring et `DimensionTagInput` sont générables via OpenCode.
 
@@ -114,7 +120,7 @@ _Version 0.11 — Mars 2026_
 | FS-02 | **Domains** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-02-BACK, F-02, F-03 | `in-progress` | `draft` | 0.5j + 1j |
 | **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend en Sprint 3.* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 3)* | ✅ `done` | *(Sprint 3)* | **1.5j** |
 | FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | `stable` | `draft` | 0.5j + 0.5j |
-| FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
+| FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
 | FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
 
 > FS-02 et FS-03 sont les **modules de référence** — backend (FS-02-BACK) et frontend (FS-02-FRONT) — pour OpenCode sur tous les modules suivants. Valider soigneusement avant de démarrer FS-03.
@@ -122,6 +128,8 @@ _Version 0.11 — Mars 2026_
 > **Ordre d'implémentation dans le sprint :** FS-02-BACK → FS-06-BACK → FS-03-BACK / FS-04-BACK / FS-05-BACK (parallélisables) → fronts satellites → FS-02-FRONT.
 
 > ⚠️ La migration F-03 retire les colonnes `tags TEXT[]` sur chaque table au fil des sprints. Chaque FS-xx est responsable du `DROP COLUMN tags` sur sa propre table (documenté en F-999 §2).
+
+> ⚠️ **Note FS-04-FRONT :** Lors de l'implémentation de FS-04-FRONT, les routes Providers dans `App.tsx` ont été temporairement commentées car les composants FS-03-FRONT n'existaient pas encore. Voir F-999 Item 15 pour le détail.
 
 ---
 
