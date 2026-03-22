@@ -58,7 +58,7 @@ export default function ApplicationsListPage(): JSX.Element {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const canWrite = hasPermission('applications:write');
-  const { dimensions: availableDimensions } = useTagDimensions();
+  const { dimensions: availableDimensions } = useTagDimensions('application');
 
   // Parse URL params
   const getPageFromUrl = () => {
@@ -324,14 +324,8 @@ export default function ApplicationsListPage(): JSX.Element {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'provider'}
-                    direction={sortField === 'provider' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('provider')}
-                  >
-                    {t('applications.list.columns.provider')}
-                  </TableSortLabel>
-                </TableCell>
+                   {t('applications.list.columns.provider')}
+                 </TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortField === 'criticality'}
@@ -392,9 +386,11 @@ export default function ApplicationsListPage(): JSX.Element {
                   <TableCell onClick={() => handleRowClick(application.id, 'domain')}>
                     {application.domain?.name || '—'}
                   </TableCell>
-                  <TableCell onClick={() => handleRowClick(application.id, 'provider')}>
-                    {application.provider?.name || '—'}
-                  </TableCell>
+                   <TableCell onClick={() => handleRowClick(application.id, 'provider')}>
+                     {application.providers?.length > 0
+                       ? application.providers.map(p => p.name).join(', ')
+                       : '—'}
+                   </TableCell>
                   <TableCell onClick={() => handleRowClick(application.id, 'criticality')}>
                     {application.criticality ? (
                       <StatusChip type="criticality" value={application.criticality as any} />

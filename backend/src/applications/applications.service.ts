@@ -61,9 +61,9 @@ export class ApplicationsService {
     }
 
     let orderBy: any = {};
-    if (sortBy === 'domain' || sortBy === 'provider') {
+    if (sortBy === 'domain') {
       orderBy = {
-        [sortBy]: { name: sortOrder },
+        domain: { name: sortOrder },
       };
     } else if (sortBy) {
       orderBy = { [sortBy]: sortOrder };
@@ -80,7 +80,11 @@ export class ApplicationsService {
       orderBy,
       include: {
         domain: { select: { id: true, name: true } },
-        provider: { select: { id: true, name: true } },
+        appProviderMaps: {
+          include: {
+            provider: { select: { id: true, name: true } },
+          },
+        },
         owner: { select: { id: true, firstName: true, lastName: true } },
       },
     });
@@ -88,12 +92,10 @@ export class ApplicationsService {
     const appIds = applications.map((a) => a.id);
     const allTags = await this.tagsService.getEntitiesTags('application', appIds);
 
-    const data = applications.map((app) => ({
-      ...app,
-      tags: allTags
-        .filter((tag) => tag.entityId === app.id)
-        .map((tag) => tag.tagValue),
-    }));
+    const data = applications.map((app) => this.mapApplicationResponse(
+      app,
+      allTags.filter((tag) => tag.entityId === app.id).map((tag) => tag.tagValue),
+    ));
 
     return {
       data,
@@ -113,7 +115,11 @@ export class ApplicationsService {
       where: { id },
       include: {
         domain: { select: { id: true, name: true } },
-        provider: { select: { id: true, name: true } },
+        appProviderMaps: {
+          include: {
+            provider: { select: { id: true, name: true } },
+          },
+        },
         owner: { select: { id: true, firstName: true, lastName: true, email: true } },
       },
     });
@@ -127,10 +133,10 @@ export class ApplicationsService {
 
     const tags = await this.tagsService.getEntityTags('application', id);
 
-    return {
-      ...application,
-      tags: tags.map((t) => t.tagValue),
-    };
+    return this.mapApplicationResponse(
+      application,
+      tags.map((t) => t.tagValue),
+    );
   }
 
   async getDependencies(id: string) {
@@ -141,6 +147,7 @@ export class ApplicationsService {
       select: {
         _count: {
           select: {
+            appProviderMaps: true,
             capabilities: true,
             dataObjects: true,
             itComponents: true,
@@ -159,6 +166,7 @@ export class ApplicationsService {
     }
 
     const counts = {
+      providers: app._count.appProviderMaps,
       capabilities: app._count.capabilities,
       dataObjects: app._count.dataObjects,
       itComponents: app._count.itComponents,
@@ -175,38 +183,52 @@ export class ApplicationsService {
   }
 
   async create(createDto: CreateApplicationDto, userId: string) {
-    this.logger.log({ method: 'create', data: createDto });
+    this.logger.log({ method: 'create', data: createDto, providersCount: createDto.providers?.length });
 
     await this.prisma.setCurrentUser(userId);
     await this.validateForeignKeys(createDto);
 
     try {
+      const applicationId = randomUUID();
+
       const application = await this.prisma.application.create({
         data: {
-          id: randomUUID(),
+          id: applicationId,
           name: createDto.name.trim(),
           description: createDto.description?.trim() || null,
           comment: createDto.comment?.trim() || null,
           domainId: createDto.domainId || null,
-          providerId: createDto.providerId || null,
           ownerId: createDto.ownerId || null,
           criticality: createDto.criticality || null,
           lifecycleStatus: createDto.lifecycleStatus || null,
           updatedAt: new Date(),
+          
+          // Create provider mappings in same transaction
+          ...(createDto.providers && createDto.providers.length > 0 && {
+            appProviderMaps: {
+              createMany: {
+                data: createDto.providers.map(p => ({
+                  providerId: p.id,
+                  role: p.role,
+                })),
+              },
+            },
+          }),
         },
         include: {
           domain: { select: { id: true, name: true } },
-          provider: { select: { id: true, name: true } },
+          appProviderMaps: {
+            include: {
+              provider: { select: { id: true, name: true } },
+            },
+          },
           owner: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       });
 
       this.logger.log({ method: 'create', result: application.id });
 
-      return {
-        ...application,
-        tags: [],
-      };
+      return this.mapApplicationResponse(application, []);
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException({
@@ -219,28 +241,50 @@ export class ApplicationsService {
   }
 
   async update(id: string, updateDto: UpdateApplicationDto, userId: string) {
-    this.logger.log({ method: 'update', id, data: updateDto });
+    this.logger.log({ method: 'update', id, data: updateDto, providersCount: updateDto.providers?.length });
 
     await this.prisma.setCurrentUser(userId);
     await this.validateForeignKeys(updateDto);
 
     try {
+      // Delete old provider mappings if providers are being updated
+      if (updateDto.providers !== undefined) {
+        await this.prisma.applicationProviderMap.deleteMany({
+          where: { applicationId: id },
+        });
+      }
+
       const application = await this.prisma.application.update({
         where: { id },
         data: {
-          name: updateDto.name?.trim(),
-          description: updateDto.description?.trim() || null,
-          comment: updateDto.comment?.trim() || null,
-          domainId: updateDto.domainId || null,
-          providerId: updateDto.providerId || null,
-          ownerId: updateDto.ownerId || null,
-          criticality: updateDto.criticality || null,
-          lifecycleStatus: updateDto.lifecycleStatus || null,
+          ...(updateDto.name && { name: updateDto.name.trim() }),
+          ...(updateDto.description !== undefined && { description: updateDto.description?.trim() || null }),
+          ...(updateDto.comment !== undefined && { comment: updateDto.comment?.trim() || null }),
+          ...(updateDto.domainId !== undefined && { domainId: updateDto.domainId || null }),
+          ...(updateDto.ownerId !== undefined && { ownerId: updateDto.ownerId || null }),
+          ...(updateDto.criticality !== undefined && { criticality: updateDto.criticality || null }),
+          ...(updateDto.lifecycleStatus !== undefined && { lifecycleStatus: updateDto.lifecycleStatus || null }),
           updatedAt: new Date(),
+          
+          // Create new provider mappings if provided
+          ...(updateDto.providers !== undefined && updateDto.providers.length > 0 && {
+            appProviderMaps: {
+              createMany: {
+                data: updateDto.providers.map(p => ({
+                  providerId: p.id,
+                  role: p.role,
+                })),
+              },
+            },
+          }),
         },
         include: {
           domain: { select: { id: true, name: true } },
-          provider: { select: { id: true, name: true } },
+          appProviderMaps: {
+            include: {
+              provider: { select: { id: true, name: true } },
+            },
+          },
           owner: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       });
@@ -249,10 +293,10 @@ export class ApplicationsService {
 
       const tags = await this.tagsService.getEntityTags('application', id);
 
-      return {
-        ...application,
-        tags: tags.map((t) => t.tagValue),
-      };
+      return this.mapApplicationResponse(
+        application,
+        tags.map((t) => t.tagValue),
+      );
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException({
@@ -302,14 +346,16 @@ export class ApplicationsService {
       }
     }
 
-    if (dto.providerId) {
-      const provider = await this.prisma.provider.findUnique({
-        where: { id: dto.providerId },
+    // Validate all providers exist (batch query)
+    if (dto.providers && dto.providers.length > 0) {
+      const providerIds = dto.providers.map(p => p.id);
+      const validProviders = await this.prisma.provider.findMany({
+        where: { id: { in: providerIds } },
       });
-      if (!provider) {
+      if (validProviders.length !== providerIds.length) {
         throw new NotFoundException({
           code: 'PROVIDER_NOT_FOUND',
-          message: 'Provider not found',
+          message: 'One or more providers not found',
         });
       }
     }
@@ -327,4 +373,35 @@ export class ApplicationsService {
     }
   }
 
+  private mapApplicationResponse(
+    application: any,
+    tags: any[],
+  ) {
+    return {
+      id: application.id,
+      name: application.name,
+      description: application.description,
+      comment: application.comment,
+      domain: application.domain ? {
+        id: application.domain.id,
+        name: application.domain.name,
+      } : null,
+      providers: (application.appProviderMaps || []).map((mapping: { provider: { id: string; name: string }; role: string | null }) => ({
+        id: mapping.provider.id,
+        name: mapping.provider.name,
+        role: mapping.role,
+      })),
+      owner: application.owner ? {
+        id: application.owner.id,
+        firstName: application.owner.firstName,
+        lastName: application.owner.lastName,
+        email: application.owner.email,
+      } : null,
+      criticality: application.criticality,
+      lifecycleStatus: application.lifecycleStatus,
+      createdAt: application.createdAt,
+      updatedAt: application.updatedAt,
+      tags,
+    };
+  }
 }

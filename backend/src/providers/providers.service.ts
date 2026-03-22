@@ -41,7 +41,9 @@ export class ProvidersService {
       take: limit,
       orderBy: sortBy ? { [sortBy]: sortOrder } : { name: 'asc' },
       include: {
-        _count: { select: { applications: true } },
+        _count: {
+          select: { appProviderMaps: true },
+        },
       },
     });
 
@@ -73,7 +75,9 @@ export class ProvidersService {
     const provider = await this.prisma.provider.findUnique({
       where: { id },
       include: {
-        _count: { select: { applications: true } },
+        _count: {
+          select: { appProviderMaps: true },
+        },
       },
     });
 
@@ -115,7 +119,7 @@ export class ProvidersService {
       // Return provider with empty tags array and _count
       return {
         ...provider,
-        _count: { applications: 0 },
+        _count: { appProviderMaps: 0 },
         tags: [],
       };
     } catch (error) {
@@ -135,7 +139,7 @@ export class ProvidersService {
     await this.prisma.setCurrentUser(userId);
 
     try {
-      const provider = await this.prisma.provider.update({
+       const provider = await this.prisma.provider.update({
         where: { id },
         data: {
           name: updateProviderDto.name?.trim(),
@@ -147,7 +151,9 @@ export class ProvidersService {
             : null,
         },
         include: {
-          _count: { select: { applications: true } },
+          _count: {
+            select: { appProviderMaps: true },
+          },
         },
       });
       this.logger.log({ method: 'update', result: provider.id });
@@ -184,7 +190,8 @@ export class ProvidersService {
     const provider = await this.prisma.provider.findUnique({
       where: { id },
       select: {
-        _count: { select: { applications: true } },
+        id: true,
+        _count: { select: { appProviderMaps: true } },
       },
     });
 
@@ -195,11 +202,11 @@ export class ProvidersService {
       });
     }
 
-    if (provider._count.applications > 0) {
+    if (provider._count.appProviderMaps > 0) {
       throw new ConflictException({
         code: 'DEPENDENCY_CONFLICT',
-        message: `Provider is used by ${provider._count.applications} application(s)`,
-        details: { applicationsCount: provider._count.applications },
+        message: `Provider is used by ${provider._count.appProviderMaps} application(s)`,
+        details: { applicationsCount: provider._count.appProviderMaps },
       });
     }
 
@@ -230,7 +237,13 @@ export class ProvidersService {
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where = { providerId: id };
+    const where = {
+      appProviderMaps: {
+        some: {
+          providerId: id,
+        },
+      },
+    };
 
     const total = await this.prisma.application.count({ where });
 

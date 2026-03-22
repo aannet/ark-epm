@@ -30,8 +30,8 @@ export class TagsController {
   constructor(private readonly tagsService: TagsService) {}
 
   @Get('tag-dimensions')
-  async findAllDimensions() {
-    return this.tagsService.findAllDimensions();
+  async findAllDimensions(@Query('entityType') entityType?: string) {
+    return this.tagsService.findAllDimensions(entityType);
   }
 
   @Post('tag-dimensions')

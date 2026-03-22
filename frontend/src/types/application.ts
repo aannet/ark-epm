@@ -1,12 +1,18 @@
 import { TagValueResponse } from '@/components/tags/DimensionTagInput.types';
 
+export interface ProviderMapping {
+  id: string;
+  name: string;
+  role?: string | null;
+}
+
 export interface Application {
   id: string;
   name: string;
   description: string | null;
   comment: string | null;
   domain: { id: string; name: string } | null;
-  provider: { id: string; name: string } | null;
+  providers: ProviderMapping[];
   owner: { id: string; firstName: string; lastName: string; email: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;
@@ -20,7 +26,7 @@ export interface ApplicationListItem {
   name: string;
   description: string | null;
   domain: { id: string; name: string } | null;
-  provider: { id: string; name: string } | null;
+  providers: ProviderMapping[];
   owner: { id: string; firstName: string; lastName: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;
@@ -33,7 +39,7 @@ export interface ApplicationFormValues {
   description: string;
   comment: string;
   domainId: string | null;
-  providerId: string | null;
+  providers: Array<{ id: string; role?: string | null }>;
   ownerId: string | null;
   criticality: string | null;
   lifecycleStatus: string | null;

@@ -16,7 +16,7 @@ import { tagsApi } from '@/api/tags';
 const CRITICALITIES = ['low', 'medium', 'high', 'mission-critical'];
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
 
-// Mock data for providers and users (until APIs are ready)
+// Mock data for providers and users - replace with API calls when ready
 const MOCK_PROVIDERS: { id: string; name: string }[] = [];
 const MOCK_USERS: { id: string; firstName: string; lastName: string }[] = [];
 
@@ -98,17 +98,17 @@ export default function ApplicationNewPage(): JSX.Element {
       )}
 
       <ApplicationForm
-        initialValues={{
-          name: '',
-          description: '',
-          comment: '',
-          domainId: null,
-          providerId: null,
-          ownerId: null,
-          criticality: null,
-          lifecycleStatus: null,
-          tags: [],
-        }}
+         initialValues={{
+           name: '',
+           description: '',
+           comment: '',
+           domainId: null,
+           providers: [],
+           ownerId: null,
+           criticality: null,
+           lifecycleStatus: null,
+           tags: [],
+         }}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={createApplication.isPending}

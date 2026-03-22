@@ -64,16 +64,16 @@ async function main() {
   console.log('Seed completed: Admin user created (admin@ark.io / admin123456)');
 
   const tagDimensions = [
-    { name: 'Geography', color: '#2196F3', icon: 'public', description: 'Geographic dimension for entities' },
-    { name: 'Brand', color: '#9C27B0', icon: 'label', description: 'Brand dimension for entities' },
-    { name: 'LegalEntity', color: '#FF9800', icon: 'account_balance', description: 'Legal entity dimension for entities' },
+    { name: 'Geography', color: '#2196F3', icon: 'public', description: 'Geographic dimension for entities', entityScope: ['application', 'domain', 'business-capability', 'data-object', 'interface', 'it-component', 'provider'] },
+    { name: 'Brand', color: '#9C27B0', icon: 'label', description: 'Brand dimension for entities', entityScope: ['application', 'domain', 'business-capability', 'data-object', 'interface', 'it-component', 'provider'] },
+    { name: 'LegalEntity', color: '#FF9800', icon: 'account_balance', description: 'Legal entity dimension for entities', entityScope: ['application', 'domain', 'business-capability', 'data-object', 'interface', 'it-component', 'provider'] },
   ];
 
   for (const dim of tagDimensions) {
     const existing = await prisma.tagDimension.findUnique({ where: { name: dim.name } });
     if (!existing) {
       await prisma.$executeRaw`INSERT INTO tag_dimensions (id, name, color, icon, description, multi_value, entity_scope, sort_order)
-        VALUES (gen_random_uuid(), ${dim.name}, ${dim.color}, ${dim.icon}, ${dim.description}, true, ARRAY[]::varchar[], 0)`;
+        VALUES (gen_random_uuid(), ${dim.name}, ${dim.color}, ${dim.icon}, ${dim.description}, true, ${dim.entityScope}, 0)`;
     }
   }
 

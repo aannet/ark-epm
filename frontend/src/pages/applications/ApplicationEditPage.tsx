@@ -119,18 +119,18 @@ export default function ApplicationEditPage(): JSX.Element {
       )}
 
       <ApplicationForm
-        entityId={id}
-        initialValues={{
-          name: application.name,
-          description: application.description || '',
-          comment: application.comment || '',
-          domainId: application.domain?.id || null,
-          providerId: application.provider?.id || null,
-          ownerId: application.owner?.id || null,
-          criticality: application.criticality,
-          lifecycleStatus: application.lifecycleStatus,
-          tags: application.tags,
-        }}
+         entityId={id}
+         initialValues={{
+           name: application.name,
+           description: application.description || '',
+           comment: application.comment || '',
+           domainId: application.domain?.id || null,
+           providers: application.providers || [],
+           ownerId: application.owner?.id || null,
+           criticality: application.criticality,
+           lifecycleStatus: application.lifecycleStatus,
+           tags: application.tags,
+         }}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={updateApplication.isPending}

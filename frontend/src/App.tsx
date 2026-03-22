@@ -16,11 +16,22 @@ import DomainNewPage from '@/pages/domains/DomainNewPage';
 import DomainDetailPage from '@/pages/domains/DomainDetailPage';
 import DomainEditPage from '@/pages/domains/DomainEditPage';
 
+// Provider pages - TODO: implement when needed
+// import ProvidersListPage from '@/pages/providers/ProvidersListPage';
+// import ProviderNewPage from '@/pages/providers/ProviderNewPage';
+// import ProviderDetailPage from '@/pages/providers/ProviderDetailPage';
+// import ProviderEditPage from '@/pages/providers/ProviderEditPage';
+
 // Application pages
 import ApplicationsListPage from '@/pages/applications/ApplicationsListPage';
 import ApplicationNewPage from '@/pages/applications/ApplicationNewPage';
 import ApplicationDetailPage from '@/pages/applications/ApplicationDetailPage';
 import ApplicationEditPage from '@/pages/applications/ApplicationEditPage';
+
+// IT Component pages
+import ITComponentListPage from '@/pages/it-components/ITComponentListPage';
+import ITComponentFormPage from '@/pages/it-components/ITComponentFormPage';
+import ITComponentDetailPage from '@/pages/it-components/ITComponentDetailPage';
 
 function App(): JSX.Element {
   useEffect(() => {
@@ -57,14 +68,23 @@ function App(): JSX.Element {
               <Route path=":id/edit" element={<ApplicationEditPage />} />
             </Route>
             
-            {/* Placeholder routes for other modules */}
-            <Route path="business-capabilities/*" element={<div />} />
-            <Route path="interfaces/*" element={<div />} />
-            <Route path="data-objects/*" element={<div />} />
-            <Route path="it-components/*" element={<div />} />
-            <Route path="providers/*" element={<div />} />
-            
-            {/* Domains routes */}
+             {/* Providers routes - TODO: implement when needed */}
+             {/* <Route path="providers" element={<Outlet />}>
+               <Route index element={<ProvidersListPage />} />
+               <Route path="new" element={<ProviderNewPage />} />
+               <Route path=":id" element={<ProviderDetailPage />} />
+               <Route path=":id/edit" element={<ProviderEditPage />} />
+             </Route> */}
+             
+             {/* IT Components routes */}
+             <Route path="it-components" element={<Outlet />}>
+               <Route index element={<ITComponentListPage />} />
+               <Route path="new" element={<ITComponentFormPage mode="create" />} />
+               <Route path=":id" element={<ITComponentDetailPage />} />
+               <Route path=":id/edit" element={<ITComponentFormPage mode="edit" />} />
+             </Route>
+             
+             {/* Domains routes */}
             <Route path="domains" element={<Outlet />}>
               <Route index element={<DomainsListPage />} />
               <Route path="new" element={<DomainNewPage />} />

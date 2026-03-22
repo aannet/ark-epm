@@ -240,15 +240,14 @@ async function main() {
           description: app.description,
           comment: app.comment,
           domainId: domain.id,
-          providerId: provider?.id || null,
           ownerId: owner?.id || null,
           criticality: app.criticality,
           lifecycleStatus: app.lifecycleStatus,
         },
       });
 
-      console.log(`✓ Created "${app.name}" (Domain: ${domain.name}, Provider: ${provider?.name || 'None'})`);
-      created++;
+       console.log(`✓ Created "${app.name}" (Domain: ${domain.name})`);
+       created++;
     } catch (error: any) {
       console.error(`✗ Failed to create "${app.name}":`, error.message);
     }

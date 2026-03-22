@@ -374,7 +374,6 @@
           "name": "Nom",
           "domain": "Domaine",
           "provider": "Fournisseur",
-          "providerRole": "Rôle du fournisseur",
           "criticality": "Criticité",
           "lifecycleStatus": "Cycle de vie",
           "tags": "Tags",
@@ -414,29 +413,23 @@
         "comment": "Commentaire interne",
         "updatedAt": "Modifié le"
       },
-       "form": {
-         "createTitle": "Nouvelle application",
-         "editTitle": "Modifier l'application",
-         "nameLabel": "Nom",
-         "descriptionLabel": "Description",
-         "commentLabel": "Commentaire interne",
-         "domainLabel": "Domaine",
-         "providerLabel": "Fournisseur",
-         "providersLabel": "Fournisseurs",
-         "providerRoleLabel": "Rôle",
-         "ownerLabel": "Responsable",
-         "criticalityLabel": "Criticité",
-         "lifecycleStatusLabel": "Cycle de vie",
-         "tagsLabel": "Tags",
-         "addProvider": "Ajouter un fournisseur",
-         "removeProvider": "Retirer",
-         "selectProvider": "Sélectionner un fournisseur",
-         "saveButton": "Enregistrer",
-         "cancelButton": "Annuler",
-         "addButton": "Ajouter",
-         "nameRequired": "Le nom est obligatoire",
-         "nameDuplicate": "Ce nom d'application est déjà utilisé"
-       },
+      "form": {
+        "createTitle": "Nouvelle application",
+        "editTitle": "Modifier l'application",
+        "nameLabel": "Nom",
+        "descriptionLabel": "Description",
+        "commentLabel": "Commentaire interne",
+        "domainLabel": "Domaine",
+        "providerLabel": "Fournisseur",
+        "ownerLabel": "Responsable",
+        "criticalityLabel": "Criticité",
+        "lifecycleStatusLabel": "Cycle de vie",
+        "tagsLabel": "Tags",
+        "saveButton": "Enregistrer",
+        "cancelButton": "Annuler",
+        "nameRequired": "Le nom est obligatoire",
+        "nameDuplicate": "Ce nom d'application est déjà utilisé"
+      },
       "drawer": {
         "close": "Fermer",
         "edit": "Modifier",
@@ -463,19 +456,13 @@
         "high": "Élevée",
         "mission-critical": "Critique"
       },
-       "lifecycle": {
-         "draft": "Brouillon",
-         "in_progress": "En développement",
-         "production": "En production",
-         "deprecated": "Dépréciée",
-         "retired": "Retirée"
-       },
-       "roles": {
-         "editor": "Éditeur",
-         "integrator": "Intégrateur",
-         "support": "Support",
-         "vendor": "Éditeur (tiers)",
-         "custom": "Personnalisé"
-       }
-     }
-   }
+      "lifecycle": {
+        "draft": "Brouillon",
+        "in_progress": "En développement",
+        "production": "En production",
+        "deprecated": "Dépréciée",
+        "retired": "Retirée"
+      }
+    }
+  }
+}

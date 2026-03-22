@@ -100,7 +100,7 @@ model Provider {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  applications  Application[]
+  appProviderMaps ApplicationProviderMap[]
 
   @@map("providers")
 }
@@ -111,25 +111,37 @@ model Application {
   description      String?             @db.Text
   comment          String?             @db.Text
   ownerId          String?             @map("owner_id") @db.Uuid
-  providerId       String?             @map("provider_id") @db.Uuid
   domainId         String?             @map("domain_id") @db.Uuid
   criticality      String?             @map("criticality") @db.VarChar(50)
   lifecycleStatus  String?             @map("lifecycle_status") @db.VarChar(50)
   createdAt        DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  appProviderMaps  ApplicationProviderMap[]
   capabilities     AppCapabilityMap[]
   dataObjects      AppDataObjectMap[]
   itComponents     AppItComponentMap[]
   domain           Domain?             @relation(fields: [domainId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   owner            User?               @relation("ApplicationOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  provider         Provider?           @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   sourceInterfaces Interface[]         @relation("InterfaceSourceApp")
   targetInterfaces Interface[]         @relation("InterfaceTargetApp")
 
-  @@index([providerId], map: "idx_applications_provider")
   @@index([domainId], map: "idx_applications_domain")
   @@index([ownerId], map: "idx_applications_owner")
   @@map("applications")
+}
+
+model ApplicationProviderMap {
+  applicationId String    @map("application_id") @db.Uuid
+  providerId    String    @map("provider_id") @db.Uuid
+  role          String?   @map("provider_role") @db.VarChar(50)
+  addedAt       DateTime  @default(now()) @map("added_at") @db.Timestamptz(6)
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  provider      Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, providerId])
+  @@index([providerId])
+  @@map("app_provider_map")
 }
 
 model AppCapabilityMap {

@@ -131,21 +131,30 @@ export default function ApplicationDrawer({
                   </Box>
                 )}
 
-                {application.provider && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('applications.list.columns.provider')}
-                    </Typography>
-                    <Link
-                      component="button"
-                      variant="body1"
-                      onClick={() => navigate(`/providers/${application.provider!.id}`)}
-                      sx={{ textAlign: 'left', textDecoration: 'underline' }}
-                    >
-                      {application.provider.name}
-                    </Link>
-                  </Box>
-                )}
+                {application.providers && application.providers.length > 0 && (
+                   <Box sx={{ mb: 2 }}>
+                     <Typography variant="body2" color="text.secondary">
+                       {t('applications.list.columns.provider')}
+                     </Typography>
+                     {application.providers.map((provider) => (
+                       <Box key={provider.id} sx={{ mb: 1 }}>
+                         <Link
+                           component="button"
+                           variant="body1"
+                           onClick={() => navigate(`/providers/${provider.id}`)}
+                           sx={{ textAlign: 'left', textDecoration: 'underline', display: 'block' }}
+                         >
+                           {provider.name}
+                         </Link>
+                         {provider.role && (
+                           <Typography variant="caption" color="text.secondary">
+                             ({provider.role})
+                           </Typography>
+                         )}
+                       </Box>
+                     ))}
+                   </Box>
+                 )}
 
                 {application.owner && (
                   <Box sx={{ mb: 2 }}>

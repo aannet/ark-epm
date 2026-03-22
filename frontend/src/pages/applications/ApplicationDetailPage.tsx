@@ -150,23 +150,34 @@ export default function ApplicationDetailPage(): JSX.Element {
                 <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
               )}
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.list.columns.provider')}
-              </Typography>
-              {application.provider ? (
-                <Link
-                  component="button"
-                  variant="body1"
-                  onClick={() => navigate(`/providers/${application.provider!.id}`)}
-                  sx={{ textDecoration: 'underline' }}
-                >
-                  {application.provider.name}
-                </Link>
-              ) : (
-                <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
-              )}
-            </Grid>
+             <Grid item xs={12} md={6}>
+               <Typography variant="body2" color="text.secondary">
+                 {t('applications.list.columns.provider')}
+               </Typography>
+               {application.providers && application.providers.length > 0 ? (
+                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                   {application.providers.map((provider) => (
+                     <Box key={provider.id}>
+                       <Link
+                         component="button"
+                         variant="body1"
+                         onClick={() => navigate(`/providers/${provider.id}`)}
+                         sx={{ textDecoration: 'underline', display: 'block' }}
+                       >
+                         {provider.name}
+                       </Link>
+                       {provider.role && (
+                         <Typography variant="caption" color="text.secondary">
+                           ({provider.role})
+                         </Typography>
+                       )}
+                     </Box>
+                   ))}
+                 </Box>
+               ) : (
+                 <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
+               )}
+             </Grid>
             <Grid item xs={12} md={6}>
               <Typography variant="body2" color="text.secondary">
                 {t('applications.detail.owner')}
