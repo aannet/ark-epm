@@ -1,7 +1,9 @@
 # ARK — Feature Spec FS-03-BACK : Providers (Backend)
 
-_Version 1.2 — Mars 2026_
+_Version 1.3 — Mars 2026_
 
+> **Changelog v1.3 :** **ÉVOLUTION MAJEURE** — Migration modèle 1:N → N:N. Une application peut désormais être liée à plusieurs providers avec des rôles distincts (éditeur, intégrateur, support). Suppression colonne `applications.provider_id`, création table `app_provider_map` avec colonne `provider_role`. RM-03 adapté pour vérifier `_count.appProviderMaps`. Impact sur FS-06-BACK et DTOs (CreateApplicationDto, UpdateApplicationDto).
+>
 > **Changelog v1.2 :** Ajout exigence mise à jour `docs/04-Tech/openapi.yaml` — instruction §8, gate G-14, checklist §10. Conformité NFR-GOV-001 désormais traçable.
 >
 > **Changelog v1.1 :** Ajout section §12 Données de seed (8 providers). Ajout gate G-13 et test Supertest audit trail (NFR-SEC-009). Complément checklist post-session.
@@ -22,9 +24,9 @@ _Version 1.2 — Mars 2026_
 | **Spec mère** | FS-03 Providers v1.0 |
 | **Spec front** | FS-03-FRONT — bloquée tant que cette spec n'est pas `done` |
 | **Estimé** | 0.5 jour |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 
-> **Note FK entrantes :** Cette entité expose `_count.applications` et `GET /:id/applications`. Elle est référencée par `applications.provider_id`. FS-06-BACK est requis en dépendance BACK.
+> **Note FK entrantes (N:N) :** Cette entité expose `_count.appProviderMaps` et `GET /:id/applications`. Elle est référencée via la table de jonction `app_provider_map`. FS-06-BACK est requis en dépendance BACK pour implémenter les DTOs et endpoints côté Application.
 
 ---
 
@@ -48,22 +50,37 @@ Le backend expose :
 
 **Migration BDD requise :**
 ```sql
-ALTER TABLE providers
-  ADD COLUMN description TEXT,
-  ADD COLUMN comment TEXT,
-  ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW(),
-  ADD CONSTRAINT providers_name_key UNIQUE (name);
+-- Créer la table de jonction N:N
+CREATE TABLE app_provider_map (
+  application_id UUID NOT NULL,
+  provider_id UUID NOT NULL,
+  provider_role VARCHAR(50),
+  added_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  PRIMARY KEY (application_id, provider_id),
+  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+  FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE CASCADE
+);
+
+-- Migrer les données existantes (provider_id → app_provider_map)
+INSERT INTO app_provider_map (application_id, provider_id, added_at)
+SELECT id, provider_id, NOW()
+FROM applications
+WHERE provider_id IS NOT NULL;
+
+-- Supprimer l'ancienne colonne FK
+ALTER TABLE applications DROP COLUMN provider_id;
 ```
 
 ---
 
-> **Pattern FK entrantes Applications :** Le Provider est référencé par `applications.provider_id`. Implémentation complète avec `FS-06-BACK` done :
+> **Pattern FK entrantes (N:N) :** Le Provider est référencé via la table de jonction `app_provider_map`. Implémentation complète avec `FS-06-BACK` done :
 >
 > | Niveau | Contenu | Dépendance |
 > |---|---|---|
-> | **BACK complet** | `_count.applications` réel + `GET /:id/applications` + test `DEPENDENCY_CONFLICT` avec Application réelle | `FS-06-BACK` requis |
+> | **BACK complet** | `_count.appProviderMaps` réel + `GET /:id/applications` + test `DEPENDENCY_CONFLICT` avec Application réelle liée via map | `FS-06-BACK` requis |
 >
-> Les tests Supertest créent une Application de test (via `POST /applications` avec `providerId`) pour valider le blocage de suppression.
+> Les tests Supertest créent une Application de test (via `POST /applications` avec `providers[]`) pour valider le blocage de suppression.
 
 ---
 
@@ -130,8 +147,8 @@ ALTER TABLE providers
 │ created_at    TIMESTAMPTZ default now()  │
 │ updated_at    TIMESTAMPTZ auto-update    │
 ├──────────────────────────────────────────┤
-│ → applications[] (1:N via                │
-│   applications.provider_id)              │
+│ → appProviderMaps[] (N:N via             │
+│   app_provider_map.provider_id)          │
 │ Suppression bloquée si count > 0 (RM-03) │
 └──────────────────────────────────────────┘
 ```
@@ -145,10 +162,10 @@ tag_values ──1:N──► entity_tags ◄── (entity_type='provider', ent
                                                     providers.id
                                                           │
                                                           │
-providers ──1:N──► applications (provider_id)
+providers ──N:N──► applications (via app_provider_map)
 
 providers:
-  - applications[] via FK applications.provider_id
+  - appProviderMaps[] via table junction app_provider_map
   - entityTags[] via polymorphisme entity_type='provider'
 ```
 
@@ -165,10 +182,23 @@ model Provider {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  applications  Application[]
-  entityTags    EntityTag[]
+  appProviderMaps ApplicationProviderMap[]
+  entityTags      EntityTag[]
 
   @@map("providers")
+}
+
+model ApplicationProviderMap {
+  applicationId String    @map("application_id") @db.Uuid
+  providerId    String    @map("provider_id") @db.Uuid
+  role          String?   @map("provider_role") @db.VarChar(50)
+  addedAt       DateTime  @default(now()) @map("added_at") @db.Timestamptz
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  provider      Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, providerId])
+  @@map("app_provider_map")
 }
 
 model Application {
@@ -579,23 +609,23 @@ async remove(id: string): Promise<void> {
   const provider = await this.prisma.provider.findUnique({
     where: { id },
     select: {
-      _count: { select: { applications: true } }
+      _count: { select: { appProviderMaps: true } }
     }
   });
   if (!provider) throw new NotFoundException('Provider not found');
 
-  if (provider._count.applications > 0) {
+  if (provider._count.appProviderMaps > 0) {
     throw new ConflictException({
       code: 'DEPENDENCY_CONFLICT',
-      message: `Provider is used by ${provider._count.applications} application(s)`,
-      details: { applicationsCount: provider._count.applications }
+      message: `Provider is used by ${provider._count.appProviderMaps} application(s)`,
+      details: { applicationsCount: provider._count.appProviderMaps }
     });
   }
   await this.prisma.provider.delete({ where: { id } });
 }
 ```
 
-> **Pattern FK entrantes :** Le compteur `applications` nécessite `FS-06-BACK` done pour être testé avec des données réelles.
+> **Pattern FK entrantes (N:N) :** Le compteur `appProviderMaps` vérifie les liens dans la table de jonction. Nécessite `FS-06-BACK` done pour être testé avec des données réelles.
 
 - **RM-04 — Droits requis :** `providers:read` sur GET. `providers:write` sur POST/PATCH/DELETE.
 
@@ -604,6 +634,8 @@ async remove(id: string): Promise<void> {
 - **RM-06 — Endpoint applications liées :** `GET /:id/applications` retourne une liste paginée d'`ApplicationListItem` (même schéma que `GET /applications`). Le provider doit exister → `404` si UUID inexistant.
 
 - **RM-07 — Contract fields P1 :** `contractType` et `expiryDate` sont exposés en API P1 sans logique métier (simple stockage). Les alertes d'expiration sont différées FS-24 P2.
+
+- **RM-08 — Rôle provider dans la relation N:N :** Le champ `provider_role` dans `app_provider_map` est optionnel (nullable). Valeurs courantes (non énumérées) : `'editor'`, `'integrator'`, `'support'`, `'vendor'`, `'custom'`. Chaque application peut associer le même provider avec des rôles différents (rare mais possible — ex: un intégrateur qui est aussi support).
 
 ---
 
@@ -904,4 +936,4 @@ console.log('Seed providers completed');
 
 ---
 
-_FS-03-BACK v1.1 — ARK_
+_FS-03-BACK v1.3 — ARK_
