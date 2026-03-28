@@ -31,7 +31,7 @@ export default defineConfig({
       name: 'api-backend',
       testMatch: /.*\.api\.spec\.ts$/,
       use: {
-        baseURL: `${process.env.API_BASE_URL || 'http://localhost:3000'}${process.env.API_VERSION || '/api/v1'}`,
+        baseURL: `${process.env.API_BASE_URL || 'http://localhost:3001'}${process.env.API_VERSION || '/api/v1'}`,
         trace: 'on-first-retry',
       },
     },

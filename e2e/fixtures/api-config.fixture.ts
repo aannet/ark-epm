@@ -9,7 +9,7 @@ export interface ApiConfigFixtures {
 export const test = baseTest.extend<ApiConfigFixtures>({
   // URL de base du backend (sans version)
   apiBaseUrl: [
-    process.env.API_BASE_URL || 'http://localhost:3000',
+    process.env.API_BASE_URL || 'http://localhost:3001',
     { option: true }
   ],
   

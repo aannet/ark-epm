@@ -94,7 +94,7 @@ test-e2e-debug:
 
 # API Backend Tests (Playwright) - Strategy: Hybrid Local/Docker
 # Variables configurable via environment or make arguments
-API_BASE_URL ?= http://localhost:3000
+API_BASE_URL ?= http://localhost:3001
 API_VERSION ?= /api/v1
 API_USER_EMAIL ?= admin@ark.io
 API_USER_PASSWORD ?= admin123456
@@ -174,6 +174,6 @@ validate-backend: build-backend
 	@echo "Validating backend..."
 	@sleep 3
 	@TOKEN=$$(./backend/scripts/get-token.sh) && \
-	curl -s http://localhost:3000/api/v1/applications -H "Authorization: Bearer $$TOKEN" > /dev/null && \
+	curl -s http://localhost:3001/api/v1/applications -H "Authorization: Bearer $$TOKEN" > /dev/null && \
 	echo "✅ Backend validation passed" || \
 	echo "❌ Backend validation failed"
