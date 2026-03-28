@@ -26,7 +26,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       expires: refreshTokenData.expiresAt,
-      path: '/auth',
+      path: '/api/v1/auth',
     });
     
     return result;
@@ -45,14 +45,14 @@ export class AuthController {
     const validation = await this.refreshTokenService.validateRefreshToken(refreshToken);
     
     if (!validation) {
-      res.clearCookie('refresh_token', { path: '/auth' });
+      res.clearCookie('refresh_token', { path: '/api/v1/auth' });
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
     const rotatedToken = await this.refreshTokenService.rotateRefreshToken(validation.userId, refreshToken);
     
     if (!rotatedToken) {
-      res.clearCookie('refresh_token', { path: '/auth' });
+      res.clearCookie('refresh_token', { path: '/api/v1/auth' });
       throw new UnauthorizedException('Token rotation failed');
     }
 
@@ -61,7 +61,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       expires: rotatedToken.expiresAt,
-      path: '/auth',
+      path: '/api/v1/auth',
     });
 
     const user = await this.authService.getProfile(validation.userId);
@@ -101,6 +101,6 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Request() req: any, @Res({ passthrough: true }) res: Response) {
     await this.refreshTokenService.revokeRefreshToken(req.user.userId);
-    res.clearCookie('refresh_token', { path: '/auth' });
+    res.clearCookie('refresh_token', { path: '/api/v1/auth' });
   }
 }
