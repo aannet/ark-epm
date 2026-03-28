@@ -40,7 +40,7 @@ _Version 0.5 — Mars 2026_
 | **ID**        | F-03                                                                 |
 | **Titre**     | Dimension Tags Foundation — moteur de tags hiérarchiques polymorphes |
 | **Priorité**  | P1                                                                   |
-| **Statut**    | `draft`                                                              |
+| **Statut**    | ✅ `done`                                                              |
 | **Dépend de** | F-02 (i18n), FS-01 (Auth & RBAC)                                     |
 | **Estimé**    | 1.5j                                                                 |
 | **Version**   | 0.5                                                                  |

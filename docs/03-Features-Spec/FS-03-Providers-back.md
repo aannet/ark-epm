@@ -19,7 +19,7 @@ _Version 1.3 — Mars 2026_
 | **ID** | FS-03-BACK |
 | **Titre** | Providers — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `stable` |
+| **Statut** | ✅ `done` |
 | **Dépend de** | FS-01, **FS-06-BACK**, F-03 |
 | **Spec mère** | FS-03 Providers v1.0 |
 | **Spec front** | FS-03-FRONT — bloquée tant que cette spec n'est pas `done` |

@@ -13,13 +13,13 @@ _Version 1.0 — Mars 2026_
 | **ID** | FS-04-FRONT |
 | **Titre** | IT Components — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
-| **Statut** | `draft` *(devient `stable` uniquement après que FS-04-BACK est `done`)* |
+| **Statut** | ✅ `done` |
 | **Dépend de** | FS-01, F-02, **FS-04-BACK** (gate bloquante), **F-03** |
 | **Spec mère** | FS-04 IT Components — spec de référence dont ce document est issu |
 | **Estimé** | 0.5 jour |
 | **Version** | 1.0 |
 
-> ⚠️ Cette spec reste à `draft` tant que `FS-04-BACK` n'est pas au statut `done` et que toutes ses gates (G-01 à G-13) ne sont pas cochées.
+> ✅ FS-04-BACK est `done` — toutes les gates sont cochées. Frontend est pleinement fonctionnel.
 
 ---
 

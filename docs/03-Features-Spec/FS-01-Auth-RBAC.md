@@ -19,9 +19,9 @@ _Version 0.5 — Février 2026_
 | Champ | Valeur |
 |---|---|
 | **ID** | FS-01 |
-| **Titre** | Auth & RBAC — Login email/password, JWT, rôles, permissions, guards NestJS, écran login React |
+| **Titre** | Auth & RBAC — Login email/password, JWT (15min TTL + refresh token), rôles, permissions, guards NestJS, écran login React |
 | **Priorité** | P1 |
-| **Statut** | `in_progress` |
+| **Statut** | ✅ `done` |
 | **Estimé** | 5 jours |
 | **Version** | 0.6 |
 

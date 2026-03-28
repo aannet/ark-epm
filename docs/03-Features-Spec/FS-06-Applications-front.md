@@ -15,13 +15,13 @@ _Version 1.1 — Mars 2026_
 | **ID** | FS-06-FRONT |
 | **Titre** | Applications — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
-| **Statut** | `draft` *(devient `stable` uniquement après que FS-06-BACK est `done`)* |
+| **Statut** | ✅ `done` |
 | **Dépend de** | **FS-06-BACK** (gate bloquante), FS-01, F-02, **F-03** (DimensionTagInput) |
 | **Spec mère** | FS-06 Applications v1.0 |
 | **Estimé** | 1.5 jour |
 | **Version** | 1.1 |
 
-> ⚠️ Cette spec reste à `draft` tant que `FS-06-BACK` n'est pas au statut `done` et que toutes ses gates (G-01 à G-10) ne sont pas cochées.
+> ✅ FS-06-BACK est `done` — toutes les gates sont cochées. Frontend est pleinement fonctionnel et livré anticipé en Sprint 2.
 
 ---
 

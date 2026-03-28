@@ -13,7 +13,7 @@ _Version 1.0 — Mars 2026_
 | **ID** | FS-04-BACK |
 | **Titre** | IT Components — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | ✅ `done` |
 | **Dépend de** | FS-01, **FS-06-BACK**, F-03 |
 | **Spec mère** | FS-04 IT Components |
 | **Spec front** | FS-04-FRONT — bloquée tant que cette spec n'est pas `done` |

@@ -17,7 +17,7 @@ _Version 1.2 — Mars 2026_
 | **ID** | FS-06-BACK |
 | **Titre** | Applications — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | ✅ `done` |
 | **Dépend de** | FS-01, F-03, **FS-02-BACK** (domains), **FS-03-BACK** (providers — N:N requirement) |
 | **Spec mère** | FS-06 Applications v1.0 |
 | **Spec front** | FS-06-FRONT — bloquée tant que cette spec n'est pas `done` |

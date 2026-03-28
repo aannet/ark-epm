@@ -5,6 +5,36 @@ _Last updated: 2026-03-18 — v0.5.1_
 
 
 ## XXXXXX
+TLDR  
+Les filtres des applications affichent maintenant uniquement les 4 champs attendus (Cycle de vie, Géographie, Marque, Entité légale) au lieu de montrer de nombreux doublons comme "Géographie 1773868450409". L'expérience utilisateur est rétablie à son état normal.
+NEW  
+- Filtrage des dimensions de tags par type d'entité (ex: application) via l'endpoint API  
+- Hook useTagDimensions mis à jour pour accepter un paramètre entityType  
+- Page des applications demande désormais uniquement les dimensions pertinentes aux applications  
+- Métadonnées entityScope ajoutées aux dimensions pour définir leur champ d'application  
+FIX  
+- Suppression de 10 dimensions "Géographie XXXXXXXXXXXX" en doublon provenant d'échecs de nettoyage de tests  
+- Correction de l'endpoint des dimensions pour filtrer selon entityScope lorsqu'un type est spécifié  
+- Restauration de l'affichage correct des filtres (4 champs au lieu de 8+)  
+- Initialisation correcte de entityScope dans le script de seed pour les dimensions de base
+
+IT COMPONENENTS
+Fonctionnalités implémentées :
+- ✅ Liste : Tableau avec tri (name, technology, type, createdAt), filtres (search, type, technology), pagination server-side
+- ✅ Drawer : PNS-02 read-only, 400px, onglets Info/Applications, boutons Modifier (disabled si !write) et Voir fiche
+- ✅ Détail : Page avec breadcrumb, onglets Info/Applications paginé (20/page), boutons Edit/Delete/Back
+- ✅ Formulaire : Unifié create/edit, validation inline, erreurs 409 CONFLICT (duplicate name)
+- ✅ Suppression : ConfirmDialog avec gestion 409 DEPENDENCY_CONFLICT (message custom + bouton disabled)
+- ✅ RBAC : Boutons masqués/disabled selon permissions it-components:read/write
+- ✅ i18n : Toutes les clés it-components.* dans fr.json
+- ✅ Tests Cypress : ~30 tests couvrant list, drawer, detail, form, delete, RBAC
+Compilation : ✅ Aucune erreur TypeScript
+Routes câblées dans App.tsx :
+- /it-components → ListPage
+- /it-components/new → FormPage (create)
+- /it-components/:id → DetailPage  
+- /it-components/:id/edit → FormPage (edit)
+
 
 
 FS-03-BACK Providers API
