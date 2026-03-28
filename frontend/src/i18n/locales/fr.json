@@ -45,6 +45,7 @@
       "title": "Aucun élément",
       "description": "Commencez par créer votre premier élément."
     },
+    "noData": "Aucune donnée",
     "confirmDialog": {
       "defaultTitle": "Confirmer la suppression",
       "defaultMessage": "Cette action est irréversible.",
@@ -232,24 +233,29 @@
        "buttonDelete": "Supprimer",
        "buttonBack": "Retour"
      },
-     "form": {
-       "breadcrumb": {
-         "home": "Accueil",
-         "list": "Fournisseurs",
-         "new": "Nouveau fournisseur"
-       },
-       "nameLabel": "Nom du fournisseur",
-       "nameRequired": "Le nom est obligatoire",
-       "nameDuplicate": "Ce nom de fournisseur existe déjà",
-       "descriptionLabel": "Description",
-       "commentLabel": "Commentaire",
-       "contractTypeLabel": "Type de contrat",
-       "contractTypePlaceholder": "ex: SaaS, Licence, Maintenance",
-       "expiryDateLabel": "Date d'expiration du contrat",
-       "tagsLabel": "Tags dimensionnels",
-       "buttonSave": "Enregistrer",
-       "buttonCancel": "Annuler"
-     },
+      "form": {
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Fournisseurs",
+          "new": "Nouveau fournisseur"
+        },
+        "nameLabel": "Nom du fournisseur",
+        "nameRequired": "Le nom est obligatoire",
+        "nameDuplicate": "Ce nom de fournisseur existe déjà",
+        "descriptionLabel": "Description",
+        "commentLabel": "Commentaire",
+        "contractTypeLabel": "Type de contrat",
+        "contractTypePlaceholder": "ex: SaaS, Licence, Maintenance",
+        "expiryDateLabel": "Date d'expiration du contrat",
+        "tagsLabel": "Tags dimensionnels",
+        "buttonSave": "Enregistrer",
+        "buttonCancel": "Annuler",
+        "editTitle": "Modifier le fournisseur"
+      },
+      "delete": {
+        "confirmTitle": "Confirmer la suppression",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer le fournisseur {{name}} ?"
+      },
      "alert": {
        "createSuccess": "Fournisseur créé avec succès",
        "updateSuccess": "Fournisseur modifié avec succès",
@@ -373,6 +379,7 @@
         "columns": {
           "name": "Nom",
           "domain": "Domaine",
+          "owner": "Responsable",
           "provider": "Fournisseur",
           "providerRole": "Rôle du fournisseur",
           "criticality": "Criticité",

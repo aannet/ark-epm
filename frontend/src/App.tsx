@@ -16,11 +16,11 @@ import DomainNewPage from '@/pages/domains/DomainNewPage';
 import DomainDetailPage from '@/pages/domains/DomainDetailPage';
 import DomainEditPage from '@/pages/domains/DomainEditPage';
 
-// Provider pages - TODO: implement when needed
-// import ProvidersListPage from '@/pages/providers/ProvidersListPage';
-// import ProviderNewPage from '@/pages/providers/ProviderNewPage';
-// import ProviderDetailPage from '@/pages/providers/ProviderDetailPage';
-// import ProviderEditPage from '@/pages/providers/ProviderEditPage';
+// Provider pages
+import ProvidersListPage from '@/pages/providers/ProvidersListPage';
+import ProviderNewPage from '@/pages/providers/ProviderNewPage';
+import ProviderDetailPage from '@/pages/providers/ProviderDetailPage';
+import ProviderEditPage from '@/pages/providers/ProviderEditPage';
 
 // Application pages
 import ApplicationsListPage from '@/pages/applications/ApplicationsListPage';
@@ -68,13 +68,13 @@ function App(): JSX.Element {
               <Route path=":id/edit" element={<ApplicationEditPage />} />
             </Route>
             
-             {/* Providers routes - TODO: implement when needed */}
-             {/* <Route path="providers" element={<Outlet />}>
+             {/* Providers routes */}
+             <Route path="providers" element={<Outlet />}>
                <Route index element={<ProvidersListPage />} />
                <Route path="new" element={<ProviderNewPage />} />
                <Route path=":id" element={<ProviderDetailPage />} />
                <Route path=":id/edit" element={<ProviderEditPage />} />
-             </Route> */}
+             </Route>
              
              {/* IT Components routes */}
              <Route path="it-components" element={<Outlet />}>

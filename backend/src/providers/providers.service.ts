@@ -255,11 +255,22 @@ export class ProvidersService {
       include: {
         domain: { select: { id: true, name: true } },
         owner: { select: { id: true, firstName: true, lastName: true } },
+        appProviderMaps: {
+          where: { providerId: id },
+          select: { role: true },
+        },
       },
     });
 
+    // AGENT-DECISION: [front] — Add providerRole to application response for drawer/detail page badge display
+    const data = applications.map((app) => ({
+      ...app,
+      providerRole: app.appProviderMaps?.[0]?.role ?? null,
+      appProviderMaps: undefined, // Remove junction data from response
+    }));
+
     return {
-      data: applications,
+      data,
       meta: {
         page,
         limit,
