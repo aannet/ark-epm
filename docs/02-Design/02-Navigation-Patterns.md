@@ -7,17 +7,15 @@ _Version 0.4 — Mars 2026_
 > - **PNS-11 ajouté** : **Breadcrumb systématique** — standard 3 niveaux (Accueil > Liste > Courant), composant partagé recommandé (FS-11 ou F-01)
 > - **§4.6 Providers** : drawer read-only, 2 onglets P1, filtres avancés P2, provider roles N:N, tags colonne liste
 > - **§3 Actions** : clarification variantes (icônes séparées vs menu dropdown)
-> - **§4 & §5** : ajout DatePicker MUI, badge conditionnel, composants métier (ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs)
+> - **Design tokens** : voir `DESIGN.md` à la racine (migration au format Google Stitch v1.0)
 
 > **Changelog v0.3 :**
 > - **PNS-03** corrigé : après une création réussie, navigation vers la **fiche détail du nouvel objet** (+ `ArkAlert success`) — abandonne le pattern "retour liste + highlight"
-> - **PNS-02** : "snackbar d'erreur" remplacé par `ArkAlert` (terminologie harmonisée avec `00-UI-Kit.md §7`)
+> - **PNS-02** : "snackbar d'erreur" remplacé par `ArkAlert` (terminologie harmonisée avec `DESIGN.md §6.3`)
 > - **Flow A, B, C** mis à jour : feedback `ArkAlert` ajouté sur chaque action CUD réussie
 > - **PNS-10** ajouté : règle transverse de feedback utilisateur (synthèse des règles `ArkAlert` pour injection OpenCode)
 
-> Ce document combine :
-> - `ARK-Navigation-Principes-Communs.md` (règles transverses)
-> - `ARK-Navigation-Objet-par-Objet.md` (spécificités par objet)
+> Ce document définit les **patterns de navigation et user flows**. Pour les tokens de design (couleurs, typo, composants), voir `DESIGN.md` à la racine.
 
 ---
 
@@ -153,7 +151,7 @@ Objets concernés en P1 : Applications, Business Capabilities. Extensible aux au
 
 ### PNS-10 — Feedback utilisateur (ArkAlert) *(nouveau)*
 
-Toute action CUD réussie ou échouée donne un feedback visuel via le composant `ArkAlert` (voir `00-UI-Kit.md §7`). Ce principe est transverse à tous les objets P1.
+Toute action CUD réussie ou échouée donne un feedback visuel via le composant `ArkAlert` (voir `DESIGN.md §6.3`). Ce principe est transverse à tous les objets P1.
 
 **Règle de déclenchement par action :**
 
@@ -171,7 +169,7 @@ Toute action CUD réussie ou échouée donne un feedback visuel via le composant
 - Alertes **error** → `useState` local dans la page ou le drawer. Pas d'auto-dismiss. Restent jusqu'à navigation.
 - Auto-dismiss : **5 000 ms** pour les alertes success. Aucun pour les alertes error.
 
- > **Règle d'implémentation :** Ne jamais créer de `Snackbar` ou d'`Alert` MUI directement dans une page. Toujours passer par le composant `ArkAlert` depuis `@/components/shared`.
+ > **Règle d'implémentation :** Ne jamais créer de `Snackbar` ou d'`Alert` MUI directement dans une page. Toujours passer par le composant `ArkAlert` depuis `@/components/shared`. Voir `DESIGN.md §6.3` pour les règles complètes.
 
 ---
 

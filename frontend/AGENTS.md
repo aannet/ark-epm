@@ -119,6 +119,31 @@ export function EntityForm({ entity, onSubmit, isLoading }: EntityFormProps) {
 | `DimensionTagInput` | `components/tags/DimensionTagInput.tsx` | S\u00e9lecteur de tags par dimension (autocomplete) |
 | `TagChipList` | `components/tags/TagChipList.tsx` | Affichage lecture seule des tags |
 
+### DESIGN.md — Design System as Code (Google Stitch Format)
+
+**Source de vérité pour tous les tokens de design.** Voir `DESIGN.md` à la racine du projet.
+
+Avant d'implémenter un composant UI :
+1. **Charger `DESIGN.md` comme contexte de session** — c'est le fichier normatif pour Claude Code, Cursor, et autres agents IA
+2. **Consulter les sections pertinentes :**
+   - §1 Visual Theme — mood et philosophie ARK
+   - §2 Color Palette — tous les tokens de couleur avec hex
+   - §3 Typography — échelle, poids, utilisation
+   - §4 Component Stylings — styles spécifiques des composants
+   - §5 Layout & Responsive — grille, spacing, breakpoints
+   - §6 Feedback & Business Components — ArkAlert, ConfirmDialog, badges
+3. **Appliquer les constraints** dans votre prompt IA :
+   - "Utilise uniquement les couleurs définies dans DESIGN.md §2"
+   - "Respecte l'espacement basé sur multiples de 8px (DESIGN.md §5)"
+   - "Les badges doivent être des Chips de taille 'small' (DESIGN.md §4.5)"
+
+**Ce qui ne change jamais :**
+- ✅ Indigo Blueprint (#1A237E) pour la sidebar
+- ✅ Azure Action (#007FFF) pour les actions primaires
+- ✅ Spacing en multiples de 8px
+- ✅ MUI v5 — jamais de Tailwind
+- ✅ Composants MUI natifs (pas de custom CSS)
+
 ---
 
 ## 3. Internationalisation (i18n)

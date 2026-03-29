@@ -181,6 +181,7 @@ D\u00e9veloppement des composants React, pages, int\u00e9gration API, et respect
 - Data fetching via React Query/SWR \u2014 pas de fetch brut dans les composants
 - Page pattern : `/<entity>s`, `/<entity>s/new`, `/<entity>s/:id`, `/<entity>s/:id/edit`
 - Apr\u00e8s changement styling : mentionner "V\u00e9rifiez dans le navigateur (Ctrl+F5)"
+- **DESIGN.md (Google Stitch format)** : À la racine du projet. Source de vérité pour tous les tokens de design (couleurs, typo, composants, spacing). Charger ce fichier comme contexte de session avant toute implémentation UI.
 
 #### Checklist avant "done"
 - [ ] Composant TypeScript strict (0 `any`)

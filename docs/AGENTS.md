@@ -9,6 +9,33 @@
 
 ```
 docs/
+├── 01-Product/
+│   ├── ARK-Product-Brief.md        # Brief produit (contexte, objectifs)
+│   ├── ARK-Roadmap.md              # Roadmap fonctionnelle par sprint
+│   ├── ARK-Glossary.md             # Glossaire EA (entités, termes métier)
+│   ├── ARK-Personae.md             # Profils utilisateurs cibles
+│   └── ARK-Release-Note-template.md
+├── 02-Design/
+│   └── 02-Navigation-Patterns.md   # Patterns de navigation UI (flows, PNS-01 à PNS-11)
+├── 03-Features-Spec/              # Specs fonctionnelles (coeur du workflow)
+│   ├── _template.md                # Index/routeur des templates (v0.4)
+│   ├── _template_back.md           # Template spec backend
+│   ├── _template_front.md          # Template spec frontend
+│   ├── F-XX-<slug>.md              # Fondations (format libre)
+│   ├── FS-XX-<slug>-back.md        # Specs backend
+│   ├── FS-XX-<slug>-front.md       # Specs frontend
+│   └── P2/                         # Phase 2 (backlog)
+├── 04-Tech/
+│   ├── ARK-Architecture-Setup.md   # Architecture technique
+│   ├── ARK-NFR.md                  # Exigences non fonctionnelles
+│   ├── openapi.yaml                # Contrat API (source de vérité)
+│   └── schema.sql                  # Schéma SQL généré
+└── 05-Project/
+    └── Import-Data-Template.md     # Template d'import de données
+
+DESIGN.md (à la racine)             # Design system tokens (Google Stitch format v1.0)
+```
+docs/
 \u251c\u2500\u2500 01-Product/
 \u2502   \u251c\u2500\u2500 ARK-Product-Brief.md        # Brief produit (contexte, objectifs)
 \u2502   \u251c\u2500\u2500 ARK-Roadmap.md              # Roadmap fonctionnelle par sprint
