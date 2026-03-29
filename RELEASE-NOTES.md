@@ -1,10 +1,71 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-29 — v0.6.0_
+_Last updated: 2026-03-29 — v0.7.0_
 
 > This file contains the complete release history for ARK, most recent first.
 > One entry per release. Each release maps to one or more completed sprints.
 > Format: add new entries at the top, above the previous release separator.
+
+---
+
+## v0.7.0 — 2026-03-29
+
+> Sprint 2 Enhancement — IT Components ↔ Applications bidirectional relationship + UI improvements
+
+### Highlights
+
+- **Bidirectional IT Components ↔ Applications** — Complete N:N relationship implementation with symmetric navigation, count badges, and validation guards
+- **Enhanced Applications List** — New IT Components count column with chip badge, clickable component/domain/provider links
+- **Comprehensive E2E Testing** — 50+ Playwright tests for APIs and bidirectional relationship validation
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| FS-06-v1.2 | Applications: IT Components count chip + clickable names | P1 |
+| FS-04-v1.1 | IT Components: clickable application names + DeleteIcon fix | P1 |
+| Bidirectional-APIs | `GET /applications/{id}/it-components`, `GET /it-components/{id}/applications` | P1 |
+
+#### Technical Improvements
+
+| Ref | Description |
+|---|---|
+| Frontend UI | 5 files updated: ApplicationsListPage (Chip column), ApplicationDetailPage (links), ApplicationDrawer (links), ITComponentDetailPage (links), ITComponentListPage (DeleteIcon fix) |
+| OpenAPI | ApplicationListItem schema now includes `itComponents` array for consistency with detail endpoint |
+| Frontend i18n | New key `applications.list.columns.itComponents` (FR: "Composants IT") |
+| E2E Tests | 40+ new API tests covering CRUD, dependencies, bidirectional queries, and deletion guards |
+| TestDataFactory | New `createItComponent()` method with auto-cleanup |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- No frontend UI tests (Playwright/Cypress) for the new clickable links — pure API tests only
+- Drag-drop IT Component reordering deferred (no use case identified)
+- Mass operations (add same ICs to multiple apps) deferred to future sprint
+
+### Migration Steps
+
+```bash
+# No manual steps required for this release
+docker-compose down
+docker-compose pull
+npx prisma migrate deploy
+docker-compose up -d
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| FS-06-Applications-front v1.2 | Applications: IT Components enhancements | ✅ done |
+| FS-04-IT-Components-front v1.1 | IT Components: bidirectional support | ✅ done |
+| OpenAPI v2.5 | Complete Application schemas with itComponents | ✅ done |
+| E2E Tests | 40+ Playwright tests for IT Components | ✅ done |
 
 ---
 
