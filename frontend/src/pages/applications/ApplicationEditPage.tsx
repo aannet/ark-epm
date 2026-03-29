@@ -9,6 +9,7 @@ import ArkAlert from '@/components/shared/ArkAlert';
 import { ApplicationForm } from '@/components/applications';
 import { useApplication, useUpdateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
+import { useProviders } from '@/api/providers';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
@@ -16,8 +17,7 @@ import { tagsApi } from '@/api/tags';
 const CRITICALITIES = ['low', 'medium', 'high', 'mission-critical'];
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
 
-// Mock data for providers and users (until APIs are ready)
-const MOCK_PROVIDERS: { id: string; name: string }[] = [];
+// Mock data for users (until APIs are ready)
 const MOCK_USERS: { id: string; firstName: string; lastName: string }[] = [];
 
 export default function ApplicationEditPage(): JSX.Element {
@@ -34,6 +34,10 @@ export default function ApplicationEditPage(): JSX.Element {
     enabled: !!id,
   });
   const { data: domains, isLoading: isLoadingDomains } = useDomains();
+  const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
+
+  // Map providers response to select options format
+  const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
 
   useEffect(() => {
     if (error && (error as any)?.response?.status === 404) {
@@ -78,7 +82,7 @@ export default function ApplicationEditPage(): JSX.Element {
     navigate(`/applications/${id}`);
   };
 
-  if (isLoadingApp || isLoadingDomains) {
+  if (isLoadingApp || isLoadingDomains || isLoadingProviders) {
     return (
       <PageContainer>
         <PageHeader title={t('applications.form.editTitle')} />
@@ -136,13 +140,13 @@ export default function ApplicationEditPage(): JSX.Element {
         isLoading={updateApplication.isPending}
         error={submitError}
         fieldError={fieldError}
-        availableOptions={{
-          domains: domains || [],
-          providers: MOCK_PROVIDERS,
-          users: MOCK_USERS,
-          criticalities: CRITICALITIES,
-          lifecycleStatuses: LIFECYCLE_STATUSES,
-        }}
+         availableOptions={{
+           domains: domains || [],
+           providers: providerOptions,
+           users: MOCK_USERS,
+           criticalities: CRITICALITIES,
+           lifecycleStatuses: LIFECYCLE_STATUSES,
+         }}
         availableDimensions={availableDimensions}
       />
     </PageContainer>
