@@ -1254,41 +1254,49 @@ components:
            nullable: true
            maxLength: 100
 
-     ApplicationListItem:
-       type: object
-       properties:
-         id: { type: string, format: uuid }
-         name: { type: string }
-         description: { type: string, nullable: true }
-         domain:
-           type: object
-           nullable: true
-           properties:
-             id: { type: string, format: uuid }
-             name: { type: string }
-         providers:
-           type: array
-           description: Liste des providers associés avec leurs rôles
-           items:
-             type: object
-             properties:
-               id: { type: string, format: uuid }
-               name: { type: string }
-               role: { type: string, nullable: true }
-         owner:
-           type: object
-           nullable: true
-           properties:
-             id: { type: string, format: uuid }
-             firstName: { type: string }
-             lastName: { type: string }
-         criticality: { type: string, nullable: true }
-         lifecycleStatus: { type: string, nullable: true }
-         createdAt: { type: string, format: date-time }
-         tags:
-           type: array
-           items:
-             $ref: '#/components/schemas/TagValueResponse'
+      ApplicationListItem:
+        type: object
+        properties:
+          id: { type: string, format: uuid }
+          name: { type: string }
+          description: { type: string, nullable: true }
+          domain:
+            type: object
+            nullable: true
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+          providers:
+            type: array
+            description: Liste des providers associés avec leurs rôles
+            items:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                name: { type: string }
+                role: { type: string, nullable: true }
+          itComponents:
+            type: array
+            description: Liste des composants IT liés à cette application
+            items:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                name: { type: string }
+          owner:
+            type: object
+            nullable: true
+            properties:
+              id: { type: string, format: uuid }
+              firstName: { type: string }
+              lastName: { type: string }
+          criticality: { type: string, nullable: true }
+          lifecycleStatus: { type: string, nullable: true }
+          createdAt: { type: string, format: date-time }
+          tags:
+            type: array
+            items:
+              $ref: '#/components/schemas/TagValueResponse'
 
      ApplicationResponse:
        type: object

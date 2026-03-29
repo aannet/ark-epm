@@ -1,8 +1,10 @@
 # ARK — Feature Spec FS-04-FRONT : IT Components (Frontend)
 
-_Version 1.0 — Mars 2026_
+_Version 1.1 — Mars 2026_
 
 > **Changelog v1.0 :** Création — module IT Components frontend conforme template v0.1 et pattern PNS-02 (Side Drawer read-only + Page Détail). Filtres avancés (search, type, technology). Menu dropdown Actions. Onglet Relations Applications dans drawer et page détail. Gestion 409 DEPENDENCY_CONFLICT avec message custom. DimensionTagInput pour édition tags. Cohérent avec FS-03-Providers-front v1.0.
+>
+> **Changelog v1.1 :** Amélioration bidirectionnelle IT Components ↔ Applications. Application names dans l'onglet Relations deviennent clickables (`/applications/{id}`). Correction bug: DeleteIcon au lieu de EditIcon dans la liste. Synchronisation i18n complète avec nouvelle colonne `itComponents` en Applications.
 
 ---
 
@@ -17,7 +19,7 @@ _Version 1.0 — Mars 2026_
 | **Dépend de** | FS-01, F-02, **FS-04-BACK** (gate bloquante), **F-03** |
 | **Spec mère** | FS-04 IT Components — spec de référence dont ce document est issu |
 | **Estimé** | 0.5 jour |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 
 > ✅ FS-04-BACK est `done` — toutes les gates sont cochées. Frontend est pleinement fonctionnel.
 
