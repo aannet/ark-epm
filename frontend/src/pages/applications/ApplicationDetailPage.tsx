@@ -177,11 +177,27 @@ export default function ApplicationDetailPage(): JSX.Element {
                ) : (
                  <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
                )}
+              </Grid>
+             <Grid item xs={12} md={6}>
+               <Typography variant="body2" color="text.secondary">
+                 {t('applications.relations.itComponents')}
+               </Typography>
+               {application.itComponents && application.itComponents.length > 0 ? (
+                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                   {application.itComponents.map((itComponent) => (
+                     <Typography key={itComponent.id} variant="body1">
+                       {itComponent.name}
+                     </Typography>
+                   ))}
+                 </Box>
+               ) : (
+                 <Typography variant="body1">{t('applications.relations.noItComponents')}</Typography>
+               )}
              </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.detail.owner')}
-              </Typography>
+             <Grid item xs={12} md={6}>
+               <Typography variant="body2" color="text.secondary">
+                 {t('applications.detail.owner')}
+               </Typography>
               <Typography variant="body1">
                 {application.owner
                   ? `${application.owner.firstName} ${application.owner.lastName}`

@@ -154,13 +154,26 @@ export default function ApplicationDrawer({
                        </Box>
                      ))}
                    </Box>
-                 )}
+                  )}
 
-                {application.owner && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('applications.detail.owner')}
-                    </Typography>
+                 {application.itComponents && application.itComponents.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('applications.relations.itComponents')}
+                      </Typography>
+                      {application.itComponents.map((itComponent) => (
+                        <Typography key={itComponent.id} variant="body1" sx={{ mb: 0.5 }}>
+                          {itComponent.name}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+
+                 {application.owner && (
+                   <Box sx={{ mb: 2 }}>
+                     <Typography variant="body2" color="text.secondary">
+                       {t('applications.detail.owner')}
+                     </Typography>
                     <Typography variant="body1">
                       {application.owner.firstName} {application.owner.lastName}
                     </Typography>

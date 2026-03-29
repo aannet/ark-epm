@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ProviderMappingDto } from './provider-mapping.dto';
+import { ItComponentMappingDto } from './it-component-mapping.dto';
 
 export class CreateApplicationDto {
   @IsString()
@@ -37,6 +38,13 @@ export class CreateApplicationDto {
   @ValidateNested({ each: true })
   @Type(() => ProviderMappingDto)
   providers?: ProviderMappingDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(0)
+  @ValidateNested({ each: true })
+  @Type(() => ItComponentMappingDto)
+  itComponents?: ItComponentMappingDto[];
 
   @IsUUID()
   @IsOptional()

@@ -10,6 +10,7 @@ import { ApplicationForm } from '@/components/applications';
 import { useCreateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
 import { useProviders } from '@/api/providers';
+import { useITComponents } from '@/api/it-components';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
@@ -31,9 +32,11 @@ export default function ApplicationNewPage(): JSX.Element {
 
   const { data: domains, isLoading: isLoadingDomains } = useDomains();
   const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
+  const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
 
-  // Map providers response to select options format
+  // Map providers and IT components response to select options format
   const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
+  const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
 
   const handleSubmit = useCallback(
     async (values: ApplicationFormValues) => {
@@ -76,7 +79,7 @@ export default function ApplicationNewPage(): JSX.Element {
     navigate('/applications');
   };
 
-  if (isLoadingDomains || isLoadingProviders) {
+  if (isLoadingDomains || isLoadingProviders || isLoadingItComponents) {
     return (
       <PageContainer>
         <PageHeader title={t('applications.form.createTitle')} />
@@ -108,6 +111,7 @@ export default function ApplicationNewPage(): JSX.Element {
            comment: '',
            domainId: null,
            providers: [],
+           itComponents: [],
            ownerId: null,
            criticality: null,
            lifecycleStatus: null,
@@ -121,6 +125,7 @@ export default function ApplicationNewPage(): JSX.Element {
          availableOptions={{
            domains: domains || [],
            providers: providerOptions,
+           itComponents: itComponentOptions,
            users: MOCK_USERS,
            criticalities: CRITICALITIES,
            lifecycleStatuses: LIFECYCLE_STATUSES,

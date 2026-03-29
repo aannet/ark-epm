@@ -88,17 +88,29 @@ https://mui.com/material-ui/react-autocomplete/
 ------------------------------------------------------------------
 # 29/03
 
+- [x] FS 06 Application
+  - [x] 1. Adapter ApplicationForm (single-select → multi-select providers)
+  - [ ] Liaison 1 application, plusieurs composants 
+
 
 - [ ] FS 03 Provider
-  - [ ] FRONT - development
+  - [ ] FRONT - FIX
     - [ ] review  
+  - [ ] DEPENDENCY CONFLICT :  "Provider is used by 3 application(s)"
+
+- [x] Pattern breadcrumb mis à jour
+- [x] Adapter le breadcrumb des provider au reste -> technical debt 
 
 
-- Adapter le breadcrumb des provider au reste 
 - pattern d'onglet à mettre à jour dans la mise à jour  
 - 
 
 
+
+SESSION EVOLUTION ou Finiiton 
+Un applicatif est connecté à 1 ou plusieurs applications
+1-évalue l'implémentation back en commençant par les specs, puis le code back (agent arch, doc, back, prisma)
+2-évalue l'implémentation front en commençant par les specs, puis le code front (agent arch, doc, front)
 
 
 ------------------------------------------------------------------
@@ -110,11 +122,8 @@ https://mui.com/material-ui/react-autocomplete/
   - [X] FRONT - development
     - [X] first version
 
-
 ------------------------------------------------------------------
 # 21/03
-
-
 
 - AUTH : KO
 - http://localhost:5173/api/v1/auth/login [HTTP/1.1 500 Internal Server Error 8ms]
@@ -126,7 +135,7 @@ https://mui.com/material-ui/react-autocomplete/
 
 - [ ] FS 03 Provider
   - [x] Front spec
-  - [ ] REmise à jour du fichier front + roadmap.
+  - [x] REmise à jour du fichier front + roadmap.
   - [X] MODEL issue : necessité d'avoir une APP - N fournisseurs reliés (intégrateur / license logicielle)
   - [ ] Impact front 
   - [ ] DEPENDENCY CONFLICT :  "Provider is used by 3 application(s)"

@@ -52,6 +52,15 @@ export class ApplicationsController {
     return this.applicationsService.getDependencies(id);
   }
 
+  @Get(':id/it-components')
+  @RequirePermissions('applications:read')
+  getApplicationItComponents(
+    @Param('id') id: string,
+    @Query() query: QueryApplicationsDto,
+  ) {
+    return this.applicationsService.getApplicationItComponents(id, query);
+  }
+
   @Patch(':id')
   @RequirePermissions('applications:write')
   update(

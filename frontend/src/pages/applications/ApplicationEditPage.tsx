@@ -10,6 +10,7 @@ import { ApplicationForm } from '@/components/applications';
 import { useApplication, useUpdateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
 import { useProviders } from '@/api/providers';
+import { useITComponents } from '@/api/it-components';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
@@ -35,9 +36,11 @@ export default function ApplicationEditPage(): JSX.Element {
   });
   const { data: domains, isLoading: isLoadingDomains } = useDomains();
   const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
+  const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
 
-  // Map providers response to select options format
+  // Map providers and IT components response to select options format
   const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
+  const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
 
   useEffect(() => {
     if (error && (error as any)?.response?.status === 404) {
@@ -82,7 +85,7 @@ export default function ApplicationEditPage(): JSX.Element {
     navigate(`/applications/${id}`);
   };
 
-  if (isLoadingApp || isLoadingDomains || isLoadingProviders) {
+  if (isLoadingApp || isLoadingDomains || isLoadingProviders || isLoadingItComponents) {
     return (
       <PageContainer>
         <PageHeader title={t('applications.form.editTitle')} />
@@ -130,6 +133,7 @@ export default function ApplicationEditPage(): JSX.Element {
            comment: application.comment || '',
            domainId: application.domain?.id || null,
            providers: application.providers || [],
+           itComponents: application.itComponents || [],
            ownerId: application.owner?.id || null,
            criticality: application.criticality,
            lifecycleStatus: application.lifecycleStatus,
@@ -143,6 +147,7 @@ export default function ApplicationEditPage(): JSX.Element {
          availableOptions={{
            domains: domains || [],
            providers: providerOptions,
+           itComponents: itComponentOptions,
            users: MOCK_USERS,
            criticalities: CRITICALITIES,
            lifecycleStatuses: LIFECYCLE_STATUSES,

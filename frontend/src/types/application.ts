@@ -6,6 +6,11 @@ export interface ProviderMapping {
   role?: string | null;
 }
 
+export interface ItComponentMapping {
+  id: string;
+  name: string;
+}
+
 export interface Application {
   id: string;
   name: string;
@@ -13,6 +18,7 @@ export interface Application {
   comment: string | null;
   domain: { id: string; name: string } | null;
   providers: ProviderMapping[];
+  itComponents: ItComponentMapping[];
   owner: { id: string; firstName: string; lastName: string; email: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;
@@ -40,6 +46,7 @@ export interface ApplicationFormValues {
   comment: string;
   domainId: string | null;
   providers: Array<{ id: string; role?: string | null }>;
+  itComponents: Array<{ id: string }>;
   ownerId: string | null;
   criticality: string | null;
   lifecycleStatus: string | null;

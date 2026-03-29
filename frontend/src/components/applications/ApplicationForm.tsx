@@ -50,6 +50,7 @@ interface ApplicationFormProps {
   availableOptions: {
     domains: SelectOption[];
     providers: SelectOption[];
+    itComponents: SelectOption[];
     users: UserOption[];
     criticalities: string[];
     lifecycleStatuses: string[];
@@ -77,6 +78,7 @@ export default function ApplicationForm({
     comment: initialValues?.comment || '',
     domainId: initialValues?.domainId || null,
     providers: initialValues?.providers || [],
+    itComponents: initialValues?.itComponents || [],
     ownerId: initialValues?.ownerId || null,
     criticality: initialValues?.criticality || null,
     lifecycleStatus: initialValues?.lifecycleStatus || null,
@@ -86,6 +88,9 @@ export default function ApplicationForm({
   const [providerDialogOpen, setProviderDialogOpen] = useState(false);
   const [selectedProviderId, setSelectedProviderId] = useState<string>('');
   const [providerRole, setProviderRole] = useState<string>('');
+  
+  const [itComponentDialogOpen, setItComponentDialogOpen] = useState(false);
+  const [selectedItComponentId, setSelectedItComponentId] = useState<string>('');
 
   const handleChange = useCallback(
     (field: keyof ApplicationFormValues, value: string | null) => {
@@ -125,6 +130,27 @@ export default function ApplicationForm({
       providers: prev.providers.map(p =>
         p.id === providerId ? { ...p, role: newRole || null } : p
       ),
+    }));
+  };
+
+  const handleAddItComponent = () => {
+    if (selectedItComponentId && !values.itComponents.some(ic => ic.id === selectedItComponentId)) {
+      setValues((prev) => ({
+        ...prev,
+        itComponents: [
+          ...prev.itComponents,
+          { id: selectedItComponentId },
+        ],
+      }));
+      setSelectedItComponentId('');
+      setItComponentDialogOpen(false);
+    }
+  };
+
+  const handleRemoveItComponent = (itComponentId: string) => {
+    setValues((prev) => ({
+      ...prev,
+      itComponents: prev.itComponents.filter(ic => ic.id !== itComponentId),
     }));
   };
 
@@ -320,6 +346,107 @@ export default function ApplicationForm({
               onClick={handleAddProvider}
               variant="contained"
               disabled={!selectedProviderId}
+            >
+              {t('applications.form.addButton')}
+            </Button>
+          </DialogActions>
+         </Dialog>
+
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {t('applications.form.itComponentsLabel')}
+          </Typography>
+          {values.itComponents.length > 0 && (
+            <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {values.itComponents.map((itComponent) => {
+                const itComponentName = availableOptions.itComponents.find(ic => ic.id === itComponent.id)?.name || itComponent.id;
+                return (
+                  <Box
+                    key={itComponent.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 1.5,
+                      bgcolor: 'action.hover',
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {itComponentName}
+                    </Typography>
+                    <Button
+                      variant="text"
+                      color="error"
+                      size="small"
+                      onClick={() => handleRemoveItComponent(itComponent.id)}
+                      disabled={isLoading}
+                    >
+                      {t('applications.form.removeItComponent')}
+                    </Button>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={() => setItComponentDialogOpen(true)}
+            disabled={isLoading}
+            fullWidth
+          >
+            {t('applications.form.addItComponent')}
+          </Button>
+        </Box>
+
+        {/* IT Component Selection Dialog */}
+        <Dialog
+          open={itComponentDialogOpen}
+          onClose={() => {
+            setItComponentDialogOpen(false);
+            setSelectedItComponentId('');
+          }}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>{t('applications.form.selectItComponent')}</DialogTitle>
+          <DialogContent sx={{ pt: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel>{t('applications.relations.itComponents')}</InputLabel>
+              <Select
+                value={selectedItComponentId}
+                label={t('applications.relations.itComponents')}
+                onChange={(e) => setSelectedItComponentId(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>{t('applications.detail.noValue')}</em>
+                </MenuItem>
+                {availableOptions.itComponents
+                  .filter(ic => !values.itComponents.some(vic => vic.id === ic.id))
+                  .map((itComponent) => (
+                    <MenuItem key={itComponent.id} value={itComponent.id}>
+                      {itComponent.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setItComponentDialogOpen(false);
+                setSelectedItComponentId('');
+              }}
+            >
+              {t('applications.form.cancelButton')}
+            </Button>
+            <Button
+              onClick={handleAddItComponent}
+              variant="contained"
+              disabled={!selectedItComponentId}
             >
               {t('applications.form.addButton')}
             </Button>

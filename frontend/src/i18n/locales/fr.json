@@ -431,6 +431,7 @@
          "providerLabel": "Fournisseur",
          "providersLabel": "Fournisseurs",
          "providerRoleLabel": "Rôle",
+         "itComponentsLabel": "Composants IT",
          "ownerLabel": "Responsable",
          "criticalityLabel": "Criticité",
          "lifecycleStatusLabel": "Cycle de vie",
@@ -438,11 +439,20 @@
          "addProvider": "Ajouter un fournisseur",
          "removeProvider": "Retirer",
          "selectProvider": "Sélectionner un fournisseur",
+         "addItComponent": "Ajouter un composant IT",
+         "removeItComponent": "Retirer",
+         "selectItComponent": "Sélectionner un composant IT",
          "saveButton": "Enregistrer",
          "cancelButton": "Annuler",
          "addButton": "Ajouter",
          "nameRequired": "Le nom est obligatoire",
          "nameDuplicate": "Ce nom d'application est déjà utilisé"
+       },
+       "relations": {
+         "itComponents": "Composants IT",
+         "itComponentsCount": "{{count}} composant(s) IT",
+         "noItComponents": "Aucun composant IT lié",
+         "itComponentsDescription": "Composants IT utilisés par cette application"
        },
       "drawer": {
         "close": "Fermer",

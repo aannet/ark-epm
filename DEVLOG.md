@@ -1,4 +1,11 @@
 
+# 2026-03-28
+
+* test Opus en Plan et Haiku en dev
+  * j'ai l'impression d'avoir de meilleurs résultats et plus complets 
+* suite au POC drupal, j'ai restructuré l'agent.md en plusieurs sous agents
+* 
+
 # 2026-03-18
 
 * Test Claude Opus en plan et Kimi en Dev
