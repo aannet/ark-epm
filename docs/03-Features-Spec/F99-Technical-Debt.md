@@ -590,43 +590,68 @@ async setEntityTagsBatch(
 
 | | |
 |---|---|
-| **Statut** | 🔴 En cours — FS-03-FRONT implémentation en attente |
+| **Statut** | ✅ **DONE** — FS-03-FRONT implémentée le 2026-03-29 |
 | **Priorité** | Moyenne — bloque navigation vers module Providers |
+| **Gate de validation** | ✅ Routes `/providers` fonctionnelles avec navigation sidebar, CRUD complet |
 
 **Contexte :**
 Lors de l'implémentation de FS-04-IT-Components-front, les routes Providers dans `App.tsx` importaient des composants (`ProvidersListPage`, `ProviderNewPage`, `ProviderDetailPage`, `ProviderEditPage`) qui n'existaient pas encore dans le repository. Pour permettre la compilation TypeScript sans erreur, les routes ont été temporairement commentées.
 
 **Décision :**
-- Les routes Providers sont commentées dans `App.tsx` (lignes 71-77)
-- Les imports des composants Providers sont également commentés (lignes 20-23)
-- **Déblocage :** FS-03-FRONT (Providers frontend) doit implémenter les 4 composants manquants
-- **Migration :** Décommenter les lignes après livraison de FS-03-FRONT
+- Les routes Providers **étaient** commentées dans `App.tsx` (lignes 71-77)
+- Les imports des composants Providers **étaient** commentés (lignes 20-23)
+- **Déblocage :** FS-03-FRONT (Providers frontend) a implémenté les 4 composants manquants
+- **Migration :** Routes sont maintenant **décommentées** dans App.tsx
 
-**Fichier concerné :**
+**Fichier impacté :**
 ```
-frontend/src/App.tsx
-```
-
-**Code à décommenter :**
-```typescript
-// Provider pages - TODO: implement when needed
-// import ProvidersListPage from '@/pages/providers/ProvidersListPage';
-// import ProviderNewPage from '@/pages/providers/ProviderNewPage';
-// import ProviderDetailPage from '@/pages/providers/ProviderDetailPage';
-// import ProviderEditPage from '@/pages/providers/ProviderEditPage';
-
-// ...
-
-/* Providers routes - TODO: implement when needed
-<Route path="providers" element={<Outlet />}>
-  <Route index element={<ProvidersListPage />} />
-  <Route path="new" element={<ProviderNewPage />} />
-  <Route path=":id" element={<ProviderDetailPage />} />
-  <Route path=":id/edit" element={<ProviderEditPage />} />
-</Route> */
+frontend/src/App.tsx (lines 19-23, 71-77)
 ```
 
-**Gate de validation :** Routes `/providers` fonctionnelles avec navigation sidebar, liste, création, édition, suppression
+**Implémentation complétée :**
+- ✅ `frontend/src/pages/providers/ProvidersListPage.tsx` (327 LOC)
+- ✅ `frontend/src/pages/providers/ProviderNewPage.tsx` (107 LOC)
+- ✅ `frontend/src/pages/providers/ProviderDetailPage.tsx` (283 LOC)
+- ✅ `frontend/src/pages/providers/ProviderEditPage.tsx` (136 LOC)
+- ✅ Composants support (Drawer, Form, RoleBadge, ExpiryDateBadge)
+
+**Gate de validation :** ✅ Routes `/providers` fonctionnelles — navigation sidebar, liste (pagination + search), création, édition, suppression avec 409 DEPENDENCY_CONFLICT handling
+
+---
+
+### Item 17 — Filtres dropdowns dans ProvidersListPage *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 En attente — Backend query param support requis |
+| **Priorité** | Basse — Spec demande 3 filtres (search + contractType + expiryDate), search seul implémenté |
+
+**Contexte :**
+La spec FS-03-Providers-front.md (§3.2 Layout Contract, §4 Checklist) demande une barre de filtres avec 3 contrôles sur ProvidersListPage :
+1. `TextField` search (debounced) — ✅ **IMPLÉMENTÉ**
+2. `FormControl` dropdown contractType — ❌ **NON IMPLÉMENTÉ**
+3. `FormControl` dropdown expiryDate (options: 30/90/180 jours) — ❌ **NON IMPLÉMENTÉ**
+
+Le backend `QueryProvidersDto` actuellement supporte **uniquement** `search`, `page`, `limit`, `sortBy`, `sortOrder`. Les query params `contractType` et `expiryDate` n'existent pas encore.
+
+**Décision :**
+- **v1.0 (actuel)** : Search seul implémenté. Spec gate partiellement déverrouillée (2/3 filtres)
+- **v1.1 (Sprint 3)** : Ajouter les query params au backend QueryProvidersDto
+  - Backend : Ajouter support `contractType?: string` et `expiryDate?: { min, max }` ou deux params séparés
+  - Frontend : Implémenter les deux dropdowns dans ProvidersListPage avec filtrage côté API
+  - Données dropdowns : Hardcodées ou générées dynamiquement à partir des entités existantes
+
+**Impact :**
+- Backend : Modification DTO + query WHERE clauses
+- Frontend : Deux nouveaux FormControl + MUI Select composants
+- UX : Amélioration expérience de filtrage (actuellement search seul)
+
+**Fichiers à modifier :**
+- `backend/src/providers/dto/query-providers.dto.ts` — ajouter fields
+- `backend/src/providers/providers.service.ts` — ajouter WHERE clauses
+- `frontend/src/pages/providers/ProvidersListPage.tsx` — ajouter dropdowns
+
+**Timing :** Sprint 3 (après FS-03-FRONT completion et Sprint 2 closure)
 
 ---
 

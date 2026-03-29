@@ -85,6 +85,33 @@ https://mui.com/material-ui/react-autocomplete/
 
 
 
+------------------------------------------------------------------
+# 29/03
+
+
+- [ ] FS 03 Provider
+  - [ ] FRONT - development
+    - [ ] review  
+
+
+- Adapter le breadcrumb des provider au reste 
+- pattern d'onglet à mettre à jour dans la mise à jour  
+- 
+
+
+
+
+------------------------------------------------------------------
+# 28/03
+- [x] Auth corrigée
+- [x] roadmap
+
+- [X] FS 03 Provider
+  - [X] FRONT - development
+    - [X] first version
+
+
+------------------------------------------------------------------
 # 21/03
 
 

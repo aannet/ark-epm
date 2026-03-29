@@ -159,7 +159,7 @@ export default function ProviderEditPage() {
         >
           {provider.name}
         </Link>
-        <Typography variant="body2">{t('common.edit')}</Typography>
+        <Typography variant="body2">{t('common.actions.edit')}</Typography>
       </Breadcrumbs>
 
       {/* Title */}
