@@ -93,6 +93,35 @@ export class TestDataFactory {
     return provider;
   }
 
+  async createItComponent(data: {
+    name: string;
+    description?: string;
+    technology?: string;
+    type?: string;
+    comment?: string;
+  }) {
+    const response = await this.request.post('it-components', {
+      data,
+    });
+
+    if (!response.ok()) {
+      const error = await response.text();
+      throw new Error(`Failed to create IT component: ${error}`);
+    }
+
+    const itComponent = await response.json();
+
+    this.cleanupStack.push(async () => {
+      try {
+        await this.request.delete(`it-components/${itComponent.id}`);
+      } catch {
+        // Ignore cleanup errors
+      }
+    });
+
+    return itComponent;
+  }
+
   async createBusinessCapability(data: {
     name: string;
     description?: string;

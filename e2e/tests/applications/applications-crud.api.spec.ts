@@ -169,4 +169,83 @@ test.describe('Applications CRUD API', () => {
     const body = await getResponse.json();
     expect(body.code).toBe('APPLICATION_NOT_FOUND');
   });
+
+  test('POST /applications should create application with IT components', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for IT Component test ${Date.now()}`,
+    });
+
+    const ic = await testData.createItComponent({
+      name: `Test IC ${Date.now()}`,
+      technology: 'PostgreSQL',
+    });
+
+    const response = await auth.request.post('applications', {
+      data: {
+        name: `App with IC ${Date.now()}`,
+        domainId: domain.id,
+        criticality: 'medium',
+        lifecycleStatus: 'production',
+        itComponents: [{ id: ic.id }],
+      },
+    });
+
+    const app = await expectSuccess<ApplicationResponse>(response, 201);
+    expect(app.itComponents).toBeDefined();
+    expect(app.itComponents?.length).toBe(1);
+    expect(app.itComponents?.[0].id).toBe(ic.id);
+    expect(app.itComponents?.[0].name).toBe(ic.name);
+  });
+
+  test('PATCH /applications/:id should update IT components', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for update test ${Date.now()}`,
+    });
+
+    const ic1 = await testData.createItComponent({
+      name: `IC 1 for update ${Date.now()}`,
+    });
+
+    const ic2 = await testData.createItComponent({
+      name: `IC 2 for update ${Date.now()}`,
+    });
+
+    const app = await testData.createApplication({
+      name: `App for IC update ${Date.now()}`,
+      domainId: domain.id,
+      itComponents: [{ id: ic1.id }],
+    });
+
+    const updateResponse = await auth.request.patch(`applications/${app.id}`, {
+      data: {
+        itComponents: [{ id: ic2.id }],
+      },
+    });
+
+    const updated = await expectSuccess<ApplicationResponse>(updateResponse, 200);
+    expect(updated.itComponents?.length).toBe(1);
+    expect(updated.itComponents?.[0].id).toBe(ic2.id);
+  });
+
+  test('GET /applications/:id should include itComponents', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for get test ${Date.now()}`,
+    });
+
+    const ic = await testData.createItComponent({
+      name: `IC for detail ${Date.now()}`,
+    });
+
+    const app = await testData.createApplication({
+      name: `App for detail view ${Date.now()}`,
+      domainId: domain.id,
+      itComponents: [{ id: ic.id }],
+    });
+
+    const response = await auth.request.get(`applications/${app.id}`);
+    const detail = await expectSuccess<ApplicationResponse>(response, 200);
+    expect(detail.itComponents).toBeDefined();
+    expect(detail.itComponents?.length).toBe(1);
+    expect(detail.itComponents?.[0].id).toBe(ic.id);
+  });
 });
