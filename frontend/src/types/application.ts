@@ -33,6 +33,7 @@ export interface ApplicationListItem {
   description: string | null;
   domain: { id: string; name: string } | null;
   providers: ProviderMapping[];
+  itComponents: ItComponentMapping[];
   owner: { id: string; firstName: string; lastName: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;
