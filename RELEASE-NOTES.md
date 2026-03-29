@@ -1,82 +1,172 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-29 — v0.5.2_
+_Last updated: 2026-03-29 — v0.6.0_
+
+> This file contains the complete release history for ARK, most recent first.
+> One entry per release. Each release maps to one or more completed sprints.
+> Format: add new entries at the top, above the previous release separator.
 
 ---
 
-## Hotfix — Provider Dropdown Bug
+## v0.6.0 — 2026-03-29
 
-**TLDR**  
-Le formulaire de création/modification d'Application propose maintenant la liste complète des fournisseurs disponibles dans le dropdown "Ajouter un fournisseur". Le bug où le dropdown était vide malgré des providers en base de données est résolu.
+> Sprint 2 completion — Providers frontend + Design Guidelines standardization
 
-**FIX**
-- ApplicationNewPage et ApplicationEditPage ne utilisaient plus des données mock vides (MOCK_PROVIDERS = [])
-- Import du hook useProviders() et appel API réelle vers GET /api/v1/providers
-- Mapping de la réponse paginée au format attendu par le formulaire
-- Tous les providers injectés en base (8+) sont désormais sélectionnables
+### Highlights
+
+- **Providers CRUD Frontend** — 4 pages (List, Detail, New, Edit) avec drawer PNS-02, badges rôles N:N, badges urgence expiration
+- **Design Guidelines v0.4** — Breadcrumb systématique (PNS-11), DatePicker MUI, badges conditionnels, composants métier documentés
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| FS-03-FRONT | Providers — Frontend CRUD (4 pages + drawer) | P1 |
+
+#### Technical Improvements
+
+| Ref | Description | Source |
+|---|---|---|
+| PNS-11 | Breadcrumb systématique 3 niveaux (Accueil > Liste > Courant) + composant AppBreadcrumbs recommandé | Design v0.4 |
+| UI-Kit v0.4 | DatePicker MUI (FR locale), badge conditionnel (Chip dynamique), ExpiryDateBadge, ProviderRoleBadge documentés | Design v0.4 |
+| TD-15 | Routes Providers décommentées + fonctionnelles (FS-03-FRONT implémentée) | F-999 ✅ done |
+| TD-12 | Providers API réels via `useProviders()` hook — mocks supprimés dans ApplicationForm | F-999 ✅ unblocked |
+| TD-17-21 | 5 items dette technique Sprint 3 documentés : filtres, breadcrumbs manquants, composant partagé | F-999 v0.6 |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-03-FRONT Cypress tests non implémentés (~50 cas, Phase 6 à venir)
+- Filtres contractType/expiryDate différés Sprint 3 (backend `QueryProvidersDto` non prêt)
+- Breadcrumbs manquants sur Applications/Domains (F-999 Items 18-19 Sprint 3)
+- Menu dropdown Actions (⋮) remplacé par icônes séparées Edit/Delete (fonctionnellement équivalent)
+
+### Migration Steps
+
+```bash
+# No manual steps required for this release
+docker-compose down
+docker-compose pull
+npx prisma migrate deploy
+docker-compose up -d
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| FS-03-FRONT | Providers — Frontend CRUD | ✅ done |
+| Design v0.4 | UI Kit + Navigation Patterns (PNS-11) | ✅ done |
+| F-999 v0.6 | Technical Debt Items 17-21 documented | ✅ documented |
 
 ---
 
-## XXXXXX
-TLDR  
-Les filtres des applications affichent maintenant uniquement les 4 champs attendus (Cycle de vie, Géographie, Marque, Entité légale) au lieu de montrer de nombreux doublons comme "Géographie 1773868450409". L'expérience utilisateur est rétablie à son état normal.
-NEW  
-- Filtrage des dimensions de tags par type d'entité (ex: application) via l'endpoint API  
-- Hook useTagDimensions mis à jour pour accepter un paramètre entityType  
-- Page des applications demande désormais uniquement les dimensions pertinentes aux applications  
-- Métadonnées entityScope ajoutées aux dimensions pour définir leur champ d'application  
-FIX  
-- Suppression de 10 dimensions "Géographie XXXXXXXXXXXX" en doublon provenant d'échecs de nettoyage de tests  
-- Correction de l'endpoint des dimensions pour filtrer selon entityScope lorsqu'un type est spécifié  
-- Restauration de l'affichage correct des filtres (4 champs au lieu de 8+)  
-- Initialisation correcte de entityScope dans le script de seed pour les dimensions de base
+## v0.5.2 — 2026-03-29
 
-IT COMPONENENTS
-Fonctionnalités implémentées :
-- ✅ Liste : Tableau avec tri (name, technology, type, createdAt), filtres (search, type, technology), pagination server-side
-- ✅ Drawer : PNS-02 read-only, 400px, onglets Info/Applications, boutons Modifier (disabled si !write) et Voir fiche
-- ✅ Détail : Page avec breadcrumb, onglets Info/Applications paginé (20/page), boutons Edit/Delete/Back
-- ✅ Formulaire : Unifié create/edit, validation inline, erreurs 409 CONFLICT (duplicate name)
-- ✅ Suppression : ConfirmDialog avec gestion 409 DEPENDENCY_CONFLICT (message custom + bouton disabled)
-- ✅ RBAC : Boutons masqués/disabled selon permissions it-components:read/write
-- ✅ i18n : Toutes les clés it-components.* dans fr.json
-- ✅ Tests Cypress : ~30 tests couvrant list, drawer, detail, form, delete, RBAC
-Compilation : ✅ Aucune erreur TypeScript
-Routes câblées dans App.tsx :
-- /it-components → ListPage
-- /it-components/new → FormPage (create)
-- /it-components/:id → DetailPage  
-- /it-components/:id/edit → FormPage (edit)
+> Hotfix — Provider Dropdown API integration
 
+### Highlights
 
+- **Provider Dropdown Fix** — ApplicationForm now displays real providers from API instead of empty mock list
 
-FS-03-BACK Providers API
-### TLDR
-Les utilisateurs peuvent désormais gérer les fournisseurs (SaaS, éditeurs, consultants) dans l'annuaire EPM : création, modification, suppression avec protection si contrats actifs, et visualisation des applications liées. 8 fournisseurs pré-enregistrés (Salesforce, SAP, Microsoft...) pour démarrer immédiatement.
+### What's New
 
-GET    /api/v1/providers              (list paginée + search)
-POST   /api/v1/providers              (création)
-GET    /api/v1/providers/:id          (détail avec _count + tags)
-PATCH  /api/v1/providers/:id          (mise à jour)
-DELETE /api/v1/providers/:id          (suppression avec vérification dépendances)
-GET    /api/v1/providers/:id/applications  (apps liées paginées)
+#### Bug Fixes
 
+| Ref | Description | Area |
+|---|---|---|
+| #12 | ApplicationNewPage/EditPage fetch providers from real API via `useProviders()` hook | frontend |
+| #12 | MOCK_PROVIDERS empty array removed, actual API response mapped to form select options | frontend |
 
-### FS-04-BACK : IT Components API
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-09 Users API not yet implemented (MOCK_USERS still placeholder)
+
+### Migration Steps
+
+```bash
+# No manual steps required for this release
+docker-compose down
+docker-compose pull
+docker-compose up -d
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| F-999 Item 12 | APIs Providers mockées → unblocked | ✅ unblocked |
+
 ---
-TLDR
-Les composants IT (serveurs, bases de données, middleware...) sont désormais gérables dans ARK. Les utilisateurs peuvent créer, consulter, modifier et supprimer des composants techniques, et voir quelles applications y sont rattachées.
----
-NEW
-- CRUD IT Components — API REST complète sous /api/v1/it-components (GET list, POST, GET detail, PATCH, DELETE)
-- Endpoint applications liées — GET /api/v1/it-components/:id/applications retourne la liste paginée des applications rattachées
-- Compteur _count.applications — présent dans toutes les réponses (list + detail)
-- Filtres — recherche textuelle sur name, filtrage par type et technology, tri sur 4 colonnes
-- Tags dimensionnels — support F-03 intégré (EntityTag polymorphe, chargement batch en liste)
-- Seed — 8 composants de démonstration (PostgreSQL, Redis, Kafka, RabbitMQ, Nginx, K8s, Elasticsearch, MinIO)
-- OpenAPI — docs/04-Tech/openapi.yaml mis à jour avec paths et schemas IT Components
-FIX
-- Audit trail fiable — les écritures (create/update/delete) utilisent $transaction interactive pour garantir que SET LOCAL ark.current_user_id persiste dans la même transaction que l'opération. Le champ changed_by est désormais systématiquement renseigné dans audit_trail (corrige un défaut latent du pattern existant sur les autres modules)
+
+## v0.5.0 — 2026-03-22
+
+> FS-03 Providers + FS-04 IT Components complete (Backend + Frontend)
+
+### Highlights
+
+- **Providers CRUD Complete** — Backend API + N:N relationships with Applications (provider roles: editor, integrator, support, vendor, custom)
+- **IT Components CRUD** — Full module implementation (backend API + frontend 4 pages + drawer)
+- **Provider Roles N:N** — Applications can link multiple providers with distinct roles per relationship
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| FS-03-BACK | Providers — Backend CRUD API | P1 |
+| FS-04-BACK | IT Components — Backend CRUD API | P1 |
+| FS-04-FRONT | IT Components — Frontend CRUD (4 pages + drawer) | P1 |
+
+#### Technical Improvements
+
+| Ref | Description | Source |
+|---|---|---|
+| N:N-Providers | app_provider_map junction table with provider_role enum (editor/integrator/support/vendor/custom) | FS-03-BACK v1.2 |
+| Audit-Trail-Fix | $transaction interactive guarantees SET LOCAL ark.current_user_id persists in same transaction as write | FS-04-BACK |
+| IT-Components-API | Full CRUD endpoints with filtering, pagination, N:1 application mapping | FS-04-BACK |
+| IT-Components-UI | PNS-02 drawer pattern, breadcrumb, RBAC, i18n fully implemented | FS-04-FRONT |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-03-FRONT Providers frontend not yet started (routes commented in App.tsx)
+- Cypress tests FS-04-FRONT documented but not implemented (~30 cases)
+- Tag dimensions hardcoded in frontend (P2 — dynamic API pending)
+
+### Migration Steps
+
+```bash
+# Database migration required (N:N junction tables)
+docker-compose down
+docker-compose pull
+npx prisma migrate deploy
+docker-compose up -d
+
+# Seed providers + IT components
+docker exec ark-epm_backend_1 npx ts-node prisma/seed.ts
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| FS-03-BACK | Providers — Backend CRUD API | ✅ done |
+| FS-04-BACK | IT Components — Backend CRUD API | ✅ done |
+| FS-04-FRONT | IT Components — Frontend CRUD | ✅ done |
 
 
 
