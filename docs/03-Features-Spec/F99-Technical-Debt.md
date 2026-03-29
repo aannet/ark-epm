@@ -500,29 +500,67 @@ La spec PNS-09 définit que le champ `description` doit être rendu en Markdown 
 
 ---
 
-### Item 12 — APIs Providers et Users mockées *(P1 — Sprint 3)*
+### Item 12 — APIs Providers et Users mockées *(P1 — PARTIELLEMENT DONE)*
 
 | | |
 |---|---|
-| **Statut** | 🔴 En cours — FS-06-FRONT livré avec mocks |
+| **Statut** | 🟡 Partial — Providers ✅ done, Users ❌ pending |
 | **Priorité** | Haute — blocage UX sur formulaire Application |
 
 **Contexte :**
-FS-06-FRONT implémente les sélecteurs de Provider et Owner dans le formulaire Application (`ApplicationForm.tsx`), mais les APIs `/providers` (liste) et `/users` (liste filtrée des utilisateurs actifs) ne sont pas encore disponibles. Les composants utilisent des données mockées (arrays vides).
+FS-06-FRONT implémente les sélecteurs de Provider et Owner dans le formulaire Application (`ApplicationForm.tsx`), mais les APIs `/providers` (liste) et `/users` (liste filtrée des utilisateurs actifs) ne sont pas encore disponibles. Les composants utilisaient des données mockées (arrays vides).
 
 **Décision :**
-- Livraison FS-06-FRONT avec mocks vides — formulaire fonctionnel mais sélecteurs vides
-- **Déblocage :** 
-  - FS-03-BACK (Providers CRUD + endpoint liste)
-  - FS-09-BACK (Users endpoint liste `GET /users?isActive=true&role=member`)
-- **Migration :** Remplacer `MOCK_PROVIDERS` et `MOCK_USERS` par les appels `useProviders()` et `useUsers()` quand disponibles
+- ✅ **Providers — RÉSOLU (2026-03-29)** 
+  - FS-03-BACK fournit `GET /api/v1/providers` (endpoint liste pageiné, search, sort)
+  - ApplicationNewPage et ApplicationEditPage maintenant appellent `useProviders({ limit: 200 })`
+  - Sélecteur providers popuplé avec données réelles depuis la base
+  - Commit: `2313983`
+  
+- ❌ **Users — TOUJOURS PENDING**
+  - `MOCK_USERS = []` reste en dur dans ApplicationNewPage/EditPage
+  - Sélecteur owner toujours vide
+  - Déblocage : FS-09-BACK (Users endpoint liste `GET /users?isActive=true&role=member`)
+  - Créer Item 12b pour tracker (voir section 4 ci-dessous)
 
 **Fichiers concernés :**
-- `frontend/src/pages/applications/ApplicationNewPage.tsx`
-- `frontend/src/pages/applications/ApplicationEditPage.tsx`
-- `frontend/src/components/applications/ApplicationForm.tsx`
+- `frontend/src/pages/applications/ApplicationNewPage.tsx` (providers ✅ fixed, users ❌ pending)
+- `frontend/src/pages/applications/ApplicationEditPage.tsx` (providers ✅ fixed, users ❌ pending)
+- `frontend/src/components/applications/ApplicationForm.tsx` (utilise les options passées en props)
 
-**Gate de validation :** Formulaire Application affiche les sélecteurs peuplés avec données réelles — test avec création d'une app liée à un provider existant
+**Gate de validation :** 
+- ✅ Providers : Formulaire Application affiche les sélecteurs providers peuplés avec données réelles — test avec création d'une app liée à un provider existant
+- ❌ Users : Owner dropdown reste vide (attente Item 12b)
+
+---
+
+### Item 12b — API Users mockée *(P1 — Sprint 3)* — NOUVEAU
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — FS-06-FRONT en attente |
+| **Priorité** | Moyenne — sélecteur owner vide dans formulaire Application |
+
+**Contexte :**
+Lors de la résolution du Item 12 (Providers), il s'avère que `MOCK_USERS = []` reste toujours en dur dans ApplicationNewPage et ApplicationEditPage. Le sélecteur "Owner/Responsable" affiche une liste vide alors que l'API `GET /api/v1/users` n'existe pas encore.
+
+**Décision :**
+- **Déblocage :** FS-09-BACK doit fournir endpoint liste utilisateurs
+  - `GET /api/v1/users?isActive=true` (retour : array de `{ id, firstName, lastName }`)
+  - Support filtres : `role`, `department` (optionnels)
+- **Migration :** Créer hook `useUsers()` dans `frontend/src/api/users.ts`
+  - Mirror du pattern `useProviders()` existant
+  - Appeller depuis ApplicationNewPage et ApplicationEditPage
+  - Remplacer `MOCK_USERS` par les données réelles
+
+**Fichiers à modifier :**
+- `frontend/src/pages/applications/ApplicationNewPage.tsx` 
+- `frontend/src/pages/applications/ApplicationEditPage.tsx`
+- À créer : `frontend/src/api/users.ts` (hook `useUsers()`)
+
+**Gate de validation :** Formulaire Application affiche le sélecteur owner peuplé avec tous les utilisateurs actifs — test avec assignation d'une app à un responsable existant
+
+**Liée à :** Item 12 (Providers — partial fix)
 
 ---
 
@@ -889,7 +927,8 @@ Request ID :
 - [x] **Item 9** — API prefix `/api/v1` configuré dans `main.ts`
 - [x] **Item 10** — RequestIdMiddleware créé et enregistré dans AppModule
 - [x] **Item 10** — Header `X-Request-ID` présent sur toutes les réponses
-- [ ] **Item 12** — APIs Providers et Users remplacent les mocks dans ApplicationForm
+- [x] **Item 12 (Providers)** — API Providers remplace le mock dans ApplicationForm ✅ 2026-03-29
+- [ ] **Item 12b (Users)** — API Users remplace le mock dans ApplicationForm (FS-09 pending)
 - [ ] **Item 13** — Dimensions dynamiques via `/tag-dimensions` (remplacent hardcode)
 - [ ] **Item 14** — Endpoint `PUT /tags/entity/:type/:id/batch` implémenté et testé
 - [ ] **Item 15** — Routes Providers décommentées et fonctionnelles après FS-03-FRONT

@@ -1,8 +1,21 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-18 — v0.5.1_
+_Last updated: 2026-03-29 — v0.5.2_
 
+---
 
+## Hotfix — Provider Dropdown Bug
+
+**TLDR**  
+Le formulaire de création/modification d'Application propose maintenant la liste complète des fournisseurs disponibles dans le dropdown "Ajouter un fournisseur". Le bug où le dropdown était vide malgré des providers en base de données est résolu.
+
+**FIX**
+- ApplicationNewPage et ApplicationEditPage ne utilisaient plus des données mock vides (MOCK_PROVIDERS = [])
+- Import du hook useProviders() et appel API réelle vers GET /api/v1/providers
+- Mapping de la réponse paginée au format attendu par le formulaire
+- Tous les providers injectés en base (8+) sont désormais sélectionnables
+
+---
 
 ## XXXXXX
 TLDR  
