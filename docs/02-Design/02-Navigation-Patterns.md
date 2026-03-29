@@ -1,6 +1,13 @@
 # ARK — Navigation Patterns
 
-_Version 0.3 — Mars 2026_
+_Version 0.4 — Mars 2026_
+
+> **Changelog v0.4 :**
+> - **PNS-02** généralisé : **les drawers sont read-only par défaut** (exception → pattern standard). Remplace l'ancienne exception `PNS-02-APP`. Applique à Providers, Applications, etc.
+> - **PNS-11 ajouté** : **Breadcrumb systématique** — standard 3 niveaux (Accueil > Liste > Courant), composant partagé recommandé (FS-11 ou F-01)
+> - **§4.6 Providers** : drawer read-only, 2 onglets P1, filtres avancés P2, provider roles N:N, tags colonne liste
+> - **§3 Actions** : clarification variantes (icônes séparées vs menu dropdown)
+> - **§4 & §5** : ajout DatePicker MUI, badge conditionnel, composants métier (ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs)
 
 > **Changelog v0.3 :**
 > - **PNS-03** corrigé : après une création réussie, navigation vers la **fiche détail du nouvel objet** (+ `ArkAlert success`) — abandonne le pattern "retour liste + highlight"
@@ -40,7 +47,12 @@ Cliquer sur une ligne d'une liste ouvre un **Side Drawer** à droite. **Tout obj
 
 **Règle fonctionnelle critique :** pour qu'une sauvegarde depuis le drawer soit valide, aucun champ obligatoire ne doit manquer dans le drawer. Les champs structurels (relations n:n, hiérarchie) ne sont jamais modifiables depuis le drawer — ils passent par la Full Page.
 
-> **Exception PNS-02-APP :** Le drawer **Applications** (FS-06) est en **lecture seule uniquement**. Toute modification passe par la Full Page via le bouton "Modifier". Les champs sont affichés en mode consultation sans édition inline.
+**Drawers read-only par défaut :** La majorité des drawers sont en **lecture seule**. Toute modification passe par la Full Page via le bouton "Modifier". Les champs sont affichés en mode consultation sans édition inline. Cela s'applique à :
+- **Applications** (FS-06)
+- **Providers** (FS-03)
+- Autres entités à confirmer par spec
+
+L'édition inline dans le drawer est une **exception documentée explicitement dans la spec** (exemple : Future FS-07 Business Capabilities).
 
 **Contenu standard du drawer :**
 - Avatar + nom de l'Owner (si applicable) — affiché en lecture seule en haut du drawer
@@ -159,7 +171,81 @@ Toute action CUD réussie ou échouée donne un feedback visuel via le composant
 - Alertes **error** → `useState` local dans la page ou le drawer. Pas d'auto-dismiss. Restent jusqu'à navigation.
 - Auto-dismiss : **5 000 ms** pour les alertes success. Aucun pour les alertes error.
 
-> **Règle d'implémentation :** Ne jamais créer de `Snackbar` ou d'`Alert` MUI directement dans une page. Toujours passer par le composant `ArkAlert` depuis `@/components/shared`.
+ > **Règle d'implémentation :** Ne jamais créer de `Snackbar` ou d'`Alert` MUI directement dans une page. Toujours passer par le composant `ArkAlert` depuis `@/components/shared`.
+
+---
+
+### PNS-11 — Breadcrumb systématique
+
+Toute page de type **Detail**, **New** ou **Edit** affiche un breadcrumb (MUI `Breadcrumbs`) en haut de page, positionnée au-dessus du titre principal.
+
+**Structure standard — 3 niveaux :**
+
+| Page type | Breadcrumb |
+|-----------|-----------|
+| Detail | **Accueil** > **[Liste entité]** > **{entity.name}** |
+| New | **Accueil** > **[Liste entité]** > **Nouveau {entité}** |
+| Edit | **Accueil** > **[Liste entité]** > **[{entity.name}]** > **Modifier** |
+
+**Exemple concret (Providers) :**
+```
+Detail:   Accueil > Fournisseurs > Salesforce
+New:      Accueil > Fournisseurs > Nouveau fournisseur
+Edit:     Accueil > Fournisseurs > Salesforce > Modifier
+```
+
+**Comportement des liens :**
+- "Accueil" → `navigate('/')`
+- "[Liste entité]" → `navigate('/{entité}s')`
+- "[{entity.name}]" (Edit only) → `navigate('/{entité}s/:id')`
+- **Dernier élément** : toujours rendu comme `<Typography>` non cliquable (représente la page courante)
+
+**Styling standardisé :**
+- Liens : `<Link component="button" underline="hover" onClick={navigate} sx={{ ... }}>`
+- Typography courante : `<Typography color="text.primary">`
+- Spacing : `sx={{ mb: 2 }}` (margin-bottom = 16px, consistent avec PageHeader)
+- Icône séparatrice : MUI `Breadcrumbs` gère automatiquement le `/`
+- Font size : inherit (body text, pas de variant spéciale)
+
+**i18n — Namespacing :**
+```json
+{
+  "{entity}": {
+    "detail": { "breadcrumb": { "home": "Accueil", "list": "[Entity plural]" } },
+    "form": { "breadcrumb": { "home": "Accueil", "list": "[Entity plural]", "new": "Nouveau {entity}" } }
+  }
+}
+```
+
+Exemple (Providers) :
+```json
+{
+  "providers": {
+    "detail": { "breadcrumb": { "home": "Accueil", "list": "Fournisseurs" } },
+    "form": { "breadcrumb": { "home": "Accueil", "list": "Fournisseurs", "new": "Nouveau fournisseur" } }
+  }
+}
+```
+
+**Pages liste :** N'affichent **PAS** de breadcrumb (la Sidebar suffit pour navigation).
+
+**Composant recommandé (Future — FS-11 ou F-01) :**
+
+Créer un composant partagé `AppBreadcrumbs` dans `@/components/shared/AppBreadcrumbs.tsx` acceptant un tableau typé :
+```typescript
+interface BreadcrumbItem {
+  label: string;
+  onClick?: () => void;  // omis pour le dernier élément (courant)
+}
+
+<AppBreadcrumbs items={[
+  { label: t('common.home'), onClick: () => navigate('/') },
+  { label: t('providers.detail.breadcrumb.list'), onClick: () => navigate('/providers') },
+  { label: provider.name }  // pas de onClick = non cliquable
+]} />
+```
+
+Le composant affiche automatiquement le dernier item comme texte non cliquable. Cela élimine la duplication inline dans 10+ pages et garantit la cohérence visuelle.
 
 ---
 
@@ -337,10 +423,12 @@ ARK
 | Élément | Détail |
 |---|---|
 | Routes | `/providers`, `/providers/new`, `/providers/:id`, `/providers/:id/edit` |
-| Filtres | Type de contrat, Expiration, Tags |
-| Colonnes liste | Nom, Type de contrat, Expiration, Nb applications, Actions |
-| Side Drawer | Nom, Type de contrat, Date expiration, Tags |
-| Full Page | 3 onglets (Général, Relations, Audit) |
+| Filtres | **P1** : Recherche textuelle (nom). **P2** : Type de contrat, Expiration (backend `QueryProvidersDto` non prêt) |
+| Colonnes liste | Nom, Type de contrat, Expiration, Tags, Nb applications, Actions |
+| Side Drawer | **Read-only** — Nom, Type de contrat, Date expiration, Tags. **2 onglets P1** : Info + Applications (mini-table 5/page, affiche `providerRole` en badge). Footer : "Modifier" (disabled si pas `providers:write`) + "Voir la fiche complète" |
+| Full Page | **2 onglets P1** (Informations, Applications), Audit vide P2. Onglet Informations : nom, description, comment, contractType, expiryDate (badges urgence), tags, metadata. Onglet Applications : full table 20/page avec colonnes nom, domain, owner, criticality, lifecycle, `providerRole` (badge) |
+| Provider Roles | **N:N v1.1** : rôles affichés en badge coloré dans onglets Relations (read-only) — editor (bleu), integrator (orange), support (cyan), vendor (jaune), custom (gris). Édition déléguée à FS-06-FRONT ApplicationForm |
+| Règles | Breadcrumb PNS-11 sur Detail/New/Edit. Suppression bloquée si utilisé par applications (409 DEPENDENCY_CONFLICT). Expirydate badges : URGENT <30j (rouge), ALERTE <90j (orange) |
 
 ### 4.7 Domains
 
@@ -373,4 +461,4 @@ ARK
 
 ---
 
-_Document de travail v0.3 — Projet ARK_
+_Document de travail v0.4 — Projet ARK_

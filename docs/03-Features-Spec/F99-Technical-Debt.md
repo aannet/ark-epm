@@ -1,7 +1,9 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.5 — Mars 2026_
+_Version 0.6 — Mars 2026_
 
+> **Changelog v0.6 :** Ajout Items 17-21 — Breadcrumbs systématisés (PNS-11, docs/02-Design/02-Navigation-Patterns.md v0.4) + dette technique Sprint 3 : filtres Providers, breadcrumbs Applications/Domains/Providers harmonisés, composant AppBreadcrumbs recommandé. Guidelines design mises à jour : DatePicker MUI, badge conditionnel, ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs documentés.
+>
 > **Changelog v0.5 :** Ajout Item 11 — Description Markdown pour Applications (différé P2). Drawer Applications confirmé read-only (exception PNS-02).
 >
 > **Changelog v0.4 :** Ajout §6 — Historique des revues de sprint. Mémoire longitudinale de la dette technique, alimentée à partir des gates TD §11 de chaque Feature-Spec. Pré-rempli avec Sprint 1 (F-00, F-01, FS-01, F-999).
@@ -29,10 +31,10 @@ _Version 0.1 — Mars 2026_
 |---|---|
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
-| **Priorité** | P1 (items 1–5, 8, 10) / P2 (items 6–7, 9, 11) |
-| **Statut** | `done` (items 1, 2, 3, 4, 9, 10) / `pending` (items 5, 8) / `P2` (items 6, 7, 11) |
-| **Estimé** | 1 jour (items P1) — Items 1,2,3,4,9,10 implémentés |
-| **Version** | 0.3 |
+| **Priorité** | P1 (items 1–5, 8, 10, 12, 13, 14, 15) / P2 (items 6–7, 9, 11, 16, 17–21) |
+| **Statut** | `done` (items 1, 2, 3, 4, 9, 10, 15) / `in-progress` (items 12, 13, 14) / `pending` (items 5, 8) / `documented` (items 17–21, FS-11) |
+| **Estimé** | 1 jour (items P1 core) + 3 jours (items 12-14 debt) + 2 jours (items 17-21 Sprint 3) |
+| **Version** | 0.6 |
 
 ---
 
@@ -655,6 +657,142 @@ Le backend `QueryProvidersDto` actuellement supporte **uniquement** `search`, `p
 
 ---
 
+### Item 18 — Breadcrumbs manquants : Applications (Detail, New, Edit) *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — Pattern PNS-11 non respecté |
+| **Priorité** | Moyenne — UX/Navigation, pas bloquant P1 |
+
+**Contexte :**
+Les pages `ApplicationDetailPage`, `ApplicationNewPage`, et `ApplicationEditPage` n'affichent pas de breadcrumb. Le pattern PNS-11 (v0.4) standardise les breadcrumbs 3 niveaux (Accueil > Liste > Courant) sur toutes les pages de type Detail/New/Edit.
+
+**Décision :**
+- Ajouter breadcrumb sur les 3 pages Applications manquantes
+- Pattern : 3 niveaux avec "Accueil" link
+  - Detail : `Accueil > Applications > {app.name}`
+  - New : `Accueil > Applications > Nouvelle application`
+  - Edit : `Accueil > Applications > {app.name} > Modifier`
+
+**Implémentation :**
+Utiliser le composant partagé `AppBreadcrumbs` (recommandé par PNS-11) ou implémenter inline avec MUI `Breadcrumbs` en cohérence avec Providers et IT-Components. Ajouter les clés i18n `applications.detail.breadcrumb.*` et `applications.form.breadcrumb.*`.
+
+**Fichiers à modifier :**
+- `frontend/src/pages/applications/ApplicationDetailPage.tsx`
+- `frontend/src/pages/applications/ApplicationNewPage.tsx`
+- `frontend/src/pages/applications/ApplicationEditPage.tsx`
+- `frontend/src/i18n/locales/fr.json` — ajouter clés breadcrumb
+
+**Timing :** Sprint 3
+
+---
+
+### Item 19 — Breadcrumbs manquants : Domains (Detail, New, Edit) *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — Pattern PNS-11 non respecté |
+| **Priorité** | Moyenne — UX/Navigation, pas bloquant P1 |
+
+**Contexte :**
+Les pages `DomainDetailPage`, `DomainNewPage`, et `DomainEditPage` n'affichent pas de breadcrumb. Le pattern PNS-11 standardise les breadcrumbs sur toutes les pages de type Detail/New/Edit.
+
+**Décision :**
+- Ajouter breadcrumb sur les 3 pages Domains manquantes
+- Pattern : 3 niveaux avec "Accueil" link
+  - Detail : `Accueil > Domaines > {domain.name}`
+  - New : `Accueil > Domaines > Nouveau domaine`
+  - Edit : `Accueil > Domaines > {domain.name} > Modifier`
+
+**Implémentation :**
+Utiliser le composant partagé `AppBreadcrumbs` ou implémenter inline cohérent avec PNS-11. Ajouter clés i18n `domains.detail.breadcrumb.*` et `domains.form.breadcrumb.*`.
+
+**Fichiers à modifier :**
+- `frontend/src/pages/domains/DomainDetailPage.tsx`
+- `frontend/src/pages/domains/DomainNewPage.tsx`
+- `frontend/src/pages/domains/DomainEditPage.tsx`
+- `frontend/src/i18n/locales/fr.json` — ajouter clés breadcrumb
+
+**Timing :** Sprint 3
+
+---
+
+### Item 20 — Harmoniser breadcrumbs Providers *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Partiellement implémenté — 2 niveaux sans "Accueil", spacing inconsistant |
+| **Priorité** | Basse — Fonctionnel mais incohérent avec PNS-11 |
+
+**Contexte :**
+Les breadcrumbs Providers (FS-03-FRONT) utilisent un pattern 2 niveaux sans "Accueil" link (différent de IT-Components qui a 3 niveaux avec Accueil). De plus, la namespace i18n pour Detail page réutilise `providers.form.breadcrumb.*` au lieu d'avoir son propre namespace `detail.breadcrumb.*`. Le spacing varie entre `mb: 2` et `mb: 3` selon les pages.
+
+**Décision :**
+- Ajouter le lien "Accueil" → 3 niveaux standardisés
+  - Detail : `Accueil > Fournisseurs > {provider.name}` (actuellement : `Fournisseurs > {name}`)
+  - New : `Accueil > Fournisseurs > Nouveau fournisseur` (actuellement : `Fournisseurs > Nouveau`)
+  - Edit : `Accueil > Fournisseurs > {provider.name} > Modifier` (déjà 3 niveaux, ajuster Accueil link)
+- Standardiser spacing : `mb: 2` sur toutes les pages
+- Corriger i18n namespacing : créer `providers.detail.breadcrumb.{home,list}` distinct de `providers.form.breadcrumb.*`
+
+**Implémentation :**
+Refactor les breadcrumbs Providers existants pour cohérence avec PNS-11 et les autres entités (IT-Components).
+
+**Fichiers à modifier :**
+- `frontend/src/pages/providers/ProviderDetailPage.tsx` — ajouter Accueil link, fixer spacing, i18n
+- `frontend/src/pages/providers/ProviderNewPage.tsx` — ajouter Accueil link, spacing
+- `frontend/src/pages/providers/ProviderEditPage.tsx` — ajouter Accueil link, spacing
+- `frontend/src/i18n/locales/fr.json` — refactor namespaces
+
+**Timing :** Sprint 3
+
+---
+
+### Item 21 — Créer composant partagé AppBreadcrumbs *(Recommandé — F-01 ou FS-11)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Documenté dans PNS-11 — implémentation recommandée mais non bloquante |
+| **Priorité** | Basse — Éliminer duplication inline, améliorer maintenabilité |
+
+**Contexte :**
+Les breadcrumbs sont actuellement implémentés inline dans chaque page (ProviderDetailPage, ProviderNewPage, ProviderEditPage, ITComponentDetailPage, ITComponentFormPage — 11+ occurrences attendues après Sprint 3). Aucun composant partagé `AppBreadcrumbs` dans `frontend/src/components/shared/`.
+
+**Décision :**
+- Créer composant `AppBreadcrumbs.tsx` acceptant un tableau typé d'items
+- Composant gère automatiquement le dernier item comme texte non cliquable
+- Centralisé dans `@/components/shared/`
+- À ajouter à l'index `components/shared/index.ts`
+
+**Interface suggérée :**
+```typescript
+interface BreadcrumbItem {
+  label: string;
+  onClick?: () => void;  // omis pour le dernier élément (courant)
+}
+
+interface AppBreadcrumbsProps {
+  items: BreadcrumbItem[];
+  sx?: SxProps;
+}
+
+export const AppBreadcrumbs: React.FC<AppBreadcrumbsProps> = ({ items, sx }) => {
+  // Rendre MUI Breadcrumbs avec derniers item non cliquable
+}
+```
+
+**Impact :**
+- Réduit duplication code dans 11+ pages
+- Garantit cohérence visuelle (styling, spacing, i18n key pattern)
+- Facilite évolutions futures (theme breadcrumb, A11y)
+- Non bloquant pour Sprint 2 — recommandé pour P2/Sprint 3
+
+**Timing :** Sprint 3 ou Sprint 4 (après Items 18-20)
+
+---
+
+---
+
 ### Item 16 — Customisation des couleurs provider roles *(P2)*
 
 | | |
@@ -756,6 +894,18 @@ Request ID :
 - [ ] **Item 14** — Endpoint `PUT /tags/entity/:type/:id/batch` implémenté et testé
 - [ ] **Item 15** — Routes Providers décommentées et fonctionnelles après FS-03-FRONT
 - [ ] **Item 16** — Admin dashboard pour customisation couleurs provider roles (P2 — Sprint 4+)
+
+## 4.1 Checklist P2 — Sprint 3 (Breadcrumbs & Design Guidelines)
+
+- [ ] **Item 17** — Query params contractType + expiryDate implémentés dans backend QueryProvidersDto
+- [ ] **Item 17** — Dropdowns contractType et expiryDate affichés dans ProvidersListPage
+- [ ] **Item 18** — Breadcrumbs ajoutés aux 3 pages Applications (Detail, New, Edit) — pattern PNS-11
+- [ ] **Item 18** — Clés i18n `applications.detail.breadcrumb.*` et `applications.form.breadcrumb.*` ajoutées
+- [ ] **Item 19** — Breadcrumbs ajoutés aux 3 pages Domains (Detail, New, Edit) — pattern PNS-11
+- [ ] **Item 19** — Clés i18n `domains.detail.breadcrumb.*` et `domains.form.breadcrumb.*` ajoutées
+- [ ] **Item 20** — Breadcrumbs Providers harmonisés : 3 niveaux avec Accueil link + i18n refactor
+- [ ] **Item 20** — Spacing breadcrumbs standardisé à `mb: 2` sur toutes les pages
+- [ ] **Item 21** — Composant `AppBreadcrumbs` créé dans `@/components/shared/` (optional — recommandé P2/FS-11)
 ---
 
 ## 5. Journal des décisions
@@ -773,7 +923,8 @@ Request ID :
 | 2026-03-14 | Item 11 | Ajout Description Markdown pour Applications — différé P2 | Alec |
 | 2026-03-15 | Items 12, 13, 14 | Dette technique FS-06-FRONT — mocks Providers/Users, dimensions hardcodées, endpoint batch tags manquant | Alec |
 | 2026-03-21 | Item 15 | Routes Providers commentées — fichiers FS-03-FRONT manquants | OpenCode |
-| 2026-03-21 | Item 16 | Customisation couleurs provider roles — couleurs hardcodées v1.1, admin dashboard P2 | OpenCode | |
+| 2026-03-21 | Item 16 | Customisation couleurs provider roles — couleurs hardcodées v1.1, admin dashboard P2 | OpenCode |
+| 2026-03-29 | Items 17-21 | Ajout dette technique Design Guidelines : filtres Providers (P2), breadcrumbs Applications/Domains/Providers (Sprint 3), composant AppBreadcrumbs (FS-11) | OpenCode/Spec |
 
 ---
 

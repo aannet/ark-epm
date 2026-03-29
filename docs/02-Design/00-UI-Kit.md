@@ -1,6 +1,13 @@
 # ARK — UI Kit & Charte Design
 
-_Version 0.3 — Mars 2026_
+_Version 0.4 — Mars 2026_
+
+> **Changelog v0.4 :**
+> - §3 Actions & Boutons : clarification variantes actions de ligne (icônes séparées vs menu dropdown)
+> - §4 Saisie de Données : ajout **DatePicker MUI** (`@mui/x-date-pickers`, format DD/MM/yyyy, locale FR)
+> - §5 Tableaux : ajout pattern **badge conditionnel** (Chip dynamique colorée)
+> - §10 Composants Métier : ajout **ExpiryDateBadge** (FS-03), **ProviderRoleBadge** (FS-03 v1.1), **AppBreadcrumbs** (PNS-11 recommandé)
+> - §6 Cartes : clarification elevation et bordure (consistent avec MUI defaults)
 
 > **Changelog v0.3 :**
 > - §10 Ajout : Composants Métier — référence vers F-03 pour DimensionTagInput
@@ -63,8 +70,11 @@ Nous limitons les styles pour garantir une hiérarchie visuelle claire.
 | **Primaire** | `Button variant="contained"` | Action principale de la page (ex: "Ajouter un Domaine") |
 | **Secondaire** | `Button variant="outlined"` | Actions secondaires ou annulations |
 | **Danger** | `Button color="error"` | Suppressions (toujours avec confirmation via `ConfirmDialog`) |
-| **Table** | `IconButton` | Actions de ligne (Edit/Delete) dans les tableaux |
+| **Table — Actions séparées** | `IconButton` (Edit) + `IconButton` (Delete) | Actions de ligne — variante avec icônes séparées (Providers, Applications) |
+| **Table — Dropdown** | `IconButton` (MoreVertIcon) → Menu MUI | Actions de ligne — variante avec menu dropdown (économise l'espace colonne) |
 | **Désactivé** | `Button disabled` | Bouton Confirmer dans `ConfirmDialog` quand la suppression est bloquée (409 DEPENDENCY_CONFLICT) |
+
+> **Note :** Les deux variantes (icônes séparées vs menu dropdown) coexistent dans ARK. Choisir selon le contexte (taille de l'écran, nombre d'actions, espace disponible) et documenter dans la spec correspondante.
 
 ---
 
@@ -75,6 +85,30 @@ Nous limitons les styles pour garantir une hiérarchie visuelle claire.
 * **Radius :** `6px` (Action Radius)
 * **Validation :** Les erreurs s'affichent en rouge (`error.main`) avec un message d'aide descriptif sous le champ
 
+### 4.1 DatePicker
+
+* **Composant :** `@mui/x-date-pickers` avec `AdapterDateFns`
+* **Locale :** Français (format : `DD/MM/yyyy`)
+* **Style :** `variant="outlined"`, `size="small"` (cohérent avec les TextField)
+* **Usage :** Saisie de dates dans les formulaires (ex: `expiryDate` Providers, dates de début/fin Interfaces)
+* **Validation :** Support des props MUI standard (`error`, `helperText`, `disabled`, `required`, etc.)
+
+Exemple d'intégration :
+```typescript
+import { DatePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { fr } from 'date-fns/locale';
+
+<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
+  <DatePicker 
+    label="Date d'expiration"
+    format="dd/MM/yyyy"
+    slotProps={{ textField: { size: 'small', variant: 'outlined' } }}
+  />
+</LocalizationProvider>
+```
+
 ---
 
 ## 5. Tableaux de Données
@@ -84,6 +118,25 @@ Le cœur de l'analyse ARK.
 * **Header :** Fond gris neutre (`#F1F5F9`), texte en majuscules, gras, taille réduite (`0.75rem`)
 * **Lignes :** Bordure inférieure simple `1px solid #E2E8F0`. Pas de rayures (zebra-striping) pour garder un aspect épuré
 * **Typographie technique :** Les IDs (ex: `APP-204`) utilisent `JetBrains Mono`
+
+### 5.1 Badge conditionnel
+
+Pattern pour afficher des valeurs dynamiques colorées (ex: rôle, statut, urgence) :
+
+```typescript
+<Chip
+  size="small"
+  label={t(`applications.roles.${role}`)}
+  color={roleColorMap[role]}  // 'primary' | 'secondary' | 'info' | 'warning' | 'default'
+  variant="outlined"  // ou "filled"
+/>
+```
+
+Exemples d'utilisation :
+- **Provider Roles** (FS-03 v1.1) : editor=primary (bleu), integrator=secondary (orange), support=info (cyan), vendor=warning (jaune), custom=default (gris)
+- **Expiry Badges** (FS-03) : URGENT <30j=error (rouge), ALERTE <90j=warning (orange)
+- **Lifecycle Status** : draft=info, active=success, deprecated=error
+- **Criticality** : critical=error, high=warning, medium=info, low=success
 
 ---
 
@@ -218,10 +271,13 @@ Certains composants réutilisables mais spécifiques à un domaine métier sont 
 | Composant | Feature Spec | Usage |
 |---|---|---|
 | `DimensionTagInput` | F-03 §6 | Saisie de tags hiérarchiques par dimension (Geography, Brand, etc.) |
-| `ConfirmDialog` | F-01 §7 | Confirmation de suppression |
+| `ConfirmDialog` | F-01 §7 | Confirmation de suppression avec gestion 409 DEPENDENCY_CONFLICT |
+| `ExpiryDateBadge` | FS-03 §4.4 | Badge conditionnel sur date d'expiration : URGENT <30j (rouge), ALERTE <90j (orange), normal >90j |
+| `ProviderRoleBadge` | FS-03 v1.1 §4.4 | Badge coloré par rôle de fournisseur (N:N) : editor (bleu), integrator (orange), support (cyan), vendor (jaune), custom (gris) |
+| `AppBreadcrumbs` | PNS-11 (Recommended) | Breadcrumb systématique 3 niveaux (Accueil > Liste > Courant). À implémenter comme composant partagé dans F-01 Design System ou FS-11 Navigation Transverse |
 
 > **Note :** Ces composants suivent les mêmes règles de design (tokens, sx prop, i18n) que les composants génériques.
 
 ---
 
-_Document de travail v0.2 — Projet ARK_
+_Document de travail v0.4 — Projet ARK_
