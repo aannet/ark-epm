@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Drawer,
   Box,
@@ -156,18 +156,29 @@ export default function ApplicationDrawer({
                    </Box>
                   )}
 
-                 {application.itComponents && application.itComponents.length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('applications.relations.itComponents')}
-                      </Typography>
-                      {application.itComponents.map((itComponent) => (
-                        <Typography key={itComponent.id} variant="body1" sx={{ mb: 0.5 }}>
-                          {itComponent.name}
-                        </Typography>
-                      ))}
-                    </Box>
-                  )}
+                  {application.itComponents && application.itComponents.length > 0 && (
+                     <Box sx={{ mb: 2 }}>
+                       <Typography variant="body2" color="text.secondary">
+                         {t('applications.relations.itComponents')}
+                       </Typography>
+                       {application.itComponents.map((itComponent) => (
+                         <Link
+                           key={itComponent.id}
+                           component={RouterLink}
+                           to={`/it-components/${itComponent.id}`}
+                           underline="always"
+                           sx={{
+                             color: 'inherit',
+                             '&:hover': { color: 'primary.main' },
+                             display: 'block',
+                             mb: 0.5,
+                           }}
+                         >
+                           {itComponent.name}
+                         </Link>
+                       ))}
+                     </Box>
+                   )}
 
                  {application.owner && (
                    <Box sx={{ mb: 2 }}>

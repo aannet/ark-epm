@@ -13,6 +13,7 @@ import {
   IconButton,
   TableSortLabel,
   Link as MuiLink,
+  Chip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -323,18 +324,21 @@ export default function ApplicationsListPage(): JSX.Element {
                     {t('applications.list.columns.domain')}
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                   {t('applications.list.columns.provider')}
+                 <TableCell>
+                    {t('applications.list.columns.provider')}
+                  </TableCell>
+                 <TableCell>
+                   {t('applications.list.columns.itComponents')}
                  </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'criticality'}
-                    direction={sortField === 'criticality' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('criticality')}
-                  >
-                    {t('applications.list.columns.criticality')}
-                  </TableSortLabel>
-                </TableCell>
+                 <TableCell>
+                   <TableSortLabel
+                     active={sortField === 'criticality'}
+                     direction={sortField === 'criticality' ? sortOrder : 'asc'}
+                     onClick={() => handleSort('criticality')}
+                   >
+                     {t('applications.list.columns.criticality')}
+                   </TableSortLabel>
+                 </TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortField === 'lifecycleStatus'}
@@ -387,11 +391,23 @@ export default function ApplicationsListPage(): JSX.Element {
                     {application.domain?.name || '—'}
                   </TableCell>
                    <TableCell onClick={() => handleRowClick(application.id, 'provider')}>
-                     {application.providers?.length > 0
-                       ? application.providers.map(p => p.name).join(', ')
-                       : '—'}
+                      {application.providers?.length > 0
+                        ? application.providers.map(p => p.name).join(', ')
+                        : '—'}
+                    </TableCell>
+                   <TableCell onClick={() => handleRowClick(application.id, 'itComponents')}>
+                     {application.itComponents && application.itComponents.length > 0 ? (
+                       <Chip
+                         label={application.itComponents.length}
+                         size="small"
+                         variant="outlined"
+                         color="info"
+                       />
+                     ) : (
+                       '—'
+                     )}
                    </TableCell>
-                  <TableCell onClick={() => handleRowClick(application.id, 'criticality')}>
+                   <TableCell onClick={() => handleRowClick(application.id, 'criticality')}>
                     {application.criticality ? (
                       <StatusChip type="criticality" value={application.criticality as any} />
                     ) : (

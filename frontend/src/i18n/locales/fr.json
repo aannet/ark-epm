@@ -376,19 +376,20 @@
         "title": "Applications",
         "subtitle": "Inventaire des applications métier",
         "addButton": "Ajouter une application",
-        "columns": {
-          "name": "Nom",
-          "domain": "Domaine",
-          "owner": "Responsable",
-          "provider": "Fournisseur",
-          "providerRole": "Rôle du fournisseur",
-          "criticality": "Criticité",
-          "lifecycleStatus": "Cycle de vie",
-          "tags": "Tags",
-          "createdAt": "Créé le",
-          "actions": "Actions",
-          "description": "Description"
-        },
+         "columns": {
+           "name": "Nom",
+           "domain": "Domaine",
+           "owner": "Responsable",
+           "provider": "Fournisseur",
+           "providerRole": "Rôle du fournisseur",
+           "itComponents": "Composants IT",
+           "criticality": "Criticité",
+           "lifecycleStatus": "Cycle de vie",
+           "tags": "Tags",
+           "createdAt": "Créé le",
+           "actions": "Actions",
+           "description": "Description"
+         },
         "emptyState": {
           "title": "Aucune application créée",
           "description": "Commencez par créer votre première application.",

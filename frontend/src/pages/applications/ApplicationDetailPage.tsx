@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -183,16 +183,25 @@ export default function ApplicationDetailPage(): JSX.Element {
                  {t('applications.relations.itComponents')}
                </Typography>
                {application.itComponents && application.itComponents.length > 0 ? (
-                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                   {application.itComponents.map((itComponent) => (
-                     <Typography key={itComponent.id} variant="body1">
-                       {itComponent.name}
-                     </Typography>
-                   ))}
-                 </Box>
-               ) : (
-                 <Typography variant="body1">{t('applications.relations.noItComponents')}</Typography>
-               )}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {application.itComponents.map((itComponent) => (
+                      <Link
+                        key={itComponent.id}
+                        component={RouterLink}
+                        to={`/it-components/${itComponent.id}`}
+                        underline="always"
+                        sx={{
+                          color: 'inherit',
+                          '&:hover': { color: 'primary.main' },
+                        }}
+                      >
+                        {itComponent.name}
+                      </Link>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body1">{t('applications.relations.noItComponents')}</Typography>
+                )}
              </Grid>
              <Grid item xs={12} md={6}>
                <Typography variant="body2" color="text.secondary">

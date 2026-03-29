@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, Breadcrumbs, Link, Tabs, Tab, Button,
@@ -91,7 +91,7 @@ export default function ITComponentDetailPage(): JSX.Element {
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
                 <Table>
                   <TableHead><TableRow sx={{ bgcolor: '#F1F5F9' }}><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell><TableCell>{t('applications.list.columns.owner')}</TableCell><TableCell>{t('applications.list.columns.criticality')}</TableCell><TableCell>{t('applications.list.columns.lifecycleStatus')}</TableCell></TableRow></TableHead>
-                  <TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell>{app.name}</TableCell><TableCell>{app.domain?.name || '—'}</TableCell><TableCell>{app.owner ? `${app.owner.firstName} ${app.owner.lastName}` : '—'}</TableCell><TableCell>{app.criticality || '—'}</TableCell><TableCell>{app.lifecycleStatus || '—'}</TableCell></TableRow>)}</TableBody>
+                   <TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell><Link component={RouterLink} to={`/applications/${app.id}`} underline="always" sx={{ color: 'inherit', '&:hover': { color: 'primary.main' } }}>{app.name}</Link></TableCell><TableCell>{app.domain?.name || '—'}</TableCell><TableCell>{app.owner ? `${app.owner.firstName} ${app.owner.lastName}` : '—'}</TableCell><TableCell>{app.criticality || '—'}</TableCell><TableCell>{app.lifecycleStatus || '—'}</TableCell></TableRow>)}</TableBody>
                 </Table>
               </TableContainer>
               <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={20} rowsPerPageOptions={[20]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />

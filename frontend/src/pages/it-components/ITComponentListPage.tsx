@@ -183,11 +183,11 @@ export default function ITComponentListPage(): JSX.Element {
                     </TableCell>
                     <TableCell onClick={() => handleRowClick(item.id, false)}>{item._count.applications}</TableCell>
                     {canWrite && (
-                      <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                        <IconButton onClick={() => navigate(`/it-components/${item.id}/edit`)}><EditIcon /></IconButton>
-                        <IconButton onClick={() => { setDeleteDialog(item); setDeleteError(null); }}><EditIcon /></IconButton>
-                      </TableCell>
-                    )}
+                       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                         <IconButton onClick={() => navigate(`/it-components/${item.id}/edit`)}><EditIcon /></IconButton>
+                         <IconButton onClick={() => { setDeleteDialog(item); setDeleteError(null); }}><DeleteIcon /></IconButton>
+                       </TableCell>
+                     )}
                   </TableRow>
                 ))}
               </TableBody>
