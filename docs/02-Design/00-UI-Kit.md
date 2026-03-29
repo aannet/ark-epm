@@ -1,6 +1,10 @@
 # ARK — UI Kit & Charte Design
 
-_Version 0.4 — Mars 2026_
+_Version 0.5 — Mars 2026_
+
+> **Changelog v0.5 :**
+> - §5.2 Tableaux : ajout pattern **badge compteur (N:N)** — Chip quantitatif pour afficher le nombre d'entités liées en colonne de liste (ex: Composants IT, Applications)
+> - Pattern extensible pour toute relation N:N avec display en tableau (Capacités, Data Objects, Interfaces)
 
 > **Changelog v0.4 :**
 > - §3 Actions & Boutons : clarification variantes actions de ligne (icônes séparées vs menu dropdown)
@@ -137,6 +141,32 @@ Exemples d'utilisation :
 - **Expiry Badges** (FS-03) : URGENT <30j=error (rouge), ALERTE <90j=warning (orange)
 - **Lifecycle Status** : draft=info, active=success, deprecated=error
 - **Criticality** : critical=error, high=warning, medium=info, low=success
+
+### 5.2 Badge compteur (N:N)
+
+Pattern pour afficher un compteur de relations N:N dans les colonnes de tableau :
+
+```typescript
+<Chip
+  label={items.length}    // nombre entier
+  size="small"
+  variant="outlined"
+  color="info"            // toujours info (bleu neutre)
+/>
+```
+
+Règles :
+- **Valeur > 0** : affiche le `<Chip>` avec le nombre
+- **Valeur = 0** : affiche `'—'` (tiret cadratin), jamais un chip avec `0`
+- **Couleur fixe** : `info` (bleu neutre) — le compteur n'a pas de sémantique conditionnelle
+- **Variante** : `outlined` (cohérent avec les badges conditionnels §5.1)
+- **Taille** : `small` (cohérent avec les autres chips en tableau)
+- **Non clickable** : le chip n'est pas interactif, la navigation vers les détails passe par la ligne
+
+Exemples d'utilisation :
+- **IT Components** (FS-06 v1.2) : colonne "Composants IT" dans la liste Applications
+- **Applications** (FS-04 v1.1) : colonne "Applications" dans la liste IT Components (`_count.applications`)
+- **Pattern extensible** : toute relation N:N affichée en colonne de liste (ex: Capacités, Data Objects, Interfaces)
 
 ---
 
@@ -280,4 +310,4 @@ Certains composants réutilisables mais spécifiques à un domaine métier sont 
 
 ---
 
-_Document de travail v0.4 — Projet ARK_
+_Document de travail v0.5 — Projet ARK_
