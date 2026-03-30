@@ -183,11 +183,11 @@ export default function ApplicationsListPage(): JSX.Element {
         },
       });
       setAlert({ severity: 'success', message: t('applications.alert.deleted') });
-    } catch (err: any) {
-      const status = err?.response?.status;
-      const code = err?.response?.data?.code;
+    } catch (err) {
+      const status = (err as any)?.response?.status;
+      const code = (err as any)?.response?.data?.code;
       if (status === 409 && code === 'DEPENDENCY_CONFLICT') {
-        setDeleteErrorMessage(format409Message(t, err?.response?.data?.details));
+        setDeleteErrorMessage(format409Message(t, (err as any)?.response?.data?.details));
       } else if (status && status >= 500) {
         setAlert({ severity: 'error', message: t('applications.alert.errors.serverError') });
         setDeleteDialog(null);

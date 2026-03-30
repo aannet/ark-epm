@@ -151,11 +151,19 @@ export default function ProviderDetailPage() {
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
           component="button"
+          onClick={() => navigate('/')}
+          variant="body2"
+          sx={{ cursor: 'pointer' }}
+        >
+          {t('providers.detail.breadcrumb.home')}
+        </Link>
+        <Link
+          component="button"
           onClick={handleBackClick}
           variant="body2"
           sx={{ cursor: 'pointer' }}
         >
-          {t('providers.form.breadcrumb.list')}
+          {t('providers.detail.breadcrumb.list')}
         </Link>
         <Typography variant="body2">{provider.name}</Typography>
       </Breadcrumbs>

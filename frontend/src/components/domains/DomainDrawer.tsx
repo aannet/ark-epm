@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,13 +7,12 @@ import {
   IconButton,
   Button,
   Skeleton,
-  Chip,
   Divider,
-  Link,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
+import { TagChipList } from '@/components/tags';
 
 interface DomainDrawerProps {
   domainId: string | null;
@@ -22,26 +20,14 @@ interface DomainDrawerProps {
   onClose: () => void;
 }
 
-const MAX_VISIBLE_TAGS = 10;
-
 export default function DomainDrawer({ domainId, open, onClose }: DomainDrawerProps): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const canWrite = hasPermission('domains:write');
-  const [showAllTags, setShowAllTags] = useState(false);
   
   const { data: domain, isLoading } = useDomain(domainId || '', {
     enabled: !!domainId,
   });
-
-  const visibleTags = useMemo(() => {
-    if (!domain?.tags) return [];
-    if (showAllTags) return domain.tags;
-    return domain.tags.slice(0, MAX_VISIBLE_TAGS);
-  }, [domain?.tags, showAllTags]);
-
-  const hasMoreTags = domain?.tags && domain.tags.length > MAX_VISIBLE_TAGS;
-  const hiddenCount = hasMoreTags ? (domain?.tags?.length || 0) - MAX_VISIBLE_TAGS : 0;
 
   const handleViewDetails = () => {
     if (domainId) {
@@ -56,7 +42,6 @@ export default function DomainDrawer({ domainId, open, onClose }: DomainDrawerPr
   };
 
   const handleClose = () => {
-    setShowAllTags(false);
     onClose();
   };
 
@@ -135,37 +120,13 @@ export default function DomainDrawer({ domainId, open, onClose }: DomainDrawerPr
                   {t('domains.drawer.section.tags')}
                 </Typography>
                 {domain.tags && domain.tags.length > 0 ? (
-                  <Box>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {visibleTags.map((tag) => (
-                        <Chip
-                          key={tag.id}
-                          label={tag.label}
-                          size="small"
-                          sx={{
-                            backgroundColor:
-                              tag.dimensionName === 'Geography'
-                                ? '#2196F3'
-                                : tag.dimensionName === 'Brand'
-                                ? '#9C27B0'
-                                : '#FF9800',
-                            color: '#fff',
-                          }}
-                          title={tag.path}
-                        />
-                      ))}
-                    </Box>
-                    {hasMoreTags && !showAllTags && (
-                      <Link
-                        component="button"
-                        variant="body2"
-                        onClick={() => setShowAllTags(true)}
-                        sx={{ mt: 1, textDecoration: 'underline', cursor: 'pointer' }}
-                      >
-                        {t('domains.drawer.showMoreTags', { count: hiddenCount })}
-                      </Link>
-                    )}
-                  </Box>
+                  <TagChipList
+                    tags={domain.tags}
+                    maxVisible={10}
+                    deduplicate={true}
+                    showMoreButton={true}
+                    size="small"
+                  />
                 ) : (
                   <Typography variant="body2" color="text.secondary">
                     —
@@ -194,22 +155,22 @@ export default function DomainDrawer({ domainId, open, onClose }: DomainDrawerPr
         </Box>
 
         {/* Footer */}
-        <Box sx={{ pt: 2, borderTop: 1, borderColor: 'divider', mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            onClick={handleEdit}
-            disabled={isLoading || !domain || !canWrite}
-          >
-            {t('domains.drawer.edit')}
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleViewDetails}
-            disabled={isLoading || !domain}
-          >
-            {t('domains.drawer.viewFullDetails')}
-          </Button>
-        </Box>
+         <Box sx={{ pt: 2, borderTop: 1, borderColor: 'divider', mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+           <Button
+             variant="outlined"
+             onClick={handleViewDetails}
+             disabled={isLoading || !domain}
+           >
+             {t('domains.drawer.viewFullDetails')}
+           </Button>
+           <Button
+             variant="contained"
+             onClick={handleEdit}
+             disabled={isLoading || !domain || !canWrite}
+           >
+             {t('domains.drawer.edit')}
+           </Button>
+         </Box>
       </Box>
     </Drawer>
   );

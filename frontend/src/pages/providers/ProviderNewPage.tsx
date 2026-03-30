@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Box, Breadcrumbs, Link, Typography } from '@mui/material';
 import { PageContainer } from '@/components/layout';
 import { ProviderForm } from '@/components/providers';
+import ArkAlert from '@/components/shared/ArkAlert';
 import { useCreateProvider } from '@/api/providers';
 import { useQuery } from '@tanstack/react-query';
 import client from '@/api/client';
@@ -28,9 +29,9 @@ export default function ProviderNewPage() {
   // Redirect if no write permission
   useEffect(() => {
     if (!canWrite) {
-      window.location.href = '/403';
+      navigate('/403');
     }
-  }, [canWrite]);
+  }, [canWrite, navigate]);
 
   // Fetch available tag dimensions
   const { data: dimensions } = useQuery({
@@ -109,6 +110,14 @@ export default function ProviderNewPage() {
       <Breadcrumbs sx={{ mb: 3 }}>
         <Link
           component="button"
+          onClick={() => navigate('/')}
+          variant="body2"
+          sx={{ cursor: 'pointer' }}
+        >
+          {t('providers.form.breadcrumb.home')}
+        </Link>
+        <Link
+          component="button"
           onClick={() => navigate('/providers')}
           variant="body2"
           sx={{ cursor: 'pointer' }}
@@ -136,9 +145,12 @@ export default function ProviderNewPage() {
 
       {/* Error Alert */}
       {alert && (
-        <Box sx={{ mt: 2, p: 2, backgroundColor: '#ffebee', borderRadius: 1 }}>
-          <Typography color="error">{alert.message}</Typography>
-        </Box>
+        <ArkAlert
+          severity={alert.severity}
+          message={alert.message}
+          open={true}
+          onClose={() => setAlert(null)}
+        />
       )}
     </PageContainer>
   );

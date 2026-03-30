@@ -16,6 +16,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import StatusChip from '@/components/shared/StatusChip';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { TagChipList } from '@/components/tags';
 import { useApplication } from '@/api/applications';
 import { hasPermission } from '@/store/auth';
@@ -56,6 +57,14 @@ export default function ApplicationDetailPage(): JSX.Element {
 
   return (
     <PageContainer maxWidth="md">
+      <AppBreadcrumbs
+        items={[
+          { label: t('applications.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('applications.detail.breadcrumb.list'), onClick: () => navigate('/applications') },
+          { label: application.name },
+        ]}
+      />
+
       <PageHeader
         title={application.name}
         action={

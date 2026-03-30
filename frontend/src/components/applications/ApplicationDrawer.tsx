@@ -280,18 +280,18 @@ export default function ApplicationDrawer({
           }}
         >
           <Button
-            variant="contained"
-            onClick={handleEdit}
-            disabled={isLoading || !application || !canWrite}
-          >
-            {t('applications.drawer.edit')}
-          </Button>
-          <Button
             variant="outlined"
             onClick={handleViewDetails}
             disabled={isLoading || !application}
           >
             {t('applications.drawer.viewFullDetails')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleEdit}
+            disabled={isLoading || !application || !canWrite}
+          >
+            {t('applications.drawer.edit')}
           </Button>
         </Box>
       </Box>

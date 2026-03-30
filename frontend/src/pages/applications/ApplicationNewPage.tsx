@@ -6,6 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { ApplicationForm } from '@/components/applications';
 import { useCreateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
@@ -57,9 +58,9 @@ export default function ApplicationNewPage(): JSX.Element {
             alert: { severity: 'success', message: t('applications.alert.created') },
           },
         });
-      } catch (err: any) {
-        const status = err?.response?.status;
-        const code = err?.response?.data?.code;
+      } catch (err) {
+        const status = (err as any)?.response?.status;
+        const code = (err as any)?.response?.data?.code;
 
         if (status === 409 && code === 'CONFLICT') {
           setFieldError(t('applications.form.nameDuplicate'));
@@ -90,6 +91,14 @@ export default function ApplicationNewPage(): JSX.Element {
 
   return (
     <PageContainer maxWidth="sm">
+      <AppBreadcrumbs
+        items={[
+          { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
+          { label: t('applications.form.breadcrumb.new') },
+        ]}
+      />
+
       <PageHeader title={t('applications.form.createTitle')} />
 
       {submitError && (

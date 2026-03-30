@@ -65,10 +65,10 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
           ) : <EmptyState title={t('it-components.drawer.noApplications')} />
         )}
       </Box>
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between' }}>
-        <Button variant="contained" startIcon={<EditIcon />} onClick={() => { onClose(); navigate(`/it-components/${itComponent.id}/edit`); }} disabled={!canWrite}>{t('it-components.drawer.buttonEdit')}</Button>
-        <Button variant="outlined" endIcon={<ArrowForwardIcon />} onClick={() => { onClose(); navigate(`/it-components/${itComponent.id}`); }}>{t('it-components.drawer.buttonViewDetail')}</Button>
-      </Box>
+       <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between' }}>
+         <Button variant="outlined" endIcon={<ArrowForwardIcon />} onClick={() => { onClose(); navigate(`/it-components/${itComponent.id}`); }}>{t('it-components.drawer.buttonViewDetail')}</Button>
+         <Button variant="contained" startIcon={<EditIcon />} onClick={() => { onClose(); navigate(`/it-components/${itComponent.id}/edit`); }} disabled={!canWrite}>{t('it-components.drawer.buttonEdit')}</Button>
+       </Box>
     </Drawer>
   );
 }

@@ -32,27 +32,15 @@ export default function DomainForm({
   
   // Maintain reactive state for tags
   const [tags, setTags] = useState<TagValueResponse[]>(initialValues?.tags || []);
-  
-  console.log('=== DomainForm render ===');
-  console.log('Current tags state:', tags);
-  console.log('Initial values:', initialValues?.tags);
 
   const handleDimensionTagsChange = useCallback((dimensionName: string, dimensionTags: TagValueResponse[]) => {
-    console.log('=== handleDimensionTagsChange called ===');
-    console.log('dimensionName:', dimensionName);
-    console.log('dimensionTags:', dimensionTags);
-    console.log('Current tags before update:', tags);
-    
     setTags((prevTags) => {
-      console.log('Inside setTags callback, prevTags:', prevTags);
       // Remove all tags for this dimension
       const tagsWithoutDimension = prevTags.filter(
         (tag) => tag.dimensionName !== dimensionName
       );
-      console.log('tagsWithoutDimension:', tagsWithoutDimension);
       // Add new tags for this dimension
       const newTags = [...tagsWithoutDimension, ...dimensionTags];
-      console.log('New tags state:', newTags);
       return newTags;
     });
   }, []);
@@ -108,24 +96,22 @@ export default function DomainForm({
             </Typography>
             <Stack spacing={2}>
               {availableDimensions.map((dimension) => (
-                <DimensionTagInput
-                  key={dimension.id}
-                  dimensionId={dimension.id}
-                  dimensionName={dimension.name}
-                  entityType="domain"
-                  entityId={entityId}
-                  value={tags.filter(
-                    (t) => t.dimensionName === dimension.name
-                  )}
-                  onChange={(dimensionTags) => {
-                    console.log('=== DimensionTagInput onChange in DomainForm ===');
-                    console.log('dimensionTags received:', dimensionTags);
-                    handleDimensionTagsChange(dimension.name, dimensionTags);
-                  }}
-                  multiple={true}
-                  color={dimension.color}
-                  disabled={isLoading}
-                />
+               <DimensionTagInput
+                   key={dimension.id}
+                   dimensionId={dimension.id}
+                   dimensionName={dimension.name}
+                   entityType="domain"
+                   entityId={entityId}
+                   value={tags.filter(
+                     (t) => t.dimensionName === dimension.name
+                   )}
+                   onChange={(dimensionTags) => {
+                     handleDimensionTagsChange(dimension.name, dimensionTags);
+                   }}
+                   multiple={true}
+                   color={dimension.color}
+                   disabled={isLoading}
+                 />
               ))}
             </Stack>
           </Box>

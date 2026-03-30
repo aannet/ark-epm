@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Box, Breadcrumbs, Link, Typography, CircularProgress } from '@mui/material';
 import { PageContainer } from '@/components/layout';
 import { ProviderForm } from '@/components/providers';
+import ArkAlert from '@/components/shared/ArkAlert';
 import { useProvider, useUpdateProvider } from '@/api/providers';
 import { useQuery } from '@tanstack/react-query';
 import client from '@/api/client';
@@ -29,9 +30,9 @@ export default function ProviderEditPage() {
   // Redirect if no write permission
   useEffect(() => {
     if (!canWrite) {
-      window.location.href = '/403';
+      navigate('/403');
     }
-  }, [canWrite]);
+  }, [canWrite, navigate]);
 
   // Fetch provider
   const { data: provider, isLoading: providerLoading, error: providerError } = useProvider(id || '');
@@ -145,6 +146,14 @@ export default function ProviderEditPage() {
       <Breadcrumbs sx={{ mb: 3 }}>
         <Link
           component="button"
+          onClick={() => navigate('/')}
+          variant="body2"
+          sx={{ cursor: 'pointer' }}
+        >
+          {t('providers.form.breadcrumb.home')}
+        </Link>
+        <Link
+          component="button"
           onClick={() => navigate('/providers')}
           variant="body2"
           sx={{ cursor: 'pointer' }}
@@ -189,9 +198,12 @@ export default function ProviderEditPage() {
 
       {/* Error Alert */}
       {alert && (
-        <Box sx={{ mt: 2, p: 2, backgroundColor: '#ffebee', borderRadius: 1 }}>
-          <Typography color="error">{alert.message}</Typography>
-        </Box>
+        <ArkAlert
+          severity={alert.severity}
+          message={alert.message}
+          open={true}
+          onClose={() => setAlert(null)}
+        />
       )}
     </PageContainer>
   );

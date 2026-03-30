@@ -117,12 +117,21 @@
       }
     },
     "detail": {
+      "breadcrumb": {
+        "home": "Accueil",
+        "list": "Domaines"
+      },
       "noDescription": "—",
       "noComment": "Aucun commentaire",
       "editButton": "Modifier",
       "backButton": "Retour"
     },
     "form": {
+      "breadcrumb": {
+        "home": "Accueil",
+        "list": "Domaines",
+        "new": "Nouveau domaine"
+      },
       "createTitle": "Nouveau domaine",
       "editTitle": "Modifier le domaine",
       "nameLabel": "Nom",
@@ -406,6 +415,10 @@
         "reset": "Réinitialiser"
       },
       "detail": {
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Applications"
+        },
         "noDescription": "—",
         "noComment": "Aucun commentaire",
         "noValue": "Non défini",
@@ -423,6 +436,11 @@
         "updatedAt": "Modifié le"
       },
        "form": {
+         "breadcrumb": {
+           "home": "Accueil",
+           "list": "Applications",
+           "new": "Nouvelle application"
+         },
          "createTitle": "Nouvelle application",
          "editTitle": "Modifier l'application",
          "nameLabel": "Nom",

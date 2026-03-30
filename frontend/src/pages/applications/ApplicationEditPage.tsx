@@ -6,6 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { ApplicationForm } from '@/components/applications';
 import { useApplication, useUpdateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
@@ -65,9 +66,9 @@ export default function ApplicationEditPage(): JSX.Element {
             alert: { severity: 'success', message: t('applications.alert.updated') },
           },
         });
-      } catch (err: any) {
-        const status = err?.response?.status;
-        const code = err?.response?.data?.code;
+      } catch (err) {
+        const status = (err as any)?.response?.status;
+        const code = (err as any)?.response?.data?.code;
 
         if (status === 409 && code === 'CONFLICT') {
           setFieldError(t('applications.form.nameDuplicate'));
@@ -111,6 +112,15 @@ export default function ApplicationEditPage(): JSX.Element {
 
   return (
     <PageContainer maxWidth="sm">
+      <AppBreadcrumbs
+        items={[
+          { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
+          { label: application.name, onClick: () => navigate(`/applications/${id}`) },
+          { label: t('common.actions.edit') },
+        ]}
+      />
+
       <PageHeader title={t('applications.form.editTitle')} />
 
       {submitError && (
