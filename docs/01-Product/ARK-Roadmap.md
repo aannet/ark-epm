@@ -1,18 +1,20 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.13 — Mars 2026_
+_Version 0.14 — Mars 2026_
+
+> **Changelog v0.14 :**
+> - **FS-03-FRONT** (Providers) : statut `done` — 4 pages frontend implémentées (list/detail/new/edit), routes décommentées, Cypress tests (32 tests, 6 describe blocks)
+> - **Sprint 2 COMPLETE** — Tous les 6 satellites terminés (FS-02, FS-03 BACK+FRONT, FS-04, FS-06 BACK+FRONT). FS-03-FRONT débloque Sprint 2 et F-999 Item #15
+> - **F-999 Item 15 RESOLVED** — Routes Providers décommentées dans App.tsx ✅
 
 > **Changelog v0.13 :**
 > - **F-02** (i18n Foundation) : statut `done` — 326 clés traduites en français, couverture complète FS-01 et fondations
 > - **F-03** (Dimension Tags Foundation) : statut `done` — backend module complet, schema.prisma, tests, frontend API client, seed 3 dimensions
 > - **FS-02 (Domains)** : BACK et FRONT passés à `done` — 4 pages frontend (list/detail/new/edit), routing actif, e2e tests
 > - **FS-03-BACK** (Providers) : statut `done` — backend complet avec N:N relationships et provider roles
-> - **FS-03-FRONT** (Providers) : statut `draft` → **BLOCAGE SPRINT 2** — 0 pages implémentées, routes commentées
 > - **FS-04 (IT Components)** : BACK et FRONT passés à `done` — implémentation complète, routing actif
 > - **FS-06 (Applications)** : BACK et FRONT passés à `done` — implémentation complète, 4 pages, landing page par défaut, mais reste mocks Providers/Users
-> - **Sprint 2 avancement :** 5/6 satellites complétés (FS-02, FS-03-BACK, FS-04, FS-06-BACK, FS-06-FRONT). FS-03-FRONT et FS-05 restants
 > - **Découverte :** FS-06-FRONT livré en Sprint 2 (anticipé) — FS-06 BACK + FRONT `done`, mais dépendances non résolues (Items F-999 #12, #13, #14)
-> - **F-999 Item 15 :** Routes Providers commentées dans App.tsx — bloquées par absence de pages FS-03-FRONT
 
 > **Changelog v0.12 :**
 > - FS-04-BACK : statut `done` (implémentation backend complète)
@@ -131,17 +133,17 @@ _Version 0.13 — Mars 2026_
 |---|---|---|---|---|---|---|
 | FS-02 | **Domains** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-02-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
 | **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend livré Sprint 2 (anticipé).* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 2 — anticipé)* | ✅ `done` | ✅ `done` | **1.5j** |
-| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | ✅ `done` | **🔴 `draft` (BLOCAGE)** | 0.5j + 0.5j |
+| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 0.5j |
 | FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
 | FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
 
 > FS-02 et FS-06 sont les **modules de référence** — backend (FS-02-BACK, FS-06-BACK) et frontend (FS-02-FRONT, FS-06-FRONT) — pour OpenCode sur tous les modules suivants. Valider soigneusement avant de démarrer les satellites.
 
-> **Ordre d'implémentation effectué :** FS-02-BACK → FS-06-BACK → FS-03-BACK / FS-04-BACK → FS-04-FRONT (via PNS-02 pattern) → FS-06-FRONT. **FS-03-FRONT reste à faire pour débloquer Sprint 2.**
+> **Ordre d'implémentation effectué :** FS-02-BACK → FS-06-BACK → FS-03-BACK / FS-04-BACK → FS-04-FRONT (via PNS-02 pattern) → FS-06-FRONT → **FS-03-FRONT done** ✅. **Sprint 2 débloqué.**
 
 > ⚠️ La migration F-03 retire les colonnes `tags TEXT[]` sur chaque table au fil des sprints. Chaque FS-xx est responsable du `DROP COLUMN tags` sur sa propre table (documenté en F-999 §2).
 
-> ⚠️ **Note FS-04-FRONT :** Lors de l'implémentation de FS-04-FRONT, les routes Providers dans `App.tsx` ont été temporairement commentées car les composants FS-03-FRONT n'existaient pas encore. Voir F-999 Item 15 pour le détail.
+> ✅ **Note FS-03-FRONT :** Implémentation complète le 29/03/2026 (4 pages, 12 fichiers, 1468 LOC, 32 tests Cypress). Routes Providers décommentées, FS-03-FRONT débloque Sprint 2. Voir F-999 Item 15 résolu.
 
 ---
 
@@ -149,7 +151,7 @@ _Version 0.13 — Mars 2026_
 
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
-| FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | `draft` | 1.5j |
+| FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | ✅ `done` (anticipé Sprint 2) | 1.5j |
 | FS-07 | **Business Capabilities** — CRUD + récursion `WITH RECURSIVE` + `DimensionTagInput` + écran arbre hiérarchique | FS-02-BACK, F-03 | FS-07-BACK, F-02, F-03 | `draft` | `draft` | 1.5j + 1.5j |
 
 > FS-07-BACK contient la requête `WITH RECURSIVE` — à écrire et tester manuellement en SQL avant de rédiger la spec back. **Tâche 0.9 à réaliser pendant Sprint 2** (0.5j R&D SQL pur).
@@ -240,11 +242,11 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | ✅ 4 | **FS-04-BACK** | `done` | Satellite implémenté (pattern IT Components) |
 | ✅ 5 | **FS-04-FRONT** | `done` | Satellite frontend (PNS-02 drawer pattern) |
 | ✅ 6 | **FS-06-FRONT** | `done` | **Livré anticipé en Sprint 2 — 4 pages, landing page par défaut** |
-| 🔴 **BLOCAGE** | **FS-03-FRONT** | `draft` — 0 pages | **À implémenter — débloque routes et Item F-999 #15** |
-| ⏳ 7 | **FS-05-BACK / FRONT** | `draft` | Satellite suivant (Data Objects) |
-| 8 | **FS-07-BACK** | `draft` | Requête `WITH RECURSIVE` à valider d'abord |
-| 9 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
-| 10+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
+| ✅ 7 | **FS-03-FRONT** | `done` — 4 pages, 32 tests | **Implémentation complete 29/03 — débloque Sprint 2 et F-999 #15** |
+| 8 | **FS-05-BACK / FRONT** | `draft` | Satellite suivant (Data Objects) |
+| 9 | **FS-07-BACK** | `draft` | Requête `WITH RECURSIVE` à valider d'abord |
+| 10 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
+| 11+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
 
 ---
 
