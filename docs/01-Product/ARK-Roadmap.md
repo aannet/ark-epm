@@ -1,6 +1,10 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.14 — Mars 2026_
+_Version 0.15 — Avril 2026_
+
+> **Changelog v0.15 :**
+> - **FS-05-BACK** (Data Objects) : spec rédigée v1.0, statut `stable` — Migration schéma conforme NFR-GOV-005 (description, comment, updatedAt, UNIQUE name, tags[] supprimé), liaison F-03, relations N:N avec rôles enum (consumer/producer/owner)
+> - Ordre de rédaction mis à jour : FS-05-BACK en position 8
 
 > **Changelog v0.14 :**
 > - **FS-03-FRONT** (Providers) : statut `done` — 4 pages frontend implémentées (list/detail/new/edit), routes décommentées, Cypress tests (32 tests, 6 describe blocks)
@@ -243,7 +247,8 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | ✅ 5 | **FS-04-FRONT** | `done` | Satellite frontend (PNS-02 drawer pattern) |
 | ✅ 6 | **FS-06-FRONT** | `done` | **Livré anticipé en Sprint 2 — 4 pages, landing page par défaut** |
 | ✅ 7 | **FS-03-FRONT** | `done` — 4 pages, 32 tests | **Implémentation complete 29/03 — débloque Sprint 2 et F-999 #15** |
-| 8 | **FS-05-BACK / FRONT** | `draft` | Satellite suivant (Data Objects) |
+ | 8 | **FS-05-BACK** | ✅ `stable` | **Spec rédigée v1.0 — conforme NFR-GOV-005, migration schéma doc** |
+| 8b | **FS-05-FRONT** | `draft` | Frontend Data Objects (attend FS-05-BACK `done`) |
 | 9 | **FS-07-BACK** | `draft` | Requête `WITH RECURSIVE` à valider d'abord |
 | 10 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
 | 11+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
