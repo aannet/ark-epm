@@ -1,13 +1,14 @@
-# SESSION-HANDOFF.md — Sprint 2 Closure & Sprint 3 Kick-off
+# SESSION-HANDOFF.md — Sprint 3 Kick-off & Development Plan
 
-> 🤖 **AGENT ACTIF** : [spec] | **MISSION** : Finaliser Sprint 2 + Préparer Sprint 3 | **SPRINT** : FS-03 (done) → FS-05, FS-07
+> 🤖 **AGENT ACTIF** : [spec] | **MISSION** : Sprint 3 Ready — FS-05-BACK spec done, ready for backend implementation | **SPRINT** : FS-05-BACK ✅ stable, FS-07-BACK (pending Task 0.9)
 
 ---
 
 ## Status Summary
 
 ✅ **SPRINT 2 COMPLETE** — All 4 satellite entities delivered (FS-02, FS-03, FS-04, FS-06). Roadmap v0.14. Cypress tests live.
-🔧 **Sprint 3 Ready** — FS-05 Data Objects (no blockers) + FS-07 Business Capabilities (blocked by Task 0.9)
+✅ **FS-05-BACK SPEC COMPLETE** — Data Objects backend spec v1.0 `stable` (commit `7e8730c`). Schema aligned to NFR-GOV-005, migration documented, ready for OpenCode implementation.
+🔧 **Sprint 3 In Progress** — FS-05 backend implementation ready to start + FS-07 Business Capabilities (blocked by Task 0.9)
 📋 **Tech Debt P1** — Items #12b (Users API mock), #13 (tag dimensions hardcoded), #14 (batch tags endpoint)
 
 ---
@@ -44,40 +45,40 @@
 
 ## Sprint 3 Plan — Two Tracks
 
-### Track 1: FS-05 Data Objects (No Blockers — START IMMEDIATELY)
+### Track 1: FS-05 Data Objects (SPEC COMPLETE — BACKEND IMPLEMENTATION READY)
 
-**Dependency chain**: None. Can start as soon as spec is written.
+**Dependency chain**: None. Backend implementation can start immediately.
 
-#### Data Layer Status
-- **Prisma model exists**: `DataObject` (line 180) + `AppDataObjectMap` (line 192)
-- **Fields present**: `id`, `name`, `type`, `isSourceOfTruth`, `tags`, `createdAt`
-- **Mapping table**: Has `role` field (consumer/producer — same pattern as FS-03 provider roles)
-- **Migration**: Already applied (no further data work needed)
+#### Spec Status
+✅ **FS-05-Data-Objects-back.md** — v1.0 `stable` (commit `7e8730c`)
+- Complete OpenAPI contract (YAML §3)
+- NFR-GOV-005 aligned (description, comment, updatedAt, UNIQUE name)
+- Schema migration documented (idempotent SQL)
+- N:N relationship with enum roles (consumer, producer, owner)
+- F-03 tags integration (polymorphic entity_tags)
+- Comprehensive test plan (32 tests: 10 Jest + 17 Supertest + 5 RBAC manual)
+- 5 seed data objects prepared
 
-#### Schema Issues to Address (Before spec writing)
-⚠️ **Missing fields vs convention**:
-- `DataObject` lacks `description`, `comment`, `updatedAt` (inconsistent with other entities)
-- No `@unique` constraint on `name` (allow duplicates or enforce uniqueness?)
-- `AppDataObjectMap.role` default is `"consumer"` (verify against spec intent)
+#### Schema Decisions Made & Documented
+✅ **Add `description`, `comment`, `updatedAt`** — Conform to NFR-GOV-005
+✅ **Enforce UNIQUE constraint on `name`** — Consistency with other entities
+✅ **Migrate legacy `tags TEXT[]` to F-03** — Use polymorphic entity_tags
+✅ **Role field: enum (consumer, producer, owner)** — Strict validation
+✅ **Maintain `isSourceOfTruth`** — Boolean flag for data governance (P1)
+✅ **Type as string (not enum)** — Flexible, suggestions: database, dataset, file
 
 #### Next Steps
-1. **Decide on schema changes** (add description/comment/updatedAt, unique name?)
-2. **Write spec FS-05-Data-Objects-back.md** (following `_template_back.md`)
-   - CRUD endpoints (GET list, GET :id, POST, PATCH, DELETE)
-   - Pagination + search by name
-   - Relationship: Applications list (lazy-load with role badge)
-   - 409 DEPENDENCY_CONFLICT handling
-3. **Implement backend module** (`backend/src/data-objects/`)
-   - Controller, Service, DTOs, module wiring
-   - Seed sample data
-   - Tests e2e
-4. **Write spec FS-05-Data-Objects-front.md** (when BACK is `done`)
-   - 4 pages (List, Detail, New, Edit)
-   - Role badges (consumer/producer/both?)
-   - Drawer (PNS-02 pattern)
-5. **Implement frontend pages** (4 pages, ~1400 LOC estimated)
+1. ✅ **Spec writing done** — FS-05-Data-Objects-back.md v1.0 ready for implementation
+2. 🔨 **Backend implementation** (session OpenCode) — Module NestJS + tests
+   - Prisma migration + seed data
+   - Controller, Service, DTOs (following FS-02 pattern)
+   - Jest unit tests + Supertest e2e tests
+   - Audit trail validation
+3. ✅ **Gate G-01 to G-13** — Verify before marking BACK `done`
+4. 📝 **Write FS-05-FRONT spec** — When BACK is `done` (blocks gate)
+5. 🔨 **Frontend implementation** — 4 pages (List, Detail, New, Edit) ~1400 LOC
 
-**Estimated**: 0.5j back + 1j front = 1.5j total
+**Estimated**: 0.5j impl + 1j front = 1.5j total (from `stable` spec)
 
 ---
 
@@ -117,17 +118,19 @@ The service layer needs a `WITH RECURSIVE` query to fetch:
 
 ---
 
-## Outstanding Tasks Before Sprint 3 Development
+## Outstanding Tasks — Sprint 3 Development Plan
 
-| Task | Owner | Effort | Blocking | Priority |
-|------|-------|--------|----------|----------|
-| **Task 0.9: WITH RECURSIVE validation** | Data | 0.5j | FS-07-BACK start | P1 |
-| **Resolve schema inconsistencies (FS-05)** | Data + Spec | 0.5j | FS-05-BACK spec | P1 |
-| **Write FS-05-BACK spec** | Spec | 1j | FS-05 backend start | P1 |
-| **Write FS-07-BACK spec** | Spec | 1j | FS-07 backend start (after Task 0.9) | P1 |
-| **F-999 Item #12b: Implement Users API** | Back | 1-2j | ApplicationForm owner dropdown | P1 |
-| **F-999 Item #13: Tag dimensions hardcoded** | Back + Front | 1j | Application form field options | P1 |
-| **F-999 Item #14: Batch tags endpoint** | Back | 1j | Form submission optimization | P1 |
+| Task | Owner | Effort | Blocking | Priority | Status |
+|------|-------|--------|----------|----------|--------|
+| **Task 0.9: WITH RECURSIVE validation** | Data | 0.5j | FS-07-BACK start | P1 | Pending |
+| **FS-05-BACK implementation** | Back | 0.5j | FS-05-FRONT spec | P1 | 🟢 Ready (spec stable) |
+| **Write FS-07-BACK spec** | Spec | 1j | FS-07 backend start | P1 | Pending (blocked by Task 0.9) |
+| **FS-07-BACK implementation** | Back | 1.5j | FS-07-FRONT spec | P1 | Pending (after Task 0.9) |
+| **FS-05-FRONT spec** | Spec | 0.5j | FS-05 frontend start | P1 | Pending (after FS-05-BACK done) |
+| **FS-05-FRONT implementation** | Front | 1j | FS-05 complete | P1 | Pending (after FS-05-BACK done) |
+| **F-999 Item #12b: Implement Users API** | Back | 1-2j | ApplicationForm owner dropdown | P1 | Pending |
+| **F-999 Item #13: Tag dimensions hardcoded** | Back + Front | 1j | Application form field options | P1 | Pending |
+| **F-999 Item #14: Batch tags endpoint** | Back | 1j | Form submission optimization | P1 | Pending |
 
 ---
 
@@ -157,46 +160,59 @@ The service layer needs a `WITH RECURSIVE` query to fetch:
 
 ---
 
-## FS-05 & FS-07 — Schema Deep Dive
+## FS-05 & FS-07 — Schema Implementation Plan
 
-### FS-05 DataObject — Prisma Review
+### FS-05 DataObject — Schema Decisions ✅ DOCUMENTED
 
-**Current schema** (schema.prisma:180-201):
+**Target schema** (per FS-05-BACK v1.0 §2.2):
 
 ```prisma
 model DataObject {
-  id              String             @id @default(uuid()) @db.Uuid
-  name            String             @db.VarChar(255)
-  type            String?            @db.VarChar(100)
-  isSourceOfTruth Boolean?           @default(false) @map("is_source_of_truth")
-  tags            String[]           @default([])
-  createdAt       DateTime?          @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications    AppDataObjectMap[]
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String    @unique @db.VarChar(255)
+  description     String?   @db.Text
+  comment         String?   @db.Text
+  type            String?   @db.VarChar(100)
+  isSourceOfTruth Boolean   @default(false) @map("is_source_of_truth")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  appDataObjectMaps AppDataObjectMap[]
+  entityTags        EntityTag[]
+
   @@map("data_objects")
 }
 
 model AppDataObjectMap {
   applicationId String      @map("application_id") @db.Uuid
   dataObjectId  String      @map("data_object_id") @db.Uuid
-  role          String?     @default("consumer") @db.VarChar(50)
+  role          String      @default("consumer") @db.VarChar(50)
+
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   dataObject    DataObject  @relation(fields: [dataObjectId], references: [id], onDelete: Cascade)
+
   @@id([applicationId, dataObjectId])
   @@map("app_data_object_map")
 }
 ```
 
-**Divergences from entity conventions**:
-1. ❌ Missing `description`, `comment` (all other entities have them)
-2. ❌ Missing `updatedAt` (inconsistent with providers, domains, etc.)
-3. ❌ No `@unique` on `name` (allows duplicates — verify if intentional)
-4. ❌ ID uses `@default(uuid())` instead of `@default(dbgenerated("gen_random_uuid()"))` (style inconsistency)
+**Migration SQL** (documented in FS-05-BACK §1):
+```sql
+ALTER TABLE data_objects
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS comment TEXT,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE data_objects
+  ADD CONSTRAINT IF NOT EXISTS data_objects_name_key UNIQUE (name);
+ALTER TABLE data_objects DROP COLUMN IF EXISTS tags;
+```
 
-**Recommendation**: Before FS-05 backend, decide:
-- Add `description`, `comment`, `updatedAt` fields?
-- Enforce unique names?
-- Standardize ID generation to `gen_random_uuid()`?
-- Keep `tags TEXT[]` or migrate to `entity_tags` (F-03 pattern)?
+**Decisions Rationale** (all documented in spec):
+1. ✅ Add `description`, `comment`, `updatedAt` → NFR-GOV-005 compliance
+2. ✅ Enforce UNIQUE on `name` → Consistency with other entities
+3. ✅ Migrate `tags TEXT[]` to F-03 `entity_tags` → Single tag system
+4. ✅ Role field: enum (consumer/producer/owner) → Strict validation
+5. ✅ `isSourceOfTruth` maintained → Data governance marker
 
 ---
 
@@ -253,15 +269,14 @@ SELECT * FROM ancestor_path;
 
 ## Known Issues & Deviations
 
-| Issue | Severity | Action | Timeline |
-|-------|----------|--------|----------|
-| FS-05 schema inconsistencies (missing description/comment/updatedAt) | Medium | Align with conventions before BACK implementation | Before FS-05-BACK spec |
-| FS-05 name uniqueness not enforced | Low | Decide if intentional (check spec intent) | Before FS-05-BACK |
-| FS-07 requires Task 0.9 | High | Complete WITH RECURSIVE R&D | Before FS-07-BACK |
-| F-999 #12b Users API mock not implemented | High | Implement API endpoint | Sprint 3 P1 |
-| F-999 #13 Tag dimensions hardcoded | High | Connect to API | Sprint 3 P1 |
-| F-999 #14 Batch tags endpoint missing | Medium | Implement endpoint | Sprint 3 P1 |
-| F-999 Sprint 2 review missing | Low | Update history table | Maintenance |
+| Issue | Severity | Action | Timeline | Status |
+|-------|----------|--------|----------|--------|
+| FS-05 schema inconsistencies (missing description/comment/updatedAt) | ✅ Resolved | Documented in FS-05-BACK spec §1 (migration) + §2.2 (Prisma) | Before backend impl | ✅ DONE |
+| FS-05 name uniqueness not enforced | ✅ Resolved | Decided: enforce UNIQUE — documented in spec | Before backend impl | ✅ DONE |
+| FS-07 requires Task 0.9 | High | Complete WITH RECURSIVE R&D | Before FS-07-BACK spec | Pending |
+| F-999 #12b Users API mock not implemented | High | Implement API endpoint | Sprint 3 P1 | Pending |
+| F-999 #13 Tag dimensions hardcoded | High | Connect to API | Sprint 3 P1 | Pending |
+| F-999 #14 Batch tags endpoint missing | Medium | Implement endpoint | Sprint 3 P1 | Pending |
 
 ---
 
@@ -273,17 +288,18 @@ SELECT * FROM ancestor_path;
 ✅ **Routing**: All 4 Sprint 2 entity routes live in App.tsx
 ✅ **Auth**: JwtAuthGuard global, permissions seeded for all entities
 ✅ **Cypress Tests**: 34 Providers tests created, ready to run
+✅ **FS-05-BACK Spec**: v1.0 written, 996 lines, ready for implementation
 
-**Last successful commit**: `d5ebc14` — Cypress tests + Roadmap v0.14 update
+**Last successful commit**: `7e8730c` — FS-05-BACK spec v1.0 + Roadmap v0.15 update
 
 ---
 
 ## Reference Materials
 
 ### Specification Templates
-- `docs/03-Features-Spec/_template_back.md` — Use for FS-05-BACK, FS-07-BACK specs
+- `docs/03-Features-Spec/_template_back.md` — Use for FS-07-BACK specs
 - `docs/03-Features-Spec/_template_front.md` — Use for FS-05-FRONT, FS-07-FRONT specs
-- Reference completed specs: `FS-02-Domains-back.md`, `FS-03-Providers-back.md`, `FS-04-IT-Components-back.md`
+- Reference completed specs: `FS-02-Domains-back.md`, `FS-03-Providers-back.md`, `FS-04-IT-Components-back.md`, **`FS-05-Data-Objects-back.md`** (v1.0 stable)
 
 ### Backend Module References
 - **FS-03 Providers** (`backend/src/providers/`) — 3 pages implementation, drawer pattern
@@ -301,7 +317,7 @@ SELECT * FROM ancestor_path;
 - **Migrations**: `/backend/prisma/migrations/` (existing migrations for reference)
 
 ### Roadmap & Planning
-- **Current Roadmap**: `docs/01-Product/ARK-Roadmap.md` (v0.14)
+- **Current Roadmap**: `docs/01-Product/ARK-Roadmap.md` (v0.15 — FS-05-BACK spec `stable`)
 - **Tech Debt tracker**: `docs/03-Features-Spec/F99-Technical-Debt.md` (all open items)
 - **Glossary**: `docs/01-Product/ARK-Glossary.md` (EA entity definitions)
 
@@ -321,35 +337,38 @@ SELECT * FROM ancestor_path;
   - Previous session docs (e2e tests summary, Roadmap v0.13)
 
 **To continue next session**:
-1. Read this file for Sprint 3 context
-2. Check `F99-Technical-Debt.md` for P1 items blocking features
-3. Review `FS-05-Data-Objects.md` and `FS-07-Business-Capabilities.md` (currently empty)
-4. Decide on FS-05 schema alignment before starting backend implementation
+1. ✅ FS-05-BACK spec ready — `docs/03-Features-Spec/FS-05-Data-Objects-back.md` v1.0
+2. 🔨 **Start FS-05 backend implementation** — Use §8 (Commande OpenCode) from spec
+3. 📝 Write FS-05-FRONT spec when BACK is `done` (gates G-01 to G-13 must pass)
+4. Proceed with Task 0.9 (WITH RECURSIVE SQL validation) in parallel to unblock FS-07-BACK
+5. Check `F99-Technical-Debt.md` for P1 items (#12b, #13, #14) to parallelize
 
 ---
 
 ## Final Notes
 
-**Sprint 2 Status**: 5/5 satellite entities complete (FS-02, FS-03, FS-04, FS-06 + foundational FS-01). All routes live, tests passing, Roadmap v0.14.
+**Sprint 2 Status**: ✅ COMPLETE — 5/5 satellite entities delivered (FS-02, FS-03, FS-04, FS-06 + FS-01). All routes live, tests passing, Roadmap v0.14.
 
-**Sprint 3 Readiness**:
-- **FS-05**: Ready to start immediately (no blockers, spec to be written)
-- **FS-07**: Blocked by Task 0.9 (WITH RECURSIVE validation) — start spec writing after Task 0.9 completes
-- **Tech Debt P1**: Items #12b, #13, #14 should be prioritized alongside feature development
+**Sprint 3 Status**:
+- ✅ **FS-05-BACK**: Spec v1.0 `stable` (commit `7e8730c`) — ready for backend implementation
+- 🔧 **FS-05-FRONT**: Blocked until FS-05-BACK is `done` (gates G-01 to G-13 pass)
+- ⏳ **FS-07-BACK**: Blocked by Task 0.9 (WITH RECURSIVE SQL validation) — spec writing starts after Task 0.9
+- 📋 **Tech Debt P1**: Items #12b, #13, #14 should be prioritized alongside feature development
 
-**Recommended sequence**:
-1. ✅ Complete Task 0.9 (0.5j) — unblocks FS-07
-2. 📝 Write FS-05-BACK spec + FS-07-BACK spec in parallel (1j + 1j)
-3. 🔨 Implement FS-05-BACK + FS-07-BACK + F-999 P1 items in parallel (2-3j)
-4. 📝 Write FS-05-FRONT + FS-07-FRONT specs (1j + 1j)
-5. 🔨 Implement FS-05-FRONT + FS-07-FRONT (1j + 1.5j)
-6. ✅ Run full Cypress test suite + build validation
+**Recommended sequence** (Sprint 3):
+1. 🔨 **Implement FS-05-BACK** (0.5j) — Use spec §8 (OpenCode prompt) — gates G-01 to G-13
+2. 🔄 **In parallel: Task 0.9** (0.5j) — WITH RECURSIVE SQL validation for FS-07
+3. 📝 **Write FS-05-FRONT spec** (0.5j) — After FS-05-BACK `done`
+4. 🔨 **Implement FS-05-FRONT** (1j) — 4 pages (List/Detail/New/Edit)
+5. 📝 **Write FS-07-BACK spec** (1j) — After Task 0.9 completes
+6. 🔨 **Implement FS-07-BACK + FRONT** (3j) — End of Sprint 3
+7. 🔄 **Parallelize F-999 P1 items** (#12b Users API, #13 Tag dims, #14 Batch endpoint)
 
-**Next session target**: FS-05 BACK module fully implemented with seed data + tests
+**Next session target**: FS-05-BACK module fully implemented, tests passing, gates validated, ready for FS-05-FRONT spec
 
 ---
 
-_Document created: 2026-03-31_
-_Purpose: Sprint 2 closure + Sprint 3 kick-off handoff_
-_Branch: develop (commit d5ebc14)_
-_Next session: Spec writing (FS-05 + FS-07) + Task 0.9 implementation_
+_Document updated: 2026-04-01_
+_Purpose: Sprint 3 development — FS-05-BACK spec delivery + backend implementation readiness_
+_Branch: develop (commit 7e8730c)_
+_Next session: Backend implementation (FS-05-BACK OpenCode) + Task 0.9 SQL R&D_
