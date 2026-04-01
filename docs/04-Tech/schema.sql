@@ -1,6 +1,10 @@
 -- =============================================================================
--- ARK DATABASE SCHEMA - Version 0.8
--- Date: Mars 2026
+-- ARK DATABASE SCHEMA - Version 0.9
+-- Date: Avril 2026
+-- Changelog v0.9 :
+--   - Data Objects : conformité NFR-GOV-005 (description, comment, updated_at)
+--   - Ajout contrainte UNIQUE sur data_objects.name
+--   - Suppression du CHECK sur data_objects.type (accepte string libre)
 -- Changelog v0.8 :
 --   - Providers : conformité NFR-GOV-005 (description, comment, updated_at)
 --   - Ajout contrainte UNIQUE sur providers.name
@@ -185,10 +189,13 @@ CREATE TABLE interfaces (
 
 CREATE TABLE data_objects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(100) CHECK (type IN ('database', 'dataset', 'file')),
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    comment TEXT,
+    type VARCHAR(100),
     is_source_of_truth BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Table de liaison Application <-> Data Object (n:n)

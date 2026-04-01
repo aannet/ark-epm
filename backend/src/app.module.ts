@@ -22,6 +22,7 @@ import { TagsModule } from './tags/tags.module';
 
 import { ProvidersModule } from './providers/providers.module';
 import { ItComponentsModule } from './it-components/it-components.module';
+import { DataObjectsModule } from './data-objects/data-objects.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { ItComponentsModule } from './it-components/it-components.module';
     TagsModule,
     ProvidersModule,
     ItComponentsModule,
+    DataObjectsModule,
   ],
   controllers: [AppController],
   providers: [

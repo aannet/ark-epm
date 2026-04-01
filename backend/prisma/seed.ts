@@ -123,6 +123,25 @@ async function main() {
     }
   }
   console.log('Seed providers completed');
+
+  // Insert sample data objects if they don't exist
+  const sampleDataObjects = [
+    { name: 'Customer Database', description: 'BD principale contenant les clients — source of truth', comment: 'Production database with master customer records', type: 'database', isSourceOfTruth: true },
+    { name: 'Product Catalog Dataset', description: 'Données produits — enrichi de plusieurs sources', comment: 'Aggregated product information from multiple sources', type: 'dataset', isSourceOfTruth: false },
+    { name: 'Legacy CRM Files', description: 'Fichiers plats du CRM legacy — en voie de migration', comment: 'Old flat files being phased out', type: 'file', isSourceOfTruth: false },
+    { name: 'ERP Master Data', description: 'Données de référence SAP — source officielle', comment: 'Authoritative master data from SAP system', type: 'database', isSourceOfTruth: true },
+    { name: 'Analytics Warehouse', description: 'DWH Snowflake — données agrégées', comment: 'Data warehouse for reporting and analytics', type: 'database', isSourceOfTruth: false },
+  ];
+
+  for (const dataObject of sampleDataObjects) {
+    const existing = await prisma.dataObject.findUnique({ where: { name: dataObject.name } });
+    if (!existing) {
+      await prisma.$executeRaw`INSERT INTO data_objects (id, name, description, comment, type, is_source_of_truth, created_at, updated_at) 
+        VALUES (gen_random_uuid(), ${dataObject.name}::varchar, ${dataObject.description}::text, ${dataObject.comment}::text, ${dataObject.type}::varchar, ${dataObject.isSourceOfTruth}::boolean, NOW(), NOW())`;
+      console.log(`✓ Created DataObject: ${dataObject.name}`);
+    }
+  }
+  console.log('Seed DataObjects completed');
 }
 
 main()

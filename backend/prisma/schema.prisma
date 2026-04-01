@@ -178,13 +178,16 @@ model Interface {
 }
 
 model DataObject {
-  id              String             @id @default(uuid()) @db.Uuid
-  name            String             @db.VarChar(255)
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String             @unique @db.VarChar(255)
+  description     String?            @db.Text
+  comment         String?            @db.Text
   type            String?            @db.VarChar(100)
-  isSourceOfTruth Boolean?           @default(false) @map("is_source_of_truth")
-  tags            String[]           @default([])
-  createdAt       DateTime?          @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications    AppDataObjectMap[]
+  isSourceOfTruth Boolean            @default(false) @map("is_source_of_truth")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  appDataObjectMaps AppDataObjectMap[]
 
   @@map("data_objects")
 }
@@ -192,7 +195,8 @@ model DataObject {
 model AppDataObjectMap {
   applicationId String      @map("application_id") @db.Uuid
   dataObjectId  String      @map("data_object_id") @db.Uuid
-  role          String?     @default("consumer") @db.VarChar(50)
+  role          String      @default("consumer") @db.VarChar(50)
+
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   dataObject    DataObject  @relation(fields: [dataObjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 

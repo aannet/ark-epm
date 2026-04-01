@@ -53,14 +53,13 @@ GEstion de la pagination cohérente
     - /compact
 * IMPLEMENTATION
     - I want to implement this feature : XXXXX.
-        - Prepare implementation plan
         - Finish Plan by 
-            - Making sure docs\04-Tech\openapi.yaml is uptodate
-            - adjusting AGENTS.md
-            - updating the status specs
-            - updating roadmap
-    - adapter docs\04-Tech\openapi.yaml
-    - adapter docs\04-Tech\schema.sql
+          - adapter docs\04-Tech\openapi.yaml
+          - adapter docs\04-Tech\schema.sql
+          - adjusting AGENTS.md
+          - updating the status specs
+    - updating roadmap
+    - Prepare implementation plan
     - EXECUTE PLAN
         - /compact
 * FIX
@@ -88,15 +87,18 @@ https://mui.com/material-ui/react-autocomplete/
 ------------------------------------------------------------------
 # 29/03
 
+- suite 
+- lit SESSION-HANDOFF.md. 
+
+- [ ] SESSION CLEANING UI
+  - [x] Analyze
+  - [ ] Implement
+
+
 - [x] FS 06 Application
   - [x] 1. Adapter ApplicationForm (single-select → multi-select providers)
-  - [ ] Liaison 1 application, plusieurs composants 
+  - [x] Liaison 1 application, plusieurs composants 
 
-
-- [ ] FS 03 Provider
-  - [ ] FRONT - FIX
-    - [ ] review  
-  - [ ] DEPENDENCY CONFLICT :  "Provider is used by 3 application(s)"
 
 - [x] Pattern breadcrumb mis à jour
 - [x] Adapter le breadcrumb des provider au reste -> technical debt 
@@ -105,12 +107,22 @@ https://mui.com/material-ui/react-autocomplete/
 - pattern d'onglet à mettre à jour dans la mise à jour  
 - 
 
-
-
+**Liaison 1 application, plusieurs composants**
 SESSION EVOLUTION ou Finiiton 
 Un applicatif est connecté à 1 ou plusieurs applications
 1-évalue l'implémentation back en commençant par les specs, puis le code back (agent arch, doc, back, prisma)
 2-évalue l'implémentation front en commençant par les specs, puis le code front (agent arch, doc, front)
+
+**SESSION CLEANING UI**
+docs\02-Design\02-Navigation-Patterns.md
+Je souhaite faire un check complet de toutes les interfaces front qui ont été developpées jusque là. 
+Chips, breadcrumb, positionnements des formulaires, boutons retours... 
+* Application (list, sidedrawer, ajout, update)
+* IT COmponent (list, sidedrawer, ajout, update)
+* Provider (list, sidedrawer, ajout, update)
+* Domain (list, sidedrawer, ajout, update)
+
+
 
 
 ------------------------------------------------------------------

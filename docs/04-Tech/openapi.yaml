@@ -949,6 +949,227 @@ paths:
         '404':
           description: IT Component introuvable
 
+  /data-objects:
+    get:
+      summary: Liste de tous les data objects
+      tags: [DataObjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, createdAt], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle sur le nom
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DataObjectListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer un data object
+      tags: [DataObjects]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDataObjectDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataObjectResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '409':
+          description: Nom de data object déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+  /data-objects/{id}:
+    get:
+      summary: Détail d'un data object
+      tags: [DataObjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataObjectResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Data object introuvable
+
+    patch:
+      summary: Modifier un data object
+      tags: [DataObjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDataObjectDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataObjectResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Data object introuvable
+        '409':
+          description: Nom de data object déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+    delete:
+      summary: Supprimer un data object
+      tags: [DataObjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Data object supprimé
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Data object introuvable
+        '409':
+          description: Data object utilisé par des applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "DEPENDENCY_CONFLICT" }
+                  message:    { type: string, example: "Data object is used by 2 application(s)" }
+                  details:
+                    type: object
+                    properties:
+                      applicationsCount: { type: integer }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
+
+  /data-objects/{id}/applications:
+    get:
+      summary: Liste des applications liées à un data object
+      tags: [DataObjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Data object introuvable
+
   /tags/dimensions:
     get:
       summary: Liste toutes les dimensions de tags
@@ -1718,6 +1939,88 @@ components:
         criticality: { type: string, nullable: true }
         lifecycleStatus: { type: string, nullable: true }
         createdAt: { type: string, format: date-time }
+
+    DataObjectListItem:
+      type: object
+      properties:
+        id:              { type: string, format: uuid }
+        name:            { type: string }
+        type:            { type: string, nullable: true, example: "database" }
+        isSourceOfTruth: { type: boolean, example: false }
+        createdAt:       { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            appDataObjectMaps: { type: integer, example: 3 }
+
+    DataObjectResponse:
+      type: object
+      properties:
+        id:              { type: string, format: uuid }
+        name:            { type: string }
+        description:     { type: string, nullable: true }
+        comment:         { type: string, nullable: true }
+        type:            { type: string, nullable: true }
+        isSourceOfTruth: { type: boolean }
+        createdAt:       { type: string, format: date-time }
+        updatedAt:       { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            appDataObjectMaps: { type: integer, example: 3 }
+        tags:
+          type: array
+          description: Tous les entity_tags sans filtrage (déduplication côté frontend)
+          items:
+            $ref: '#/components/schemas/EntityTagResponse'
+
+    CreateDataObjectDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Customer Database"
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: "database"
+        isSourceOfTruth:
+          type: boolean
+          default: false
+
+    UpdateDataObjectDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
+        isSourceOfTruth:
+          type: boolean
 
     ErrorResponse:
       type: object
