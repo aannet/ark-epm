@@ -134,7 +134,7 @@ async function main() {
   ];
 
   for (const dataObject of sampleDataObjects) {
-    const existing = await prisma.dataObject.findUnique({ where: { name: dataObject.name } });
+    const existing = await prisma.dataObject.findFirst({ where: { name: dataObject.name } });
     if (!existing) {
       await prisma.$executeRaw`INSERT INTO data_objects (id, name, description, comment, type, is_source_of_truth, created_at, updated_at) 
         VALUES (gen_random_uuid(), ${dataObject.name}::varchar, ${dataObject.description}::text, ${dataObject.comment}::text, ${dataObject.type}::varchar, ${dataObject.isSourceOfTruth}::boolean, NOW(), NOW())`;

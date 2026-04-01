@@ -1,10 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, Transform, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MaxLength, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateDataObjectDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: any }) => (typeof value === 'string' ? value.trim() : value))
   name: string;
 
   @IsOptional()

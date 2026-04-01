@@ -43,7 +43,15 @@ export class DataObjectsService {
       skip,
       take: limit,
       orderBy: sortBy ? { [sortBy]: sortOrder } : { name: 'asc' },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        comment: true,
+        type: true,
+        isSourceOfTruth: true,
+        createdAt: true,
+        updatedAt: true,
         _count: { select: { appDataObjectMaps: true } },
       },
     });
@@ -74,7 +82,15 @@ export class DataObjectsService {
 
     const dataObject = await this.prisma.dataObject.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        comment: true,
+        type: true,
+        isSourceOfTruth: true,
+        createdAt: true,
+        updatedAt: true,
         _count: { select: { appDataObjectMaps: true } },
       },
     });
@@ -94,29 +110,31 @@ export class DataObjectsService {
     };
   }
 
-  private async setAuditUser(tx: any, userId: string): Promise<void> {
-    if (!userId || !UUID_REGEX.test(userId)) return;
-    await tx.$executeRaw`SET LOCAL "ark.current_user_id" = ${userId}`;
-  }
-
   async create(createDto: CreateDataObjectDto, userId: string) {
     this.logger.log({ method: 'create', data: createDto });
 
     try {
-      const dataObject = await this.prisma.$transaction(async (tx) => {
-        await this.setAuditUser(tx, userId);
-        return tx.dataObject.create({
-          data: {
-            name: createDto.name.trim(),
-            description: createDto.description?.trim() || null,
-            comment: createDto.comment?.trim() || null,
-            type: createDto.type?.trim() || null,
-            isSourceOfTruth: createDto.isSourceOfTruth ?? false,
-          },
-          include: {
-            _count: { select: { appDataObjectMaps: true } },
-          },
-        });
+      await this.prisma.setCurrentUser(userId);
+      
+      const dataObject = await this.prisma.dataObject.create({
+        data: {
+          name: createDto.name.trim(),
+          ...(createDto.description && { description: createDto.description.trim() }),
+          ...(createDto.comment && { comment: createDto.comment.trim() }),
+          ...(createDto.type && { type: createDto.type.trim() }),
+          isSourceOfTruth: createDto.isSourceOfTruth ?? false,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          comment: true,
+          type: true,
+          isSourceOfTruth: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: { select: { appDataObjectMaps: true } },
+        },
       });
 
       this.logger.log({ method: 'create', result: dataObject.id });
@@ -140,29 +158,36 @@ export class DataObjectsService {
     this.logger.log({ method: 'update', id, data: updateDto });
 
     try {
-      const dataObject = await this.prisma.$transaction(async (tx) => {
-        await this.setAuditUser(tx, userId);
-        return tx.dataObject.update({
-          where: { id },
-          data: {
-            ...(updateDto.name !== undefined && { name: updateDto.name.trim() }),
-            ...(updateDto.description !== undefined && {
-              description: updateDto.description?.trim() || null,
-            }),
-            ...(updateDto.comment !== undefined && {
-              comment: updateDto.comment?.trim() || null,
-            }),
-            ...(updateDto.type !== undefined && {
-              type: updateDto.type?.trim() || null,
-            }),
-            ...(updateDto.isSourceOfTruth !== undefined && {
-              isSourceOfTruth: updateDto.isSourceOfTruth,
-            }),
-          },
-          include: {
-            _count: { select: { appDataObjectMaps: true } },
-          },
-        });
+      await this.prisma.setCurrentUser(userId);
+      
+      const dataObject = await this.prisma.dataObject.update({
+        where: { id },
+        data: {
+          ...(updateDto.name !== undefined && { name: updateDto.name.trim() }),
+          ...(updateDto.description !== undefined && {
+            description: updateDto.description?.trim() || null,
+          }),
+          ...(updateDto.comment !== undefined && {
+            comment: updateDto.comment?.trim() || null,
+          }),
+          ...(updateDto.type !== undefined && {
+            type: updateDto.type?.trim() || null,
+          }),
+          ...(updateDto.isSourceOfTruth !== undefined && {
+            isSourceOfTruth: updateDto.isSourceOfTruth,
+          }),
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          comment: true,
+          type: true,
+          isSourceOfTruth: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: { select: { appDataObjectMaps: true } },
+        },
       });
 
       const tags = await this.tagsService.getEntityTags('data_object', id);
@@ -196,7 +221,7 @@ export class DataObjectsService {
     // Check if data object has linked applications
     const dataObject = await this.prisma.dataObject.findUnique({
       where: { id },
-      include: {
+      select: {
         _count: { select: { appDataObjectMaps: true } },
       },
     });
@@ -208,7 +233,7 @@ export class DataObjectsService {
       });
     }
 
-    if (dataObject._count.appDataObjectMaps > 0) {
+    if (dataObject._count && dataObject._count.appDataObjectMaps > 0) {
       throw new ConflictException({
         code: 'DEPENDENCY_CONFLICT',
         message: 'Cannot delete data object with linked applications',
@@ -219,10 +244,8 @@ export class DataObjectsService {
     }
 
     try {
-      await this.prisma.$transaction(async (tx) => {
-        await this.setAuditUser(tx, userId);
-        await tx.dataObject.delete({ where: { id } });
-      });
+      await this.prisma.setCurrentUser(userId);
+      await this.prisma.dataObject.delete({ where: { id } });
 
       this.logger.log({ method: 'remove', result: 'deleted' });
     } catch (error) {

@@ -1,10 +1,11 @@
-import { IsString, IsOptional, MaxLength, Transform, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateDataObjectDto {
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: any }) => (typeof value === 'string' ? value.trim() : value))
   name?: string;
 
   @IsOptional()
