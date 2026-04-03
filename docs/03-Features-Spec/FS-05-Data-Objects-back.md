@@ -22,6 +22,17 @@ _Version 1.0 — Avril 2026_
 
 > **Note FK entrantes (N:N) :** Cette entité expose `_count.applications` et `GET /:id/applications`. Elle est référencée via la table de jonction `app_data_object_map`. FS-06-BACK est requis en dépendance BACK pour implémenter les DTOs et endpoints côté Application.
 
+> **Amendements pré-requis pour FS-05-FRONT ⚠️ :**
+>
+> La spec frontend (FS-05-FRONT) requiert deux modifications mineures à cette implémentation backend :
+>
+> | # | Amendement | Raison | Impact |
+> |---|---|---|---|
+> | **A** | Ajouter `type` (string, filtré) et `isSourceOfTruth` (boolean, filtré) comme query params à `GET /api/v1/data-objects` | Filtres avancés ListPage côté serveur (type + source officielle) | Modificateur controller : accepter `@Query('type')` et `@Query('isSourceOfTruth')`, passer au service, implémenter la logique filtrée |
+> | **B** | Ajouter le champ `role` (consumer/producer/owner) dans la réponse de `GET /api/v1/data-objects/:id/applications` pour chaque application liée | Affichage colonne Role dans l'onglet Applications (drawer + détail frontend) | Modificateur mapper ApplicationListItem : inclure le champ `role` depuis la table de jonction `app_data_object_map` |
+>
+> Ces amendements sont documentés en détail dans **FS-05-FRONT §9 (Session Gate)** comme pré-conditions avant lancement de la session OpenCode frontend.
+
 ---
 
 ## 1. Objectif & Périmètre ⚠️

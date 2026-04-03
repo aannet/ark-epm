@@ -2,8 +2,11 @@
 
 _Version 0.15 — Avril 2026_
 
+> **Changelog v0.16 :**
+> - **FS-05-FRONT** (Data Objects) : spec rédigée v0.1, statut `stable` — PNS-02 drawer, Chip isSourceOfTruth (success/default), Autocomplete type (freeSolo + database/dataset/file), colonne role (consumer/producer/owner) dans Applications liées, amendements A+B backend documentés en pré-conditions, Session Gate compatible
+>
 > **Changelog v0.15 :**
-> - **FS-05-BACK** (Data Objects) : spec rédigée v1.0, statut `stable` — Migration schéma conforme NFR-GOV-005 (description, comment, updatedAt, UNIQUE name, tags[] supprimé), liaison F-03, relations N:N avec rôles enum (consumer/producer/owner)
+> - **FS-05-BACK** (Data Objects) : spec rédigée v1.0, statut `stable` → `done` — Migration schéma conforme NFR-GOV-005 (description, comment, updatedAt, UNIQUE name, tags[] supprimé), liaison F-03, relations N:N avec rôles enum (consumer/producer/owner)
 > - Ordre de rédaction mis à jour : FS-05-BACK en position 8
 
 > **Changelog v0.14 :**
@@ -139,7 +142,7 @@ _Version 0.15 — Avril 2026_
 | **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend livré Sprint 2 (anticipé).* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 2 — anticipé)* | ✅ `done` | ✅ `done` | **1.5j** |
 | FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 0.5j |
 | FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
-| FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
+| FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | ✅ `done` | `stable` | 0.5j + 1j |
 
 > FS-02 et FS-06 sont les **modules de référence** — backend (FS-02-BACK, FS-06-BACK) et frontend (FS-02-FRONT, FS-06-FRONT) — pour OpenCode sur tous les modules suivants. Valider soigneusement avant de démarrer les satellites.
 
@@ -248,7 +251,7 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | ✅ 6 | **FS-06-FRONT** | `done` | **Livré anticipé en Sprint 2 — 4 pages, landing page par défaut** |
 | ✅ 7 | **FS-03-FRONT** | `done` — 4 pages, 32 tests | **Implémentation complete 29/03 — débloque Sprint 2 et F-999 #15** |
  | 8 | **FS-05-BACK** | ✅ `done` | **Implémentation complète — module NestJS + tests + seed** |
-| 8b | **FS-05-FRONT** | `stable` | Frontend Data Objects (FS-05-BACK done, prêt pour implémentation) |
+| 8b | **FS-05-FRONT** | ✅ `stable` | **Spec frontend rédigée v0.1 — PNS-02 drawer, Chip isSourceOfTruth, Autocomplete type, colonne role, amendements A+B backend pré-requis** |
 | 9 | **FS-07-BACK** | `draft` | Requête `WITH RECURSIVE` à valider d'abord |
 | 10 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
 | 11+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
