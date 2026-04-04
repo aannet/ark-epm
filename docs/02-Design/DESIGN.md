@@ -177,6 +177,40 @@ import { fr } from 'date-fns/locale';
 </LocalizationProvider>
 ```
 
+### 4.4 Autocomplete (freeSolo)
+
+Pour les champs texte avec suggestions pré-définies mais saisie libre :
+
+- **Composant :** `Autocomplete` MUI avec `freeSolo={true}`
+- **Style :** `variant="outlined"` sur le `TextField` interne (via `renderInput`)
+- **Taille :** `size="small"` dans les formulaires
+- **Radius :** 6px (Action Radius)
+
+```typescript
+<Autocomplete
+  freeSolo
+  options={['database', 'dataset', 'file']}
+  value={value}
+  onChange={(_, newValue) => setValue(newValue ?? '')}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label={t('data-objects.form.typeLabel')}
+      variant="outlined"
+      size="small"
+      placeholder={t('data-objects.form.typePlaceholder')}
+    />
+  )}
+/>
+```
+
+**Règles :**
+- `freeSolo` = l'utilisateur peut saisir une valeur qui n'est pas dans les suggestions
+- Les `options` sont affichées en dropdown mais ne forcent pas le choix
+- Utiliser quand le champ a des valeurs communes mais peut accepter des valeurs custom
+
+---
+
 ### 4.5 Tables (Tableaux de Données)
 
 - **Header :** Fond gris neutre (#F1F5F9), texte majuscules, gras (`font-weight: 700`), taille réduite (`0.75rem`)
@@ -202,7 +236,42 @@ Pattern pour afficher des valeurs dynamiques colorées (rôle, statut, urgence) 
 - **Lifecycle Status** : draft=info, active=success, deprecated=error
 - **Criticality** : critical=error, high=warning, medium=info, low=success
 
-#### 4.5.2 Badge Compteur (N:N)
+#### 4.5.2 Badge Booléen Binaire
+
+Pattern pour afficher un champ booléen avec feedback visuel coloré asymétrique (variant différent selon true/false) :
+
+```typescript
+// Exemple : isSourceOfTruth
+{isSourceOfTruth ? (
+  <Chip
+    size="small"
+    variant="filled"
+    color="success"
+    label={t('data-objects.list.columns.isSourceOfTruthTrue')}
+  />
+) : (
+  <Chip
+    size="small"
+    variant="outlined"
+    color="default"
+    label={t('data-objects.list.columns.isSourceOfTruthFalse')}
+  />
+)}
+```
+
+**Règles :**
+- **État positif (true)** : `variant="filled"`, `color="success"` — mise en avant visuelle
+- **État négatif (false)** : `variant="outlined"`, `color="default"` — discret, pas d'alarme
+- `size="small"` toujours
+- Labels via i18n (jamais hardcodés)
+- À distinguer des badges conditionnels (§4.5.1) qui ne changent pas de `variant`
+
+**Exemples d'utilisation :**
+- `isSourceOfTruth` (Data Objects) : "Source officielle" (filled/success) vs "Non" (outlined/default)
+
+---
+
+#### 4.5.3 Badge Compteur (N:N)
 
 Pattern pour afficher un compteur de relations N:N dans les colonnes de tableau :
 
@@ -244,6 +313,45 @@ Pattern pour afficher un compteur de relations N:N dans les colonnes de tableau 
   - Champs simples de l'objet
   - Description Markdown (lecture + édition inline)
   - Lien "Voir la fiche complète" / "Modifier"
+
+#### 4.7.1 Drawer avec Onglets (Tabbed Drawer)
+
+Pour les entités qui ont des relations N:N à afficher en contexte rapide, le drawer peut être organisé en **MUI Tabs** :
+
+```typescript
+// Structure type : 2 onglets Info + Relations
+<Drawer anchor="right" PaperProps={{ sx: { width: 400 } }}>
+  <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    {/* Header */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+      <Typography variant="h6">{t('entity.drawer.title')}</Typography>
+      <IconButton onClick={onClose}><CloseIcon /></IconButton>
+    </Box>
+    {/* Tabs */}
+    <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
+      <Tab label={t('entity.drawer.tabInfo')} />
+      <Tab label={t('entity.drawer.tabRelations')} />
+    </Tabs>
+    {/* Content */}
+    <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+      {activeTab === 0 ? <InfoContent /> : <RelationsContent />}
+    </Box>
+    {/* Footer */}
+    <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between' }}>
+      <Button variant="contained" disabled={!canWrite} onClick={onNavigateEdit}>{t('common.actions.edit')}</Button>
+      <Button variant="outlined" onClick={onNavigateDetail}>{t('common.actions.viewDetail')}</Button>
+    </Box>
+  </Box>
+</Drawer>
+```
+
+**Pattern utilisé par :** Providers (FS-03), Data Objects (FS-05), et toute entité avec relations N:N pertinentes en lecture rapide.
+
+**Règles :**
+- Toujours `read-only` sauf exception documentée dans la spec
+- `flex: 1, overflow: 'auto'` sur la zone de contenu (scroll interne)
+- Pagination de la mini-liste relations : 5 items/page
+- Footer fixe en bas avec "Modifier" + "Voir la fiche complète"
 
 ### 4.8 Full Page (Fact Sheet)
 
@@ -403,6 +511,8 @@ Certains composants sont métier-spécifiques mais réutilisables. Voir les Feat
 | **ExpiryDateBadge** | FS-03 §4.4 | Badge conditionnel sur date expiration : <30j (rouge), <90j (orange), >90j normal |
 | **ProviderRoleBadge** | FS-03 v1.1 §4.4 | Badge coloré par rôle fournisseur : editor (bleu), integrator (orange), support (cyan), vendor (jaune), custom (gris) |
 | **AppBreadcrumbs** | PNS-11 | Breadcrumb 3 niveaux : Accueil > Liste > Courant. Composant partagé. |
+| **DataObjectRoleChip** | FS-05 RM-04 | Badge coloré par rôle App↔DataObject : consumer (default), producer (warning), owner (success). Inline via `<Chip>`, pas de composant partagé dédié. |
+| **SourceOfTruthChip** | FS-05 RM-02 | Badge booléen binaire (§4.5.2) : filled/success si true, outlined/default si false. |
 
 **Note :** Ces composants suivent les mêmes règles de design (tokens, sx prop, i18n) que les composants génériques.
 

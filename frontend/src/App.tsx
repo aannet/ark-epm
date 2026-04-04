@@ -33,6 +33,11 @@ import ITComponentListPage from '@/pages/it-components/ITComponentListPage';
 import ITComponentFormPage from '@/pages/it-components/ITComponentFormPage';
 import ITComponentDetailPage from '@/pages/it-components/ITComponentDetailPage';
 
+// Data Object pages
+import DataObjectListPage from '@/pages/data-objects/DataObjectListPage';
+import DataObjectDetailPage from '@/pages/data-objects/DataObjectDetailPage';
+import DataObjectFormPage from '@/pages/data-objects/DataObjectFormPage';
+
 function App(): JSX.Element {
   useEffect(() => {
     initializeAuth();
@@ -82,6 +87,14 @@ function App(): JSX.Element {
                <Route path="new" element={<ITComponentFormPage mode="create" />} />
                <Route path=":id" element={<ITComponentDetailPage />} />
                <Route path=":id/edit" element={<ITComponentFormPage mode="edit" />} />
+             </Route>
+
+             {/* Data Objects routes */}
+             <Route path="data-objects" element={<Outlet />}>
+               <Route index element={<DataObjectListPage />} />
+               <Route path="new" element={<DataObjectFormPage mode="create" />} />
+               <Route path=":id" element={<DataObjectDetailPage />} />
+               <Route path=":id/edit" element={<DataObjectFormPage mode="edit" />} />
              </Route>
              
              {/* Domains routes */}

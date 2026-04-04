@@ -1,5 +1,5 @@
-import { IsOptional, IsInt, Min, IsEnum, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsInt, Min, IsEnum, IsString, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export enum DataObjectSortBy {
   NAME = 'name',
@@ -35,4 +35,17 @@ export class QueryDataObjectsDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
+  @IsBoolean()
+  isSourceOfTruth?: boolean;
 }

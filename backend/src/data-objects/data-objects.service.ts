@@ -27,13 +27,21 @@ export class DataObjectsService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const { sortBy, sortOrder, search } = query;
+    const { sortBy, sortOrder, search, type, isSourceOfTruth } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
+    }
+
+    if (type !== undefined) {
+      where.type = { equals: type, mode: 'insensitive' };
+    }
+
+    if (isSourceOfTruth !== undefined) {
+      where.isSourceOfTruth = isSourceOfTruth;
     }
 
     const total = await this.prisma.dataObject.count({ where });
@@ -293,6 +301,10 @@ export class DataObjectsService {
             id: true,
             name: true,
             description: true,
+            criticality: true,
+            lifecycleStatus: true,
+            domain: { select: { id: true, name: true } },
+            owner: { select: { id: true, firstName: true, lastName: true } },
           },
         },
       },
@@ -304,6 +316,10 @@ export class DataObjectsService {
       id: m.application.id,
       name: m.application.name,
       description: m.application.description,
+      criticality: m.application.criticality,
+      lifecycleStatus: m.application.lifecycleStatus,
+      domain: m.application.domain,
+      owner: m.application.owner,
       role: m.role,
     }));
 

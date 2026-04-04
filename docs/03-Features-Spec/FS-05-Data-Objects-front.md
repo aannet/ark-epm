@@ -395,6 +395,13 @@ layout:
     maxWidth: md
 
 zones:
+  breadcrumb:
+    component: AppBreadcrumbs   # import depuis '@/components/shared' — PNS-11
+    items:
+      - label: t('data-objects.detail.breadcrumb.home')  →  navigate('/')
+      - label: t('data-objects.detail.breadcrumb.list')  →  navigate('/data-objects')
+      - label: dataObject.name  (non cliquable — page courante)
+
   header:
     component: PageHeader
     props:
@@ -495,6 +502,18 @@ layout:
     maxWidth: sm
 
 zones:
+  breadcrumb:
+    component: AppBreadcrumbs   # import depuis '@/components/shared' — PNS-11
+    items_create:
+      - label: t('data-objects.form.breadcrumb.home')  →  navigate('/')
+      - label: t('data-objects.form.breadcrumb.list')  →  navigate('/data-objects')
+      - label: t('data-objects.form.breadcrumb.new')   (non cliquable)
+    items_edit:
+      - label: t('data-objects.form.breadcrumb.home')  →  navigate('/')
+      - label: t('data-objects.form.breadcrumb.list')  →  navigate('/data-objects')
+      - label: dataObject.name  →  navigate('/data-objects/:id')
+      - label: t('data-objects.form.breadcrumb.edit')  (non cliquable)
+
   header:
     component: PageHeader
     props:
@@ -672,6 +691,13 @@ zones:
     "tagsLabel": "Tags dimensionnels",
     "buttonSave": "Enregistrer",
     "buttonCancel": "Annuler"
+  },
+
+  "breadcrumb": {
+    "home": "Accueil",
+    "list": "Objets de Données",
+    "new": "Nouvel objet",
+    "edit": "Modifier"
   },
 
   "delete": {

@@ -506,12 +506,12 @@
          "deprecated": "Dépréciée",
          "retired": "Retirée"
        },
-       "roles": {
-         "editor": "Éditeur",
-         "integrator": "Intégrateur",
-         "support": "Support",
-         "vendor": "Éditeur (tiers)",
-         "custom": "Personnalisé"
-       }
-     }
-   }
+        "roles": {
+          "editor": "Éditeur",
+          "integrator": "Intégrateur",
+          "support": "Support",
+          "vendor": "Éditeur (tiers)",
+          "custom": "Personnalisé"
+        }
+    }
+}

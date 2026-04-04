@@ -2,6 +2,9 @@
 
 _Version 0.15 — Avril 2026_
 
+> **Changelog v0.17 :**
+> - **FS-07-BACK** (Business Capabilities) : spec rédigée v1.0, statut `stable` — Hiérarchie récursive, WITH RECURSIVE, level auto-calculé, max depth 5, prévention circulaire, N:N avec Applications, migration NFR-GOV-005
+>
 > **Changelog v0.16 :**
 > - **FS-05-FRONT** (Data Objects) : spec rédigée v0.1, statut `stable` — PNS-02 drawer, Chip isSourceOfTruth (success/default), Autocomplete type (freeSolo + database/dataset/file), colonne role (consumer/producer/owner) dans Applications liées, amendements A+B backend documentés en pré-conditions, Session Gate compatible
 >
@@ -159,7 +162,7 @@ _Version 0.15 — Avril 2026_
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
 | FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | ✅ `done` (anticipé Sprint 2) | 1.5j |
-| FS-07 | **Business Capabilities** — CRUD + récursion `WITH RECURSIVE` + `DimensionTagInput` + écran arbre hiérarchique | FS-02-BACK, F-03 | FS-07-BACK, F-02, F-03 | `draft` | `draft` | 1.5j + 1.5j |
+| FS-07 | **Business Capabilities** — CRUD + récursion `WITH RECURSIVE` + `DimensionTagInput` + écran arbre hiérarchique | `FS-07-Business-Capabilities-back.md` v1.0 `stable` | FS-02-BACK, **FS-06-BACK**, F-03 | FS-07-BACK, F-02, F-03 | 🟡 `stable` | `draft` | 1.5j + 1.5j |
 
 > FS-07-BACK contient la requête `WITH RECURSIVE` — à écrire et tester manuellement en SQL avant de rédiger la spec back. **Tâche 0.9 à réaliser pendant Sprint 2** (0.5j R&D SQL pur).
 
@@ -252,7 +255,7 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | ✅ 7 | **FS-03-FRONT** | `done` — 4 pages, 32 tests | **Implémentation complete 29/03 — débloque Sprint 2 et F-999 #15** |
  | 8 | **FS-05-BACK** | ✅ `done` | **Implémentation complète — module NestJS + tests + seed** |
 | 8b | **FS-05-FRONT** | ✅ `stable` | **Spec frontend rédigée v0.1 — PNS-02 drawer, Chip isSourceOfTruth, Autocomplete type, colonne role, amendements A+B backend pré-requis** |
-| 9 | **FS-07-BACK** | `draft` | Requête `WITH RECURSIVE` à valider d'abord |
+| 🟡 9 | **FS-07-BACK** | 🟡 `stable` — Spec rédigée v1.0, hiérarchie récursive, WITH RECURSIVE, level auto, max depth 5, circular ref check | Prêt pour implémentation backend |
 | 10 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
 | 11+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
 
@@ -268,7 +271,7 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 - [x] **F-02 terminé** — `react-i18next` installé, 326 clés dans `fr.json`, composants F-01 + FS-01 rétrofittés
 - [x] **F-03 terminé** — `TagsModule` global actif, tables `tag_dimensions`/`tag_values`/`entity_tags` migrées, seed 3 dimensions OK, `DimensionTagInput` exporté
 - [ ] **POC React Flow concluant** (tâche 0.8) — gate avant FS-09-FRONT
-- [ ] **Requête `WITH RECURSIVE` testée en base** (tâche 0.9) — gate avant FS-07-BACK
+- [x] **Requête `WITH RECURSIVE` documentée** (tâche 0.9) — gate FS-07-BACK — spec v1.0 inclut requête complète §8
 
 ### Prérequis session OpenCode Backend (FS-XX-BACK)
 

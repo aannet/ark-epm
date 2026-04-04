@@ -401,10 +401,11 @@ ARK
 | Élément | Détail |
 |---|---|
 | Routes | `/data-objects`, `/data-objects/new`, `/data-objects/:id`, `/data-objects/:id/edit` |
-| Filtres | Type, Source de vérité, Tags |
-| Colonnes liste | Nom, Type, Source de vérité, Nb applications, Actions |
-| Side Drawer | Nom, Type, Source de vérité, Tags |
-| Full Page | 3 onglets (Général, Relations, Audit) |
+| Filtres | Recherche textuelle (nom, debounce 300ms), Type (dropdown : database/dataset/file), Source de vérité (dropdown : Oui/Non/Tous). Tags en P2. |
+| Colonnes liste | Nom, Type, Source de vérité (SourceOfTruthChip §4.5.2), Tags (TagChipList), Nb applications, Actions |
+| Side Drawer | **Read-only, 2 onglets** — Onglet Informations : Nom, Type, Source de vérité (Chip), Description, Commentaire, Tags, Compteur apps. Onglet Applications : mini-table 5/page (Nom, Rôle, Domaine, Owner, Criticité). Footer : "Modifier" (disabled sans write) + "Voir la fiche complète" |
+| Full Page | Onglet Informations (tous les champs + Tags), Onglet Applications (table 20/page avec colonne Rôle — consumer/producer/owner). Breadcrumb PNS-11. |
+| Règles | `isSourceOfTruth` : SourceOfTruthChip (§4.5.2) — filled/success si true, outlined/default si false. Rôle App↔DataObject : DataObjectRoleChip (consumer=default, producer=warning, owner=success). Suppression bloquée si applications liées (409 DEPENDENCY_CONFLICT). |
 
 ### 4.5 IT Components
 
