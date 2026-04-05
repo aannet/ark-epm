@@ -1,6 +1,6 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.6 — Mars 2026_
+_Version 0.7 — Avril 2026_
 
 > **Changelog v0.6 :** Ajout Items 17-21 — Breadcrumbs systématisés (PNS-11, docs/02-Design/02-Navigation-Patterns.md v0.4) + dette technique Sprint 3 : filtres Providers, breadcrumbs Applications/Domains/Providers harmonisés, composant AppBreadcrumbs recommandé. Guidelines design mises à jour : DatePicker MUI, badge conditionnel, ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs documentés.
 >
@@ -31,10 +31,10 @@ _Version 0.1 — Mars 2026_
 |---|---|
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
-| **Priorité** | P1 (items 1–5, 8, 10, 12, 13, 14, 15) / P2 (items 6–7, 9, 11, 16, 17–21) |
-| **Statut** | `done` (items 1, 2, 3, 4, 9, 10, 15) / `in-progress` (items 12, 13, 14) / `pending` (items 5, 8) / `documented` (items 17–21, FS-11) |
-| **Estimé** | 1 jour (items P1 core) + 3 jours (items 12-14 debt) + 2 jours (items 17-21 Sprint 3) |
-| **Version** | 0.6 |
+| **Priorité** | P1 (items 1–5, 8, 10, 12, 13, 14, 15, 23) / P2 (items 6–7, 9, 11, 16, 17–22) |
+| **Statut** | `done` (items 1, 2, 3, 4, 9, 10, 15) / `in-progress` (items 12, 13, 14) / `pending` (items 5, 8, 23) / `documented` (items 17–22, FS-11) |
+| **Estimé** | 1 jour (items P1 core) + 3 jours (items 12-14 debt) + 2 jours (items 17-22 Sprint 3) + 0.5j (item 23 sécurité) |
+| **Version** | 0.7 |
 
 ---
 
@@ -894,6 +894,54 @@ test.describe('Data Objects Feature', () => {
 
 ---
 
+### Item 23 — Supprimer le secret JWT hardcodé en fallback *(P1 — Sécurité)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À corriger — Vulnérabilité de sécurité confirmée |
+| **Priorité** | Haute — Compromission d'authentification possible |
+| **Gate de validation** | Application refuse de démarrer si `JWT_SECRET` absent ; aucun fallback hardcodé dans le code |
+
+**Contexte :**
+Une revue de sécurité (2026-04-05) a identifié un secret JWT hardcodé utilisé comme valeur de repli dans `backend/src/auth/jwt.strategy.ts` :
+
+```typescript
+secretOrKey: configService.get('JWT_SECRET') || 'fallback-secret-do-not-use-in-prod',
+```
+
+Le `ConfigModule` ne valide pas la présence de `JWT_SECRET` au démarrage (pas de schéma Joi/Zod). Si la variable d'environnement n'est pas injectée (CI/CD mal configuré, environnement de dev sans `.env`, secret manquant en orchestration de conteneurs), l'application démarre silencieusement avec le secret visible dans le code source. Un attaquant ayant accès au source peut forger des JWT valides pour n'importe quel `userId`.
+
+**Décision :**
+- **Supprimer** le `|| 'fallback-secret-do-not-use-in-prod'` de `jwt.strategy.ts`
+- **Ajouter** une validation de configuration au démarrage via `ConfigModule` (schéma Joi)
+- **Utiliser** `configService.getOrThrow<string>('JWT_SECRET')` pour un fail-fast explicite
+
+**Implémentation :**
+```typescript
+// backend/src/auth/jwt.strategy.ts
+secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
+
+// backend/src/app.module.ts — ConfigModule.forRoot()
+validationSchema: Joi.object({
+  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_EXPIRES_IN: Joi.string().default('15m'),
+  // ...autres variables obligatoires
+}),
+```
+
+**Fichiers concernés :**
+- `backend/src/auth/jwt.strategy.ts` — supprimer le fallback
+- `backend/src/app.module.ts` — ajouter validation schema Joi
+
+**Gate de validation :**
+- ✅ `npm run start:dev` sans `JWT_SECRET` lève une erreur explicite au démarrage
+- ✅ Aucune chaîne `fallback` ou secret hardcodé dans le code source auth
+- ✅ Tests e2e auth passent avec `JWT_SECRET` correctement injecté
+
+**Timing :** À corriger avant toute mise en production (bloquant)
+
+---
+
 ### Item 16 — Customisation des couleurs provider roles *(P2)*
 
 | | |
@@ -1011,6 +1059,8 @@ Request ID :
 - [ ] **Item 22** — Migrer 37 tests Cypress `data-objects.cy.ts` vers Playwright `e2e/tests/data-objects/data-objects.spec.ts`
 - [ ] **Item 22** — Supprimer `frontend/cypress/` après migration complète
 - [ ] **Item 22** — Retirer dépendances Cypress de `package.json`
+- [ ] **Item 23** — Supprimer fallback JWT hardcodé dans `jwt.strategy.ts`
+- [ ] **Item 23** — Ajouter validation schema Joi pour `JWT_SECRET` dans `ConfigModule`
 ---
 
 ## 5. Journal des décisions
@@ -1032,6 +1082,7 @@ Request ID :
 | 2026-03-29 | Items 17-21 | Ajout dette technique Design Guidelines : filtres Providers (P2), breadcrumbs Applications/Domains/Providers (Sprint 3), composant AppBreadcrumbs (FS-11) | OpenCode/Spec |
 
 | 2026-04-05 | Item 22 | Migration tests FS-05-FRONT Cypress → Playwright — 37 tests à migrer | OpenCode/Front |
+| 2026-04-05 | Item 23 | Secret JWT fallback hardcodé détecté (revue sécurité) — `getOrThrow` + validation Joi obligatoires | Spec/Sécurité |
 
 ---
 
