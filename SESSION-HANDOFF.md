@@ -1,113 +1,93 @@
-# SESSION-HANDOFF.md — Sprint 3 FS-05-BACK + FS-05-FRONT Completion
+# SESSION-HANDOFF.md — Sprint 3 · FS-07-BACK (Business Capabilities)
 
-> 🤖 **AGENT ACTIF** : [spec] | **MISSION** : FS-05-FRONT v0.1 spec rédigée | **SPRINT** : FS-05-BACK ✅ done + FS-05-FRONT ✅ stable
+> 🤖 **AGENT ACTIF** : [spec] | **MISSION** : FS-07-BACK spec v1.0 stable + rollback max depth | **SPRINT** : FS-07-BACK ✅ `stable`
 
 ---
 
 ## Status Summary
 
-✅ **FS-05-BACK IMPLEMENTATION COMPLETE** — Module NestJS + Prisma migration + tests (27 tests : 10 Jest + 17 Supertest) + seed + OpenAPI YAML + docs. All 13 gates (G-01 to G-13) passing or ready for manual validation.
+✅ **FS-07-BACK SPEC COMPLETE** — Backend specification v1.0 rédigée (1389 lignes → 1370 lignes après rollback, 13 sections). Hiérarchie récursive complète avec `level` auto-calculé, prévention circulaire, WITH RECURSIVE pour `/tree`. Statut = `stable`. Prêt pour session [back].
 
-✅ **FS-05-FRONT SPEC COMPLETE** — Frontend specification v0.1 rédigée (13 sections, ~1200 lignes, 7 US, 32 tests Cypress, 55 clés i18n). Statut = `stable`. Prêt pour OpenCode implémentation après amendements A+B backend.
+✅ **ROLLBACK MAX DEPTH** — Conformité avec `ARK-Product-Brief` (hiérarchie illimitée). Règle RM-08 (max 5 niveaux) supprimée, renumérotation RM-09→RM-08 à RM-12→RM-11. **17 gates** (G-01 à G-17, G-17 = openapi.yaml).
 
-🔧 **Sprint 3 Progression** — FS-05-BACK livré (95% validation pending). FS-05-FRONT spec `stable` (prêt implémentation). Pré-conditions : amendements A+B backend (< 30 min). FS-07-BACK + Task 0.9 parallélisables.
+🔧 **Previous Handoff Archived** — `SESSION-HANDOFF-FS05.md` → `docs/05-Project/20260404/`
 
-📋 **Tech Debt P1** — Items #12b (Users API), #13 (tags API), #14 (batch tags) restent ouverts — peuvent paralléliser avec FS-05-FRONT implémentation.
+📋 **Tech Debt P1** — Items #12b (Users API), #13 (tags API), #14 (batch tags) restent ouverts — peuvent paralléliser avec FS-07-BACK implémentation.
 
 ---
 
-## FS-05-FRONT Specification Summary
+## FS-07-BACK Specification Summary
 
 ### Metadata
 
 | Field | Value |
 |---|---|
-| **File** | `docs/03-Features-Spec/FS-05-Data-Objects-front.md` |
-| **Version** | 0.1 |
-| **Status** | ✅ `stable` |
-| **Template** | Frontend v0.1 (PNS-02 pattern) |
-| **Depends On** | FS-05-BACK (`done`), F-02 (`done`), F-03 (`done`) |
-| **Created** | 3 April 2026 |
-| **Est. Implementation** | 0.5-1d (4 pages, established PNS-02 pattern) |
+| **File** | `docs/03-Features-Spec/FS-07-Business-Capabilities-back.md` |
+| **Version** | 1.0 |
+| **Status** | ✅ `stable` (post-rollback max depth) |
+| **Template** | Backend v0.4 |
+| **Depends On** | FS-01 (`done`), **FS-06-BACK** (`done`), F-03 (`done`) |
+| **Created** | 5 April 2026 |
+| **Est. Implementation** | 1.5j (hiérarchie récursive, 8 endpoints) |
 
 ### Specification Structure (13 sections)
 
 | Section | Content | Status |
 |---|---|---|
-| **§1 Objective** | 4 pages + PNS-02 drawer + advanced filters + Chip isSourceOfTruth | ✅ |
-| **§2 User Stories** | 7 US (list+drawer, filters, detail, create/edit, delete) | ✅ |
-| **§3 API** | 6 endpoints, amendments A+B documented as pre-conditions | ✅ |
-| **§4 Layout Contract** | 4 YAML blocks (List, Drawer, Detail, Form) — 200+ lines | ✅ |
-| **§5 Components** | File architecture + 4 TypeScript interfaces + props | ✅ |
-| **§6 i18n** | 55 keys `data-objects.*` ready to copy-paste | ✅ |
-| **§7 Business Rules** | 15 RM (RBAC, chips, Autocomplete, role, deduplication) | ✅ |
-| **§8 App.tsx Wiring** | Routes + Sidebar (manual) — snippet ready | ✅ |
-| **§9 Session Gate** | 11 pre-conditions (amendments A+B included + checklist) | ✅ |
-| **§10 Cypress Tests** | 32 tests (18 nominal + 7 errors + 7 rights) | ✅ |
-| **§11 OpenCode Command** | Full prompt ready to copy + refs FS-05-BACK §3 | ✅ |
-| **§12 Checklist** | 14 post-implementation verifications | ✅ |
-| **§13 TD Review** | Tech debt gates (6 verifications) | ✅ |
+| **§1 Objective** | CRUD + hiérarchie + `/tree` + `/children` + `/applications` | ✅ |
+| **§2 Modèle BDD** | Migration NFR-GOV-005, Prisma self-relation, entityTags | ✅ |
+| **§3 OpenAPI** | 8 endpoints YAML (CRUD + tree + children + applications) | ✅ |
+| **§4 Règles Métier** | 11 RM (RM-07 level auto, RM-08 circular ref, etc.) | ✅ |
+| **§5 Cas d'Usage** | Nominaux + erreurs (409, 400 CIRCULAR_REFERENCE) | ✅ |
+| **§6 Structure** | Module NestJS pattern standard | ✅ |
+| **§7 Tests** | 20 Jest + 23 Supertest (max depth tests supprimés) | ✅ |
+| **§8 OpenCode Cmd** | Inline complet avec WITH RECURSIVE SQL | ✅ |
+| **§9 Gates** | **17 gates** (G-17 = openapi.yaml) | ✅ |
+| **§10 Checklist** | 20 items post-session | ✅ |
+| **§11 TD Review** | 6 gates + Items F-999 | ✅ |
+| **§12 Seed** | Arbre hiérarchique 12 capabilities / 3 niveaux | ✅ |
 
-### Key Differences vs FS-04-IT-Components-front
+### Key Features vs Other Entities
 
-| Element | FS-04 | FS-05 | Impact |
+| Element | FS-03/04/05/06 | FS-07 Business Capabilities | Impact |
 |---|---|---|---|
-| Field 1 | `technology` TextField | `isSourceOfTruth` **Chip** | Boolean → visual feedback |
-| Field 2 | `type` TextField | `type` **Autocomplete** | freeSolo + suggestions |
-| Relations | Apps without role | Apps **+ role column** | consumer/producer/owner |
-| Filters | search + type + technology | search + type + **isSourceOfTruth** | Server-side (amendment A) |
-| Route | `/it-components` | `/data-objects` | New endpoint |
-| Icon | `MemoryIcon` | `StorageIcon` | Sidebar distinction |
+| Structure | Flat | **Hiérarchique** (`parent`/`children`) | Tree UI, recursive queries |
+| Endpoint | Standard CRUD | **+ `/tree`** (WITH RECURSIVE) | Full nested tree in 1 request |
+| Endpoint | Standard CRUD | **+ `/:id/children`** | Direct children pagination |
+| Field | — | **`level`** auto-calculé | Depth tracking, UI indentation |
+| Validation | Nom unique | **+ Circular reference check** | `400 CIRCULAR_REFERENCE` |
+| Suppression | Apps liées | **+ Children check** | 2 compteurs (`applications` + `children`) |
+| Seed | Flat list | **Hierarchical tree** (12 nodes, 3 levels) | Realistic test data |
 
 ---
 
-## Backend Amendments Required (A+B) ⚠️
+## Architecture Decision Traced ⚠️
 
-### Amendment A — Query Parameters Filtering
+### Rollback Max Depth 5 → Illimité
 
-**Target:** Add server-side filtering for `type` and `isSourceOfTruth`
+**Context:**
+- `ARK-Product-Brief.md` §Modélisation : "**Hiérarchie illimitée en base** — contrainte de 5 niveaux levée"
+- Spec FS-07-BACK originale (v1.0 draft) : RM-08 avec `400 MAX_DEPTH_EXCEEDED`
 
-**API Signature:**
-```
-GET /api/v1/data-objects?page=1&limit=20&search=Customer&type=database&isSourceOfTruth=true
-```
+**Decision:**
+- Aligner spec sur Product Brief — hiérarchie **illimitée** (rollback RM-08)
+- Garder `level` auto-calculé (utile pour UI indentation, analytics)
+- Garder prévention circulaire (critique pour intégrité données)
 
-**Implementation:**
-- File: `backend/src/data-objects/dto/query-data-objects.dto.ts`
-- Add: `@IsOptional() @IsString() type?: string`
-- Add: `@IsOptional() @IsBoolean() isSourceOfTruth?: boolean`
-- Service: add Prisma `where` clause filtering
-- **Effort:** 15-20 min
+**Changes Applied:**
+| Element | Avant | Après |
+|---|---|---|
+| RM-08 | Max depth 5 niveaux | ❌ Supprimée |
+| RM-09→12 | Circular ref, validations, tree | RM-08→11 (renumérotation) |
+| Error code | `MAX_DEPTH_EXCEEDED` | ❌ Supprimée |
+| Tests | 4 tests max depth | ❌ Supprimés |
+| Gates | G-16 Max depth | ❌ Supprimée |
+| Checklist | Item max depth | ❌ Supprimé |
 
----
-
-### Amendment B — Role Field in Applications Response
-
-**Target:** Expose relationship role (consumer/producer/owner) in applications list
-
-**API Signature:**
-```json
-GET /api/v1/data-objects/{id}/applications
-{
-  "data": [
-    {
-      "id": "uuid1",
-      "name": "App A",
-      "role": "consumer",
-      "domain": { ... },
-      "owner": { ... },
-      "criticality": "high",
-      "createdAt": "..."
-    }
-  ]
-}
-```
-
-**Implementation:**
-- File: `backend/src/data-objects/data-objects.service.ts`
-- Prisma: include `appDataObjectMaps` in select
-- Mapper: add `role` field to ApplicationListItem
-- **Effort:** 10-15 min
+**Impact:**
+- Niveau 5, 6, 7+ techniquement possibles en base
+- UI pourra afficher avertissement visuel (non bloquant) si profondeur > recommandée
+- Pas de limite arbitraire métier en backend
 
 ---
 
@@ -117,138 +97,152 @@ GET /api/v1/data-objects/{id}/applications
 
 | File | Change | Impact |
 |---|---|---|
-| `docs/03-Features-Spec/FS-05-Data-Objects-front.md` | ✨ **NEW** — Complete v0.1 spec (1200+ lines) | Frontend spec ready |
-| `docs/01-Product/ARK-Roadmap.md` | ✏️ FS-05-BACK → `done`, FS-05-FRONT → `stable`, changelog v0.16 | Sprint tracking |
-| `docs/03-Features-Spec/FS-05-Data-Objects-back.md` | ✏️ Added amendments A+B section | Backend awareness |
+| `docs/03-Features-Spec/FS-07-Business-Capabilities-back.md` | ✨ **NEW** — Complete v1.0 spec (**1368 lines**, post-rollback) | Backend spec ready |
+| `docs/01-Product/ARK-Roadmap.md` | ✏️ FS-07-BACK → `stable`, changelog v0.17 | Sprint tracking |
+| `docs/03-Features-Spec/FS-07-Business-Capabilities.md` | 🗑️ **DELETED** — Empty unified placeholder | Cleanup |
+| `SESSION-HANDOFF.md` (root) | 📦 **ARCHIVED** → `docs/05-Project/20260404/SESSION-HANDOFF-FS05.md` | Archive FS-05 |
+| `SESSION-HANDOFF.md` (root) | ✨ **NEW** — This file | Current handoff FS-07 |
 
-### Git Commit
+### Git Commit Suggested
 
 ```
-commit 6e288b5a...
-spec: FS-05-FRONT v0.1 — Data Objects frontend (draft → stable)
+spec: FS-07-BACK v1.0 — Business Capabilities backend (stable)
 
-- Complete frontend spec: 4 pages + PNS-02 drawer + advanced filters
-- isSourceOfTruth Chip (success/default), Autocomplete type, role column
-- 7 US, 32 Cypress tests, 55 i18n keys
-- Pre-conditions: amendments A+B backend documented
-- Roadmap: FS-05-BACK done (8), FS-05-FRONT stable (8b)
-- Sprint 3 unblocked
+- Complete backend spec: 8 endpoints, hiérarchie récursive, WITH RECURSIVE
+- level auto-calculé, circular reference prevention, 2 compteurs suppression
+- 20 Jest + 23 Supertest, **17 gates**
+- Rollback max depth: conforme ARK-Product-Brief (hiérarchie illimitée)
+- Roadmap: FS-07-BACK stable, changelog v0.17
+- Archive FS-05 handoff
+- Sprint 3 ready for [back] implementation
 ```
 
 ---
 
-## Session Gate — Frontend FS-05-FRONT ⚠️
+## Session Gate — Backend FS-07-BACK ⚠️
 
-### Pre-conditions (11 gates)
+### Pre-conditions (7 gates)
 
-Before launching OpenCode FS-05-FRONT:
+Before launching OpenCode FS-07-BACK:
 
-- [x] **FS-05-BACK `done`** — gates G-01 to G-08 ✅
-- [ ] **Amendment A implemented** — query params `type` + `isSourceOfTruth` functional
-- [ ] **Amendment B implemented** — `role` field in `/applications` response
-- [ ] **API manually tested** — Postman/curl validation
-- [ ] **F-02 `done`** — `useTranslation()` available ✅
-- [ ] **F-03 `done`** — `DimensionTagInput` + `TagChipList` available ✅
-- [ ] **i18n keys added** — 55 `data-objects.*` keys in `fr.json`
-- [ ] **`hasPermission()` exported** — from `@/store/auth` ✅
-- [ ] **App.tsx wired manually** — 4 routes + PrivateRoute
-- [ ] **Sidebar entry added** — label + icon + href
-- [ ] **Cypress operational** — `cy.loginAsAdmin()`, `cy.loginAsReadOnly()` ✅
+- [x] **FS-01 `done`** — JWT, permissions, middleware audit ✅
+- [x] **FS-06-BACK `done`** — Applications API for `DEPENDENCY_CONFLICT` tests ✅
+- [x] **F-03 `done`** — TagService, `entity_tags` relation ✅
+- [x] **Permissions seedées** — `business-capabilities:read` / `:write` in `seed.ts` ✅
+- [x] **Module directory** — `backend/src/business-capabilities/` exists and empty ✅
+- [ ] **Migration SQL executed** — Comment, UNIQUE(name), gen_random_uuid() defaults
+- [ ] **Prisma schema checked** — Align model with spec §2.2 (nullable level, entityTags relation)
 
 ### Effort Before OpenCode
 
 | Task | Owner | Time | Priority |
 |---|---|---|---|
-| Implement amendment A | Backend | 15-20 min | 🔴 CRITICAL |
-| Implement amendment B | Backend | 10-15 min | 🔴 CRITICAL |
-| Validate amendments | QA | 5 min | 🔴 CRITICAL |
-| Add 55 i18n keys | Frontend | 5 min | 🟡 Important |
-| Wire App.tsx (4 routes) | Frontend | 5 min | 🟡 Important |
-| Add Sidebar entry | Frontend | 2 min | 🟡 Important |
-| **Total** | — | **< 1h** | — |
+| Verify schema.prisma vs spec §2.2 | Arch/Data | 5 min | 🟡 Important |
+| Run migration SQL §1 | Data | 5 min | 🟡 Important |
+| Validate empty module dir | QA | 1 min | 🟢 Quick |
+| **Total** | — | **< 15 min** | — |
 
 ---
 
 ## Next Steps — Immediate Actions
 
-### Backend (30 min total)
+### Pre-OpenCode (15 min total)
 
-1. Implement amendment A: query params `type` + `isSourceOfTruth`
-   - File: `backend/src/data-objects/dto/query-data-objects.dto.ts`
-   - Add 2 `@IsOptional()` fields
+1. **Verify `schema.prisma` BusinessCapability model**
+   - Check `level` is nullable (`Int? @db.SmallInt`)
+   - Check `entityTags EntityTag[]` relation exists
+   - Check `id @default(dbgenerated("gen_random_uuid()"))`
+   - File: `backend/prisma/schema.prisma`
 
-2. Implement amendment B: `role` field in applications
-   - File: `backend/src/data-objects/data-objects.service.ts`
-   - Modify `getApplications()` Prisma query + mapper
+2. **Run migration SQL** (from spec §1)
+   ```sql
+   ALTER TABLE business_capabilities
+     ADD COLUMN IF NOT EXISTS comment TEXT,
+     ALTER COLUMN id SET DEFAULT gen_random_uuid(),
+     ALTER COLUMN updated_at SET DEFAULT NOW();
+   
+   ALTER TABLE business_capabilities
+     ADD CONSTRAINT IF NOT EXISTS business_capabilities_name_key UNIQUE (name);
+   
+   ALTER TABLE business_capabilities DROP COLUMN IF EXISTS tags;
+   ```
 
-3. Validate: `curl "http://localhost:3000/api/v1/data-objects?type=database&isSourceOfTruth=true"`
+3. **Validate directory empty**
+   ```bash
+   ls -la backend/src/business-capabilities/
+   # Expected: empty or non-existent
+   ```
 
-4. Commit: `fix: FS-05-FRONT amendments A+B — query params + role in applications`
+4. **Commit**: `chore: FS-07-BACK pre-session — migration, schema check`
 
-### Frontend (12 min total)
+### OpenCode Session
 
-5. Add 55 keys to `src/i18n/locales/fr.json` (copy-paste FS-05-FRONT §6)
+5. **Copy-paste §8 Command OpenCode** into new session
+   - Full inline prompt with SQL patterns
+   - Ref spec content for `[COLLER LE CONTENU COMPLET...]`
 
-6. Wire 4 routes in `App.tsx`:
-   - `GET /data-objects` (List)
-   - `GET /data-objects/:id` (Detail)
-   - `POST /data-objects/new` (Create)
-   - `PATCH /data-objects/:id/edit` (Edit)
-
-7. Add Sidebar entry: label `t('data-objects.list.title')`, icon `StorageIcon`, href `/data-objects`
-
-8. Commit: `feat: setup FS-05-FRONT — i18n + routes + sidebar`
+6. **Monitor implementation**
+   - WITH RECURSIVE query construction
+   - Circular reference check function
+   - Cascading level recalculation
+   - 2 counters in `remove()`
 
 ### Validation
 
-9. `npm run build` backend → 0 errors
-10. Postman/curl test amendments A+B
-11. `npm run dev` frontend → app launches, i18n loaded
+7. `npm run build` backend → 0 errors
+8. `npm run test -- --testPathPattern=business-capabilities` → 20 Jest pass
+9. `npm run test:e2e -- --testPathPattern=FS-07` → 23 Supertest pass
+10. Postman: `GET /tree` returns nested structure
+11. Postman: `PATCH` with circular parentId → `400 CIRCULAR_REFERENCE`
 
 ---
 
 ## Parallelizable Tasks (Sprint 3)
 
-**Not blocked by FS-05-FRONT:**
-- **FS-07-BACK** (Business Capabilities) — can start immediately
-- **Task 0.9** (WITH RECURSIVE SQL) — R&D PostgreSQL hierarchical queries
-- **Tech Debt P1** — Users API, tags API, batch tags endpoint
+**Not blocked by FS-07-BACK:**
+- **FS-05-FRONT** (Data Objects) — if amendments A+B not yet done
+- **FS-07-FRONT** spec — can be drafted while BACK implements
+- **Task 0.9** (WITH RECURSIVE SQL) — R&D documented in spec §8
+- **Tech Debt P1** — Users API (#12b), tags API (#13), batch tags (#14)
 
 **Recommended Sprint 3 Timeline:**
 ```
-Wed 3 Apr  : Specs complete — FS-05-BACK done, FS-05-FRONT stable ✅
-Thu 4 Apr  : Amendments A+B + i18n setup (< 1h) + OpenCode FS-05-FRONT
-Fri+ 5 Apr : FS-05-FRONT implementation (0.5-1d) + FS-07-BACK spec parallel
+Dim 5 Apr  : FS-07-BACK spec stable ✅   ← today, completed
+Lun 6 Apr  : FS-07-BACK pre-conditions (< 15 min) + OpenCode session
+Mar 7 Apr  : FS-07-BACK implementation (1.5j) + FS-07-FRONT spec parallel
 ```
 
 ---
 
 ## Build Validation Checklist
 
-### Pre-OpenCode FS-05-FRONT
+### Pre-OpenCode FS-07-BACK
 
-- [ ] FS-05-BACK gates G-01 to G-13 all checked
-- [ ] Amendment A: `curl ...?type=database&isSourceOfTruth=true` filters correctly
-- [ ] Amendment B: `curl .../applications` includes `role` field
+- [ ] `schema.prisma` model matches spec §2.2
+- [ ] Migration SQL executed (comment, UNIQUE name, drop tags)
+- [ ] `business-capabilities/` directory empty
 - [ ] `npm run build` backend → 0 errors
-- [ ] 55 keys present in `src/i18n/locales/fr.json`
-- [ ] 4 FS-05 routes in `App.tsx`
-- [ ] Sidebar Data Objects entry visible
-- [ ] `npm run dev` frontend → no errors
 
-### Post-OpenCode FS-05-FRONT
+### Post-OpenCode FS-07-BACK
 
-- [ ] 4 pages functional
-- [ ] PNS-02 drawer operational
-- [ ] Filters working (search + type + isSourceOfTruth)
-- [ ] isSourceOfTruth Chip displayed
-- [ ] Autocomplete type working
-- [ ] Role column in Applications tab
-- [ ] F-03 tags integrated
-- [ ] 409 CONFLICT + DEPENDENCY_CONFLICT handled
-- [ ] 32 Cypress tests pass
-- [ ] No TypeScript errors
-- [ ] No hardcoded strings (all i18n)
+- [ ] `POST /api/v1/business-capabilities` racine → `201` avec `level: 0`
+- [ ] `POST /api/v1/business-capabilities` avec parent → `201` avec `level` auto
+- [ ] `POST /api/v1/business-capabilities` → audit_trail changed_by non NULL
+- [ ] `PATCH` reparenting → `200` avec nouveau `level` et cascade descendants
+- [ ] `PATCH` reparenting circulaire → `400 CIRCULAR_REFERENCE`
+- [ ] `DELETE` avec enfants → `409 DEPENDENCY_CONFLICT` + childrenCount
+- [ ] `DELETE` avec applications → `409 DEPENDENCY_CONFLICT` + applicationsCount
+- [ ] `GET /tree` → structure arborescente complète (nested children)
+- [ ] `GET /:id/children` → enfants directs paginés
+- [ ] `GET /:id/applications` → applications liées paginées
+- [ ] `_count.applicationMappings` et `_count.children` présents
+- [ ] Nom unique global → `409 CONFLICT`
+- [ ] `domainId` validation → `404` si inexistant
+- [ ] `parentId` validation → `404` si inexistant
+- [ ] **17 gates** G-01 à G-17 cochées (post-rollback: G-17 = openapi.yaml)
+- [ ] `openapi.yaml` mis à jour avec paths `/business-capabilities`
+- [ ] Aucun `TODO / FIXME / HACK` non tracé
+- [ ] Aucune erreur TypeScript strict
 
 ---
 
@@ -258,20 +252,60 @@ Fri+ 5 Apr : FS-05-FRONT implementation (0.5-1d) + FS-07-BACK spec parallel
 
 | File | Status | Version | Purpose |
 |---|---|---|---|
-| **FS-05-Data-Objects-back.md** | `done` | 1.0 | Backend contract + gates |
-| **FS-05-Data-Objects-front.md** | `stable` | 0.1 | Frontend spec (ready for OpenCode) |
-| **FS-04-IT-Components-front.md** | `done` | 1.1 | Pattern reference (PNS-02, filters) |
-| **FS-06-Applications-front.md** | `done` | 1.2 | Reference rich forms |
+| **FS-07-Business-Capabilities-back.md** | `stable` | 1.0 | Backend contract + gates (current) |
+| **FS-06-Applications-back.md** | `done` | 1.x | Reference N:N relations + tests |
+| **FS-05-Data-Objects-back.md** | `done` | 1.0 | Pattern N:N + role field |
+| **FS-03-Providers-back.md** | `done` | 1.3 | Pattern CRUD + pagination |
 
 ### Code Locations
 
 | Module | Files | Role |
 |---|---|---|
-| Backend | `backend/src/data-objects/*` | CRUD + N:N + applications endpoint |
-| Frontend | `frontend/src/pages/data-objects/` | 4 pages |
-| Components | `frontend/src/components/data-objects/` | Drawer + Form |
-| Types | `frontend/src/types/data-object.ts` | TypeScript interfaces |
-| Utils | `frontend/src/utils/data-objects.utils.ts` | Helpers |
+| Backend | `backend/src/business-capabilities/` | **EMPTY — ready for implementation** |
+| Prisma | `backend/prisma/schema.prisma` | Model to verify against spec §2.2 |
+| Test e2e | `backend/test/FS-07-business-capabilities.e2e-spec.ts` | To be created |
+| Seed | `backend/prisma/seed.ts` | Add hierarchical tree data §12 |
+
+### Critical SQL Patterns (from spec §8)
+
+**Circular Reference Check:**
+```typescript
+async isDescendant(ancestorId: string, descendantId: string): Promise<boolean> {
+  if (ancestorId === descendantId) return true;
+  const result = await this.prisma.$queryRaw<{ exists: boolean }[]>`
+    WITH RECURSIVE descendants AS (
+      SELECT id, parent_id FROM business_capabilities WHERE id = ${descendantId}::uuid
+      UNION ALL
+      SELECT c.id, c.parent_id FROM business_capabilities c
+      INNER JOIN descendants d ON c.parent_id = d.id
+    )
+    SELECT EXISTS(SELECT 1 FROM descendants WHERE id = ${ancestorId}::uuid) as exists
+  `;
+  return result[0]?.exists ?? false;
+}
+```
+
+**Cascading Level Recalculation:**
+```typescript
+async recalculateLevelsRecursively(rootId: string): Promise<void> {
+  const root = await this.prisma.businessCapability.findUnique({
+    where: { id: rootId }, select: { level: true }
+  });
+  if (!root) return;
+  await this.prisma.$executeRaw`
+    WITH RECURSIVE descendants AS (
+      SELECT id, parent_id, ${root.level} + 1 as new_level 
+      FROM business_capabilities WHERE parent_id = ${rootId}::uuid
+      UNION ALL
+      SELECT c.id, c.parent_id, d.new_level + 1
+      FROM business_capabilities c
+      INNER JOIN descendants d ON c.parent_id = d.id
+    )
+    UPDATE business_capabilities bc SET level = d.new_level
+    FROM descendants d WHERE bc.id = d.id
+  `;
+}
+```
 
 ---
 
@@ -279,20 +313,31 @@ Fri+ 5 Apr : FS-05-FRONT implementation (0.5-1d) + FS-07-BACK spec parallel
 
 | Item | Deliverable |
 |---|---|
-| **FS-05-BACK** | ✅ Implementation complete (27 tests, all gates ready) |
-| **FS-05-FRONT** | ✅ Specification v0.1 complete (13 sections, 32 tests planned) |
-| **Pre-conditions** | 🔄 Amendments A+B implementation (< 30 min backend) |
-| **i18n** | 🔄 55 keys to add (< 5 min) |
-| **Routing** | 🔄 4 routes to wire (< 5 min) |
-| **Next OpenCode** | ⏳ Ready after amendments + i18n + routing |
-| **Est. implementation** | 0.5-1d (4 pages, established pattern) |
+| **FS-07-BACK** | ✅ Specification v1.0 stable (**1368 lines**, post-rollback) |
+| **Rollback** | ✅ Max depth supprimée, conforme Product Brief |
+| **Hiérarchie** | ✅ Recursive self-relation, level auto, circular check, WITH RECURSIVE |
+| **Pre-conditions** | 🔄 Schema check + migration (< 15 min) |
+| **Next OpenCode** | ⏳ Ready after schema verification |
+| **Est. implementation** | 1.5j (8 endpoints, recursive logic) |
 
-**Overall: Sprint 3 ready for FS-05-FRONT implementation after < 1h prep.**
+**Overall: FS-07-BACK ready for backend implementation after < 15 min prep.**
 
 ---
 
-_Document created: 2026-04-03_
-_Purpose: Sprint 3 FS-05-BACK + FS-05-FRONT completion handoff_
+## Decision Log
+
+| # | Decision | Context | Rationale |
+|---|---|---|---|
+| D-01 | Rollback max depth | Product Brief says "illimitée" | Alignement documentation, pas de contrainte arbitraire |
+| D-02 | Conserver `level` | Utile UI + analytics | Auto-calculé, nullable en DB, pas exposé en DTO create/update |
+| D-03 | Renumber RM-09→RM-12 | Suppression RM-08 | Conséquence D-01, maintien ordre logique |
+| D-04 | Supprimer G-17 | Max depth supprimé | **18 gates → 17 gates** (G-17 devient audit trail, ancien G-18 devient G-17) |
+| D-05 | Hiérarchie illimitée | Standard EA | Meilleure flexibilité, avertissement UI possible P2 |
+
+---
+
+_Document created: 2026-04-05_
+_Purpose: Sprint 3 FS-07-BACK spec completion + handoff to [back]_
 _Branch: develop_
-_Status: Spec complete, amendments pending, ready for implementation_
-_Next session: Implement amendments A+B, add i18n, launch FS-05-FRONT OpenCode_
+_Status: Spec **v1.0 stable**, **17 gates**, rollback applied, pre-conditions pending_
+_Next session: Schema check + migration (< 15 min), then OpenCode FS-07-BACK_
