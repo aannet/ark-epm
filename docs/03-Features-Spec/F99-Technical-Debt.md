@@ -831,6 +831,69 @@ export const AppBreadcrumbs: React.FC<AppBreadcrumbsProps> = ({ items, sx }) => 
 
 ---
 
+### Item 22 — Migration tests FS-05-FRONT : Cypress → Playwright *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — Décision de migration de Cypress vers Playwright |
+| **Priorité** | Moyenne — Couverture tests E2E FS-05-FRONT en attente |
+
+**Contexte :**
+Lors de l'implémentation de FS-05-FRONT (Data Objects frontend), un fichier de tests Cypress a été généré (`frontend/cypress/e2e/data-objects.cy.ts`, 37 tests). Cependant, l'exécution a échoué en raison de dépendances système manquantes (`libnspr4.so`, bibliothèques X11/NSPR) sur l'environnement de développement. Plutôt que d'investir dans la résolution de ces dépendances Cypress, la décision a été prise de migrer vers **Playwright** pour les tests E2E frontend.
+
+**Décision :**
+- **Abandonner Cypress** pour les tests E2E frontend — Playwright devient la référence
+- **Conserver le fichier `data-objects.cy.ts`** comme spécification de référence (37 tests documentés)
+- **Migrer les 37 tests** vers Playwright dans `e2e/tests/data-objects/`
+- **Supprimer les dépendances Cypress** du projet une fois la migration complète
+
+**Tests à migrer (37 tests — référence `frontend/cypress/e2e/data-objects.cy.ts`) :**
+
+| Section | N° | Tests |
+|---------|-----|-------|
+| **ListPage** (6) | 1-6 | Affichage liste, colonnes, empty state, tri, recherche, bouton ajouter |
+| **Drawer** (7) | 7-13 | Ouverture clic ligne, navigation nom, onglets Info/Apps, fermeture, navigation detail/edit, disabled read-only |
+| **DetailPage** (4) | 14-17 | Champs affichés, onglet apps, bouton modifier, redirect UUID inexistant |
+| **Création** (6) | 18-23 | Nom+description, sans description, annuler, dupliqué, nom vide, espaces |
+| **Modification** (3) | 24-26 | Modifier ok, annuler, redirect UUID inexistant |
+| **Suppression** (4) | 27-30 | Sans dépendances, annuler, avec dépendances (409), bouton disabled |
+| **Filtres** (2) | 31-32 | Par type, par source officielle |
+| **Droits UI** (6) | 33-37 | Bouton Add absent, colonne Actions absente, icônes absentes, Edit disabled, redirect /403 (×2) |
+
+**Fichiers concernés :**
+- À créer : `e2e/tests/data-objects/data-objects.spec.ts` (Playwright)
+- À supprimer après migration : `frontend/cypress/e2e/data-objects.cy.ts`
+- À supprimer après migration complète : `frontend/cypress/` (dossier entier)
+
+**Implémentation Playwright suggérée :**
+```typescript
+// e2e/tests/data-objects/data-objects.spec.ts
+import { test, expect } from '@playwright/test';
+import { login, loginAsReadOnly } from '../fixtures/auth.fixture';
+
+test.describe('Data Objects Feature', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.goto('/data-objects');
+  });
+
+  test('affiche la liste des objets de données après login', async ({ page }) => {
+    await expect(page.getByText('Objets de Données')).toBeVisible();
+  });
+  // ... 36 autres tests
+});
+```
+
+**Gate de validation :**
+- ✅ Les 37 tests Playwright passent en headless
+- ✅ `make test-e2e` inclut les tests Data Objects
+- ✅ Fichier Cypress `data-objects.cy.ts` supprimé
+- ✅ Dépendances Cypress retirées de `package.json`
+
+**Timing :** Sprint 3 (après FS-05-FRONT completion)
+
+---
+
 ### Item 16 — Customisation des couleurs provider roles *(P2)*
 
 | | |
@@ -945,6 +1008,9 @@ Request ID :
 - [ ] **Item 20** — Breadcrumbs Providers harmonisés : 3 niveaux avec Accueil link + i18n refactor
 - [ ] **Item 20** — Spacing breadcrumbs standardisé à `mb: 2` sur toutes les pages
 - [ ] **Item 21** — Composant `AppBreadcrumbs` créé dans `@/components/shared/` (optional — recommandé P2/FS-11)
+- [ ] **Item 22** — Migrer 37 tests Cypress `data-objects.cy.ts` vers Playwright `e2e/tests/data-objects/data-objects.spec.ts`
+- [ ] **Item 22** — Supprimer `frontend/cypress/` après migration complète
+- [ ] **Item 22** — Retirer dépendances Cypress de `package.json`
 ---
 
 ## 5. Journal des décisions
@@ -964,6 +1030,8 @@ Request ID :
 | 2026-03-21 | Item 15 | Routes Providers commentées — fichiers FS-03-FRONT manquants | OpenCode |
 | 2026-03-21 | Item 16 | Customisation couleurs provider roles — couleurs hardcodées v1.1, admin dashboard P2 | OpenCode |
 | 2026-03-29 | Items 17-21 | Ajout dette technique Design Guidelines : filtres Providers (P2), breadcrumbs Applications/Domains/Providers (Sprint 3), composant AppBreadcrumbs (FS-11) | OpenCode/Spec |
+
+| 2026-04-05 | Item 22 | Migration tests FS-05-FRONT Cypress → Playwright — 37 tests à migrer | OpenCode/Front |
 
 ---
 
