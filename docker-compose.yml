@@ -10,7 +10,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docs/04-Tech/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "5432:5432"
     healthcheck:
@@ -48,6 +47,9 @@ services:
       - VITE_API_PROXY_TARGET=http://backend:3000
     depends_on:
       - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
   playwright:
     build:
