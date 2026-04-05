@@ -10,6 +10,7 @@ import DataObjectForm from '@/components/data-objects/DataObjectForm';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createDataObject, updateDataObject, getDataObject } from '@/services/api/data-objects.api';
 import { DataObjectFormValues } from '@/types/data-object';
+import { hasPermission } from '@/store/auth';
 
 interface DataObjectFormPageProps {
   mode: 'create' | 'edit';
@@ -19,8 +20,13 @@ export default function DataObjectFormPage({ mode }: DataObjectFormPageProps): J
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const canWrite = hasPermission('data-objects:write');
   const [error, setError] = useState<string | null>(null);
   const [serverAlert, setServerAlert] = useState<{ severity: 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!canWrite) navigate('/403');
+  }, [canWrite, navigate]);
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['data-object', id],

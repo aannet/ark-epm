@@ -4,35 +4,35 @@ import { useTranslation } from 'react-i18next';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TablePagination, Paper, IconButton, TableSortLabel, Link as MuiLink,
-  TextField, MenuItem, Box, FormControl, InputLabel, Select,
-  InputAdornment, Drawer, Typography, Tabs, Tab, Button
+  TextField, Box, FormControl, InputLabel, Select, MenuItem,
+  InputAdornment,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import CloseIcon from '@mui/icons-material/Close';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { TagChipList } from '@/components/tags';
+import ITComponentDrawer from '@/components/it-components/ITComponentDrawer';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getITComponents, deleteITComponent, getITComponent, getITComponentApplications
+  getITComponents, deleteITComponent, getITComponent,
 } from '@/services/api/it-components.api';
 import { hasPermission } from '@/store/auth';
 import { ITComponentListItem } from '@/types/it-component';
-import { format409Message, formatDateTime } from '@/utils/it-components.utils';
+import { format409Message } from '@/utils/it-components.utils';
 
 export default function ITComponentListPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const canWrite = hasPermission('it-components:write');
-  
+
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [sortField, setSortField] = useState<'name' | 'technology' | 'type' | 'createdAt'>('name');
@@ -40,11 +40,8 @@ export default function ITComponentListPage(): JSX.Element {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterTechnology, setFilterTechnology] = useState('');
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [drawerTab, setDrawerTab] = useState(0);
-  const [appsPage, setAppsPage] = useState(0);
-  
+
   const [deleteDialog, setDeleteDialog] = useState<ITComponentListItem | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
@@ -56,14 +53,8 @@ export default function ITComponentListPage(): JSX.Element {
 
   const { data: selectedItem } = useQuery({
     queryKey: ['it-component', selectedId],
-    queryFn: () => selectedId ? getITComponent(selectedId) : null,
+    queryFn: () => getITComponent(selectedId!),
     enabled: !!selectedId,
-  });
-
-  const { data: appsData } = useQuery({
-    queryKey: ['it-component-apps', selectedId, appsPage],
-    queryFn: () => selectedId ? getITComponentApplications(selectedId, { page: appsPage + 1, limit: 5 }) : null,
-    enabled: !!selectedId && drawerTab === 1,
   });
 
   const deleteMutation = useMutation({
@@ -93,19 +84,8 @@ export default function ITComponentListPage(): JSX.Element {
     setPage(1);
   };
 
-  const handleRowClick = (id: string, isName: boolean) => {
-    if (isName) {
-      navigate(`/it-components/${id}`);
-    } else {
-      setSelectedId(id);
-      setDrawerOpen(true);
-      setDrawerTab(0);
-      setAppsPage(0);
-    }
-  };
-
-  const uniqueTypes = Array.from(new Set((data?.data || []).map(item => item.type).filter((t): t is string => !!t)));
-  const uniqueTech = Array.from(new Set((data?.data || []).map(item => item.technology).filter((t): t is string => !!t)));
+  const uniqueTypes = Array.from(new Set((data?.data || []).map((item) => item.type).filter((v): v is string => !!v)));
+  const uniqueTech = Array.from(new Set((data?.data || []).map((item) => item.technology).filter((v): v is string => !!v)));
 
   if (isLoading) {
     return (
@@ -139,14 +119,14 @@ export default function ITComponentListPage(): JSX.Element {
           <InputLabel>{t('it-components.list.filterType')}</InputLabel>
           <Select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} label={t('it-components.list.filterType')}>
             <MenuItem value="">{t('common.all')}</MenuItem>
-            {uniqueTypes.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            {uniqueTypes.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel>{t('it-components.list.filterTechnology')}</InputLabel>
           <Select value={filterTechnology} onChange={(e) => { setFilterTechnology(e.target.value); setPage(1); }} label={t('it-components.list.filterTechnology')}>
             <MenuItem value="">{t('common.all')}</MenuItem>
-            {uniqueTech.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            {uniqueTech.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
           </Select>
         </FormControl>
       </Box>
@@ -163,9 +143,9 @@ export default function ITComponentListPage(): JSX.Element {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: '#F1F5F9' }}>
-                  <TableCell><TableSortLabel active={sortField === 'name'} direction={sortOrder} onClick={() => handleSort('name')}>{t('it-components.list.columns.name')}</TableSortLabel></TableCell>
-                  <TableCell><TableSortLabel active={sortField === 'technology'} direction={sortOrder} onClick={() => handleSort('technology')}>{t('it-components.list.columns.technology')}</TableSortLabel></TableCell>
-                  <TableCell><TableSortLabel active={sortField === 'type'} direction={sortOrder} onClick={() => handleSort('type')}>{t('it-components.list.columns.type')}</TableSortLabel></TableCell>
+                  <TableCell><TableSortLabel active={sortField === 'name'} direction={sortField === 'name' ? sortOrder : 'asc'} onClick={() => handleSort('name')}>{t('it-components.list.columns.name')}</TableSortLabel></TableCell>
+                  <TableCell><TableSortLabel active={sortField === 'technology'} direction={sortField === 'technology' ? sortOrder : 'asc'} onClick={() => handleSort('technology')}>{t('it-components.list.columns.technology')}</TableSortLabel></TableCell>
+                  <TableCell><TableSortLabel active={sortField === 'type'} direction={sortField === 'type' ? sortOrder : 'asc'} onClick={() => handleSort('type')}>{t('it-components.list.columns.type')}</TableSortLabel></TableCell>
                   <TableCell>{t('it-components.list.columns.tags')}</TableCell>
                   <TableCell>{t('it-components.list.columns.applicationsCount')}</TableCell>
                   {canWrite && <TableCell align="right">{t('it-components.list.columns.actions')}</TableCell>}
@@ -173,22 +153,50 @@ export default function ITComponentListPage(): JSX.Element {
               </TableHead>
               <TableBody>
                 {data?.data.map((item) => (
-                  <TableRow key={item.id} hover sx={{ cursor: 'pointer' }}>
-                    <TableCell onClick={(e) => { e.stopPropagation(); handleRowClick(item.id, true); }}>
-                      <MuiLink component={Link} to={`/it-components/${item.id}`} underline="always" sx={{ color: 'inherit', '&:hover': { color: 'primary.main' } }}>{item.name}</MuiLink>
+                  <TableRow
+                    key={item.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => setSelectedId(item.id)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <MuiLink
+                        component={Link}
+                        to={`/it-components/${item.id}`}
+                        underline="always"
+                        sx={{ color: 'inherit', '&:hover': { color: 'primary.main' } }}
+                      >
+                        {item.name}
+                      </MuiLink>
                     </TableCell>
-                    <TableCell onClick={() => handleRowClick(item.id, false)}>{item.technology || '—'}</TableCell>
-                    <TableCell onClick={() => handleRowClick(item.id, false)}>{item.type || '—'}</TableCell>
-                    <TableCell onClick={() => handleRowClick(item.id, false)}>
-                      <Typography variant="caption">{item.tags?.length ? `${item.tags.length} tag(s)` : '—'}</Typography>
+                    <TableCell>{item.technology || '—'}</TableCell>
+                    <TableCell>{item.type || '—'}</TableCell>
+                    <TableCell>
+                      <TagChipList
+                        tags={item.tags || []}
+                        maxVisible={3}
+                        deduplicate={true}
+                        showMoreButton={true}
+                        size="small"
+                      />
                     </TableCell>
-                    <TableCell onClick={() => handleRowClick(item.id, false)}>{item._count.applications}</TableCell>
+                    <TableCell>{item._count.applications}</TableCell>
                     {canWrite && (
-                       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                         <IconButton onClick={() => navigate(`/it-components/${item.id}/edit`)}><EditIcon /></IconButton>
-                         <IconButton onClick={() => { setDeleteDialog(item); setDeleteError(null); }}><DeleteIcon /></IconButton>
-                       </TableCell>
-                     )}
+                      <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                        <IconButton
+                          aria-label={t('common.actions.edit')}
+                          onClick={() => navigate(`/it-components/${item.id}/edit`)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label={t('common.actions.delete')}
+                          onClick={() => { setDeleteDialog(item); setDeleteError(null); }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -219,50 +227,11 @@ export default function ITComponentListPage(): JSX.Element {
         severity={deleteError ? 'error' : undefined}
       />
 
-      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: 400 } }}>
-        {selectedItem && (
-          <>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">{t('it-components.drawer.title')}</Typography>
-              <IconButton onClick={() => setDrawerOpen(false)} size="small"><CloseIcon /></IconButton>
-            </Box>
-            <Tabs value={drawerTab} onChange={(_, v) => setDrawerTab(v)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tab label={t('it-components.drawer.tabInfo')} />
-              <Tab label={`${t('it-components.drawer.tabApplications')} (${selectedItem._count.applications})`} />
-            </Tabs>
-            <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-              {drawerTab === 0 ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.nameLabel')}</Typography><Typography fontWeight={600}>{selectedItem.name}</Typography></Box>
-                  <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.technologyLabel')}</Typography><Typography>{selectedItem.technology || '—'}</Typography></Box>
-                  <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.typeLabel')}</Typography><Typography>{selectedItem.type || '—'}</Typography></Box>
-                  <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.descriptionLabel')}</Typography><Typography variant="body2" color="text.secondary">{selectedItem.description || '—'}</Typography></Box>
-                  <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.tagsLabel')}</Typography><Typography variant="caption">{selectedItem.tags?.length ? `${selectedItem.tags.length} tag(s)` : '—'}</Typography></Box>
-                  <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.applicationsCountLabel')}</Typography><Typography>{selectedItem._count.applications}</Typography></Box>
-                  <Typography variant="caption" color="text.secondary">{t('it-components.detail.createdAtLabel')}: {formatDateTime(selectedItem.createdAt)}</Typography>
-                  <Typography variant="caption" color="text.secondary">{t('it-components.detail.updatedAtLabel')}: {formatDateTime(selectedItem.updatedAt)}</Typography>
-                </Box>
-              ) : (
-                appsData?.data.length ? (
-                  <>
-                    <TableContainer component={Paper} elevation={0}>
-                      <Table size="small">
-                        <TableHead><TableRow><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell></TableRow></TableHead>
-                        <TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell>{app.name}</TableCell><TableCell>{app.domain?.name || '—'}</TableCell></TableRow>)}</TableBody>
-                      </Table>
-                    </TableContainer>
-                    <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={5} rowsPerPageOptions={[5]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
-                  </>
-                ) : <EmptyState title={t('it-components.drawer.noApplications')} />
-              )}
-            </Box>
-            <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between' }}>
-              <Button variant="contained" onClick={() => { setDrawerOpen(false); navigate(`/it-components/${selectedItem.id}/edit`); }} disabled={!canWrite}>{t('it-components.drawer.buttonEdit')}</Button>
-              <Button variant="outlined" onClick={() => { setDrawerOpen(false); navigate(`/it-components/${selectedItem.id}`); }} endIcon={<ArrowForwardIcon />}>{t('it-components.drawer.buttonViewDetail')}</Button>
-            </Box>
-          </>
-        )}
-      </Drawer>
+      <ITComponentDrawer
+        itComponent={selectedItem ?? undefined}
+        open={!!selectedId}
+        onClose={() => setSelectedId(null)}
+      />
     </PageContainer>
   );
 }

@@ -45,6 +45,7 @@ export default function DataObjectListPage(): JSX.Element {
   const canWrite = hasPermission('data-objects:write');
 
   const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [search, setSearch] = useState('');
@@ -69,10 +70,10 @@ export default function DataObjectListPage(): JSX.Element {
   }, [location.state]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['data-objects', page, sortField, sortOrder, debouncedSearch, filterType, filterSourceOfTruth],
+    queryKey: ['data-objects', page, rowsPerPage, sortField, sortOrder, debouncedSearch, filterType, filterSourceOfTruth],
     queryFn: () => getDataObjects({
       page,
-      limit: 20,
+      limit: rowsPerPage,
       sortBy: sortField,
       sortOrder,
       search: debouncedSearch || undefined,
@@ -258,9 +259,10 @@ export default function DataObjectListPage(): JSX.Element {
             component="div"
             count={data?.meta?.total ?? 0}
             page={(data?.meta?.page ?? 1) - 1}
-            rowsPerPage={20}
-            rowsPerPageOptions={[20]}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10, 20, 50]}
             onPageChange={(_, p) => setPage(p + 1)}
+            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(1); }}
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`}
           />
         </>

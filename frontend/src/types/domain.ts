@@ -16,3 +16,11 @@ export interface DomainFormValues {
   comment: string;
   tags: TagValueResponse[];
 }
+
+export interface DomainFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: 'name' | 'description' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
+}

@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Table,
@@ -8,14 +8,19 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
   IconButton,
   TableSortLabel,
   Link as MuiLink,
+  TextField,
+  InputAdornment,
+  Box,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
@@ -41,16 +46,56 @@ export default function DomainsListPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const canWrite = hasPermission('domains:write');
 
-  const { data: domains, isLoading, error } = useDomains();
-  const deleteDomain = useDeleteDomain();
+  // Parse URL params
+  const getPageFromUrl = () => {
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    return isNaN(page) || page < 1 ? 1 : page;
+  };
+  const getLimitFromUrl = () => {
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    return [10, 20, 50].includes(limit) ? limit : 20;
+  };
+  const getSortFieldFromUrl = (): SortField => {
+    const sortBy = searchParams.get('sortBy') as SortField;
+    const validFields: SortField[] = ['name', 'description', 'createdAt'];
+    return validFields.includes(sortBy) ? sortBy : 'name';
+  };
+  const getSortOrderFromUrl = (): SortOrder => {
+    const order = searchParams.get('sortOrder');
+    return order === 'desc' ? 'desc' : 'asc';
+  };
 
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [page, setPage] = useState(getPageFromUrl());
+  const [rowsPerPage, setRowsPerPage] = useState(getLimitFromUrl());
+  const [sortField, setSortField] = useState<SortField>(getSortFieldFromUrl());
+  const [sortOrder, setSortOrder] = useState<SortOrder>(getSortOrderFromUrl());
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '');
   const [deleteDialog, setDeleteDialog] = useState<Domain | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
+
+  // Sync URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (page !== 1) params.set('page', page.toString());
+    if (rowsPerPage !== 20) params.set('limit', rowsPerPage.toString());
+    if (sortField !== 'name') params.set('sortBy', sortField);
+    if (sortOrder !== 'asc') params.set('sortOrder', sortOrder);
+    if (searchValue) params.set('search', searchValue);
+    setSearchParams(params, { replace: false });
+  }, [page, rowsPerPage, sortField, sortOrder, searchValue, setSearchParams]);
+
+  useEffect(() => {
+    setPage(getPageFromUrl());
+    setRowsPerPage(getLimitFromUrl());
+    setSortField(getSortFieldFromUrl());
+    setSortOrder(getSortOrderFromUrl());
+  }, [searchParams]);
 
   useEffect(() => {
     if (location.state?.alert) {
@@ -59,6 +104,16 @@ export default function DomainsListPage(): JSX.Element {
     }
   }, [location.state]);
 
+  const { data, isLoading, error } = useDomains({
+    page,
+    limit: rowsPerPage,
+    sortBy: sortField,
+    sortOrder,
+    search: searchValue || undefined,
+  });
+
+  const deleteDomain = useDeleteDomain();
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -66,29 +121,21 @@ export default function DomainsListPage(): JSX.Element {
       setSortField(field);
       setSortOrder('asc');
     }
+    setPage(1);
   };
 
-  const sortedDomains = useMemo(() => {
-    if (!domains) return [];
-    return [...domains].sort((a, b) => {
-      let comparison = 0;
-      if (sortField === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (sortField === 'description') {
-        const descA = a.description || '';
-        const descB = b.description || '';
-        if (descA === '' && descB !== '') return 1;
-        if (descA !== '' && descB === '') return -1;
-        comparison = descA.localeCompare(descB);
-      } else if (sortField === 'createdAt') {
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-  }, [domains, sortField, sortOrder]);
+  const handleSearchSubmit = () => {
+    setSearchValue(searchInput);
+    setPage(1);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearchSubmit();
+  };
 
   const handleDeleteClick = (domain: Domain) => {
     setDeleteDialog(domain);
+    setDeleteErrorMessage(null);
   };
 
   const handleDeleteConfirm = async () => {
@@ -96,11 +143,6 @@ export default function DomainsListPage(): JSX.Element {
     try {
       await deleteDomain.mutateAsync(deleteDialog.id);
       setDeleteDialog(null);
-      navigate('/domains', {
-        state: {
-          alert: { severity: 'success', message: t('domains.alert.deleted') },
-        },
-      });
       setAlert({ severity: 'success', message: t('domains.alert.deleted') });
     } catch (err: any) {
       const status = err?.response?.status;
@@ -108,18 +150,12 @@ export default function DomainsListPage(): JSX.Element {
       if (status === 409 && code === 'DEPENDENCY_CONFLICT') {
         const appCount = err?.response?.data?.applicationsCount ?? 0;
         const bcCount = err?.response?.data?.businessCapabilitiesCount ?? 0;
-        setDeleteDialog({
-          ...deleteDialog,
-          name: format409Message(t, appCount, bcCount),
-        } as Domain);
+        setDeleteErrorMessage(format409Message(t, appCount, bcCount));
       } else if (status && status >= 500) {
         setAlert({ severity: 'error', message: t('domains.alert.errors.serverError') });
+        setDeleteDialog(null);
       }
     }
-  };
-
-  const handleRowClick = (id: string) => {
-    setSelectedDomainId(id);
   };
 
   if (isLoading) {
@@ -143,8 +179,8 @@ export default function DomainsListPage(): JSX.Element {
     );
   }
 
-  const isEmpty = !sortedDomains || sortedDomains.length === 0;
-  const isDependencyConflict = deleteDialog && !deleteDialog.createdAt;
+  const domains = data?.data || [];
+  const isEmpty = domains.length === 0;
 
   return (
     <PageContainer>
@@ -170,6 +206,25 @@ export default function DomainsListPage(): JSX.Element {
         onClose={() => setAlert(null)}
       />
 
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          placeholder={t('domains.list.search')}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={handleSearchKeyDown}
+          size="small"
+          fullWidth
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ backgroundColor: '#f5f5f5', borderRadius: 1 }}
+        />
+      </Box>
+
       {isEmpty ? (
         <EmptyState
           title={t('domains.list.emptyState.title')}
@@ -184,129 +239,137 @@ export default function DomainsListPage(): JSX.Element {
           }
         />
       ) : (
-        <TableContainer
-          component={Paper}
-          elevation={0}
-          sx={{ border: '1px solid', borderColor: 'divider' }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow sx={{ bgcolor: '#F1F5F9' }}>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'name'}
-                    direction={sortField === 'name' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('name')}
-                  >
-                    {t('domains.list.columns.name')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'description'}
-                    direction={sortField === 'description' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('description')}
-                  >
-                    {t('domains.list.columns.description')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  {t('domains.list.columns.tags')}
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'createdAt'}
-                    direction={sortField === 'createdAt' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('createdAt')}
-                  >
-                    {t('domains.list.columns.createdAt')}
-                  </TableSortLabel>
-                </TableCell>
-                {canWrite && (
-                  <TableCell align="right">
-                    {t('domains.list.columns.actions')}
-                  </TableCell>
-                )}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedDomains.map((domain) => (
-                <TableRow
-                  key={domain.id}
-                  hover
-                  onClick={() => handleRowClick(domain.id)}
-                  sx={{ cursor: 'pointer' }}
-                >
+        <>
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{ border: '1px solid', borderColor: 'divider' }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#F1F5F9' }}>
                   <TableCell>
-                    <MuiLink
-                      component={Link}
-                      to={`/domains/${domain.id}`}
-                      underline="always"
-                      sx={{ 
-                        color: 'inherit',
-                        '&:hover': { color: 'primary.main' },
-                        textDecoration: 'underline',
-                      }}
-                      onClick={(e) => e.stopPropagation()}
+                    <TableSortLabel
+                      active={sortField === 'name'}
+                      direction={sortField === 'name' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('name')}
                     >
-                      {domain.name}
-                    </MuiLink>
-                  </TableCell>
-                  <TableCell>{domain.description || '—'}</TableCell>
-                  <TableCell>
-                    <TagChipList
-                      tags={domain.tags || []}
-                      maxVisible={3}
-                      deduplicate={true}
-                      showMoreButton={true}
-                      size="small"
-                    />
+                      {t('domains.list.columns.name')}
+                    </TableSortLabel>
                   </TableCell>
                   <TableCell>
-                    {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
+                    <TableSortLabel
+                      active={sortField === 'description'}
+                      direction={sortField === 'description' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('description')}
+                    >
+                      {t('domains.list.columns.description')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>{t('domains.list.columns.tags')}</TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={sortField === 'createdAt'}
+                      direction={sortField === 'createdAt' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('createdAt')}
+                    >
+                      {t('domains.list.columns.createdAt')}
+                    </TableSortLabel>
                   </TableCell>
                   {canWrite && (
-                    <TableCell align="right">
-                      <IconButton
-                        aria-label={t('common.actions.edit')}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/domains/${domain.id}/edit`);
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={t('common.actions.delete')}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(domain);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
+                    <TableCell align="right">{t('domains.list.columns.actions')}</TableCell>
                   )}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {domains.map((domain) => (
+                  <TableRow
+                    key={domain.id}
+                    hover
+                    onClick={() => setSelectedDomainId(domain.id)}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <MuiLink
+                        component={Link}
+                        to={`/domains/${domain.id}`}
+                        underline="always"
+                        sx={{
+                          color: 'inherit',
+                          '&:hover': { color: 'primary.main' },
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        {domain.name}
+                      </MuiLink>
+                    </TableCell>
+                    <TableCell>{domain.description || '—'}</TableCell>
+                    <TableCell>
+                      <TagChipList
+                        tags={domain.tags || []}
+                        maxVisible={3}
+                        deduplicate={true}
+                        showMoreButton={true}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
+                    </TableCell>
+                    {canWrite && (
+                      <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                        <IconButton
+                          aria-label={t('common.actions.edit')}
+                          onClick={() => navigate(`/domains/${domain.id}/edit`)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label={t('common.actions.delete')}
+                          onClick={() => handleDeleteClick(domain)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={data?.meta?.total || 0}
+            page={(data?.meta?.page || 1) - 1}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10, 20, 50]}
+            onPageChange={(_e, newPage) => setPage(newPage + 1)}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(1);
+            }}
+            labelRowsPerPage={t('common.rowsPerPage')}
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`}
+          />
+        </>
       )}
 
       <ConfirmDialog
         open={!!deleteDialog}
         title={t('domains.delete.confirmTitle')}
-        message={isDependencyConflict 
-          ? (deleteDialog?.name || '') 
-          : t('domains.delete.confirmMessage', { name: deleteDialog?.name })
+        message={
+          deleteErrorMessage ||
+          t('domains.delete.confirmMessage', { name: deleteDialog?.name })
         }
-        confirmLabel={isDependencyConflict ? undefined : t('common.confirmDialog.confirmLabel')}
+        confirmLabel={deleteErrorMessage ? undefined : t('common.confirmDialog.confirmLabel')}
         cancelLabel={t('common.confirmDialog.cancelLabel')}
-        onConfirm={isDependencyConflict ? () => {} : handleDeleteConfirm}
-        onCancel={() => setDeleteDialog(null)}
+        onConfirm={deleteErrorMessage ? () => {} : handleDeleteConfirm}
+        onCancel={() => {
+          setDeleteDialog(null);
+          setDeleteErrorMessage(null);
+        }}
         isLoading={deleteDomain.isPending}
-        severity={isDependencyConflict ? 'error' : undefined}
+        severity={deleteErrorMessage ? 'error' : undefined}
       />
 
       <DomainDrawer

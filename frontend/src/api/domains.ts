@@ -1,13 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import client from './client';
-import { Domain, DomainFormValues } from '@/types/domain';
+import { Domain, DomainFormValues, DomainFilters } from '@/types/domain';
+import { PaginatedResponse } from '@/types/provider';
 import { queryClient } from '@/queryClient';
 
-export function useDomains() {
+export function useDomains(filters?: DomainFilters) {
   return useQuery({
-    queryKey: ['domains'],
+    queryKey: ['domains', filters],
     queryFn: async () => {
-      const response = await client.get<Domain[]>('/domains');
+      const response = await client.get<PaginatedResponse<Domain>>('/domains', { params: filters });
       return response.data;
     },
   });

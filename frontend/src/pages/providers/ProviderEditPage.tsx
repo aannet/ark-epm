@@ -1,22 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Breadcrumbs, Link, Typography, CircularProgress } from '@mui/material';
 import { PageContainer } from '@/components/layout';
-import { ProviderForm } from '@/components/providers';
+import PageHeader from '@/components/shared/PageHeader';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import ArkAlert from '@/components/shared/ArkAlert';
+import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import { ProviderForm } from '@/components/providers';
 import { useProvider, useUpdateProvider } from '@/api/providers';
+import { tagsApi } from '@/api/tags';
 import { useQuery } from '@tanstack/react-query';
-import client from '@/api/client';
 import { ProviderFormValues } from '@/types/provider';
 import { hasPermission } from '@/store/auth';
 import { resolveAlertMessage } from '@/utils/provider.utils';
-
-interface TagDimension {
-  id: string;
-  name: string;
-  color?: string;
-}
 
 export default function ProviderEditPage() {
   const { t } = useTranslation();
@@ -27,80 +23,46 @@ export default function ProviderEditPage() {
   const [alert, setAlert] = useState<{ severity: 'error'; message: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if no write permission
   useEffect(() => {
-    if (!canWrite) {
-      navigate('/403');
-    }
+    if (!canWrite) navigate('/403');
   }, [canWrite, navigate]);
 
-  // Fetch provider
-  const { data: provider, isLoading: providerLoading, error: providerError } = useProvider(id || '');
+  const { data: provider, isLoading, error: providerError } = useProvider(id || '');
 
-  // Redirect on 404
   useEffect(() => {
     if (providerError && (providerError as any).response?.status === 404) {
       navigate('/providers');
     }
   }, [providerError, navigate]);
 
-  // Fetch available tag dimensions
   const { data: dimensions } = useQuery({
     queryKey: ['tag-dimensions'],
-    queryFn: async () => {
-      const response = await client.get<TagDimension[]>('/tags/dimensions');
-      return response.data;
-    },
+    queryFn: () => tagsApi.getDimensions(),
   });
 
   const updateProvider = useUpdateProvider(id || '');
 
   const handleSubmit = async (values: ProviderFormValues) => {
     if (!id) return;
-
     try {
       setError(null);
 
-      // Update provider (without tags initially)
-      await updateProvider.mutateAsync({
-        ...values,
-        tags: [],
-      });
+      await updateProvider.mutateAsync({ ...values, tags: [] });
 
-      // Save tags for each dimension if any
       if (values.tags && values.tags.length > 0) {
-        const tagsByDimension = values.tags.reduce(
-          (acc, tag) => {
-            if (!acc[tag.dimensionId]) {
-              acc[tag.dimensionId] = [];
-            }
-            acc[tag.dimensionId].push(tag.id);
-            return acc;
-          },
-          {} as Record<string, string[]>,
-        );
-
-        // Save tags for each dimension
-        await Promise.all(
-          Object.entries(tagsByDimension).map(([dimensionId, tagIds]) =>
-            client.put(`/tags/entities/provider/${id}/${dimensionId}`, {
-              tagIds,
-            }),
-          ),
-        );
-      } else {
-        // If no tags, clear all tags by setting empty array for all dimensions
-        // This is optional - depends on backend behavior
+        const tagsByDimension = new Map<string, string[]>();
+        values.tags.forEach((tag) => {
+          const existing = tagsByDimension.get(tag.dimensionId) || [];
+          existing.push(tag.id);
+          tagsByDimension.set(tag.dimensionId, existing);
+        });
+        for (const [dimensionId, tagIds] of tagsByDimension.entries()) {
+          await tagsApi.putEntityTags('provider', id, dimensionId, tagIds);
+        }
       }
 
-      // Navigate back to detail page with success alert
       navigate(`/providers/${id}`, {
-        state: {
-          alert: {
-            severity: 'success',
-            message: t('providers.alert.updateSuccess'),
-          },
-        },
+        state: { alert: { severity: 'success', message: t('providers.alert.updateSuccess') } },
       });
     } catch (err: any) {
       if (err.response?.status === 409) {
@@ -108,103 +70,63 @@ export default function ProviderEditPage() {
       } else if (err.response?.status === 400) {
         setError(t('providers.form.nameRequired'));
       } else {
-        setAlert({
-          severity: 'error',
-          message: resolveAlertMessage(t, err.response?.status ?? 500),
-        });
+        setAlert({ severity: 'error', message: resolveAlertMessage(t, err.response?.status ?? 500) });
       }
     }
   };
 
-  const handleCancel = () => {
-    navigate(`/providers/${id}`);
-  };
+  const availableDimensions = dimensions?.map((d) => ({
+    id: d.id,
+    name: d.name,
+    color: d.color || '#007FFF',
+  }));
 
-  if (providerLoading) {
+  if (isLoading) {
     return (
       <PageContainer>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-          <CircularProgress />
-        </Box>
+        <LoadingSkeleton rows={5} columns={1} />
       </PageContainer>
     );
   }
 
-  if (!provider) {
-    return (
-      <PageContainer>
-        <Typography variant="h6" color="error">
-          {t('providers.alert.errors.notFound')}
-        </Typography>
-      </PageContainer>
-    );
-  }
+  if (!provider) return null;
 
   return (
     <PageContainer>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          component="button"
-          onClick={() => navigate('/')}
-          variant="body2"
-          sx={{ cursor: 'pointer' }}
-        >
-          {t('providers.form.breadcrumb.home')}
-        </Link>
-        <Link
-          component="button"
-          onClick={() => navigate('/providers')}
-          variant="body2"
-          sx={{ cursor: 'pointer' }}
-        >
-          {t('providers.form.breadcrumb.list')}
-        </Link>
-        <Link
-          component="button"
-          onClick={() => navigate(`/providers/${id}`)}
-          variant="body2"
-          sx={{ cursor: 'pointer' }}
-        >
-          {provider.name}
-        </Link>
-        <Typography variant="body2">{t('common.actions.edit')}</Typography>
-      </Breadcrumbs>
+      <ArkAlert
+        open={!!alert}
+        severity="error"
+        message={alert?.message ?? ''}
+        onClose={() => setAlert(null)}
+      />
 
-      {/* Title */}
-      <Typography variant="h4" sx={{ fontWeight: 600, mb: 3 }}>
-        {t('providers.form.editTitle')}
-      </Typography>
+      <AppBreadcrumbs
+        items={[
+          { label: t('providers.form.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('providers.form.breadcrumb.list'), onClick: () => navigate('/providers') },
+          { label: provider.name, onClick: () => navigate(`/providers/${id}`) },
+          { label: t('common.actions.edit') },
+        ]}
+      />
 
-      {/* Form */}
-      <Box sx={{ maxWidth: 600 }}>
-        <ProviderForm
-          initialValues={{
-            name: provider.name,
-            description: provider.description || '',
-            comment: provider.comment || '',
-            contractType: provider.contractType || '',
-            expiryDate: provider.expiryDate,
-            tags: provider.tags,
-          }}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isLoading={updateProvider.isPending}
-          error={error}
-          availableDimensions={dimensions}
-          entityId={id}
-        />
-      </Box>
+      <PageHeader title={t('providers.form.editTitle')} />
 
-      {/* Error Alert */}
-      {alert && (
-        <ArkAlert
-          severity={alert.severity}
-          message={alert.message}
-          open={true}
-          onClose={() => setAlert(null)}
-        />
-      )}
+      <ProviderForm
+        initialValues={{
+          name: provider.name,
+          description: provider.description || '',
+          comment: provider.comment || '',
+          contractType: provider.contractType || '',
+          expiryDate: provider.expiryDate,
+          tags: provider.tags,
+        }}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate(`/providers/${id}`)}
+        isLoading={updateProvider.isPending}
+        error={error}
+        availableDimensions={availableDimensions}
+        entityId={id}
+      />
     </PageContainer>
   );
 }

@@ -13,7 +13,7 @@ import {
   TableSortLabel,
   TextField,
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -77,13 +77,6 @@ export default function ProvidersListPage() {
     }
   }, [location.state]);
 
-  // Auto-dismiss success alerts after 5 seconds
-  useEffect(() => {
-    if (alert?.severity === 'success') {
-      const timer = setTimeout(() => setAlert(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -180,6 +173,7 @@ export default function ProvidersListPage() {
             ? {
                 label: t('providers.list.addButton'),
                 onClick: handleAddClick,
+                icon: <AddIcon />,
               }
             : undefined
         }
@@ -358,24 +352,22 @@ export default function ProvidersListPage() {
               ? deleteDialog.name // Error message from 409 response
               : t('providers.delete.confirmMessage', { name: deleteDialog.name })
           }
-          confirmLabel={isDependencyConflict ? undefined : t('common.actions.delete')}
-          cancelLabel={t('common.actions.cancel')}
-          severity={isDependencyConflict ? 'error' : 'warning'}
+          confirmLabel={isDependencyConflict ? undefined : t('common.confirmDialog.confirmLabel')}
+          cancelLabel={t('common.confirmDialog.cancelLabel')}
+          severity={isDependencyConflict ? 'error' : undefined}
           onConfirm={isDependencyConflict ? () => setDeleteDialog(null) : handleDeleteConfirm}
           onCancel={() => setDeleteDialog(null)}
           isLoading={deleteProvider.isPending}
         />
       )}
 
-      {/* Success/Error Alert */}
-      {alert && (
-        <ArkAlert
-          severity={alert.severity}
-          message={alert.message}
-          open={true}
-          onClose={() => setAlert(null)}
-        />
-      )}
+      <ArkAlert
+        open={!!alert}
+        severity={alert?.severity ?? 'success'}
+        message={alert?.message ?? ''}
+        autoDismiss={5000}
+        onClose={() => setAlert(null)}
+      />
     </PageContainer>
   );
 }

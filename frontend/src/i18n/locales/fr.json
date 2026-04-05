@@ -101,6 +101,7 @@
       "title": "Domaines",
       "subtitle": "Gestion des domaines métier",
       "addButton": "Ajouter un domaine",
+      "search": "Rechercher par nom...",
       "columns": {
         "name": "Nom",
         "description": "Description",
@@ -259,6 +260,7 @@
         "tagsLabel": "Tags dimensionnels",
         "buttonSave": "Enregistrer",
         "buttonCancel": "Annuler",
+        "createTitle": "Nouveau fournisseur",
         "editTitle": "Modifier le fournisseur"
       },
       "delete": {

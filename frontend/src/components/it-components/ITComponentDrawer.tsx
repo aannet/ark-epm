@@ -6,6 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import EmptyState from '@/components/shared/EmptyState';
+import { TagChipList } from '@/components/tags';
 import { ITComponentResponse } from '@/types/it-component';
 import { getITComponentApplications } from '@/services/api/it-components.api';
 import { hasPermission } from '@/store/auth';
@@ -50,7 +51,10 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.technologyLabel')}</Typography><Typography>{itComponent.technology || '—'}</Typography></Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.typeLabel')}</Typography><Typography>{itComponent.type || '—'}</Typography></Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.descriptionLabel')}</Typography><Typography variant="body2" color="text.secondary">{itComponent.description || '—'}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.tagsLabel')}</Typography><Typography variant="caption">{itComponent.tags?.length ? `${itComponent.tags.length} tag(s)` : '—'}</Typography></Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.tagsLabel')}</Typography>
+              <TagChipList tags={itComponent.tags || []} maxVisible={5} deduplicate={true} size="small" />
+            </Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.applicationsCountLabel')}</Typography><Typography>{itComponent._count.applications}</Typography></Box>
             <Divider />
             <Typography variant="caption" color="text.secondary">{t('it-components.detail.createdAtLabel')}: {formatDateTime(itComponent.createdAt)}</Typography>
