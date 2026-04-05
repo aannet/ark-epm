@@ -2,7 +2,7 @@
 
 _Version 1.0 — Avril 2026_
 
-> **Changelog v1.0 :** Création initiale — module Business Capabilities conforme NFR-GOV-005. Implémente le CRUD complet avec migration schéma (ajout comment, UNIQUE name, fix id default gen_random_uuid(), updatedAt @updatedAt), suppression du champ legacy `tags TEXT[]`, liaison tags F-03 polymorphe. Relation auto-référente hiérarchique (`parent_id` → self, `children[]`) avec `level` auto-calculé, profondeur max 5 niveaux, prévention des références circulaires. Endpoint `GET /tree` via `WITH RECURSIVE` PostgreSQL. Relation N:N `app_capability_map` sans rôle (simple liaison). Onglet Relations (`_count.applicationMappings` + `GET /:id/applications`) et enfants (`_count.children` + `GET /:id/children`). Gestion des dépendances (blocage suppression si enfants ou applications liées).
+> **Changelog v1.0 :** Création initiale — module Business Capabilities conforme NFR-GOV-005. Implémente le CRUD complet avec migration schéma (ajout comment, UNIQUE name, fix id default gen_random_uuid(), updatedAt @updatedAt), suppression du champ legacy `tags TEXT[]`, liaison tags F-03 polymorphe. Relation auto-référente hiérarchique (`parent_id` → self, `children[]`) avec `level` auto-calculé, prévention des références circulaires. Endpoint `GET /tree` via `WITH RECURSIVE` PostgreSQL. Hiérarchie illimitée en profondeur (conforme ARK-Product-Brief). Relation N:N `app_capability_map` sans rôle (simple liaison). Onglet Relations (`_count.applicationMappings` + `GET /:id/applications`) et enfants (`_count.children` + `GET /:id/children`). Gestion des dépendances (blocage suppression si enfants ou applications liées).
 
 ---
 
@@ -13,7 +13,7 @@ _Version 1.0 — Avril 2026_
 | **ID** | FS-07-BACK |
 | **Titre** | Business Capabilities — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | ✅ `stable` |
 | **Dépend de** | FS-01, **FS-06-BACK**, F-03 |
 | **Spec mère** | FS-07 Business Capabilities v1.0 |
 | **Spec front** | FS-07-FRONT — bloquée tant que cette spec n'est pas `done` |
@@ -22,7 +22,7 @@ _Version 1.0 — Avril 2026_
 
 > **Note FK entrantes (N:N) :** Cette entité expose `_count.applicationMappings` et `GET /:id/applications`. Elle est référencée via la table de jonction `app_capability_map`. FS-06-BACK est requis en dépendance BACK pour implémenter les DTOs et endpoints côté Application.
 
-> **Note hiérarchie unique :** FS-07 est la seule entité avec auto-référence hiérarchique (`parent_id` → self). Les endpoints `/tree` et `/:id/children`, les règles `level` auto-calculé, max depth 5, et prévention circulaire sont **spécifiques** à cette feature.
+> **Note hiérarchie unique :** FS-07 est la seule entité avec auto-référence hiérarchique (`parent_id` → self). Les endpoints `/tree` et `/:id/children`, les règles `level` auto-calculé, et prévention circulaire sont **spécifiques** à cette feature.
 
 ---
 
@@ -39,8 +39,8 @@ Le backend expose :
 - **Endpoint `/:id/children`** : liste paginée des enfants directs
 - **Endpoint `/:id/applications`** : applications liées (pagination)
 - Compteurs `_count.applicationMappings` et `_count.children` dans les réponses
-- `level` auto-calculé à partir de la profondeur dans l'arbre (0 = racine, max 4 = niveau 4)
-- Validation **profondeur max 5 niveaux** (L0→L4)
+- `level` auto-calculé à partir de la profondeur dans l'arbre (0 = racine, puis +1 par niveau)
+- Prévention des **références circulaires** (impossible de se référencer soi-même ou ses descendants)
 - **Prévention des références circulaires** (impossible de se référencer soi-même ou ses descendants)
 - Blocage suppression si enfants ou applications liées
 - Relation N:1 optionnelle avec Domain (`domainId`)
@@ -372,7 +372,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BusinessCapabilityResponse'
         '400':
-          description: Validation échouée (nom vide, parentId inexistant, max depth)
+          description: Validation échouée (nom vide, parentId inexistant)
         '401':
           description: Non authentifié
         '403':
@@ -435,7 +435,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BusinessCapabilityResponse'
         '400':
-          description: Validation échouée (circular reference, max depth, parentId inexistant)
+          description: Validation échouée (circular reference, parentId inexistant)
           content:
             application/json:
               schema:
@@ -833,19 +833,17 @@ async remove(id: string): Promise<void> {
   - Si `parentId != null` → `level = parent.level + 1`
   - En cas de reparenting (PATCH `parentId`), recalculer le `level` et **cascader** le recalcul sur tous les descendants.
 
-- **RM-08 — Profondeur max 5 niveaux :** Le `level` ne peut excéder 4 (0→4 = 5 niveaux). Si un create ou reparent tente de créer une capability à `level >= 5` → `400` + code `"MAX_DEPTH_EXCEEDED"` + message `"Maximum hierarchy depth (5 levels) exceeded"`.
-
-- **RM-09 — Prévention référence circulaire :** Lors d'un PATCH `parentId`, vérifier que le nouveau parent n'est pas :
+- **RM-08 — Prévention référence circulaire :** Lors d'un PATCH `parentId`, vérifier que le nouveau parent n'est pas :
   - L'entité elle-même
   - Un descendant de l'entité (circular reference)
   
   En cas de violation → `400` + code `"CIRCULAR_REFERENCE"` + message `"Cannot set parent to self or descendant (circular reference)"`.
 
-- **RM-10 — Validation parentId :** Si fourni, `parentId` doit référencer une capability existante → `404` si inexistant.
+- **RM-09 — Validation parentId :** Si fourni, `parentId` doit référencer une capability existante → `404` si inexistant.
 
-- **RM-11 — Validation domainId :** Si fourni, `domainId` doit référencer un domain existant → `404` si inexistant.
+- **RM-10 — Validation domainId :** Si fourni, `domainId` doit référencer un domain existant → `404` si inexistant.
 
-- **RM-12 — Endpoint `/tree` WITH RECURSIVE :** Requête SQL récursive pour retourner l'arbre complet. Structure de réponse : tableau de racines (`parentId = null`), chaque nœud contenant ses enfants nested.
+- **RM-11 — Endpoint `/tree` WITH RECURSIVE :** Requête SQL récursive pour retourner l'arbre complet. Structure de réponse : tableau de racines (`parentId = null`), chaque nœud contenant ses enfants nested.
 
 ---
 
@@ -867,7 +865,6 @@ async remove(id: string): Promise<void> {
 - `POST` / `PATCH` nom dupliqué → `409` + `code: "CONFLICT"`
 - `POST` / `PATCH` `parentId` inexistant → `404`
 - `POST` / `PATCH` `domainId` inexistant → `404`
-- `POST` avec `parentId` à profondeur 4 (nouveau level = 5) → `400` + `code: "MAX_DEPTH_EXCEEDED"`
 - `PATCH` reparenting circulaire (`parentId` = self ou descendant) → `400` + `code: "CIRCULAR_REFERENCE"`
 - `GET` / `PATCH` / `DELETE` UUID inexistant → `404`
 - `DELETE` avec enfants ou applications liées → `409` + `code: "DEPENDENCY_CONFLICT"` + compteurs dans `details`
@@ -948,7 +945,6 @@ async findOne(id: string): Promise<BusinessCapabilityWithTags> {
 - [ ] `[Jest]` `BusinessCapabilitiesService.findTree()` retourne l'arbre nested complet
 - [ ] `[Jest]` `BusinessCapabilitiesService.create()` avec `parentId = null` → `level = 0`
 - [ ] `[Jest]` `BusinessCapabilitiesService.create()` avec `parentId` valide → `level = parent.level + 1`
-- [ ] `[Jest]` `BusinessCapabilitiesService.create()` avec profondeur max dépassée → lève `BadRequestException`
 - [ ] `[Jest]` `BusinessCapabilitiesService.create()` lève `ConflictException` sur erreur Prisma `P2002`
 - [ ] `[Jest]` `BusinessCapabilitiesService.findOne()` retourne la capability avec tags et `_count`
 - [ ] `[Jest]` `BusinessCapabilitiesService.findOne()` lève `NotFoundException` si UUID inexistant
@@ -956,7 +952,6 @@ async findOne(id: string): Promise<BusinessCapabilityWithTags> {
 - [ ] `[Jest]` `BusinessCapabilitiesService.getApplications()` retourne la liste paginée des apps liées
 - [ ] `[Jest]` `BusinessCapabilitiesService.update()` reparenting valide → recalcule `level` et cascade sur descendants
 - [ ] `[Jest]` `BusinessCapabilitiesService.update()` reparenting circulaire → lève `BadRequestException`
-- [ ] `[Jest]` `BusinessCapabilitiesService.update()` lève `BadRequestException` si max depth dépassée
 - [ ] `[Jest]` `BusinessCapabilitiesService.remove()` lève `NotFoundException` si UUID inexistant
 - [ ] `[Jest]` `BusinessCapabilitiesService.remove()` lève `ConflictException` si enfants > 0
 - [ ] `[Jest]` `BusinessCapabilitiesService.remove()` lève `ConflictException` si applications liées
@@ -972,7 +967,6 @@ async findOne(id: string): Promise<BusinessCapabilityWithTags> {
 - [ ] `[Supertest]` `GET /api/v1/business-capabilities?domainId=xxx` → filtre appliqué
 - [ ] `[Supertest]` `POST /api/v1/business-capabilities` racine (sans parentId) → `201` avec `level: 0`
 - [ ] `[Supertest]` `POST /api/v1/business-capabilities` avec parentId → `201` avec `level` auto-calculé
-- [ ] `[Supertest]` `POST /api/v1/business-capabilities` avec parentId profondeur 4 → `400` + `code: "MAX_DEPTH_EXCEEDED"`
 - [ ] `[Supertest]` `POST /api/v1/business-capabilities` nom valide → `201` avec `BusinessCapabilityResponse`
 - [ ] `[Supertest]` `POST /api/v1/business-capabilities` nom valide → audit_trail contient 1 ligne avec entity_type='business_capabilities' et changed_by non NULL
 - [ ] `[Supertest]` `POST /api/v1/business-capabilities` nom dupliqué → `409` + `code: "CONFLICT"`
@@ -987,7 +981,6 @@ async findOne(id: string): Promise<BusinessCapabilityWithTags> {
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` changement nom → `200`
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` reparenting valide → `200` avec nouveau `level`
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` reparenting circulaire → `400` + `code: "CIRCULAR_REFERENCE"`
-- [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` reparenting profondeur max → `400` + `code: "MAX_DEPTH_EXCEEDED"`
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` nom dupliqué → `409` + `code: "CONFLICT"`
 - [ ] `[Supertest]` `DELETE /api/v1/business-capabilities/{id}` sans dépendances → `204`
 - [ ] `[Supertest]` `DELETE /api/v1/business-capabilities/{id}` avec enfants → `409` + `code: "DEPENDENCY_CONFLICT"` + childrenCount
@@ -1036,7 +1029,6 @@ Conventions obligatoires :
   → ConflictException({ code: 'CONFLICT', message: '...' }) pour P2002
   → ConflictException({ code: 'DEPENDENCY_CONFLICT', message: '...', details: {...} }) pour suppression bloquée
   → BadRequestException({ code: 'CIRCULAR_REFERENCE', message: '...' }) pour référence circulaire
-  → BadRequestException({ code: 'MAX_DEPTH_EXCEEDED', message: '...' }) pour profondeur max dépassée
 - Vérification _count Prisma AVANT toute suppression — pattern RM-03 de cette spec
 - P2002 intercepté dans un try/catch ciblé → ConflictException — ne jamais laisser remonter l'erreur Prisma brute
 - Requêtes raw : tagged template backtick uniquement — jamais Prisma.raw() avec interpolation
@@ -1079,18 +1071,7 @@ async calculateLevel(parentId: string | null): Promise<number> {
 }
 ```
 
-**2. Vérification max depth (RM-08) :**
-```typescript
-const newLevel = await this.calculateLevel(parentId);
-if (newLevel >= 5) {
-  throw new BadRequestException({
-    code: 'MAX_DEPTH_EXCEEDED',
-    message: 'Maximum hierarchy depth (5 levels) exceeded'
-  });
-}
-```
-
-**3. Vérification circular reference (RM-09) :**
+**2. Vérification circular reference (RM-08) :**
 ```typescript
 // Dans update() quand parentId est fourni
 async isDescendant(ancestorId: string, descendantId: string): Promise<boolean> {
@@ -1117,7 +1098,7 @@ if (parentId && await this.isDescendant(parentId, id)) {
 }
 ```
 
-**4. Cascading level recalculation :**
+**3. Cascading level recalculation :**
 ```typescript
 // Après reparenting, recalculer le level de tous les descendants
 async recalculateLevelsRecursively(rootId: string): Promise<void> {
@@ -1144,7 +1125,7 @@ async recalculateLevelsRecursively(rootId: string): Promise<void> {
 }
 ```
 
-**5. Requête WITH RECURSIVE pour /tree (RM-12) :**
+**4. Requête WITH RECURSIVE pour /tree (RM-11) :**
 ```typescript
 async findTree(): Promise<BusinessCapabilityTreeNode[]> {
   // Récupérer d'abord toutes les capabilities
@@ -1174,7 +1155,7 @@ async findTree(): Promise<BusinessCapabilityTreeNode[]> {
 }
 ```
 
-**6. Suppression avec 2 compteurs (RM-03) :**
+**5. Suppression avec 2 compteurs (RM-03) :**
 Vérifier `children` ET `applicationMappings` avant delete.
 
 Documentation obligatoire (NFR-GOV-001) :
@@ -1218,9 +1199,8 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 | G-13 | Test `DEPENDENCY_CONFLICT` avec Application réelle | Créer une Application via `POST /applications` puis tenter suppression | ✅ Oui |
 | G-14 | Level auto-calculé vérifié | Créer racine (level=0), créer enfant (level=1), reparenter (recalcul) | ✅ Oui |
 | G-15 | Circular reference bloquée | PATCH avec parentId descendant → `400 CIRCULAR_REFERENCE` | ✅ Oui |
-| G-16 | Max depth bloquée | POST avec parent à profondeur 4 → `400 MAX_DEPTH_EXCEEDED` | ✅ Oui |
-| G-17 | Audit trail actif | `POST /business-capabilities` → vérifier ligne dans audit_trail (changed_by non NULL) | ✅ Oui |
-| G-18 | `openapi.yaml` mis à jour | Paths `/business-capabilities` présents dans `docs/04-Tech/openapi.yaml` (recopiés de §3) | ✅ Oui |
+| G-16 | Audit trail actif | `POST /business-capabilities` → vérifier ligne dans audit_trail (changed_by non NULL) | ✅ Oui |
+| G-17 | `openapi.yaml` mis à jour | Paths `/business-capabilities` présents dans `docs/04-Tech/openapi.yaml` (recopiés de §3) | ✅ Oui |
 
 ---
 
@@ -1230,7 +1210,6 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 - [ ] `POST /api/v1/business-capabilities` racine → `201` avec `level: 0`
 - [ ] `POST /api/v1/business-capabilities` avec parent → `201` avec `level` auto
-- [ ] `POST /api/v1/business-capabilities` profondeur max → `400 MAX_DEPTH_EXCEEDED`
 - [ ] `POST /api/v1/business-capabilities` → audit_trail.changed_by non NULL (NFR-SEC-009)
 - [ ] `PATCH` reparenting → `200` avec nouveau `level` et cascade descendants
 - [ ] `PATCH` reparenting circulaire → `400 CIRCULAR_REFERENCE`
