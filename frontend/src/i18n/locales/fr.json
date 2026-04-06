@@ -515,5 +515,108 @@
           "vendor": "Éditeur (tiers)",
           "custom": "Personnalisé"
         }
+    },
+
+    "data-objects": {
+      "list": {
+        "title": "Objets de Données",
+        "subtitle": "Gestion de vos sources et références de données métier",
+        "addButton": "Nouveau objet",
+        "search": "Rechercher par nom...",
+        "filterType": "Type",
+        "filterSourceOfTruth": "Source officielle",
+        "columns": {
+          "name": "Nom",
+          "type": "Type",
+          "isSourceOfTruth": "Source",
+          "isSourceOfTruthTrue": "Source officielle",
+          "isSourceOfTruthFalse": "Non",
+          "tags": "Tags",
+          "applicationsCount": "Applications",
+          "actions": "Actions"
+        },
+        "emptyState": {
+          "title": "Aucun objet de données",
+          "description": "Créez votre premier objet de données pour inventorier vos sources et référentiels.",
+          "cta": "Créer un objet"
+        }
+      },
+
+      "drawer": {
+        "title": "Détails objet de données",
+        "tabInfo": "Informations",
+        "tabApplications": "Applications",
+        "buttonEdit": "Modifier",
+        "buttonViewDetail": "Voir la fiche complète",
+        "nameLabel": "Nom",
+        "typeLabel": "Type",
+        "isSourceOfTruthLabel": "Source officielle",
+        "descriptionLabel": "Description",
+        "commentLabel": "Commentaire",
+        "tagsLabel": "Tags",
+        "applicationsCountLabel": "Applications liées",
+        "noApplications": "Aucune application liée"
+      },
+
+      "detail": {
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Objets de Données"
+        },
+        "tabInfo": "Informations",
+        "tabApplications": "Applications",
+        "noValue": "—",
+        "typeLabel": "Type",
+        "isSourceOfTruthLabel": "Source officielle",
+        "descriptionLabel": "Description",
+        "commentLabel": "Commentaire",
+        "tagsLabel": "Tags",
+        "createdAtLabel": "Créé le",
+        "updatedAtLabel": "Modifié le",
+        "noApplications": "Aucune application liée à cet objet",
+        "editButton": "Modifier",
+        "buttonBack": "Retour",
+        "buttonDelete": "Supprimer"
+      },
+
+      "form": {
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Objets de Données",
+          "new": "Nouvel objet",
+          "edit": "Modifier"
+        },
+        "createTitle": "Nouvel objet de données",
+        "editTitle": "Modifier l'objet de données",
+        "nameLabel": "Nom",
+        "nameRequired": "Le nom est obligatoire",
+        "nameDuplicate": "Ce nom d'objet existe déjà",
+        "typeLabel": "Type",
+        "typePlaceholder": "ex: database, dataset, file",
+        "isSourceOfTruthLabel": "Source de vérité",
+        "isSourceOfTruthCheckbox": "Cet objet est la source officielle des données",
+        "descriptionLabel": "Description",
+        "commentLabel": "Commentaire",
+        "tagsLabel": "Tags dimensionnels",
+        "buttonSave": "Enregistrer",
+        "buttonCancel": "Annuler"
+      },
+
+      "delete": {
+        "confirmTitle": "Supprimer l'objet de données",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ?",
+        "blockedMessage": "Impossible de supprimer : cet objet est utilisé par {{count}} application(s)",
+        "viewApps": "Voir les applications liées"
+      },
+
+      "alert": {
+        "createSuccess": "Objet de données créé avec succès",
+        "updateSuccess": "Objet de données modifié avec succès",
+        "deleteSuccess": "Objet de données supprimé avec succès",
+        "errors": {
+          "serverError": "Erreur serveur — veuillez réessayer",
+          "notFound": "Objet de données introuvable"
+        }
+      }
     }
 }
