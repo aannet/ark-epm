@@ -40,7 +40,7 @@ export default function DataObjectDrawer({
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: 400 } }}
+      PaperProps={{ sx: { width: 400, backgroundColor: 'background.paper' } }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* Header */}

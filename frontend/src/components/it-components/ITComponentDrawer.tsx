@@ -35,7 +35,7 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
   if (!itComponent) return <></>;
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 400, display: 'flex', flexDirection: 'column' } }}>
+    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 400, backgroundColor: 'background.paper', display: 'flex', flexDirection: 'column' } }}>
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6">{t('it-components.drawer.title')}</Typography>
         <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}><CloseIcon /></IconButton>
