@@ -191,21 +191,35 @@ tasks:
 
   - id: T-011
     nom: "Implémenter FS-07-BACK — Business Capabilities backend"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: "SESSION-HANDOFF.md"
-    date_resolution: ~
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "FS-07"
     type: impl
     feature: "FS-07-BACK"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "d01cbc"
+        nom: "impl FS-07-BACK business capabilities"
     notes: |
       Spec FS-07-Business-Capabilities-back.md v1.0 stable.
-      Hiérarchie récursive WITH RECURSIVE, level auto-calculé, max depth 5, prévention circulaire,
+      Hiérarchie récursive WITH RECURSIVE, level auto-calculé, hiérarchie illimitée, prévention circulaire,
       N:N avec Applications, migration NFR-GOV-005.
-      Gate T-007 (tests domains-dependencies) sera débloquée après cette impl.
+      
+      Implémentation complète (2026-04-08) :
+      - Module NestJS (controller, service, DTOs, module, index)
+      - 8 endpoints : CRUD + /tree + /:id/children + /:id/applications
+      - Helpers : calculateLevel(), isDescendant(), recalculateLevelsRecursively()
+      - 19 tests Jest unitaires
+      - 20 tests Supertest e2e
+      - 21 tests Playwright API (crud, validation, tree)
+      - Seed 12 business capabilities (3 niveaux hiérarchiques)
+      - Fix HttpExceptionFilter : propagation du champ 'details' dans les erreurs
+      
+      Gate T-007 (tests domains-dependencies) débloquée.
 
   - id: T-012
     nom: "Débloquer sélecteur Owner — API Users mock (F-999 Item 12b)"
@@ -273,3 +287,19 @@ tasks:
       Répartition : Finance (3), IT (13), RH (1), Ventes (2),
       Marketing (1), Supply Chain (1), R&D (1), Service Client (1), Prod (0), Juridique (0).
       Purge préalable : 105 apps + 111 domaines + 84 IT components résidus tests supprimés via SQL.
+
+  - id: T-015
+    nom: "Tests UI Playwright — Business Capabilities frontend"
+    statut: blocked
+    assigned_agent: front
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: test
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      Tests UI Playwright pour l'écran Business Capabilities (arbre hiérarchique, CRUD UI).
+      Gate : FS-07-BACK done (T-011) + FS-07-FRONT implémenté.
+      Fixture createBusinessCapability() déjà disponible dans e2e/fixtures/test-data.fixture.ts.

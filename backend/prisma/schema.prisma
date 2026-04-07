@@ -72,13 +72,13 @@ model Domain {
 }
 
 model BusinessCapability {
-  id                  String               @id @default(uuid()) @db.Uuid
-  name                String               @db.VarChar(255)
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String               @unique @db.VarChar(255)
   description         String?
+  comment             String?
   parentId            String?              @map("parent_id") @db.Uuid
-  level               Int                  @db.SmallInt
+  level               Int?                 @db.SmallInt
   domainId            String?              @map("domain_id") @db.Uuid
-  tags                String[]             @default([])
   createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
   applicationMappings AppCapabilityMap[]

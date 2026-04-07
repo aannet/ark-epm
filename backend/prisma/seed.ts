@@ -142,6 +142,65 @@ async function main() {
     }
   }
   console.log('Seed DataObjects completed');
+
+  // ─── Business Capabilities (hiérarchie 3 niveaux) ──────────────────────────
+  const sampleCapabilities = [
+    // Level 0 (roots)
+    { name: 'Strategy & Planning', level: 0, parentName: null, domainName: null, description: 'Capacités stratégiques de niveau 0' },
+    { name: 'Customer Engagement', level: 0, parentName: null, domainName: null, description: 'Capacités client de niveau 0' },
+    { name: 'Technology Management', level: 0, parentName: null, domainName: null, description: 'Capacités IT de niveau 0' },
+    // Level 1
+    { name: 'Financial Planning', level: 1, parentName: 'Strategy & Planning', domainName: 'Finance', description: 'Planification financière annuelle' },
+    { name: 'Portfolio Management', level: 1, parentName: 'Strategy & Planning', domainName: 'IT', description: 'Gestion du portefeuille projets' },
+    { name: 'Sales Management', level: 1, parentName: 'Customer Engagement', domainName: 'Ventes', description: 'Gestion des ventes et commerciaux' },
+    { name: 'Customer Service', level: 1, parentName: 'Customer Engagement', domainName: 'Service Client', description: 'Service client et support' },
+    { name: 'Infrastructure Management', level: 1, parentName: 'Technology Management', domainName: 'IT', description: 'Gestion infrastructure on-premise et cloud' },
+    { name: 'Application Development', level: 1, parentName: 'Technology Management', domainName: 'IT', description: 'Développement et maintenance applicative' },
+    // Level 2
+    { name: 'Budget Management', level: 2, parentName: 'Financial Planning', domainName: 'Finance', description: 'Gestion des budgets opérationnels' },
+    { name: 'Revenue Forecasting', level: 2, parentName: 'Financial Planning', domainName: 'Finance', description: 'Prévisions de revenus' },
+    { name: 'Lead Generation', level: 2, parentName: 'Sales Management', domainName: 'Marketing', description: 'Génération de leads' },
+  ];
+
+  const getDomainId = async (name: string | null): Promise<string | null> => {
+    if (!name) return null;
+    const domain = await prisma.domain.findUnique({ where: { name } });
+    return domain?.id ?? null;
+  };
+
+  const createdCapabilities: Record<string, string> = {};
+
+  for (const cap of sampleCapabilities) {
+    const existing = await prisma.businessCapability.findUnique({ where: { name: cap.name } });
+    if (!existing) {
+      const parentId = cap.parentName ? createdCapabilities[cap.parentName] ?? null : null;
+      const domainId = await getDomainId(cap.domainName);
+      await prisma.$executeRaw`
+        INSERT INTO business_capabilities (id, name, description, comment, parent_id, level, domain_id, created_at, updated_at)
+        VALUES (
+          gen_random_uuid(),
+          ${cap.name}::varchar,
+          ${cap.description}::text,
+          null,
+          ${parentId}::uuid,
+          ${cap.level}::smallint,
+          ${domainId}::uuid,
+          NOW(),
+          NOW()
+        )
+      `;
+      const created = await prisma.businessCapability.findUnique({ where: { name: cap.name } });
+      if (created) {
+        createdCapabilities[cap.name] = created.id;
+        console.log(`✓ Created capability: ${cap.name} (level ${cap.level})`);
+      }
+    } else {
+      createdCapabilities[cap.name] = existing.id;
+      console.log(`✓ Capability exists: ${cap.name}`);
+    }
+  }
+
+  console.log('Seed business capabilities completed');
 }
 
 main()
