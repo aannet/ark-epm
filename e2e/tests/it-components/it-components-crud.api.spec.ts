@@ -1,8 +1,8 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../../fixtures';
 
 test.describe('IT Components CRUD API', () => {
   test('GET /it-components - should return paginated list', async ({ authenticatedRequest }) => {
-    const res = await authenticatedRequest.get('/it-components?page=1&limit=10');
+    const res = await authenticatedRequest.get('it-components?page=1&limit=10');
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('data');
@@ -35,7 +35,7 @@ test.describe('IT Components CRUD API', () => {
       technology: 'Elasticsearch',
     });
 
-    const res = await authenticatedRequest.get(`/it-components/${created.id}`);
+    const res = await authenticatedRequest.get(`it-components/${created.id}`);
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.id).toBe(created.id);
@@ -44,7 +44,7 @@ test.describe('IT Components CRUD API', () => {
 
   test('GET /it-components/:id - should return 404 for non-existent IT component', async ({ authenticatedRequest }) => {
     const fakeId = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
-    const res = await authenticatedRequest.get(`/it-components/${fakeId}`);
+    const res = await authenticatedRequest.get(`it-components/${fakeId}`);
     expect(res.status()).toBe(404);
   });
 
@@ -55,7 +55,7 @@ test.describe('IT Components CRUD API', () => {
       type: 'database',
     });
 
-    const res = await authenticatedRequest.patch(`/it-components/${created.id}`, {
+    const res = await authenticatedRequest.patch(`it-components/${created.id}`, {
       data: {
         description: 'Updated description',
         technology: 'MongoDB 6.0',
@@ -74,11 +74,11 @@ test.describe('IT Components CRUD API', () => {
       name: `Delete Test ${Date.now()}`,
     });
 
-    const deleteRes = await authenticatedRequest.delete(`/it-components/${created.id}`);
+    const deleteRes = await authenticatedRequest.delete(`it-components/${created.id}`);
     expect(deleteRes.status()).toBe(204); // No Content
 
     // Verify it's deleted
-    const getRes = await authenticatedRequest.get(`/it-components/${created.id}`);
+    const getRes = await authenticatedRequest.get(`it-components/${created.id}`);
     expect(getRes.status()).toBe(404);
   });
 
@@ -102,7 +102,7 @@ test.describe('IT Components CRUD API', () => {
     });
 
     // Try to delete IT component
-    const deleteRes = await authenticatedRequest.delete(`/it-components/${itComponent.id}`);
+    const deleteRes = await authenticatedRequest.delete(`it-components/${itComponent.id}`);
     expect(deleteRes.status()).toBe(409); // Conflict
 
     const body = await deleteRes.json();
@@ -117,7 +117,7 @@ test.describe('IT Components CRUD API', () => {
       type: 'database',
     });
 
-    const res = await authenticatedRequest.get('/it-components?type=database&limit=100');
+    const res = await authenticatedRequest.get('it-components?type=database&limit=100');
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.data.length).toBeGreaterThan(0);
@@ -132,7 +132,7 @@ test.describe('IT Components CRUD API', () => {
       technology: 'Redis 7.0',
     });
 
-    const res = await authenticatedRequest.get('/it-components?technology=Redis%207.0&limit=100');
+    const res = await authenticatedRequest.get('it-components?technology=Redis%207.0&limit=100');
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.data.length).toBeGreaterThan(0);
@@ -145,7 +145,7 @@ test.describe('IT Components CRUD API', () => {
       type: 'search-engine',
     });
 
-    const res = await authenticatedRequest.get(`/it-components?search=${uniqueName}`);
+    const res = await authenticatedRequest.get(`it-components?search=${uniqueName}`);
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.data.length).toBeGreaterThan(0);

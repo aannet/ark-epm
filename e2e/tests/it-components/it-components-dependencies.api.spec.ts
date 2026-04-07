@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../../fixtures';
 
 test.describe('IT Components ↔ Applications Bidirectional Relationship', () => {
   test('GET /it-components/:id/applications - should return linked applications', async ({ authenticatedRequest, testData }) => {
@@ -22,7 +22,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       itComponents: [{ id: itComponent.id }],
     });
 
-    const res = await authenticatedRequest.get(`/it-components/${itComponent.id}/applications`);
+    const res = await authenticatedRequest.get(`it-components/${itComponent.id}/applications`);
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.data).toBeInstanceOf(Array);
@@ -51,7 +51,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       itComponents: [{ id: ic1.id }, { id: ic2.id }],
     });
 
-    const res = await authenticatedRequest.get(`/applications/${app.id}/it-components`);
+    const res = await authenticatedRequest.get(`applications/${app.id}/it-components`);
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.data).toBeInstanceOf(Array);
@@ -70,7 +70,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       name: `IC for creation ${Date.now()}`,
     });
 
-    const res = await authenticatedRequest.post('/applications', {
+    const res = await authenticatedRequest.post('applications', {
       data: {
         name: `App with IC ${Date.now()}`,
         domainId: domain.id,
@@ -112,7 +112,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
     });
 
     // Replace with single IC
-    const updateRes = await authenticatedRequest.patch(`/applications/${app.id}`, {
+    const updateRes = await authenticatedRequest.patch(`applications/${app.id}`, {
       data: {
         itComponents: [{ id: ic3.id }],
       },
@@ -124,7 +124,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
     expect(updated.itComponents[0].id).toBe(ic3.id);
 
     // Verify the old mappings are deleted
-    const queryRes = await authenticatedRequest.get(`/applications/${app.id}/it-components`);
+    const queryRes = await authenticatedRequest.get(`applications/${app.id}/it-components`);
     const queried = await queryRes.json();
     expect(queried.data.length).toBe(1);
     expect(queried.data[0].id).toBe(ic3.id);
@@ -148,7 +148,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       itComponents: [{ id: ic.id }],
     });
 
-    const updateRes = await authenticatedRequest.patch(`/applications/${app.id}`, {
+    const updateRes = await authenticatedRequest.patch(`applications/${app.id}`, {
       data: {
         itComponents: [],
       },
@@ -177,7 +177,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       itComponents: [{ id: ic.id }],
     });
 
-    const deleteRes = await authenticatedRequest.delete(`/it-components/${ic.id}`);
+    const deleteRes = await authenticatedRequest.delete(`it-components/${ic.id}`);
     expect(deleteRes.status()).toBe(409);
     const body = await deleteRes.json();
     expect(body.code).toBe('DEPENDENCY_CONFLICT');
@@ -203,18 +203,18 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
     });
 
     // Unlink IC from application
-    await authenticatedRequest.patch(`/applications/${app.id}`, {
+    await authenticatedRequest.patch(`applications/${app.id}`, {
       data: {
         itComponents: [],
       },
     });
 
     // Now delete should work
-    const deleteRes = await authenticatedRequest.delete(`/it-components/${ic.id}`);
+    const deleteRes = await authenticatedRequest.delete(`it-components/${ic.id}`);
     expect(deleteRes.status()).toBe(204);
 
     // Verify deletion
-    const getRes = await authenticatedRequest.get(`/it-components/${ic.id}`);
+    const getRes = await authenticatedRequest.get(`it-components/${ic.id}`);
     expect(getRes.status()).toBe(404);
   });
 
@@ -237,7 +237,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       itComponents: [{ id: ic1.id }, { id: ic2.id }],
     });
 
-    const res = await authenticatedRequest.get(`/applications/${app.id}`);
+    const res = await authenticatedRequest.get(`applications/${app.id}`);
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.itComponents).toBeInstanceOf(Array);
@@ -262,7 +262,7 @@ test.describe('IT Components ↔ Applications Bidirectional Relationship', () =>
       itComponents: [{ id: ic.id }],
     });
 
-    const res = await authenticatedRequest.get('/applications?limit=100');
+    const res = await authenticatedRequest.get('applications?limit=100');
     expect(res.status()).toBe(200);
     const body = await res.json();
     const createdApp = body.data.find((a: any) => a.id === app.id);

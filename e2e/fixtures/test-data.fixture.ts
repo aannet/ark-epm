@@ -122,6 +122,33 @@ export class TestDataFactory {
     return itComponent;
   }
 
+  async createDataObject(data: {
+    name: string;
+    description?: string;
+    type?: string;
+    isSourceOfTruth?: boolean;
+    comment?: string;
+  }) {
+    const response = await this.request.post('data-objects', { data });
+
+    if (!response.ok()) {
+      const error = await response.text();
+      throw new Error(`Failed to create data object: ${error}`);
+    }
+
+    const dataObject = await response.json();
+
+    this.cleanupStack.push(async () => {
+      try {
+        await this.request.delete(`data-objects/${dataObject.id}`);
+      } catch {
+        // Ignore cleanup errors
+      }
+    });
+
+    return dataObject;
+  }
+
   async createBusinessCapability(data: {
     name: string;
     description?: string;
