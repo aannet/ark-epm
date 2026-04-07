@@ -54,7 +54,8 @@ docs/05-Project/
 ├── 20260408/
 │   ├── SESSION-HANDOFF-back-fs07.md  ← archivé par back
 │   └── SESSION-HANDOFF-front-fs05.md ← archivé par front (parallèle)
-├── tasks.yaml                         ← source de vérité
+├── tasks.yaml                         ← source de vérité tâches
+├── roadmap.yaml                       ← source de vérité features/sprints (dashboard)
 └── tasks-dashboard/
     └── index.html                     ← dashboard HTML standalone
 ```
@@ -130,6 +131,49 @@ docs/05-Project/
 
 ---
 
+## roadmap.yaml — Schéma
+
+Source de vérité des features par sprint, chargée par le dashboard en parallèle de `tasks.yaml`.  
+Maintenu par les agents `spec` et `arch`. Référence canonique : `docs/01-Product/ARK-Roadmap.md`.
+
+```yaml
+sprints:
+  - id: "S3"                              # P0 | S1 | S2 | S3 | S4 | S5 | P2
+    nom: "Sprint 3 — Capacités métier"
+    features:
+      - id: "FS-07"                       # clé de jointure avec tasks.yaml (champ theme)
+        nom: "Business Capabilities"
+        back: stable                      # statut implémentation backend
+        front: draft                      # statut implémentation frontend
+```
+
+### Statuts feature
+
+| Statut | Signification |
+|---|---|
+| `done` | Implémenté, testé, mergé |
+| `stable` | Spec validée — prête pour l'agent de développement |
+| `in-progress` | Implémentation en cours |
+| `draft` | Spec en cours ou non démarrée |
+| `~` | Non applicable (ex : feature purement backend, front = `~`) |
+
+### Lien avec tasks.yaml
+
+Le dashboard calcule la progression de chaque feature en joinant sur le champ `theme` :
+
+```
+feature.id == "FS-07"  →  tasks où theme == "FS-07"  →  done/total = % progression
+```
+
+### Règles de modification
+
+- Maintenu par `spec` et `arch` uniquement
+- Mettre à jour les statuts `back`/`front` après chaque sprint ou changement d'état
+- Ne pas supprimer de feature — passer à `done` si terminée
+- Synchroniser avec `docs/01-Product/ARK-Roadmap.md` après chaque mise à jour
+
+---
+
 ## SESSION-HANDOFF — Règles de propriété
 
 ### Fichier racine `SESSION-HANDOFF.md`
@@ -177,7 +221,7 @@ back (FS-07)                     front (FS-05)
 
 ### Lancer le dashboard
 
-Servir depuis la **racine du projet** (requis pour que les liens relatifs fonctionnent) :
+Servir depuis la **racine du projet** (requis pour que les chemins relatifs fonctionnent) :
 
 ```bash
 npx serve .
@@ -185,14 +229,40 @@ npx serve .
 # → Rapport   : http://localhost:<port>/e2e/reports/html/
 ```
 
+### Fichiers chargés
+
+Le dashboard charge les deux fichiers en parallèle au démarrage :
+
+| Fichier | Onglet | Rôle |
+|---|---|---|
+| `../tasks.yaml` | Tasks | Liste des tâches, filtres, compteurs |
+| `../roadmap.yaml` | Roadmap | Structure sprints/features, statuts back/front |
+
+Si `roadmap.yaml` est absent ou inaccessible, l'onglet Tasks continue de fonctionner normalement.
+
+### Onglet Tasks
+
+Tableau de toutes les tâches avec filtres : Statut · Sprint · Type · Agent · Feature · Recherche.  
+Statuts affichés : ✅ done / 🔄 in_progress / 🚫 blocked / ⬜ open.
+
+### Onglet Roadmap
+
+Deux sous-vues accessibles via le toggle **Kanban / Grille** :
+
+**Kanban** — colonnes par sprint (P0 → S5 + P2), scroll horizontal.  
+Chaque carte feature affiche les badges `BACK` / `FRONT` (done/stable/in-progress/draft) et une barre de progression calculée depuis `tasks.yaml`.
+
+**Grille** — tableau structuré, lignes groupées par sprint.  
+Colonnes : Feature · Sprint · Back · Front · Nb tâches · Progression (%).
+
+La progression est calculée par jointure `feature.id == task.theme` → tâches `done` / total.
+
 ### Rapport Playwright
 
-Le lien **Playwright Report ↗** dans le header du dashboard pointe vers `e2e/reports/html/index.html`.
-
-Pour générer ou ouvrir le rapport :
+Le lien **Playwright Report ↗** dans le header pointe vers `e2e/reports/html/index.html`.
 
 ```bash
-make test-api-backend   # exécute les tests et génère le rapport
+make test-api-backend   # exécute les tests API et génère le rapport HTML
 make test-api-report    # ouvre le rapport dans le navigateur (port dédié Playwright)
 ```
 
