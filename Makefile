@@ -1,5 +1,9 @@
 # ARK-EPM Makefile
 
+# Auto-detect container names (Docker Compose v1 uses underscores, v2 uses dashes)
+BACKEND_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.backend.1' | head -1)
+POSTGRES_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.postgres.1' | head -1)
+
 dev:
 	cd frontend && npm run dev
 
@@ -17,7 +21,7 @@ build-frontend:
 	cd frontend && npm run build
 
 build-backend:
-	docker exec ark-epm_backend_1 sh -c "cd /app && rm -rf dist && npm run build"
+	docker exec $(BACKEND_CONTAINER) sh -c "cd /app && rm -rf dist && npm run build"
 
 start-backend:
 	cd backend && npm start
@@ -39,23 +43,23 @@ docker-restart:
 
 # Backend utilities
 backend-rebuild:
-	docker exec ark-epm_backend_1 sh -c "cd /app && rm -rf dist && npm run build"
-	docker restart ark-epm_backend_1
+	docker exec $(BACKEND_CONTAINER) sh -c "cd /app && rm -rf dist && npm run build"
+	docker restart $(BACKEND_CONTAINER)
 
 backend-logs:
-	docker logs ark-epm_backend_1 -f
+	docker logs $(BACKEND_CONTAINER) -f
 
 db-shell:
-	docker exec -it ark-epm_postgres_1 psql -U arkepm -d arkepm
+	docker exec -it $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm
 
 db-push:
-	docker exec ark-epm_backend_1 npx prisma db push --accept-data-loss
+	docker exec $(BACKEND_CONTAINER) npx prisma db push --accept-data-loss
 
 db-generate:
-	docker exec ark-epm_backend_1 npx prisma generate
+	docker exec $(BACKEND_CONTAINER) npx prisma generate
 
 db-reset-id:
-	docker exec ark-epm_postgres_1 psql -U arkepm -d arkepm -c "ALTER TABLE audit_trail ALTER COLUMN id SET DEFAULT gen_random_uuid();"
+	docker exec $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm -c "ALTER TABLE audit_trail ALTER COLUMN id SET DEFAULT gen_random_uuid();"
 
 get-token:
 	@./backend/scripts/get-token.sh
@@ -170,7 +174,7 @@ test-api-report:
 
 # Full validation pipeline
 validate-backend: build-backend
-	docker restart ark-epm_backend_1
+	docker restart $(BACKEND_CONTAINER)
 	@echo "Validating backend..."
 	@sleep 3
 	@TOKEN=$$(./backend/scripts/get-token.sh) && \
