@@ -27,6 +27,11 @@
       --c-doc:      #6b7280;
       --c-poc:      #eab308;
 
+      --s-done:     #22c55e;
+      --s-stable:   #3b82f6;
+      --s-progress: #f97316;
+      --s-draft:    #6b7280;
+
       --font-mono: 'Courier New', Courier, monospace;
     }
 
@@ -44,7 +49,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
@@ -63,6 +68,50 @@
       color: var(--text-dim);
     }
     .counters strong { color: var(--text); font-size: 20px; margin-right: 4px; }
+
+    .btn-report {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-report:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(233,69,96,0.06);
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 8px 22px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      transition: color 0.15s, border-color 0.15s;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
     /* ── Filters ── */
     .filters {
@@ -184,7 +233,6 @@
     .badge-doc      { background: rgba(107,114,128,0.2); color: var(--c-doc); }
     .badge-poc      { background: rgba(234,179,8,0.2);   color: var(--c-poc); }
 
-    /* Sprint badges — cycle through neutral-distinct colors */
     .badge-sprint {
       background: rgba(255,255,255,0.08);
       color: #a0a0c0;
@@ -268,27 +316,6 @@
       font-style: italic;
     }
 
-    /* ── Report link ── */
-    .btn-report {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-dim);
-      text-decoration: none;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
-      white-space: nowrap;
-    }
-    .btn-report:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(233,69,96,0.06);
-    }
-
     /* ── Loading ── */
     .loading {
       display: flex;
@@ -308,6 +335,257 @@
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
+
+    /* ══════════════════════════════════════════
+       ROADMAP STYLES
+    ══════════════════════════════════════════ */
+
+    /* ── Roadmap toolbar ── */
+    .roadmap-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+    }
+    .view-btn {
+      padding: 5px 16px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-btn:hover { color: var(--text); }
+    .view-btn.active { background: var(--accent); color: #fff; }
+
+    /* ── Kanban ── */
+    .kanban-board {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      align-items: flex-start;
+    }
+    .kanban-board::-webkit-scrollbar { height: 6px; }
+    .kanban-board::-webkit-scrollbar-track { background: var(--bg-card); border-radius: 3px; }
+    .kanban-board::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .sprint-col {
+      min-width: 210px;
+      max-width: 210px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      flex-shrink: 0;
+    }
+    .sprint-col-header {
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sprint-col-id {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .sprint-col-nom {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      margin-bottom: 7px;
+    }
+    .feature-card:last-child { margin-bottom: 0; }
+    .feature-card-id {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      opacity: 0.7;
+      margin-bottom: 3px;
+    }
+    .feature-card-nom {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 7px;
+      line-height: 1.35;
+    }
+    .feature-statuses {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 7px;
+    }
+    .fs-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 2px;
+    }
+
+    /* ── Status badges (roadmap) ── */
+    .sbadge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .sbadge-done      { background: rgba(34,197,94,0.18);  color: var(--s-done); }
+    .sbadge-stable    { background: rgba(59,130,246,0.18);  color: var(--s-stable); }
+    .sbadge-in-progress { background: rgba(249,115,22,0.18); color: var(--s-progress); }
+    .sbadge-draft     { background: rgba(107,114,128,0.12); color: #9ca3af; }
+    .sbadge-na        { background: transparent; color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      margin-top: 6px;
+    }
+    .progress-track {
+      height: 4px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    .progress-fill.full { background: var(--s-done); }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Grid (Grille) ── */
+    .grid-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+    .grid-table thead th {
+      background: var(--bg-card);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .grid-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .grid-table tbody tr:last-child { border-bottom: none; }
+    .grid-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .grid-table td {
+      padding: 9px 12px;
+      vertical-align: middle;
+    }
+    .grid-feature-id {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .grid-feature-nom {
+      font-size: 13px;
+      color: var(--text);
+    }
+    .grid-sprint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #a0a0c0;
+      background: rgba(255,255,255,0.07);
+      padding: 2px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .task-count-cell {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .grid-progress-wrap {
+      min-width: 120px;
+    }
+    .grid-progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 3px;
+    }
+    .grid-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .grid-progress-fill.full { background: var(--s-done); }
+    .grid-progress-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .grid-sprint-header {
+      background: var(--bg-card);
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
+    }
+    .grid-sprint-header td {
+      padding: 6px 12px;
+    }
   </style>
 </head>
 <body>
@@ -326,38 +604,63 @@
     Playwright Report ↗
   </a>
 </div>
+
+<!-- Tab bar -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="tasks">Tasks</button>
+  <button class="tab-btn" data-tab="roadmap">Roadmap</button>
 </div>
 
-<div class="filters">
-  <label>
-    Statut
-    <select id="f-statut">
-      <option value="">Tous</option>
-      <option value="open">Open</option>
-      <option value="done">Done</option>
-    </select>
-  </label>
-  <label>
-    Sprint
-    <select id="f-sprint"><option value="">Tous</option></select>
-  </label>
-  <label>
-    Type
-    <select id="f-type"><option value="">Tous</option></select>
-  </label>
-  <label>
-    Feature
-    <select id="f-feature"><option value="">Toutes</option></select>
-  </label>
-  <label>
-    Recherche
-    <input type="text" id="f-search" placeholder="nom, notes…" />
-  </label>
-  <button class="btn-reset" id="btn-reset">Réinitialiser</button>
+<!-- ── View: Tasks ── -->
+<div id="view-tasks">
+  <div class="filters">
+    <label>
+      Statut
+      <select id="f-statut">
+        <option value="">Tous</option>
+        <option value="open">Open</option>
+        <option value="in_progress">In Progress</option>
+        <option value="done">Done</option>
+        <option value="blocked">Blocked</option>
+      </select>
+    </label>
+    <label>
+      Sprint
+      <select id="f-sprint"><option value="">Tous</option></select>
+    </label>
+    <label>
+      Type
+      <select id="f-type"><option value="">Tous</option></select>
+    </label>
+    <label>
+      Agent
+      <select id="f-agent"><option value="">Tous</option></select>
+    </label>
+    <label>
+      Feature
+      <select id="f-feature"><option value="">Toutes</option></select>
+    </label>
+    <label>
+      Recherche
+      <input type="text" id="f-search" placeholder="nom, notes…" />
+    </label>
+    <button class="btn-reset" id="btn-reset">Réinitialiser</button>
+  </div>
+  <div id="main-content">
+    <div class="loading"><div class="spinner"></div> Chargement…</div>
+  </div>
 </div>
 
-<div id="main-content">
-  <div class="loading"><div class="spinner"></div> Chargement de tasks.yaml…</div>
+<!-- ── View: Roadmap ── -->
+<div id="view-roadmap" style="display:none">
+  <div class="roadmap-toolbar">
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="kanban">Kanban</button>
+      <button class="view-btn" data-view="grille">Grille</button>
+    </div>
+  </div>
+  <div id="kanban-view"></div>
+  <div id="grid-view" style="display:none"></div>
 </div>
 
 <script>
@@ -365,8 +668,11 @@
   'use strict';
 
   // ── State ──────────────────────────────────────────────────────────────────
-  let allTasks = [];
-  let filtered = [];
+  let allTasks      = [];
+  let filtered      = [];
+  let roadmapData   = [];   // sprints[]
+  let currentTab    = 'tasks';
+  let currentRmView = 'kanban';
 
   const TYPE_COLORS = {
     spec: 'spec', decision: 'decision', review: 'review', debt: 'debt',
@@ -374,16 +680,42 @@
   };
 
   // ── DOM refs ───────────────────────────────────────────────────────────────
-  const mainContent  = document.getElementById('main-content');
-  const cntTotal     = document.getElementById('cnt-total');
-  const cntOpen      = document.getElementById('cnt-open');
-  const cntDone      = document.getElementById('cnt-done');
-  const fStatut      = document.getElementById('f-statut');
-  const fSprint      = document.getElementById('f-sprint');
-  const fType        = document.getElementById('f-type');
-  const fFeature     = document.getElementById('f-feature');
-  const fSearch      = document.getElementById('f-search');
-  const btnReset     = document.getElementById('btn-reset');
+  const mainContent   = document.getElementById('main-content');
+  const cntTotal      = document.getElementById('cnt-total');
+  const cntOpen       = document.getElementById('cnt-open');
+  const cntDone       = document.getElementById('cnt-done');
+  const fStatut       = document.getElementById('f-statut');
+  const fSprint       = document.getElementById('f-sprint');
+  const fType         = document.getElementById('f-type');
+  const fAgent        = document.getElementById('f-agent');
+  const fFeature      = document.getElementById('f-feature');
+  const fSearch       = document.getElementById('f-search');
+  const btnReset      = document.getElementById('btn-reset');
+  const viewTasks     = document.getElementById('view-tasks');
+  const viewRoadmap   = document.getElementById('view-roadmap');
+  const kanbanView    = document.getElementById('kanban-view');
+  const gridView      = document.getElementById('grid-view');
+
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentTab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      viewTasks.style.display   = currentTab === 'tasks'    ? '' : 'none';
+      viewRoadmap.style.display = currentTab === 'roadmap'  ? '' : 'none';
+      if (currentTab === 'roadmap') renderRoadmapView();
+    });
+  });
+
+  // ── Roadmap view toggle ────────────────────────────────────────────────────
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentRmView = btn.dataset.view;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b === btn));
+      kanbanView.style.display = currentRmView === 'kanban' ? '' : 'none';
+      gridView.style.display   = currentRmView === 'grille' ? '' : 'none';
+    });
+  });
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function dash(val) {
@@ -418,18 +750,159 @@
   }
 
   function populateSelect(sel, values) {
-    const first = sel.options[0]; // keep "Tous"
+    const first = sel.options[0];
     sel.innerHTML = '';
     sel.appendChild(first);
     values.forEach(v => {
       const o = document.createElement('option');
-      o.value = v;
-      o.textContent = v;
+      o.value = v; o.textContent = v;
       sel.appendChild(o);
     });
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Progress calculator ────────────────────────────────────────────────────
+  function getProgress(featureId) {
+    const linked = allTasks.filter(t =>
+      t.theme === featureId ||
+      (t.feature && typeof t.feature === 'string' && t.feature.startsWith(featureId))
+    );
+    if (linked.length === 0) return null;
+    const done = linked.filter(t => t.statut === 'done').length;
+    return { done, total: linked.length, pct: Math.round(done / linked.length * 100) };
+  }
+
+  function renderProgressBar(progress, gridMode) {
+    if (!progress) return '<span class="dash">—</span>';
+    const pct = progress.pct;
+    const full = pct === 100 ? ' full' : '';
+    if (gridMode) {
+      return `
+        <div class="grid-progress-wrap">
+          <div class="grid-progress-track">
+            <div class="grid-progress-fill${full}" style="width:${pct}%"></div>
+          </div>
+          <div class="grid-progress-label">${progress.done}/${progress.total} — ${pct}%</div>
+        </div>`;
+    }
+    return `
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill${full}" style="width:${pct}%"></div>
+        </div>
+        <div class="progress-meta">
+          <span>${progress.done}/${progress.total}</span>
+          <span>${pct}%</span>
+        </div>
+      </div>`;
+  }
+
+  // ── Status badge (roadmap) ─────────────────────────────────────────────────
+  const STATUS_LABELS = {
+    done: 'Done', stable: 'Stable', 'in-progress': 'En cours', draft: 'Draft'
+  };
+  function statusBadge(val) {
+    if (!val || val === '~') return '<span class="sbadge sbadge-na">N/A</span>';
+    const label = STATUS_LABELS[val] || val;
+    return `<span class="sbadge sbadge-${val}">${label}</span>`;
+  }
+
+  // ── Roadmap renderers ──────────────────────────────────────────────────────
+  function renderKanban() {
+    if (!roadmapData.length) {
+      kanbanView.innerHTML = '<div class="state-box"><div class="icon">📋</div><h2>roadmap.yaml non chargé</h2><p>Servir depuis la racine du projet : <code>npx serve .</code></p></div>';
+      return;
+    }
+    let html = '<div class="kanban-board">';
+    roadmapData.forEach(sprint => {
+      html += `
+        <div class="sprint-col">
+          <div class="sprint-col-header">
+            <div class="sprint-col-id">${escapeHtml(sprint.id)}</div>
+            <div class="sprint-col-nom">${escapeHtml(sprint.nom)}</div>
+          </div>`;
+      (sprint.features || []).forEach(f => {
+        const progress = getProgress(f.id);
+        html += `
+          <div class="feature-card">
+            <div class="feature-card-id">${escapeHtml(f.id)}</div>
+            <div class="feature-card-nom">${escapeHtml(f.nom)}</div>
+            <div class="feature-statuses">
+              <span class="fs-label">B</span>${statusBadge(f.back)}
+              &nbsp;
+              <span class="fs-label">F</span>${statusBadge(f.front)}
+            </div>
+            ${renderProgressBar(progress, false)}
+          </div>`;
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+    kanbanView.innerHTML = html;
+  }
+
+  function renderGrid() {
+    if (!roadmapData.length) {
+      gridView.innerHTML = '<div class="state-box"><div class="icon">📋</div><h2>roadmap.yaml non chargé</h2></div>';
+      return;
+    }
+    let html = `
+      <div class="grid-wrap">
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Sprint</th>
+              <th>Back</th>
+              <th>Front</th>
+              <th>Tâches</th>
+              <th>Progression</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+    roadmapData.forEach(sprint => {
+      // Sprint separator row
+      html += `
+        <tr class="grid-sprint-header">
+          <td colspan="6">
+            <span style="font-family:var(--font-mono);color:var(--accent);margin-right:8px">${escapeHtml(sprint.id)}</span>
+            ${escapeHtml(sprint.nom)}
+          </td>
+        </tr>`;
+
+      (sprint.features || []).forEach(f => {
+        const progress = getProgress(f.id);
+        const taskCountHtml = progress
+          ? `<span class="task-count-cell">${progress.total} tâche${progress.total > 1 ? 's' : ''}</span>`
+          : '<span class="dash">—</span>';
+
+        html += `
+          <tr>
+            <td>
+              <span class="grid-feature-id">${escapeHtml(f.id)}</span>
+              <span class="grid-feature-nom">${escapeHtml(f.nom)}</span>
+            </td>
+            <td><span class="grid-sprint">${escapeHtml(sprint.id)}</span></td>
+            <td>${statusBadge(f.back)}</td>
+            <td>${statusBadge(f.front)}</td>
+            <td>${taskCountHtml}</td>
+            <td>${renderProgressBar(progress, true)}</td>
+          </tr>`;
+      });
+    });
+
+    html += '</tbody></table></div>';
+    gridView.innerHTML = html;
+  }
+
+  function renderRoadmapView() {
+    renderKanban();
+    renderGrid();
+    kanbanView.style.display = currentRmView === 'kanban' ? '' : 'none';
+    gridView.style.display   = currentRmView === 'grille' ? '' : 'none';
+  }
+
+  // ── Tasks renderers ────────────────────────────────────────────────────────
   function renderSessions(sessions) {
     if (!sessions || sessions.length === 0) return '<span class="dash">—</span>';
     return '<div class="sessions-list">' +
@@ -446,40 +919,47 @@
     '</div>';
   }
 
+  function statusIcon(statut) {
+    switch (statut) {
+      case 'done':        return '✅';
+      case 'in_progress': return '🔄';
+      case 'blocked':     return '🚫';
+      default:            return '⬜';
+    }
+  }
+
   function renderRow(task) {
     const isDone    = task.statut === 'done';
-    const statusIcon = isDone ? '✅' : '⬜';
-    const typeClass  = TYPE_COLORS[task.type] ? `badge badge-${task.type}` : 'badge badge-doc';
-    const notes      = escapeHtml(task.notes || '');
-    const notesTrunc = escapeHtml(truncate(task.notes, 60));
+    const typeClass = TYPE_COLORS[task.type] ? `badge badge-${task.type}` : 'badge badge-doc';
+    const notes     = escapeHtml(task.notes || '');
 
     const sprintHtml = task.sprint
       ? `<span class="badge badge-sprint">${escapeHtml(task.sprint)}</span>`
       : '<span class="dash">—</span>';
-
     const typeHtml = task.type
       ? `<span class="${typeClass}">${escapeHtml(task.type)}</span>`
       : '<span class="dash">—</span>';
 
     return `
       <tr class="${isDone ? 'done' : ''}">
-        <td><span class="status-check">${statusIcon}</span></td>
+        <td><span class="status-check">${statusIcon(task.statut)}</span></td>
         <td><span class="task-id">${escapeHtml(task.id)}</span></td>
         <td>${escapeHtml(task.nom || '')}</td>
         <td>${sprintHtml}</td>
         <td>${dash(task.theme)}</td>
         <td>${typeHtml}</td>
+        <td>${dash(task.assigned_agent)}</td>
         <td>${dash(task.feature)}</td>
         <td>${renderSessions(task.sessions)}</td>
         <td><span class="date-cell">${dash(task.date_resolution)}</span></td>
-        <td class="notes-cell" title="${notes}">${notesTrunc || '<span class="dash">—</span>'}</td>
+        <td class="notes-cell" title="${notes}">${escapeHtml(truncate(task.notes, 60)) || '<span class="dash">—</span>'}</td>
       </tr>`;
   }
 
   function renderTable(tasks) {
     const rows = tasks.length > 0
       ? tasks.map(renderRow).join('')
-      : `<tr class="empty-row"><td colspan="10">Aucune tâche ne correspond aux filtres.</td></tr>`;
+      : `<tr class="empty-row"><td colspan="11">Aucune tâche ne correspond aux filtres.</td></tr>`;
 
     return `
       <div class="table-wrapper">
@@ -492,9 +972,10 @@
               <th>Sprint</th>
               <th>Thème</th>
               <th>Type</th>
+              <th>Agent</th>
               <th>Feature</th>
               <th>Sessions</th>
-              <th>Date résolution</th>
+              <th>Résolution</th>
               <th>Notes</th>
             </tr>
           </thead>
@@ -505,12 +986,9 @@
 
   // ── Counters ───────────────────────────────────────────────────────────────
   function updateCounters(tasks) {
-    const total = tasks.length;
-    const open  = tasks.filter(t => t.statut === 'open').length;
-    const done  = tasks.filter(t => t.statut === 'done').length;
-    cntTotal.textContent = total;
-    cntOpen.textContent  = open;
-    cntDone.textContent  = done;
+    cntTotal.textContent = tasks.length;
+    cntOpen.textContent  = tasks.filter(t => t.statut === 'open' || t.statut === 'in_progress').length;
+    cntDone.textContent  = tasks.filter(t => t.statut === 'done').length;
   }
 
   // ── Filter logic ───────────────────────────────────────────────────────────
@@ -518,16 +996,18 @@
     const statut  = fStatut.value;
     const sprint  = fSprint.value;
     const type    = fType.value;
+    const agent   = fAgent.value;
     const feature = fFeature.value;
     const search  = fSearch.value.trim().toLowerCase();
 
     filtered = allTasks.filter(t => {
-      if (statut  && t.statut  !== statut)  return false;
-      if (sprint  && t.sprint  !== sprint)  return false;
-      if (type    && t.type    !== type)    return false;
-      if (feature && t.feature !== feature) return false;
+      if (statut  && t.statut          !== statut)  return false;
+      if (sprint  && t.sprint          !== sprint)  return false;
+      if (type    && t.type            !== type)    return false;
+      if (agent   && t.assigned_agent  !== agent)   return false;
+      if (feature && t.feature         !== feature) return false;
       if (search) {
-        const haystack = [t.nom, t.notes].join(' ').toLowerCase();
+        const haystack = [t.nom, t.notes, t.id].join(' ').toLowerCase();
         if (!haystack.includes(search)) return false;
       }
       return true;
@@ -540,24 +1020,18 @@
   // ── Init ───────────────────────────────────────────────────────────────────
   function init(tasks) {
     allTasks = Array.isArray(tasks) ? tasks : [];
-
-    // Populate dynamic selects
     populateSelect(fSprint,  uniqueVals(allTasks, 'sprint'));
     populateSelect(fType,    uniqueVals(allTasks, 'type'));
+    populateSelect(fAgent,   uniqueVals(allTasks, 'assigned_agent'));
     populateSelect(fFeature, uniqueVals(allTasks, 'feature'));
 
-    // Wire filters
-    [fStatut, fSprint, fType, fFeature].forEach(el => el.addEventListener('change', applyFilters));
+    [fStatut, fSprint, fType, fAgent, fFeature].forEach(el => el.addEventListener('change', applyFilters));
     fSearch.addEventListener('input', applyFilters);
     btnReset.addEventListener('click', () => {
-      fStatut.value = '';
-      fSprint.value = '';
-      fType.value   = '';
-      fFeature.value = '';
-      fSearch.value  = '';
+      fStatut.value = ''; fSprint.value = ''; fType.value = '';
+      fAgent.value  = ''; fFeature.value = ''; fSearch.value = '';
       applyFilters();
     });
-
     applyFilters();
   }
 
@@ -566,22 +1040,11 @@
     mainContent.innerHTML = `
       <div class="state-box">
         <div class="icon">⚠️</div>
-        <h2>Impossible de charger tasks.yaml via <code>file://</code></h2>
-        <p>Les navigateurs bloquent les requêtes fetch sur les URLs <code>file://</code> pour des raisons de sécurité.</p>
-        <p>Lancer un serveur local depuis la racine du repo :</p>
-        <code>npx serve docs/05-Project</code>
-        <p style="margin-top:12px">puis ouvrir <strong>http://localhost:3000/tasks-dashboard/</strong></p>
-      </div>`;
-    cntTotal.textContent = cntOpen.textContent = cntDone.textContent = '—';
-  }
-
-  function showParseError(err) {
-    mainContent.innerHTML = `
-      <div class="state-box">
-        <div class="icon">💥</div>
-        <h2>Erreur de parsing YAML</h2>
-        <p>Le fichier <code>tasks.yaml</code> contient une erreur :</p>
-        <code>${escapeHtml(String(err))}</code>
+        <h2>Impossible de charger les fichiers YAML via <code>file://</code></h2>
+        <p>Les navigateurs bloquent les requêtes fetch sur les URLs <code>file://</code>.</p>
+        <p>Lancer un serveur local depuis la <strong>racine du repo</strong> :</p>
+        <code>npx serve .</code>
+        <p style="margin-top:12px">puis ouvrir <strong>http://localhost:&lt;port&gt;/docs/05-Project/tasks-dashboard/</strong></p>
       </div>`;
     cntTotal.textContent = cntOpen.textContent = cntDone.textContent = '—';
   }
@@ -596,25 +1059,25 @@
     cntTotal.textContent = cntOpen.textContent = cntDone.textContent = '—';
   }
 
-  // ── Bootstrap ──────────────────────────────────────────────────────────────
-  fetch('../tasks.yaml')
+  // ── Bootstrap — charge tasks + roadmap en parallèle ────────────────────────
+  const tasksPromise = fetch('../tasks.yaml')
     .then(res => {
       if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
       return res.text();
     })
-    .then(text => {
-      let parsed;
-      try {
-        parsed = jsyaml.load(text);
-      } catch (e) {
-        showParseError(e);
-        return;
-      }
-      const tasks = (parsed && parsed.tasks) ? parsed.tasks : [];
-      init(tasks);
+    .then(text => jsyaml.load(text));
+
+  const roadmapPromise = fetch('../roadmap.yaml')
+    .then(res => res.ok ? res.text() : null)
+    .then(text => text ? jsyaml.load(text) : null)
+    .catch(() => null);  // non-bloquant
+
+  Promise.all([tasksPromise, roadmapPromise])
+    .then(([tasksDoc, roadmapDoc]) => {
+      roadmapData = (roadmapDoc && roadmapDoc.sprints) ? roadmapDoc.sprints : [];
+      init((tasksDoc && tasksDoc.tasks) ? tasksDoc.tasks : []);
     })
     .catch(err => {
-      // Detect CORS / file:// block
       const msg = String(err);
       if (
         location.protocol === 'file:' ||

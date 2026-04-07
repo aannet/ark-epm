@@ -1,0 +1,113 @@
+# ARK-EPM — Roadmap source de vérité pour le Task Dashboard
+# Statuts : done | stable | in-progress | draft | ~  (~ = N/A)
+# Maintenu par l'agent spec/arch. Référence : docs/01-Product/ARK-Roadmap.md
+
+sprints:
+
+  - id: "P0"
+    nom: "Phase 0 — Fondation"
+    features:
+      - id: "F-00"
+        nom: "Scaffolding NestJS + Prisma + Docker + JWT"
+        back: done
+        front: ~
+      - id: "F-01"
+        nom: "Design System & UI Foundation"
+        back: ~
+        front: done
+      - id: "F-02"
+        nom: "i18n Foundation"
+        back: ~
+        front: done
+      - id: "F-03"
+        nom: "Dimension Tags Foundation"
+        back: done
+        front: done
+
+  - id: "S1"
+    nom: "Sprint 1 — Auth & RBAC"
+    features:
+      - id: "FS-01"
+        nom: "Auth & RBAC"
+        back: done
+        front: done
+
+  - id: "S2"
+    nom: "Sprint 2 — Entités racines"
+    features:
+      - id: "FS-02"
+        nom: "Domains"
+        back: done
+        front: done
+      - id: "FS-03"
+        nom: "Providers"
+        back: done
+        front: done
+      - id: "FS-04"
+        nom: "IT Components"
+        back: done
+        front: done
+      - id: "FS-05"
+        nom: "Data Objects"
+        back: done
+        front: stable
+      - id: "FS-06"
+        nom: "Applications"
+        back: done
+        front: done
+
+  - id: "S3"
+    nom: "Sprint 3 — Capacités métier"
+    features:
+      - id: "FS-07"
+        nom: "Business Capabilities"
+        back: stable
+        front: draft
+
+  - id: "S4"
+    nom: "Sprint 4 — Graphe de dépendances"
+    features:
+      - id: "FS-08"
+        nom: "Interfaces"
+        back: draft
+        front: draft
+      - id: "FS-09"
+        nom: "Dependency Graph"
+        back: draft
+        front: draft
+
+  - id: "S5"
+    nom: "Sprint 5 — Import & Finalisation MVP"
+    features:
+      - id: "FS-10"
+        nom: "Import Excel"
+        back: draft
+        front: draft
+      - id: "FS-11"
+        nom: "Navigation & UX transverse"
+        back: draft
+        front: draft
+
+  - id: "P2"
+    nom: "Phase 2 — Post-MVP"
+    features:
+      - id: "FS-21"
+        nom: "Tag Dimensions Administration"
+        back: draft
+        front: draft
+      - id: "FS-22"
+        nom: "Export / Reporting"
+        back: draft
+        front: draft
+      - id: "FS-23"
+        nom: "Vue filtrée Owner Applicatif"
+        back: draft
+        front: draft
+      - id: "FS-24"
+        nom: "Gestion Contrats Fournisseurs"
+        back: draft
+        front: draft
+      - id: "FS-25"
+        nom: "Dashboard Risques"
+        back: draft
+        front: draft
