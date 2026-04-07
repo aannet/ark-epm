@@ -176,8 +176,16 @@ test-api-report:
 validate-backend: build-backend
 	docker restart $(BACKEND_CONTAINER)
 	@echo "Validating backend..."
-	@sleep 3
+	@echo "Waiting for backend to be ready..."; \
+	for i in $$(seq 1 20); do \
+		curl -s http://localhost:3001/api/v1/health > /dev/null 2>&1 && break; \
+		sleep 2; \
+	done
 	@TOKEN=$$(./backend/scripts/get-token.sh) && \
 	curl -s http://localhost:3001/api/v1/applications -H "Authorization: Bearer $$TOKEN" > /dev/null && \
 	echo "✅ Backend validation passed" || \
-	echo "❌ Backend validation failed"
+	{ echo "❌ Backend validation failed"; \
+	  echo "  Hint: backend mapped to host port 3001 (docker-compose: 3001:3000)"; \
+	  echo "  Check: curl http://localhost:3001/api/v1/health"; \
+	  echo "  Check: nothing else occupies port 3000 or 3001 (npx serve, etc.)"; \
+	  exit 1; }
