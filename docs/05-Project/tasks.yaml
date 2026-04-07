@@ -33,6 +33,8 @@ tasks:
   - id: T-004
     nom: "Bug — Tri par nom non fonctionnel sur GET /applications"
     statut: open
+    assigned_agent: back
+    session_active: ~
     date_resolution: ~
     sprint: S3
     theme: "FS-06"
@@ -51,6 +53,8 @@ tasks:
   - id: T-005
     nom: "Bug — Isolation données entre tests IT Components (DELETE 204/409)"
     statut: open
+    assigned_agent: qa
+    session_active: ~
     date_resolution: ~
     sprint: S3
     theme: "QA"
@@ -73,6 +77,8 @@ tasks:
   - id: T-006
     nom: "Tests applications-dependencies bloqués — FS-08 Interfaces non implémenté"
     statut: blocked
+    assigned_agent: back
+    session_active: ~
     date_resolution: ~
     sprint: S4
     theme: "FS-08"
@@ -94,6 +100,8 @@ tasks:
   - id: T-007
     nom: "Tests domains-dependencies bloqués — FS-07 Business Capabilities en cours"
     statut: blocked
+    assigned_agent: qa
+    session_active: ~
     date_resolution: ~
     sprint: S3
     theme: "FS-07"
@@ -115,6 +123,8 @@ tasks:
   - id: T-003
     nom: "Implémenter FS-09 Dependency Graph — frontend ReactFlow"
     statut: open
+    assigned_agent: front
+    session_active: ~
     date_resolution: ~
     sprint: S2
     theme: "FS-09"
@@ -122,3 +132,90 @@ tasks:
     feature: "FS-09-FRONT"
     sessions: []
     notes: "Graphe de dépendances applicatives avec ReactFlow, layout dagre, filtres par domaine"
+
+  - id: T-008
+    nom: "Sécurité — Supprimer fallback JWT hardcodé (F-999 Item 23)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "F-999"
+    type: bug
+    feature: "SECURITY"
+    sessions: []
+    notes: |
+      F-999 Item 23 — Vulnérabilité confirmée (2026-04-05).
+      backend/src/auth/jwt.strategy.ts : configService.get('JWT_SECRET') || 'fallback-secret-do-not-use-in-prod'
+      Action : remplacer par configService.getOrThrow<string>('JWT_SECRET')
+      Ajouter validation Joi dans ConfigModule (JWT_SECRET min 32 chars, required).
+      Bloquant avant toute mise en production.
+
+  - id: T-009
+    nom: "Migration tests Cypress → Playwright — Data Objects (F-999 Item 22)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "F-999"
+    type: impl
+    feature: "QA-DATA-OBJECTS"
+    sessions: []
+    notes: |
+      F-999 Item 22 — 37 tests Cypress (frontend/cypress/e2e/data-objects.cy.ts) à migrer.
+      Destination : e2e/tests/data-objects/data-objects.spec.ts (Playwright).
+      Cypress inutilisable sur cet env (dépendances libnspr4/X11 manquantes).
+      Après migration : supprimer frontend/cypress/ et retirer dépendances Cypress de package.json.
+
+  - id: T-010
+    nom: "Implémenter FS-05-FRONT — Data Objects frontend"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-05"
+    type: impl
+    feature: "FS-05-FRONT"
+    sessions: []
+    notes: |
+      Spec FS-05-FRONT v0.1 stable — PNS-02 drawer, Chip isSourceOfTruth (success/default),
+      Autocomplete type (freeSolo + database/dataset/file), colonne role (consumer/producer/owner).
+      Gate : FS-05-BACK done ✅. Amendements A+B backend (isSourceOfTruth, type autocomplete) pré-requis.
+
+  - id: T-011
+    nom: "Implémenter FS-07-BACK — Business Capabilities backend"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: "SESSION-HANDOFF.md"
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-BACK"
+    sessions: []
+    notes: |
+      Spec FS-07-Business-Capabilities-back.md v1.0 stable.
+      Hiérarchie récursive WITH RECURSIVE, level auto-calculé, max depth 5, prévention circulaire,
+      N:N avec Applications, migration NFR-GOV-005.
+      Gate T-007 (tests domains-dependencies) sera débloquée après cette impl.
+
+  - id: T-012
+    nom: "Débloquer sélecteur Owner — API Users mock (F-999 Item 12b)"
+    statut: blocked
+    assigned_agent: back
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "F-999"
+    type: bug
+    feature: "FS-06-FRONT"
+    sessions: []
+    notes: |
+      F-999 Item 12b — MOCK_USERS = [] toujours hardcodé dans ApplicationNewPage/EditPage.
+      Sélecteur owner vide dans formulaire Application.
+      Déblocage : endpoint GET /api/v1/users?isActive=true nécessaire.
+      Migration : créer hook useUsers() dans frontend/src/api/users.ts (pattern useProviders).
+      Gate : endpoint users disponible (FS-01 ou module dédié).

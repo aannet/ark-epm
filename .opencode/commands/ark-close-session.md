@@ -1,5 +1,5 @@
 ---
-description: Clôturer la session ARK — mettre à jour tasks.yaml
+description: Clôturer la session ARK — tasks.yaml + archive handoff
 ---
 
 Tu es en fin de session ARK-EPM. Exécute le rituel de clôture suivant.
@@ -12,34 +12,87 @@ Tu es en fin de session ARK-EPM. Exécute le rituel de clôture suivant.
 
 !`date +%Y-%m-%d`
 
-## Règles du schéma (rappel)
+## Schéma tasks.yaml (rappel complet)
 
-- `id` : format `T-NNN` (padding 3 chiffres, auto-incrémenté depuis le dernier ID)
-- `statut` : `open` ou `done`
-- `date_resolution` : `~` si open, date ISO `YYYY-MM-DD` si done (utilise la date ci-dessus)
-- `type` : `spec | decision | review | debt | impl | test | doc | poc`
-- `sessions[].tool` : `OC` pour cette session OpenCode
-- `sessions[].id` : 6 caractères hexadécimaux (premiers chars de l'UUID de session)
-- `sessions[].nom` : nom court descriptif de ce qui a été fait
+```yaml
+id: T-NNN                          # padding 3 chiffres, auto-incrémenté
+nom: "..."
+statut: open | in_progress | done | blocked
+assigned_agent: back|front|data|qa|spec|arch   # optionnel
+session_active: ~                  # ~ quand aucune session active, 6 hex quand verrou posé
+handoff_ref: "chemin/vers/archive" # optionnel — pointe vers l'archive de handoff de clôture
+date_resolution: ~                 # ~ si non terminé, YYYY-MM-DD si done
+sprint: S1|S2|S3|S4...
+theme: "FS-XX" | "QA" | "F-999" | etc.
+type: spec|decision|review|debt|impl|test|doc|poc
+feature: "FS-XX-BACK"
+sessions:
+  - tool: OC                       # OC = OpenCode, CL = Claude
+    id: "a1b2c3"                   # 6 premiers hex de l'UUID de session
+    nom: "description courte"
+notes: |
+  texte libre
+```
 
-## Instructions
+---
 
-1. **Passe en revue** l'historique de cette session : quelles tâches ont été travaillées ou complétées ?
+## Étape 1 — Mettre à jour tasks.yaml
 
-2. **Pour chaque tâche existante dans tasks.yaml touchée durant cette session** :
-   - Si complétée → passe `statut: done` + renseigne `date_resolution` avec la date ci-dessus
-   - Ajoute une entrée dans `sessions` : `tool: OC`, `id: "<6 chars hex>"`, `nom: "<description courte>"`
+1. **Passe en revue** l'historique de cette session.
 
-3. **Pour chaque nouvelle tâche significative** produite dans cette session et absente de tasks.yaml :
-   - Calcule le prochain ID (dernier ID existant + 1, format T-NNN)
-   - Crée l'entrée complète avec le bon statut
+2. **Pour chaque tâche touchée dans tasks.yaml** :
+   - Si **complétée** → `statut: done` + `date_resolution: <date>` + `session_active: ~`
+   - Si **non terminée** → `statut: open` + `session_active: ~` (libère le verrou)
+   - Ajoute une entrée `sessions[]` : `tool: OC`, `id: "<6 hex>"`, `nom: "<description>"`
 
-4. **Règles de modification strictes** :
-   - Modifier UNIQUEMENT les entrées concernées — ne jamais reformater l'intégralité du fichier
+3. **Pour chaque nouvelle tâche significative** absente de tasks.yaml :
+   - Calcule le prochain ID (dernier existant + 1, format T-NNN)
+   - Crée l'entrée complète avec `assigned_agent` et `session_active: ~`
+
+4. **Règles strictes** :
+   - Modifier UNIQUEMENT les entrées concernées
+   - Ne jamais reformater l'intégralité du fichier
    - Ne jamais supprimer une entrée existante
 
-5. **En sortie**, liste les changements effectués :
+---
+
+## Étape 2 — Archiver le contexte de session (si pertinent)
+
+Si la session produit un contexte important à transmettre à un autre agent sur la même feature :
+
+1. Crée le fichier d'archive :
    ```
-   T-XXX : [action effectuée]
-   T-XXX : [action effectuée]
+   docs/05-Project/<date-du-jour>/SESSION-HANDOFF-<agent>-<slug>.md
    ```
+   Contenu minimal :
+   - Ce qui a été fait (décisions, fichiers modifiés)
+   - Points d'attention pour la suite
+   - Gates validées / restantes
+
+2. Dans tasks.yaml, sur la tâche concernée, ajoute :
+   ```yaml
+   handoff_ref: "docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md"
+   ```
+
+---
+
+## Règle de propriété — SESSION-HANDOFF.md (racine)
+
+**IMPORTANT** : Le fichier `SESSION-HANDOFF.md` à la racine du projet est en **lecture seule** pour les agents `back`, `front`, `data`, `qa`.
+
+- Seuls les agents `spec` et `arch` peuvent modifier ce fichier racine.
+- Tous les autres agents → écrire dans `docs/05-Project/<date>/` uniquement.
+- Si tu es `spec` ou `arch` et que tu dois mettre à jour le baton de sprint : archiver l'ancien (`docs/05-Project/<date>/SESSION-HANDOFF-<slug>.md`) puis écrire le nouveau.
+
+---
+
+## Sortie attendue
+
+```
+tasks.yaml :
+  T-XXX : statut → done / session_active libéré
+  T-XXX : nouvelle entrée créée
+  
+Handoff archivé : docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md
+  (ou : aucun handoff archivé cette session)
+```

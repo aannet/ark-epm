@@ -132,27 +132,96 @@ Gardien des décisions techniques structurantes. Arbitre en cas de chevauchement
 
 ## Task Log — Convention d'alimentation
 
-Le fichier `docs/05-Project/tasks.yaml` est la source de vérité du suivi de tâches ARK.
+Le fichier `docs/05-Project/tasks.yaml` est la source de vérité du suivi de tâches ARK.  
+**En contexte multi-agent simultané, `tasks.yaml` est le coordinateur principal** — pas `SESSION-HANDOFF.md`.
 
-### Quand créer une entrée
-Créer une nouvelle entrée à chaque début de tâche significative (spec, décision, implémentation, revue).
+### Schéma d'une entrée
+
+```yaml
+id: T-NNN                          # padding 3 chiffres, auto-incrémenté
+nom: "..."
+statut: open | in_progress | done | blocked
+assigned_agent: back|front|data|qa|spec|arch   # qui doit faire cette tâche
+session_active: ~                  # ~ = libre / 6 hex = verrou session courante
+handoff_ref: "chemin/relatif"      # optionnel — archive de contexte de la session précédente
+date_resolution: ~                 # ~ si non terminé, YYYY-MM-DD si done
+sprint: S1|S2|...
+theme: "FS-XX" | "QA" | "F-999"
+type: spec|decision|review|debt|impl|test|doc|poc
+feature: "FS-XX-BACK"
+sessions:
+  - tool: OC|CL
+    id: "6hexchars"
+    nom: "description courte"
+notes: |
+  texte libre
+```
+
+### Statuts
+
+| Statut | Signification |
+|---|---|
+| `open` | Prête à démarrer |
+| `in_progress` | Session active — `session_active` rempli |
+| `done` | Terminée — `date_resolution` renseignée |
+| `blocked` | Gate non levée — voir `notes` pour les prérequis |
+
+### Rituel d'ouverture
+Utiliser `/ark-open-session` : lit tasks.yaml + SESSION-HANDOFF.md, filtre les tâches disponibles, pose le verrou `session_active`.
+
+### Rituel de clôture
+Utiliser `/ark-close-session` : met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff si pertinent.
 
 ### Format d'ID
-Lire le dernier `id` dans `tasks.yaml`, incrémenter de 1 avec padding 3 chiffres. Ex : `T-007` → `T-008`.
-
-### Référencer la session courante
-Dans le champ `sessions`, ajouter :
-- `tool: OC` pour une session OpenCode
-- `tool: CL` pour une session Claude (claude.ai)
-- `id` : les 6 premiers caractères de l'UUID de session courante
-- `nom` : nom court descriptif de la session
-
-### Clôturer une tâche
-Quand la tâche est terminée : passer `statut: done` et renseigner `date_resolution` avec la date du jour (YYYY-MM-DD).
+Lire le dernier `id` dans `tasks.yaml`, incrémenter de 1 avec padding 3 chiffres. Ex : `T-012` → `T-013`.
 
 ### Règle de modification
 Ne jamais supprimer une entrée existante. Les corrections se font par mise à jour des champs.
 Ne jamais reformater l'intégralité du fichier — modifier uniquement les entrées concernées.
+
+---
+
+## SESSION-HANDOFF — Règles multi-agent
+
+### Propriété du fichier racine
+
+`SESSION-HANDOFF.md` (racine) est un **document de sprint stable**, pas un baton de session.
+
+| Agent | Peut modifier `SESSION-HANDOFF.md` racine ? |
+|---|---|
+| `spec`, `arch` | **Oui** — lors d'un pivot de sprint ou d'une nouvelle feature critique |
+| `back`, `front`, `data`, `qa` | **Non** — écrire dans `docs/05-Project/<YYYYMMDD>/` uniquement |
+
+### Convention d'archive
+
+Quand un agent clôture une session avec du contexte à transmettre :
+```
+docs/05-Project/<YYYYMMDD>/SESSION-HANDOFF-<agent>-<slug>.md
+```
+Exemples :
+- `docs/05-Project/20260407/SESSION-HANDOFF-back-fs07.md`
+- `docs/05-Project/20260407/SESSION-HANDOFF-front-fs05.md`
+
+Le chemin est ensuite référencé dans `tasks.yaml` via le champ `handoff_ref`.
+
+### Workflow multi-agent simultané
+
+```
+Session back (FS-07)          Session front (FS-05)
+      │                               │
+      ├─ /ark-open-session            ├─ /ark-open-session
+      │   T-011 → in_progress         │   T-010 → in_progress
+      │   session_active: a1b2c3      │   session_active: d4e5f6
+      │                               │
+      ├─ Travaille                    ├─ Travaille
+      │                               │
+      └─ /ark-close-session           └─ /ark-close-session
+          T-011 → done                    T-010 → done
+          session_active: ~              session_active: ~
+          Archive: SESSION-HANDOFF-      Archive: SESSION-HANDOFF-
+                   back-fs07.md                   front-fs05.md
+          (NE touche PAS le root)        (NE touche PAS le root)
+```
 
 ---
 
