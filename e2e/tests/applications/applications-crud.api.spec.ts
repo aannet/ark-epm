@@ -1,16 +1,13 @@
-import { test, expect, TestDataFactory } from '../../fixtures/index';
-import { 
-  expectSuccess, 
-  expectError,
-  ApplicationResponse, 
+import { test, expect } from '../../fixtures/index';
+import {
+  expectSuccess,
+  ApplicationResponse,
   DependenciesResponse,
   PaginatedResponse,
-  expectPaginationMeta 
+  expectPaginationMeta
 } from '../../utils/api-helpers';
 
 test.describe('Applications CRUD API', () => {
-  let createdAppId: string;
-
   test('GET /applications should return paginated list', async ({ auth }) => {
     const response = await auth.request.get('applications');
     const result = await expectSuccess<PaginatedResponse<ApplicationResponse>>(response, 200);
@@ -26,18 +23,14 @@ test.describe('Applications CRUD API', () => {
       name: `Test Domain ${Date.now()}`,
     });
 
-    const response = await auth.request.post('applications', {
-      data: {
-        name: `Test Application ${Date.now()}`,
-        description: 'Test description',
-        comment: 'Test comment',
-        domainId: domain.id,
-        criticality: 'high',
-        lifecycleStatus: 'production',
-      },
+    const app = await testData.createApplication({
+      name: `Test Application ${Date.now()}`,
+      description: 'Test description',
+      comment: 'Test comment',
+      domainId: domain.id,
+      criticality: 'high',
+      lifecycleStatus: 'production',
     });
-
-    const app = await expectSuccess<ApplicationResponse>(response, 201);
 
     expect(app.id).toBeTruthy();
     expect(app.name).toContain('Test Application');
@@ -49,8 +42,6 @@ test.describe('Applications CRUD API', () => {
     expect(app.domain!.id).toBe(domain.id);
     expect(app.tags).toBeDefined();
     expect(Array.isArray(app.tags)).toBe(true);
-
-    createdAppId = app.id;
   });
 
   test('GET /applications/:id should return application with populated relations', async ({ auth, testData }) => {
@@ -58,16 +49,11 @@ test.describe('Applications CRUD API', () => {
       name: `Domain for App ${Date.now()}`,
     });
 
-    const createResponse = await auth.request.post('applications', {
-      data: {
-        name: `App for Get Test ${Date.now()}`,
-        description: 'Test app',
-        domainId: domain.id,
-      },
+    const createdApp = await testData.createApplication({
+      name: `App for Get Test ${Date.now()}`,
+      description: 'Test app',
+      domainId: domain.id,
     });
-
-    const createdApp = await expectSuccess<ApplicationResponse>(createResponse, 201);
-    createdAppId = createdApp.id;
 
     const response = await auth.request.get(`applications/${createdApp.id}`);
     const app = await expectSuccess<ApplicationResponse>(response, 200);
@@ -92,15 +78,10 @@ test.describe('Applications CRUD API', () => {
       name: `Domain for Deps ${Date.now()}`,
     });
 
-    const createResponse = await auth.request.post('applications', {
-      data: {
-        name: `App for Deps Test ${Date.now()}`,
-        domainId: domain.id,
-      },
+    const createdApp = await testData.createApplication({
+      name: `App for Deps Test ${Date.now()}`,
+      domainId: domain.id,
     });
-
-    const createdApp = await expectSuccess<ApplicationResponse>(createResponse, 201);
-    createdAppId = createdApp.id;
 
     const response = await auth.request.get(`applications/${createdApp.id}/dependencies`);
     const deps = await expectSuccess<DependenciesResponse>(response, 200);
@@ -120,17 +101,12 @@ test.describe('Applications CRUD API', () => {
       name: `Domain for Update ${Date.now()}`,
     });
 
-    const createResponse = await auth.request.post('applications', {
-      data: {
-        name: `App for Update ${Date.now()}`,
-        description: 'Original description',
-        criticality: 'low',
-        domainId: domain.id,
-      },
+    const createdApp = await testData.createApplication({
+      name: `App for Update ${Date.now()}`,
+      description: 'Original description',
+      criticality: 'low',
+      domainId: domain.id,
     });
-
-    const createdApp = await expectSuccess<ApplicationResponse>(createResponse, 201);
-    createdAppId = createdApp.id;
 
     const response = await auth.request.patch(`applications/${createdApp.id}`, {
       data: {
@@ -152,14 +128,10 @@ test.describe('Applications CRUD API', () => {
       name: `Domain for Delete ${Date.now()}`,
     });
 
-    const createResponse = await auth.request.post('applications', {
-      data: {
-        name: `App to Delete ${Date.now()}`,
-        domainId: domain.id,
-      },
+    const createdApp = await testData.createApplication({
+      name: `App to Delete ${Date.now()}`,
+      domainId: domain.id,
     });
-
-    const createdApp = await expectSuccess<ApplicationResponse>(createResponse, 201);
 
     const response = await auth.request.delete(`applications/${createdApp.id}`);
     expect(response.status()).toBe(204);
@@ -180,17 +152,14 @@ test.describe('Applications CRUD API', () => {
       technology: 'PostgreSQL',
     });
 
-    const response = await auth.request.post('applications', {
-      data: {
-        name: `App with IC ${Date.now()}`,
-        domainId: domain.id,
-        criticality: 'medium',
-        lifecycleStatus: 'production',
-        itComponents: [{ id: ic.id }],
-      },
+    const app = await testData.createApplication({
+      name: `App with IC ${Date.now()}`,
+      domainId: domain.id,
+      criticality: 'medium',
+      lifecycleStatus: 'production',
+      itComponents: [{ id: ic.id }],
     });
 
-    const app = await expectSuccess<ApplicationResponse>(response, 201);
     expect(app.itComponents).toBeDefined();
     expect(app.itComponents?.length).toBe(1);
     expect(app.itComponents?.[0].id).toBe(ic.id);

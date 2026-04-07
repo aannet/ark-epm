@@ -41,6 +41,7 @@ export class TestDataFactory {
     ownerId?: string;
     criticality?: string;
     lifecycleStatus?: string;
+    itComponents?: Array<{ id: string }>;
   }) {
     const response = await this.request.post('applications', {
       data,
@@ -55,13 +56,11 @@ export class TestDataFactory {
 
     this.cleanupStack.push(async () => {
       try {
-        const depsResponse = await this.request.get(`applications/${application.id}/dependencies`);
-        if (depsResponse.ok()) {
-          const deps = await depsResponse.json();
-          if (!deps.hasDependencies) {
-            await this.request.delete(`applications/${application.id}`);
-          }
-        }
+        // Detach IT components first (many-to-many, cleaned separately via their own stack entries)
+        await this.request.patch(`applications/${application.id}`, {
+          data: { itComponents: [] },
+        });
+        await this.request.delete(`applications/${application.id}`);
       } catch {
         // Ignore cleanup errors
       }

@@ -52,10 +52,10 @@ tasks:
 
   - id: T-005
     nom: "Bug — Isolation données entre tests IT Components (DELETE 204/409)"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
-    date_resolution: ~
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "QA"
     type: bug
@@ -64,15 +64,15 @@ tasks:
       - tool: CL
         id: "qa-ses"
         nom: "audit tests data-objects"
+      - tool: CL
+        id: "enc-sq"
+        nom: "fix cleanup Playwright — itComponents detach"
     notes: |
       Détecté lors de la session QA Data Objects (2026-04-07).
-      Tests Playwright échouant :
-        - it-components-crud.api.spec.ts:72 — DELETE 204 → reçoit 409
-        - it-components-crud.api.spec.ts:85 — DELETE 409 → reçoit 204
-        - it-components-dependencies.api.spec.ts:162 — DELETE 409 → reçoit 204
-      Cause probable : IT components créés dans un test précédent restent liés
-      à des applications. Cleanup incomplet dans TestDataFactory.cleanup().
-      À corriger par agent qa (test-data.fixture.ts — cleanup order).
+      Corrigé 2026-04-08 : test-data.fixture.ts createApplication cleanup —
+      PATCH itComponents:[] avant DELETE (détache les ICs sans bloquer la suppression).
+      Root cause : cleanup LIFO tentait DELETE app avant que les ICs soient nettoyés,
+      hasDependencies=true → skip → app + domain orphelins.
 
   - id: T-006
     nom: "Tests applications-dependencies bloqués — FS-08 Interfaces non implémenté"
@@ -170,19 +170,24 @@ tasks:
 
   - id: T-010
     nom: "Implémenter FS-05-FRONT — Data Objects frontend"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
-    date_resolution: ~
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "FS-05"
     type: impl
     feature: "FS-05-FRONT"
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "ark-osl"
+        nom: "audit statut FS-05-FRONT — correction tracking"
     notes: |
       Spec FS-05-FRONT v0.1 stable — PNS-02 drawer, Chip isSourceOfTruth (success/default),
       Autocomplete type (freeSolo + database/dataset/file), colonne role (consumer/producer/owner).
       Gate : FS-05-BACK done ✅. Amendements A+B backend (isSourceOfTruth, type autocomplete) pré-requis.
+      Implémentation confirmée 2026-04-08 : 10 fichiers frontend (pages, composants, API client,
+      types, utils), 4 routes câblées dans App.tsx, toutes les US réalisées.
 
   - id: T-011
     nom: "Implémenter FS-07-BACK — Business Capabilities backend"
@@ -219,3 +224,52 @@ tasks:
       Déblocage : endpoint GET /api/v1/users?isActive=true nécessaire.
       Migration : créer hook useUsers() dans frontend/src/api/users.ts (pattern useProviders).
       Gate : endpoint users disponible (FS-01 ou module dédié).
+
+  - id: T-013
+    nom: "Fix cleanup Playwright — tests + global teardown"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "QA"
+    type: impl
+    feature: "QA-CLEANUP"
+    sessions:
+      - tool: CL
+        id: "enc-sq"
+        nom: "fix cleanup Playwright complet"
+    notes: |
+      Deux root causes corrigées :
+      1. Applications créées via auth.request.post() directement (non traquées) →
+         converties vers testData.createApplication() dans :
+         - applications-crud.api.spec.ts (6 tests)
+         - applications-validation.api.spec.ts (duplicate name test)
+         - domains-crud.api.spec.ts (POST create domain)
+      2. createApplication cleanup — PATCH itComponents:[] + DELETE inconditionnels
+         (supprime le check hasDependencies qui bloquait le nettoyage).
+      Ajout : e2e/global-teardown.ts + playwright.config.ts globalTeardown
+      → détecte automatiquement les fuites post-run (log par préfixe de nom).
+
+  - id: T-014
+    nom: "Seed domaines + applications — affectation cohérente"
+    statut: done
+    assigned_agent: data
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "F-999"
+    type: impl
+    feature: "SEED"
+    sessions:
+      - tool: CL
+        id: "enc-sq"
+        nom: "seed domains + apps affectation cohérente"
+    notes: |
+      seed-applications.ts : ajout champ domainName par application,
+      lookup par Map<name, domain> au lieu d'affectation aléatoire.
+      10 domaines insérés via seed-domains.ts.
+      25 applications insérées via seed-applications.ts.
+      Répartition : Finance (3), IT (13), RH (1), Ventes (2),
+      Marketing (1), Supply Chain (1), R&D (1), Service Client (1), Prod (0), Juridique (0).
+      Purge préalable : 105 apps + 111 domaines + 84 IT components résidus tests supprimés via SQL.

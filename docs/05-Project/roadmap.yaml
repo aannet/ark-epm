@@ -50,7 +50,7 @@ sprints:
       - id: "FS-05"
         nom: "Data Objects"
         back: done
-        front: stable
+        front: done
       - id: "FS-06"
         nom: "Applications"
         back: done

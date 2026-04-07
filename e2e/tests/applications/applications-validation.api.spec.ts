@@ -29,10 +29,7 @@ test.describe('Applications Validation API', () => {
 
     const uniqueName = `Duplicate App ${Date.now()}`;
 
-    const firstResponse = await auth.request.post('applications', {
-      data: { name: uniqueName, domainId: domain.id },
-    });
-    await expectSuccess<ApplicationResponse>(firstResponse, 201);
+    await testData.createApplication({ name: uniqueName, domainId: domain.id });
 
     const secondResponse = await auth.request.post('applications', {
       data: { name: uniqueName, domainId: domain.id },

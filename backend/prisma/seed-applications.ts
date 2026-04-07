@@ -4,25 +4,34 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Get existing entities to link with applications
-  const domains = await prisma.domain.findMany({ take: 10 });
+  const allDomains = await prisma.domain.findMany();
+  const domainByName = new Map(allDomains.map(d => [d.name, d]));
   const providers = await prisma.provider.findMany({ take: 10 });
   const users = await prisma.user.findMany({ where: { isActive: true }, take: 5 });
 
-  if (domains.length === 0) {
-    console.error('No domains found. Please create domains first.');
+  if (allDomains.length === 0) {
+    console.error('No domains found. Please run seed-domains.ts first.');
     process.exit(1);
   }
 
-  console.log(`Found ${domains.length} domains, ${providers.length} providers, ${users.length} users`);
+  console.log(`Found ${allDomains.length} domains, ${providers.length} providers, ${users.length} users`);
 
-  // Sample application data - 25 test applications
-  const applications = [
+  // Sample application data - 25 applications with explicit domain assignment
+  const applications: Array<{
+    name: string;
+    description: string;
+    comment: string;
+    criticality: string;
+    lifecycleStatus: string;
+    domainName: string;
+  }> = [
     {
       name: 'ERP SAP S/4HANA',
       description: 'Système de gestion intégré pour la finance et la logistique',
       comment: 'Migration complète prévue Q3 2026',
       criticality: 'mission-critical',
       lifecycleStatus: 'production',
+      domainName: 'Finance & Comptabilité',
     },
     {
       name: 'CRM Salesforce',
@@ -30,6 +39,7 @@ async function main() {
       comment: 'Intégration avec le call center en cours',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Ventes & Distribution',
     },
     {
       name: 'Portail RH Workday',
@@ -37,6 +47,7 @@ async function main() {
       comment: 'Module paie déployé en janvier 2026',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Ressources Humaines',
     },
     {
       name: 'Microsoft 365',
@@ -44,6 +55,7 @@ async function main() {
       comment: 'MFA activé pour tous les utilisateurs',
       criticality: 'mission-critical',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'ServiceNow ITSM',
@@ -51,6 +63,7 @@ async function main() {
       comment: 'Workflows incident/problème/changement actifs',
       criticality: 'medium',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Jira Cloud',
@@ -58,6 +71,7 @@ async function main() {
       comment: 'Intégré avec Confluence et Bitbucket',
       criticality: 'medium',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Confluence',
@@ -65,6 +79,7 @@ async function main() {
       comment: 'Migration vers Cloud terminée en 2025',
       criticality: 'medium',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Snowflake DWH',
@@ -72,6 +87,7 @@ async function main() {
       comment: 'Multi-cluster scaling activé',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Tableau Server',
@@ -79,6 +95,7 @@ async function main() {
       comment: 'Version 2024.3 avec extract refreshes optimisés',
       criticality: 'medium',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'ServiceNow CMDB',
@@ -86,6 +103,7 @@ async function main() {
       comment: 'Découverte automatique via Service Mapping',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'CyberArk PAM',
@@ -93,6 +111,7 @@ async function main() {
       comment: 'Rotation des credentials automatique',
       criticality: 'mission-critical',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Okta Identity Cloud',
@@ -100,6 +119,7 @@ async function main() {
       comment: 'SSO configuré pour 150+ applications',
       criticality: 'mission-critical',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Nexus Repository',
@@ -107,6 +127,7 @@ async function main() {
       comment: 'Cleanup policies configurées',
       criticality: 'low',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Jenkins CI/CD',
@@ -114,6 +135,7 @@ async function main() {
       comment: 'Agents sur Kubernetes avec pod templates',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'GitLab Enterprise',
@@ -121,6 +143,7 @@ async function main() {
       comment: 'Déploiement GitOps avec ArgoCD',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'SonarQube Enterprise',
@@ -128,6 +151,7 @@ async function main() {
       comment: 'Quality gates intégrés aux pipelines CI',
       criticality: 'medium',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'Nouveau Portail Client',
@@ -135,13 +159,15 @@ async function main() {
       comment: 'Phase de beta testing avec 50 utilisateurs pilotes',
       criticality: 'high',
       lifecycleStatus: 'development',
+      domainName: 'Service Client',
     },
     {
       name: 'Application Mobile V2',
-      description: 'Refonte complète de l app mobile iOS/Android',
+      description: 'Refonte complète de l\'app mobile iOS/Android',
       comment: 'Flutter avec architecture clean',
       criticality: 'high',
       lifecycleStatus: 'development',
+      domainName: 'Marketing & Communication',
     },
     {
       name: 'Legacy AS400',
@@ -149,6 +175,7 @@ async function main() {
       comment: 'Phase de décommissionnement prévue 2027',
       criticality: 'medium',
       lifecycleStatus: 'maintenance',
+      domainName: 'Supply Chain & Logistique',
     },
     {
       name: 'Temenos T24',
@@ -156,6 +183,7 @@ async function main() {
       comment: 'Version R22 avec modules payments et lending',
       criticality: 'mission-critical',
       lifecycleStatus: 'production',
+      domainName: 'Finance & Comptabilité',
     },
     {
       name: 'Amadeus GDS',
@@ -163,6 +191,7 @@ async function main() {
       comment: 'APIs REST modernes en parallèle des protocoles legacy',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Ventes & Distribution',
     },
     {
       name: 'Databricks Lakehouse',
@@ -170,6 +199,7 @@ async function main() {
       comment: 'Delta Live Tables pour pipelines streaming',
       criticality: 'high',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'AWS Cost Explorer',
@@ -177,6 +207,7 @@ async function main() {
       comment: 'Budgets et alertes configurés par BU',
       criticality: 'low',
       lifecycleStatus: 'production',
+      domainName: 'Finance & Comptabilité',
     },
     {
       name: 'Elastic Stack',
@@ -184,13 +215,15 @@ async function main() {
       comment: 'Centralisation des logs applicatifs',
       criticality: 'medium',
       lifecycleStatus: 'production',
+      domainName: 'Information Technology',
     },
     {
       name: 'App PoC IA Générative',
-      description: 'Prototype d assistant virtuel basé sur LLM',
+      description: 'Prototype d\'assistant virtuel basé sur LLM',
       comment: 'Evaluation RAG vs fine-tuning en cours',
       criticality: 'low',
       lifecycleStatus: 'pilot',
+      domainName: 'Recherche & Développement',
     },
   ];
 
@@ -221,9 +254,14 @@ async function main() {
         continue;
       }
 
-      // Assign random domain, provider, and owner
-      const domain = domains[Math.floor(Math.random() * domains.length)];
-      const provider = providers.length > 0 
+      // Assign domain by name, random provider and owner
+      const domain = domainByName.get(app.domainName);
+      if (!domain) {
+        console.warn(`⚠️  Domain "${app.domainName}" not found for "${app.name}", skipping`);
+        skipped++;
+        continue;
+      }
+      const provider = providers.length > 0
         ? providers[Math.floor(Math.random() * providers.length)]
         : null;
       const owner = users.length > 0

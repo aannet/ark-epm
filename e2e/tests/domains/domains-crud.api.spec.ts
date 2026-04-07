@@ -20,15 +20,11 @@ test.describe('Domains CRUD API', () => {
 
   test('POST /domains should create a domain', async ({ auth, testData }) => {
     const uniqueName = `Test Domain ${Date.now()}`;
-    const response = await auth.request.post('domains', {
-      data: {
-        name: uniqueName,
-        description: 'Test description',
-        comment: 'Test comment',
-      },
+    const domain = await testData.createDomain({
+      name: uniqueName,
+      description: 'Test description',
+      comment: 'Test comment',
     });
-
-    const domain = await expectSuccess<DomainResponse>(response, 201);
 
     expect(domain.id).toBeTruthy();
     expect(domain.name).toBe(uniqueName);
