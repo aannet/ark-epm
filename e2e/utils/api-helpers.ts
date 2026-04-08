@@ -78,7 +78,9 @@ export interface ApplicationResponse {
   description: string | null;
   comment: string | null;
   domain: { id: string; name: string } | null;
-  provider: { id: string; name: string } | null;
+  providers: Array<{ id: string; name: string; role: string | null }>;
+  itComponents: Array<{ id: string; name: string }>;
+  businessCapabilities: Array<{ id: string; name: string }>;
   owner: { id: string; firstName: string; lastName: string; email: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;

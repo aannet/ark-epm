@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Ark EPM API
-  version: 1.1.0
+  version: 1.4.0
   description: Enterprise Project Management API - Dimension Tags Support
 servers:
   - url: http://localhost:3000/api/v1
@@ -801,7 +801,7 @@ paths:
         '403':
           description: Permission insuffisante
         '404':
-          description: Domaine, Provider, ou Owner introuvable
+          description: Domaine, Provider, Capability ou Owner introuvable
         '409':
           description: Application name already in use
           content:
@@ -866,7 +866,7 @@ paths:
         '403':
           description: Permission insuffisante
         '404':
-          description: Application, Domaine, Provider, ou Owner introuvable
+          description: Application, Domaine, Provider, Capability ou Owner introuvable
         '409':
           description: Application name already in use
           content:
@@ -1937,6 +1937,14 @@ components:
               properties:
                 id: { type: string, format: uuid }
                 name: { type: string }
+          businessCapabilities:
+            type: array
+            description: Liste des business capabilities liées à cette application
+            items:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                name: { type: string }
           owner:
             type: object
             nullable: true
@@ -1944,6 +1952,7 @@ components:
               id: { type: string, format: uuid }
               firstName: { type: string }
               lastName: { type: string }
+              email: { type: string }
           criticality: { type: string, nullable: true }
           lifecycleStatus: { type: string, nullable: true }
           createdAt: { type: string, format: date-time }
@@ -1974,22 +1983,30 @@ components:
               id: { type: string, format: uuid }
               name: { type: string }
               role: { type: string, nullable: true }
-        itComponents:
-          type: array
-          description: Liste des composants IT liés à cette application
-          items:
+          itComponents:
+            type: array
+            description: Liste des composants IT liés à cette application
+            items:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                name: { type: string }
+          businessCapabilities:
+            type: array
+            description: Liste des business capabilities liées à cette application
+            items:
+              type: object
+              properties:
+                id: { type: string, format: uuid }
+                name: { type: string }
+          owner:
             type: object
+            nullable: true
             properties:
               id: { type: string, format: uuid }
-              name: { type: string }
-        owner:
-          type: object
-          nullable: true
-          properties:
-            id: { type: string, format: uuid }
-            firstName: { type: string }
-            lastName: { type: string }
-            email: { type: string }
+              firstName: { type: string }
+              lastName: { type: string }
+              email: { type: string }
         criticality: { type: string, nullable: true, enum: [low, medium, high, mission-critical] }
         lifecycleStatus: { type: string, nullable: true }
         createdAt: { type: string, format: date-time }
@@ -2027,19 +2044,26 @@ components:
             properties:
               id: { type: string, format: uuid }
               role: { type: string, nullable: true }
-        itComponents:
-          type: array
-          nullable: true
-          description: Liste des composants IT liés à cette application
-          items:
-            type: object
-            required: [id]
-            properties:
-              id: { type: string, format: uuid }
-        ownerId:
-          type: string
-          format: uuid
-          nullable: true
+          itComponents:
+            type: array
+            nullable: true
+            description: Liste des composants IT liés à cette application
+            items:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string, format: uuid }
+          capabilityIds:
+            type: array
+            nullable: true
+            description: Liste des IDs de business capabilities liées à l'application
+            items:
+              type: string
+              format: uuid
+          ownerId:
+            type: string
+            format: uuid
+            nullable: true
         criticality:
           type: string
           nullable: true
@@ -2075,19 +2099,26 @@ components:
             properties:
               id: { type: string, format: uuid }
               role: { type: string, nullable: true }
-        itComponents:
-          type: array
-          nullable: true
-          description: Liste des composants IT liés à cette application (remplace la liste précédente)
-          items:
-            type: object
-            required: [id]
-            properties:
-              id: { type: string, format: uuid }
-        ownerId:
-          type: string
-          format: uuid
-          nullable: true
+          itComponents:
+            type: array
+            nullable: true
+            description: Liste des composants IT liés à cette application (remplace la liste précédente)
+            items:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string, format: uuid }
+          capabilityIds:
+            type: array
+            nullable: true
+            description: Liste des IDs de business capabilities liées à l'application (remplace la liste précédente)
+            items:
+              type: string
+              format: uuid
+          ownerId:
+            type: string
+            format: uuid
+            nullable: true
         criticality:
           type: string
           nullable: true
@@ -2362,6 +2393,31 @@ components:
           properties:
             id: { type: string, format: uuid }
             name: { type: string }
+        providers:
+          type: array
+          description: Liste des providers associés avec leurs rôles
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              role: { type: string, nullable: true }
+        itComponents:
+          type: array
+          description: Liste des composants IT liés à cette application
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+        businessCapabilities:
+          type: array
+          description: Liste des business capabilities liées à cette application
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
         owner:
           type: object
           nullable: true
@@ -2372,6 +2428,10 @@ components:
         criticality: { type: string, nullable: true }
         lifecycleStatus: { type: string, nullable: true }
         createdAt: { type: string, format: date-time }
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
 
     DataObjectListItem:
       type: object

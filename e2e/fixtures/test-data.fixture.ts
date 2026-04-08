@@ -42,6 +42,7 @@ export class TestDataFactory {
     criticality?: string;
     lifecycleStatus?: string;
     itComponents?: Array<{ id: string }>;
+    capabilityIds?: string[];
   }) {
     const response = await this.request.post('applications', {
       data,
@@ -58,7 +59,10 @@ export class TestDataFactory {
       try {
         // Detach IT components first (many-to-many, cleaned separately via their own stack entries)
         await this.request.patch(`applications/${application.id}`, {
-          data: { itComponents: [] },
+          data: {
+            itComponents: [],
+            capabilityIds: [],
+          },
         });
         await this.request.delete(`applications/${application.id}`);
       } catch {

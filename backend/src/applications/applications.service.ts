@@ -90,6 +90,11 @@ export class ApplicationsService {
             itComponent: { select: { id: true, name: true } },
           },
         },
+        capabilities: {
+          include: {
+            capability: { select: { id: true, name: true } },
+          },
+        },
         owner: { select: { id: true, firstName: true, lastName: true } },
       },
     });
@@ -128,6 +133,11 @@ export class ApplicationsService {
         itComponents: {
           include: {
             itComponent: { select: { id: true, name: true } },
+          },
+        },
+        capabilities: {
+          include: {
+            capability: { select: { id: true, name: true } },
           },
         },
         owner: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -312,6 +322,16 @@ export class ApplicationsService {
               },
             },
           }),
+
+          ...(createDto.capabilityIds && createDto.capabilityIds.length > 0 && {
+            capabilities: {
+              createMany: {
+                data: createDto.capabilityIds.map((capabilityId) => ({
+                  capabilityId,
+                })),
+              },
+            },
+          }),
         },
         include: {
           domain: { select: { id: true, name: true } },
@@ -323,6 +343,11 @@ export class ApplicationsService {
           itComponents: {
             include: {
               itComponent: { select: { id: true, name: true } },
+            },
+          },
+          capabilities: {
+            include: {
+              capability: { select: { id: true, name: true } },
             },
           },
           owner: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -364,6 +389,13 @@ export class ApplicationsService {
         });
       }
 
+      // Delete old business capability mappings if capabilityIds are being updated
+      if (updateDto.capabilityIds !== undefined) {
+        await this.prisma.appCapabilityMap.deleteMany({
+          where: { applicationId: id },
+        });
+      }
+
       const application = await this.prisma.application.update({
         where: { id },
         data: {
@@ -398,6 +430,16 @@ export class ApplicationsService {
               },
             },
           }),
+
+          ...(updateDto.capabilityIds !== undefined && updateDto.capabilityIds.length > 0 && {
+            capabilities: {
+              createMany: {
+                data: updateDto.capabilityIds.map((capabilityId) => ({
+                  capabilityId,
+                })),
+              },
+            },
+          }),
         },
         include: {
           domain: { select: { id: true, name: true } },
@@ -409,6 +451,11 @@ export class ApplicationsService {
           itComponents: {
             include: {
               itComponent: { select: { id: true, name: true } },
+            },
+          },
+          capabilities: {
+            include: {
+              capability: { select: { id: true, name: true } },
             },
           },
           owner: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -500,6 +547,18 @@ export class ApplicationsService {
       }
     }
 
+    if (dto.capabilityIds && dto.capabilityIds.length > 0) {
+      const capabilities = await this.prisma.businessCapability.findMany({
+        where: { id: { in: dto.capabilityIds } },
+      });
+      if (capabilities.length !== dto.capabilityIds.length) {
+        throw new NotFoundException({
+          code: 'BUSINESS_CAPABILITY_NOT_FOUND',
+          message: 'One or more business capabilities not found',
+        });
+      }
+    }
+
     if (dto.ownerId) {
       const owner = await this.prisma.user.findUnique({
         where: { id: dto.ownerId },
@@ -534,6 +593,10 @@ export class ApplicationsService {
       itComponents: (application.itComponents || []).map((mapping: { itComponent: { id: string; name: string } }) => ({
         id: mapping.itComponent.id,
         name: mapping.itComponent.name,
+      })),
+      businessCapabilities: (application.capabilities || []).map((mapping: { capability: { id: string; name: string } }) => ({
+        id: mapping.capability.id,
+        name: mapping.capability.name,
       })),
       owner: application.owner ? {
         id: application.owner.id,

@@ -217,4 +217,85 @@ test.describe('Applications CRUD API', () => {
     expect(detail.itComponents?.length).toBe(1);
     expect(detail.itComponents?.[0].id).toBe(ic.id);
   });
+
+  test('POST /applications should create application with business capabilities', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for BC create ${Date.now()}`,
+    });
+
+    const bc = await testData.createBusinessCapability({
+      name: `Business Capability ${Date.now()}`,
+      domainId: domain.id,
+      level: 1,
+    });
+
+    const app = await testData.createApplication({
+      name: `App with BC ${Date.now()}`,
+      domainId: domain.id,
+      capabilityIds: [bc.id],
+    });
+
+    expect(app.businessCapabilities).toBeDefined();
+    expect(app.businessCapabilities.length).toBe(1);
+    expect(app.businessCapabilities?.[0].id).toBe(bc.id);
+    expect(app.businessCapabilities?.[0].name).toBe(bc.name);
+  });
+
+  test('PATCH /applications/:id should update business capabilities', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for BC update ${Date.now()}`,
+    });
+
+    const bc1 = await testData.createBusinessCapability({
+      name: `Business Capability A ${Date.now()}`,
+      domainId: domain.id,
+      level: 1,
+    });
+
+    const bc2 = await testData.createBusinessCapability({
+      name: `Business Capability B ${Date.now()}`,
+      domainId: domain.id,
+      level: 1,
+    });
+
+    const app = await testData.createApplication({
+      name: `App BC update ${Date.now()}`,
+      domainId: domain.id,
+      capabilityIds: [bc1.id],
+    });
+
+    const updateResponse = await auth.request.patch(`applications/${app.id}`, {
+      data: {
+        capabilityIds: [bc2.id],
+      },
+    });
+
+    const updated = await expectSuccess<ApplicationResponse>(updateResponse, 200);
+    expect(updated.businessCapabilities).toHaveLength(1);
+    expect(updated.businessCapabilities?.[0].id).toBe(bc2.id);
+  });
+
+  test('GET /applications/:id should include businessCapabilities', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for BC detail ${Date.now()}`,
+    });
+
+    const bc = await testData.createBusinessCapability({
+      name: `Business Capability detail ${Date.now()}`,
+      domainId: domain.id,
+      level: 1,
+    });
+
+    const app = await testData.createApplication({
+      name: `App BC detail ${Date.now()}`,
+      domainId: domain.id,
+      capabilityIds: [bc.id],
+    });
+
+    const response = await auth.request.get(`applications/${app.id}`);
+    const detail = await expectSuccess<ApplicationResponse>(response, 200);
+    expect(detail.businessCapabilities).toBeDefined();
+    expect(detail.businessCapabilities).toHaveLength(1);
+    expect(detail.businessCapabilities?.[0].id).toBe(bc.id);
+  });
 });

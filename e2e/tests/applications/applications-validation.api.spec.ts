@@ -74,4 +74,21 @@ test.describe('Applications Validation API', () => {
     const error = await expectError(response, 409, 'CONFLICT');
     expect(error.message).toContain('Application name already in use');
   });
+
+  test('POST /applications should return 404 for non-existent business capabilityId', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({
+      name: `Domain for Invalid BC ${Date.now()}`,
+    });
+
+    const response = await auth.request.post('applications', {
+      data: {
+        name: `App Invalid BC ${Date.now()}`,
+        domainId: domain.id,
+        capabilityIds: ['00000000-0000-0000-0000-000000000000'],
+      },
+    });
+
+    const error = await expectError(response, 404, 'BUSINESS_CAPABILITY_NOT_FOUND');
+    expect(error.message).toContain('One or more business capabilities not found');
+  });
 });

@@ -46,6 +46,12 @@ export class UpdateApplicationDto {
   @Type(() => ItComponentMappingDto)
   itComponents?: ItComponentMappingDto[];
 
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(0)
+  @IsUUID('4', { each: true })
+  capabilityIds?: string[];
+
   @IsUUID()
   @IsOptional()
   ownerId?: string;

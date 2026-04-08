@@ -1,7 +1,14 @@
 # ARK — Feature Spec FS-06-BACK : Applications (Backend)
 
-_Version 1.2 — Mars 2026_
+_Version 1.4 — Avril 2026_
 
+> **Changelog v1.4 :** **SUPPORT BUSINESS CAPABILITIES** — Finalisation de la liaison N:N Application ↔ Business Capability.
+> - `capabilityIds: string[]` ajouté dans `CreateApplicationDto`/`UpdateApplicationDto`.
+> - `create()` / `update()` synchronisent `app_capability_map`.
+> - Validation FK `capabilityIds` : `404` `BUSINESS_CAPABILITY_NOT_FOUND` si ID invalide.
+> - `findAll` / `findOne` exposent `businessCapabilities` (`{ id, name }`).
+> - Couverture Supertest + Playwright mise à jour.
+>
 > **Changelog v1.3 :** **SUPPORT IT COMPONENTS** — Ajout de la relation N:N Application ↔ IT Component. Nouvel endpoint `GET /applications/{id}/it-components` (paginé). DTOs : ajout champ `itComponents: Array<{id}>` dans `CreateApplicationDto` et `UpdateApplicationDto`. Response : ajout champ `itComponents` dans `ApplicationResponse`. Validation IT Components en create/update. Nouvelle RM-09. Impact tests backend.
 >
 > **Changelog v1.2 :** **ÉVOLUTION MAJEURE** — Migration modèle Provider 1:N → N:N. Une application peut désormais être liée à plusieurs providers avec des rôles distincts. Suppression FK `providerId`, création table de jonction `app_provider_map`. DTOs : `providerId` → `providers: Array<{id, role}>`. Response : `provider` (single) → `providers` (array). RM-02 et RM-03 adaptés. Impact sur tous les tests backend + frontend.
@@ -24,7 +31,7 @@ _Version 1.2 — Mars 2026_
 | **Spec mère** | FS-06 Applications v1.0 |
 | **Spec front** | FS-06-FRONT — bloquée tant que cette spec n'est pas `done` |
 | **Estimé** | 2.0 jours (+ 0.5 jour pour migration N:N) |
-| **Version** | 1.2 |
+| **Version** | 1.4 |
 
 ---
 
@@ -828,6 +835,12 @@ async remove(id: string): Promise<void> {
   - Les IT Components sont inclus dans `ApplicationResponse` avec juste `id` et `name`.
   - L'endpoint `GET /applications/{id}/it-components` liste les IT Components liés (paginé, avec tri, même pattern que FS-04).
 
+- **RM-10 — Gestion N:N Business Capabilities :** Les business capabilities sont liées à une Application via la table de jointure `app_capability_map`.
+  - Dans les DTOs `CreateApplicationDto` et `UpdateApplicationDto`, le champ `capabilityIds` est un array de UUID.
+  - En `create()` / `update()`, tous les IDs Capability sont validés en base ; renvoyer `404` `BUSINESS_CAPABILITY_NOT_FOUND` si un ID est invalide.
+  - En `update()`, la liste des mappings est remplacée entièrement quand `capabilityIds` est fourni.
+  - `findAll()` / `findOne()` incluent `businessCapabilities` en sortie (`{ id, name }`) pour les vues liste et détail.
+
 ---
 
 ## 5. Structure de Fichiers Backend
@@ -885,6 +898,10 @@ Les Applications supportent le système de tags dimensionnels via la relation po
 - [ ] `[Jest]` `ApplicationsService.getApplicationItComponents()` retourne une liste paginée d'IT Components liés
 - [ ] `[Jest]` `ApplicationsService.create()` avec `itComponents: [{id}]` crée les entrées `app_it_component_map`
 - [ ] `[Jest]` `ApplicationsService.create()` lève `NotFoundException` si un IT Component inexistant
+- [ ] `[Jest]` `ApplicationsService.create()` avec `capabilityIds: [uuid]` crée les entrées `app_capability_map`
+- [ ] `[Jest]` `ApplicationsService.create()` lève `NotFoundException` si une business capability est introuvable
+- [ ] `[Jest]` `ApplicationsService.update()` avec `capabilityIds: [uuid]` remplace les mappings `app_capability_map`
+- [ ] `[Jest]` `ApplicationsService.update()` lève `NotFoundException` si une business capability est introuvable
 - [ ] `[Jest]` `ApplicationsService.remove()` lève `NotFoundException` si UUID inexistant
 - [ ] `[Jest]` `ApplicationsService.remove()` lève `ConflictException` si des providers sont liés via `appProviderMaps`
 - [ ] `[Jest]` `ApplicationsService.remove()` lève `ConflictException` si des IT Components sont liés via `appItComponentMap`
@@ -903,11 +920,13 @@ Les Applications supportent le système de tags dimensionnels via la relation po
 - [ ] `[Supertest]` `POST /api/v1/applications` avec `itComponents: [{id}, {id}]` → `201` avec itComponents peuplés
 - [ ] `[Supertest]` `POST /api/v1/applications` avec provider inexistant dans `providers[]` → `404`
 - [ ] `[Supertest]` `POST /api/v1/applications` avec IT Component inexistant dans `itComponents[]` → `404`
+- [ ] `[Supertest]` `POST /api/v1/applications` avec businessCapabilityIds invalide → `404` + `code: "BUSINESS_CAPABILITY_NOT_FOUND"`
 - [ ] `[Supertest]` `POST /api/v1/applications` nom dupliqué → `409` + `code: "CONFLICT"`
 - [ ] `[Supertest]` `POST /api/v1/applications` sans `name` → `400`
 - [ ] `[Supertest]` `POST /api/v1/applications` name uniquement espaces → `400`
 - [ ] `[Supertest]` `POST /api/v1/applications` domainId inexistant → `404`
-- [ ] `[Supertest]` `GET /api/v1/applications/{id}` existant → `200` avec domain/providers[]/itComponents[]/owner peuplés
+- [ ] `[Supertest]` `POST /api/v1/applications` avec `capabilityIds` → `201` et `businessCapabilities` peuplés
+- [ ] `[Supertest]` `GET /api/v1/applications/{id}` existant → `200` avec domain/providers[]/itComponents[]/businessCapabilities[]/owner peuplés
 - [ ] `[Supertest]` `GET /api/v1/applications/{id}` UUID inexistant → `404`
 - [ ] `[Supertest]` `GET /api/v1/applications/{id}/dependencies` → `200` avec `hasDependencies` et `counts` (inclus `providersCount`, `itComponentsCount`)
 - [ ] `[Supertest]` `GET /api/v1/applications/{id}/it-components` paginé → `200` avec tableau d'IT Components (id, name, description, etc.)
@@ -915,6 +934,8 @@ Les Applications supportent le système de tags dimensionnels via la relation po
 - [ ] `[Supertest]` `GET /api/v1/applications/{id}/it-components` UUID inexistant → `404`
 - [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement `providers[]` → `200` et mappings N:N remplacés
 - [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement `itComponents[]` → `200` et mappings N:N remplacés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement `capabilityIds` → `200` et mappings N:N remplacés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` vider `capabilityIds[]` → `200` et mappings supprimés
 - [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` vider `providers[]` → `200` et mappings supprimés
 - [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` vider `itComponents[]` → `200` et mappings supprimés
 - [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` nom dupliqué → `409` + `code: "CONFLICT"`
@@ -1053,4 +1074,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_FS-06-BACK v1.2 — ARK_
+_FS-06-BACK v1.4 — ARK_

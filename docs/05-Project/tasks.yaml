@@ -555,3 +555,51 @@ tasks:
 
       Gates considérées : FS-07-FRONT implémentée (T-020) + APIs FS-07-BACK et amendements (T-019).
       Lié à la livraison : T-024.
+
+  - id: T-025
+    nom: "Amendment FS-06-BACK — capabilityIds dans DTOs + sync app_capability_map"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-04-08
+    sprint: S3
+    theme: FS-07
+    type: impl
+    feature: FS-06-BACK
+    sessions: []
+    notes: |
+      Amendment FS-06-BACK pour implémenter la liaison Application ↔ BusinessCapability.
+      La table app_capability_map et la relation Prisma existent déjà.
+      À faire :
+      - capabilityIds?: string[] dans CreateApplicationDto + UpdateApplicationDto
+      - validateForeignKeys() : vérifier les IDs capabilities (pattern itComponents)
+      - findOne() + findAll() : inclure capabilities dans Prisma include
+      - mapApplicationResponse() : mapper businessCapabilities dans la réponse
+      - create() + update() : sync junction app_capability_map (delete+recreate, pattern itComponents)
+      ✅ Code + OpenAPI + tests Supertest/Playwright complétés pour le support BC.
+      ✅ Validation exécutée dans le container backend : `npm run build` OK + `npm run test:e2e -- --runInBand test/FS-06-applications.e2e-spec.ts` OK (21/21).
+      Gate T-026 (front) : ce back amendment doit être done avant.
+
+  - id: T-026
+    nom: "Amendment FS-06-FRONT — Sélecteur Business Capabilities dans Applications"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S3
+    theme: FS-07
+    type: impl
+    feature: FS-06-FRONT
+    sessions: []
+    notes: |
+      Amendment FS-06-FRONT pour exposer la liaison Application ↔ BusinessCapability côté UI.
+      Gate : T-025 back amendment done.
+      À faire :
+      - types/application.ts : businessCapabilities dans Application, capabilityIds dans ApplicationFormValues
+      - ApplicationForm.tsx : Autocomplete multi-sélection (pattern itComponents, sans rôle)
+      - ApplicationNewPage + ApplicationEditPage : charger useBusinessCapabilities, passer capabilityIds
+      - ApplicationDetailPage : afficher BCs liées dans section Relations
+      - fr.json : clés applications.relations.businessCapabilities.* + applications.form.businessCapabilitiesLabel
+      - BusinessCapabilityEditPage.tsx:296 : remplacer string hardcodée par clé i18n
