@@ -653,3 +653,40 @@ tasks:
       Fix : QueryDomainsDto créé, findAll() mis à jour avec count+skip+take+meta,
       controller @Query() ajouté.
       Fichiers : dto/query-domains.dto.ts (créé), domains.service.ts, domains.controller.ts.
+
+  - id: T-029
+    nom: "Uniformiser le menu d'actions des listes frontend"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-front-list-actions-menu.md"
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "FS-05"
+    type: impl
+    feature: "FS-05-FRONT"
+    sessions:
+      - tool: OC
+        id: "2b0571"
+        nom: "uniformize list row actions menu and add shared component"
+    notes: |
+      Refactor des listes Applications, Business Capabilities, Composants IT, Fournisseurs,
+      Domaines et Data Objects pour remplacer les icônes d'action inline (Edit/Delete)
+      par un menu à 3 points réutilisable.
+
+      Actions du menu : Voir détails, Modifier, Supprimer.
+      Point de sortie commun : création du composant partagé `RowActionsMenu`.
+
+      Fichiers modifiés :
+      - frontend/src/components/shared/RowActionsMenu.tsx
+      - frontend/src/components/shared/index.ts
+      - frontend/src/i18n/locales/fr.json
+      - frontend/src/pages/applications/ApplicationsListPage.tsx
+      - frontend/src/pages/business-capabilities/BusinessCapabilitiesPage.tsx
+      - frontend/src/pages/it-components/ITComponentListPage.tsx
+      - frontend/src/pages/providers/ProvidersListPage.tsx
+      - frontend/src/pages/domains/DomainsListPage.tsx
+      - frontend/src/pages/data-objects/DataObjectListPage.tsx
+
+      Validation : `npm run build` (frontend) validé.
+      Commit de clôture : 2b0571b.
