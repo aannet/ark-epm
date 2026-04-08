@@ -230,6 +230,286 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /business-capabilities:
+    get:
+      summary: Liste de toutes les business capabilities (flat, paginé)
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, createdAt, level], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle sur le nom
+        - name: domainId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filtrer par domaine
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BusinessCapabilityListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer une business capability
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBusinessCapabilityDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessCapabilityResponse'
+        '400':
+          description: Validation échouée (nom vide, parentId inexistant)
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '409':
+          description: Nom déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /business-capabilities/tree:
+    get:
+      summary: Arbre hiérarchique complet (WITH RECURSIVE)
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Arbre hiérarchique complet en structure nested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    description: Liste des racines (parentId = null)
+                    items:
+                      $ref: '#/components/schemas/BusinessCapabilityTreeNode'
+        '401':
+          description: Non authentifié
+
+  /business-capabilities/{id}:
+    get:
+      summary: Détail d'une business capability
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessCapabilityResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Business capability introuvable
+
+    patch:
+      summary: Modifier une business capability (inclut reparenting)
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBusinessCapabilityDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessCapabilityResponse'
+        '400':
+          description: Validation échouée (circular reference, parentId inexistant)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Business capability introuvable
+        '409':
+          description: Nom déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Supprimer une business capability
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Business capability supprimée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Business capability introuvable
+        '409':
+          description: Business capability utilisée (enfants ou applications liées)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code: { type: string, example: "DEPENDENCY_CONFLICT" }
+                  message: { type: string }
+                  details:
+                    type: object
+                    properties:
+                      applicationsCount: { type: integer }
+                      childrenCount: { type: integer }
+                  timestamp: { type: string, format: date-time }
+                  path: { type: string }
+
+  /business-capabilities/{id}/children:
+    get:
+      summary: Liste des enfants directs (pagination)
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BusinessCapabilityListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Business capability parent introuvable
+
+  /business-capabilities/{id}/applications:
+    get:
+      summary: Liste des applications liées à une capability
+      tags: [BusinessCapabilities]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Business capability introuvable
+
   /providers:
     get:
       summary: Liste de tous les providers
@@ -411,316 +691,316 @@ paths:
                   timestamp:  { type: string, format: date-time }
                   path:       { type: string }
 
-   /providers/{id}/applications:
-     get:
-       summary: Liste des applications liées à un provider
-       tags: [Providers]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: id
-           in: path
-           required: true
-           schema: { type: string, format: uuid }
-         - name: page
-           in: query
-           schema: { type: integer, default: 1 }
-         - name: limit
-           in: query
-           schema: { type: integer, default: 20 }
-       responses:
-         '200':
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   data:
-                     type: array
-                     items:
-                       $ref: '#/components/schemas/ApplicationListItem'
-                   meta:
-                     type: object
-                     properties:
-                       page: { type: integer }
-                       limit: { type: integer }
-                       total: { type: integer }
-                       totalPages: { type: integer }
-         '401':
-           description: Non authentifié
-         '404':
-           description: Provider introuvable
+  /providers/{id}/applications:
+    get:
+      summary: Liste des applications liées à un provider
+      tags: [Providers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Provider introuvable
 
-   /applications:
-     get:
-       summary: Liste paginée des applications
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: page
-           in: query
-           schema: { type: integer, default: 1 }
-         - name: limit
-           in: query
-           schema: { type: integer, default: 20 }
-         - name: sortBy
-           in: query
-           schema: { type: string, enum: [name, createdAt, domain, provider], default: name }
-         - name: sortOrder
-           in: query
-           schema: { type: string, enum: [asc, desc], default: asc }
-         - name: lifecycleStatus
-           in: query
-           schema: { type: string }
-         - name: tagValueIds
-           in: query
-           schema: { type: array, items: { type: string, format: uuid } }
-       responses:
-         '200':
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   data:
-                     type: array
-                     items:
-                       $ref: '#/components/schemas/ApplicationListItem'
-                   meta:
-                     type: object
-                     properties:
-                       page: { type: integer }
-                       limit: { type: integer }
-                       total: { type: integer }
-                       totalPages: { type: integer }
-         '401':
-           description: Non authentifié
+  /applications:
+    get:
+      summary: Liste paginée des applications
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, createdAt, domain, provider], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+        - name: lifecycleStatus
+          in: query
+          schema: { type: string }
+        - name: tagValueIds
+          in: query
+          schema: { type: array, items: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApplicationListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
 
-     post:
-       summary: Créer une application
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       requestBody:
-         required: true
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/CreateApplicationDto'
-       responses:
-         '201':
-           content:
-             application/json:
-               schema:
-                 $ref: '#/components/schemas/ApplicationResponse'
-         '400':
-           description: Validation échouée
-         '401':
-           description: Non authentifié
-         '403':
-           description: Permission insuffisante
-         '404':
-           description: Domaine, Provider, ou Owner introuvable
-         '409':
-           description: Application name already in use
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   statusCode: { type: integer, example: 409 }
-                   code:       { type: string,  example: "CONFLICT" }
-                   message:    { type: string }
-                   timestamp:  { type: string, format: date-time }
-                   path:       { type: string }
+    post:
+      summary: Créer une application
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplicationDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Domaine, Provider, ou Owner introuvable
+        '409':
+          description: Application name already in use
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
 
-   /applications/{id}:
-     get:
-       summary: Détail d'une application
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: id
-           in: path
-           required: true
-           schema: { type: string, format: uuid }
-       responses:
-         '200':
-           content:
-             application/json:
-               schema:
-                 $ref: '#/components/schemas/ApplicationResponse'
-         '401':
-           description: Non authentifié
-         '404':
-           description: Application introuvable
+  /applications/{id}:
+    get:
+      summary: Détail d'une application
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Application introuvable
 
-     patch:
-       summary: Modifier une application
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: id
-           in: path
-           required: true
-           schema: { type: string, format: uuid }
-       requestBody:
-         required: true
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/UpdateApplicationDto'
-       responses:
-         '200':
-           content:
-             application/json:
-               schema:
-                 $ref: '#/components/schemas/ApplicationResponse'
-         '400':
-           description: Validation échouée
-         '401':
-           description: Non authentifié
-         '403':
-           description: Permission insuffisante
-         '404':
-           description: Application, Domaine, Provider, ou Owner introuvable
-         '409':
-           description: Application name already in use
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   statusCode: { type: integer, example: 409 }
-                   code:       { type: string,  example: "CONFLICT" }
-                   message:    { type: string }
-                   timestamp:  { type: string, format: date-time }
-                   path:       { type: string }
+    patch:
+      summary: Modifier une application
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApplicationDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Application, Domaine, Provider, ou Owner introuvable
+        '409':
+          description: Application name already in use
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "CONFLICT" }
+                  message:    { type: string }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
 
-     delete:
-       summary: Supprimer une application
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: id
-           in: path
-           required: true
-           schema: { type: string, format: uuid }
-       responses:
-         '204':
-           description: Application supprimée
-         '401':
-           description: Non authentifié
-         '403':
-           description: Permission insuffisante
-         '404':
-           description: Application introuvable
-         '409':
-           description: Application utilisée par des entités liées
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   statusCode: { type: integer, example: 409 }
-                   code:       { type: string,  example: "DEPENDENCY_CONFLICT" }
-                   message:    { type: string }
-                   details:
-                     type: object
-                     properties:
-                       providersCount: { type: integer }
-                       capabilitiesCount: { type: integer }
-                       dataObjectsCount: { type: integer }
-                       itComponentsCount: { type: integer }
-                       sourceInterfacesCount: { type: integer }
-                       targetInterfacesCount: { type: integer }
-                   timestamp:  { type: string, format: date-time }
-                   path:       { type: string }
+    delete:
+      summary: Supprimer une application
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Application supprimée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Application introuvable
+        '409':
+          description: Application utilisée par des entités liées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: { type: integer, example: 409 }
+                  code:       { type: string,  example: "DEPENDENCY_CONFLICT" }
+                  message:    { type: string }
+                  details:
+                    type: object
+                    properties:
+                      providersCount: { type: integer }
+                      capabilitiesCount: { type: integer }
+                      dataObjectsCount: { type: integer }
+                      itComponentsCount: { type: integer }
+                      sourceInterfacesCount: { type: integer }
+                      targetInterfacesCount: { type: integer }
+                  timestamp:  { type: string, format: date-time }
+                  path:       { type: string }
 
-   /applications/{id}/dependencies:
-     get:
-       summary: Vérifier les dépendances d'une application
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: id
-           in: path
-           required: true
-           schema: { type: string, format: uuid }
-       responses:
-         '200':
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   hasDependencies: { type: boolean }
-                   counts:
-                     type: object
-                     properties:
-                       providers: { type: integer }
-                       capabilities: { type: integer }
-                       dataObjects: { type: integer }
-                       itComponents: { type: integer }
-                       sourceInterfaces: { type: integer }
-                       targetInterfaces: { type: integer }
-         '401':
-           description: Non authentifié
-         '404':
-           description: Application introuvable
+  /applications/{id}/dependencies:
+    get:
+      summary: Vérifier les dépendances d'une application
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasDependencies: { type: boolean }
+                  counts:
+                    type: object
+                    properties:
+                      providers: { type: integer }
+                      capabilities: { type: integer }
+                      dataObjects: { type: integer }
+                      itComponents: { type: integer }
+                      sourceInterfaces: { type: integer }
+                      targetInterfaces: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Application introuvable
 
-   /applications/{id}/it-components:
-     get:
-       summary: Liste paginée des composants IT liés à une application
-       tags: [Applications]
-       security:
-         - bearerAuth: []
-       parameters:
-         - name: id
-           in: path
-           required: true
-           schema: { type: string, format: uuid }
-         - name: page
-           in: query
-           schema: { type: integer, default: 1 }
-         - name: limit
-           in: query
-           schema: { type: integer, default: 20 }
-         - name: sortBy
-           in: query
-           schema: { type: string, enum: [name, createdAt, type, technology], default: name }
-         - name: sortOrder
-           in: query
-           schema: { type: string, enum: [asc, desc], default: asc }
-       responses:
-         '200':
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   data:
-                     type: array
-                     items:
-                       $ref: '#/components/schemas/ItComponentResponse'
-                   meta:
-                     type: object
-                     properties:
-                       page: { type: integer }
-                       limit: { type: integer }
-                       total: { type: integer }
-                       totalPages: { type: integer }
-         '401':
-           description: Non authentifié
-         '404':
-           description: Application introuvable
+  /applications/{id}/it-components:
+    get:
+      summary: Liste paginée des composants IT liés à une application
+      tags: [Applications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, createdAt, type, technology], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItComponentResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+        '404':
+          description: Application introuvable
 
-   /it-components:
+  /it-components:
     get:
       summary: Liste de tous les IT Components
       tags: [IT Components]
@@ -1386,6 +1666,159 @@ paths:
 components:
   schemas:
 
+    BusinessCapabilityListItem:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        level:       { type: integer, example: 2, description: "Profondeur dans l'arbre (auto-calculé)" }
+        domain:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], nullable: true }
+        technicalFit: { type: string, enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY], nullable: true }
+        createdAt:   { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applicationMappings: { type: integer, example: 3 }
+            children: { type: integer, example: 2 }
+
+    BusinessCapabilityResponse:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        description: { type: string, nullable: true }
+        comment:     { type: string, nullable: true }
+        level:       { type: integer, example: 2, description: "Profondeur dans l'arbre" }
+        parentId:    { type: string, format: uuid, nullable: true }
+        parent:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        domainId:    { type: string, format: uuid, nullable: true }
+        domain:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], nullable: true }
+        technicalFit: { type: string, enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY], nullable: true }
+        createdAt:   { type: string, format: date-time }
+        updatedAt:   { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applicationMappings: { type: integer, example: 3 }
+            children: { type: integer, example: 2 }
+        tags:
+          type: array
+          description: Tous les entity_tags sans filtrage
+          items:
+            $ref: '#/components/schemas/EntityTagResponse'
+
+    BusinessCapabilityTreeNode:
+      type: object
+      description: Nœud de l'arbre hiérarchique (structure récursive nested)
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        level:       { type: integer, example: 2 }
+        domain:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], nullable: true }
+        technicalFit: { type: string, enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY], nullable: true }
+        _count:
+          type: object
+          properties:
+            applicationMappings: { type: integer, example: 3 }
+            children: { type: integer, example: 2 }
+        children:
+          type: array
+          description: Liste récursive des enfants (même structure TreeNode)
+          items:
+            $ref: '#/components/schemas/BusinessCapabilityTreeNode'
+
+    CreateBusinessCapabilityDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Financial Planning"
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "ID de la capability parent (null = racine)"
+        domainId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Domaine optionnel"
+        criticality:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          nullable: true
+        technicalFit:
+          type: string
+          enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY]
+          nullable: true
+
+    UpdateBusinessCapabilityDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        comment:
+          type: string
+          nullable: true
+          maxLength: 2000
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Reparenting possible (null = devenir racine)"
+        domainId:
+          type: string
+          format: uuid
+          nullable: true
+        criticality:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          nullable: true
+        technicalFit:
+          type: string
+          enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY]
+          nullable: true
+
     ITComponentListItem:
       type: object
       properties:
@@ -1470,10 +1903,10 @@ components:
           type: string
           nullable: true
           maxLength: 255
-         type:
-           type: string
-           nullable: true
-           maxLength: 100
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
 
       ApplicationListItem:
         type: object
@@ -1519,172 +1952,172 @@ components:
             items:
               $ref: '#/components/schemas/TagValueResponse'
 
-     ApplicationResponse:
-       type: object
-       properties:
-         id: { type: string, format: uuid }
-         name: { type: string }
-         description: { type: string, nullable: true }
-         comment: { type: string, nullable: true }
-         domain:
-           type: object
-           nullable: true
-           properties:
-             id: { type: string, format: uuid }
-             name: { type: string }
-         providers:
-           type: array
-           description: Liste des providers associés avec leurs rôles
-           items:
-             type: object
-             properties:
-               id: { type: string, format: uuid }
-               name: { type: string }
-               role: { type: string, nullable: true }
-         itComponents:
-           type: array
-           description: Liste des composants IT liés à cette application
-           items:
-             type: object
-             properties:
-               id: { type: string, format: uuid }
-               name: { type: string }
-         owner:
-           type: object
-           nullable: true
-           properties:
-             id: { type: string, format: uuid }
-             firstName: { type: string }
-             lastName: { type: string }
-             email: { type: string }
-         criticality: { type: string, nullable: true, enum: [low, medium, high, mission-critical] }
-         lifecycleStatus: { type: string, nullable: true }
-         createdAt: { type: string, format: date-time }
-         updatedAt: { type: string, format: date-time }
-         tags:
-           type: array
-           items:
-             $ref: '#/components/schemas/TagValueResponse'
+    ApplicationResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        comment: { type: string, nullable: true }
+        domain:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+        providers:
+          type: array
+          description: Liste des providers associés avec leurs rôles
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              role: { type: string, nullable: true }
+        itComponents:
+          type: array
+          description: Liste des composants IT liés à cette application
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+        owner:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            firstName: { type: string }
+            lastName: { type: string }
+            email: { type: string }
+        criticality: { type: string, nullable: true, enum: [low, medium, high, mission-critical] }
+        lifecycleStatus: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
 
-     CreateApplicationDto:
-       type: object
-       required: [name]
-       properties:
-         name:
-           type: string
-           minLength: 1
-           maxLength: 255
-         description:
-           type: string
-           nullable: true
-         comment:
-           type: string
-           nullable: true
-         domainId:
-           type: string
-           format: uuid
-           nullable: true
-         providers:
-           type: array
-           nullable: true
-           description: Liste des providers avec leurs rôles respectifs
-           items:
-             type: object
-             required: [id]
-             properties:
-               id: { type: string, format: uuid }
-               role: { type: string, nullable: true }
-         itComponents:
-           type: array
-           nullable: true
-           description: Liste des composants IT liés à cette application
-           items:
-             type: object
-             required: [id]
-             properties:
-               id: { type: string, format: uuid }
-         ownerId:
-           type: string
-           format: uuid
-           nullable: true
-         criticality:
-           type: string
-           nullable: true
-           enum: [low, medium, high, mission-critical]
-         lifecycleStatus:
-           type: string
-           nullable: true
+    CreateApplicationDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        domainId:
+          type: string
+          format: uuid
+          nullable: true
+        providers:
+          type: array
+          nullable: true
+          description: Liste des providers avec leurs rôles respectifs
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string, format: uuid }
+              role: { type: string, nullable: true }
+        itComponents:
+          type: array
+          nullable: true
+          description: Liste des composants IT liés à cette application
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string, format: uuid }
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        criticality:
+          type: string
+          nullable: true
+          enum: [low, medium, high, mission-critical]
+        lifecycleStatus:
+          type: string
+          nullable: true
 
-     UpdateApplicationDto:
-       type: object
-       properties:
-         name:
-           type: string
-           minLength: 1
-           maxLength: 255
-         description:
-           type: string
-           nullable: true
-         comment:
-           type: string
-           nullable: true
-         domainId:
-           type: string
-           format: uuid
-           nullable: true
-         providers:
-           type: array
-           nullable: true
-           description: Liste des providers avec leurs rôles respectifs (remplace la liste précédente)
-           items:
-             type: object
-             required: [id]
-             properties:
-               id: { type: string, format: uuid }
-               role: { type: string, nullable: true }
-         itComponents:
-           type: array
-           nullable: true
-           description: Liste des composants IT liés à cette application (remplace la liste précédente)
-           items:
-             type: object
-             required: [id]
-             properties:
-               id: { type: string, format: uuid }
-         ownerId:
-           type: string
-           format: uuid
-           nullable: true
-         criticality:
-           type: string
-           nullable: true
-           enum: [low, medium, high, mission-critical]
-         lifecycleStatus:
-           type: string
-           nullable: true
+    UpdateApplicationDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        domainId:
+          type: string
+          format: uuid
+          nullable: true
+        providers:
+          type: array
+          nullable: true
+          description: Liste des providers avec leurs rôles respectifs (remplace la liste précédente)
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string, format: uuid }
+              role: { type: string, nullable: true }
+        itComponents:
+          type: array
+          nullable: true
+          description: Liste des composants IT liés à cette application (remplace la liste précédente)
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string, format: uuid }
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
+        criticality:
+          type: string
+          nullable: true
+          enum: [low, medium, high, mission-critical]
+        lifecycleStatus:
+          type: string
+          nullable: true
 
-     ItComponentResponse:
-       type: object
-       description: Composant IT retourné par GET /applications/{id}/it-components
-       properties:
-         id: { type: string, format: uuid }
-         name: { type: string }
-         description: { type: string, nullable: true }
-         comment: { type: string, nullable: true }
-         technology: { type: string, nullable: true }
-         type: { type: string, nullable: true }
-         createdAt: { type: string, format: date-time }
-         updatedAt: { type: string, format: date-time }
-         _count:
-           type: object
-           properties:
-             applications: { type: integer, description: "Nombre d'applications liées" }
-         tags:
-           type: array
-           items:
-             $ref: '#/components/schemas/TagValueResponse'
+    ItComponentResponse:
+      type: object
+      description: Composant IT retourné par GET /applications/{id}/it-components
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        comment: { type: string, nullable: true }
+        technology: { type: string, nullable: true }
+        type: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        _count:
+          type: object
+          properties:
+            applications: { type: integer, description: "Nombre d'applications liées" }
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValueResponse'
 
-     TagValueResponse:
+    TagValueResponse:
       type: object
       properties:
         id:
