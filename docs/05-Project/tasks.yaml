@@ -204,6 +204,9 @@ tasks:
       - tool: OC
         id: "d01cbc"
         nom: "impl FS-07-BACK business capabilities"
+      - tool: OC
+        id: "4babfd"
+        nom: "Gate G-17 — openapi.yaml BC endpoints + schemas"
     notes: |
       Spec FS-07-Business-Capabilities-back.md v1.0 stable.
       Hiérarchie récursive WITH RECURSIVE, level auto-calculé, hiérarchie illimitée, prévention circulaire,
@@ -219,6 +222,7 @@ tasks:
       - Seed 12 business capabilities (3 niveaux hiérarchiques)
       - Fix HttpExceptionFilter : propagation du champ 'details' dans les erreurs
       
+      Gate G-17 validée (2026-04-08) : openapi.yaml mis à jour avec 8 paths + 5 schemas BC.
       Gate T-007 (tests domains-dependencies) débloquée.
 
   - id: T-012
@@ -346,20 +350,36 @@ tasks:
       Gate : T-018 FS-07-FRONT v1.0 done + décision modèle lifecycle BC (champs dates/phases à définir).
 
   - id: T-018
-    nom: "Implémenter FS-07-FRONT — Business Capabilities frontend"
-    statut: open
+    nom: "Implémenter FS-07-FRONT phase 1 — Fondation + chips"
+    statut: done
     assigned_agent: front
     session_active: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-front-fs07-phase1.md"
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "FS-07"
     type: impl
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "e4a7f2"
+        nom: "fondation FS-07-FRONT (types, API, utils, chips)"
     notes: |
-      Implémentation frontend Business Capabilities.
-      8 composants (Tree, Matrix, Drawer, Form, CriticalityChip, TechnicalFitChip, AppLifecycleBreakdown, Breadcrumbs partagé).
-      3 vues (liste arborescente + toggle tree/matrix), 4 pages (List, New, Detail, Edit).
+      Phase 1 complète : fondation technique + 3 composants chips.
+      
+      Fichiers créés :
+      - Types : businessCapability.ts (CriticalityLevel, TechnicalFitLevel, BusinessCapability, TreeNode, FormValues, ApplicationMapping, ViewMode)
+      - API : businessCapabilities.ts (8 hooks React Query)
+      - Utils : businessCapability.utils.ts (sumApplications, isDescendant, buildHierarchyPath, flattenTree, getRootNodeIds)
+      - Composants : CriticalityChip, TechnicalFitChip, AppLifecycleBreakdown
+      - AppBreadcrumbs : déjà existant, conforme PNS-11
+      
+      Reste à faire (T-020) :
+      - 5 composants : Form, Drawer, Tree, Matrix + installer @mui/x-tree-view
+      - 4 pages : List, New, Detail, Edit
+      - Clés i18n section businessCapabilities
+      - Tests manuels checklist §12
+      
       Gates : T-016 spec stable + T-019 amendment backend done.
 
   - id: T-019
@@ -382,3 +402,65 @@ tasks:
       Migration SQL (CREATE TYPE + ALTER TABLE), Prisma model, DTOs (Create/Update/Response/ListItem/TreeNode),
       seed (12 capabilities alimentées avec valeurs réalistes), tests manuels validés.
       Gate T-018 (impl FS-07-FRONT) débloquée.
+
+  - id: T-020
+    nom: "Implémenter FS-07-FRONT phase 2 — Composants + pages + i18n"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      Phase 2 : compléter l'implémentation FS-07-FRONT (5 composants + 4 pages + i18n).
+      
+      Composants à créer (5) :
+      1. BusinessCapabilityForm (formulaire creation/edition avec validation + exclusion descendants)
+      2. BusinessCapabilityDrawer (PNS-02 read-only + breadcrumb hiérarchique + tabs Info/Applications)
+      3. BusinessCapabilityTree (MUI TreeView — installer @mui/x-tree-view si absent)
+      4. BusinessCapabilityMatrix (tuiles imbriquées colorées par criticality + sumApplications)
+      5. Util getCriticalityColor(theme) pour vue matrix
+      
+      Pages à créer (4) :
+      1. BusinessCapabilitiesPage (liste arborescente + toggle 3 vues + filtres + drawer)
+      2. BusinessCapabilityNewPage (création + breadcrumb PNS-11)
+      3. BusinessCapabilityDetailPage (détail read-only + breadcrumb PNS-11)
+      4. BusinessCapabilityEditPage (édition avec tabs Général/Relations/Audit + breadcrumb PNS-11)
+      
+      i18n :
+      - Ajouter section complète businessCapabilities dans fr.json (voir spec §6)
+      
+      Tests manuels :
+      - Checklist §12 spec FS-07-FRONT (30 items)
+      
+      Gates : T-018 phase 1 done (fondation + chips).
+      
+      Handoff ref : docs/05-Project/20260408/SESSION-HANDOFF-front-fs07-phase1.md
+
+  - id: T-021
+    nom: "Fix YAML indentation openapi.yaml — dette technique"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "F-999"
+    type: debt
+    feature: "OPENAPI"
+    sessions:
+      - tool: OC
+        id: "4babfd"
+        nom: "fix 457 lignes indentation impaire → paire"
+    notes: |
+      openapi.yaml avait 457 lignes avec indentation impaire (1, 3, 5, 7+ espaces)
+      au lieu de l'indentation standard 2-espaces YAML.
+      Python yaml.safe_load() rejetait le fichier entier.
+      
+      Correction : normalisation de toutes les lignes à indentation paire.
+      Paths affectés : /providers/{id}/applications, /applications, /applications/{id},
+      /applications/{id}/dependencies, /applications/{id}/it-components, /it-components.
+      
+      Commit : 4babfd7 (inclus avec Gate G-17 FS-07-BACK).
