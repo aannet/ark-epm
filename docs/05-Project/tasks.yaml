@@ -561,13 +561,16 @@ tasks:
     statut: done
     assigned_agent: back
     session_active: ~
-    handoff_ref: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-back-t025-fs06-bc.md"
     date_resolution: 2026-04-08
     sprint: S3
     theme: FS-07
     type: impl
     feature: FS-06-BACK
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b4ca76"
+        nom: "impl capabilityIds + validation build/e2e 21/21 + commit"
     notes: |
       Amendment FS-06-BACK pour implémenter la liaison Application ↔ BusinessCapability.
       La table app_capability_map et la relation Prisma existent déjà.
@@ -583,9 +586,9 @@ tasks:
 
   - id: T-026
     nom: "Amendment FS-06-FRONT — Sélecteur Business Capabilities dans Applications"
-    statut: open
+    statut: in_progress
     assigned_agent: front
-    session_active: ~
+    session_active: "9f2c1a"
     handoff_ref: ~
     date_resolution: ~
     sprint: S3
