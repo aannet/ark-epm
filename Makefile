@@ -61,6 +61,14 @@ db-generate:
 db-reset-id:
 	docker exec $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm -c "ALTER TABLE audit_trail ALTER COLUMN id SET DEFAULT gen_random_uuid();"
 
+db-reset-reseed:
+	@echo "⚠️  Resetting all business data (users/roles/permissions preserved)..."
+	docker exec $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm -c \
+		"TRUNCATE TABLE entity_tags, app_capability_map, app_data_object_map, app_it_component_map, app_provider_map, interfaces, applications, business_capabilities, data_objects, it_components, providers, domains, tag_values, tag_dimensions, audit_trail CASCADE;"
+	@echo "✅ Tables cleared. Running seeds..."
+	docker exec $(BACKEND_CONTAINER) npx ts-node prisma/seed-all.ts
+	@echo "✅ Reseed completed."
+
 get-token:
 	@./backend/scripts/get-token.sh
 

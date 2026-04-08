@@ -606,3 +606,50 @@ tasks:
       - ApplicationDetailPage : afficher BCs liées dans section Relations
       - fr.json : clés applications.relations.businessCapabilities.* + applications.form.businessCapabilitiesLabel
       - BusinessCapabilityEditPage.tsx:296 : remplacer string hardcodée par clé i18n
+
+  - id: T-027
+    nom: "Commande make db-reset-reseed + seed-all.ts orchestrateur"
+    statut: done
+    assigned_agent: data
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "F-999"
+    type: impl
+    feature: "SEED"
+    sessions:
+      - tool: CL
+        id: "f3a912"
+        nom: "make db-reset-reseed + seed-all.ts + fix app_provider_map"
+    notes: |
+      Makefile : cible db-reset-reseed — TRUNCATE CASCADE toutes tables métier
+      (entity_tags, app_capability_map, app_data_object_map, app_it_component_map,
+      app_provider_map, interfaces, applications, business_capabilities, data_objects,
+      it_components, providers, domains, tag_values, tag_dimensions, audit_trail)
+      puis relance seed-all.ts.
+      Tables préservées : users, roles, permissions, role_permissions, refresh_tokens.
+      backend/prisma/seed-all.ts : orchestrateur 6 seeds dans l'ordre.
+      backend/package.json : prisma.seed → seed-all.ts (était seed.ts seul).
+      Vérification : 10 domains + 25 applications + token OK.
+
+  - id: T-028
+    nom: "Fix GET /domains — réponse non paginée (page /domains vide)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "F-999"
+    type: bug
+    feature: "DOMAINS"
+    sessions:
+      - tool: CL
+        id: "f3a912"
+        nom: "fix domains.service.ts findAll pagination"
+    notes: |
+      Page /domains vide malgré 10 domaines en base.
+      Root cause : DomainsService.findAll() retournait Domain[] brut,
+      le frontend attend { data: Domain[], meta: { page, limit, total, totalPages } }.
+      Fix : QueryDomainsDto créé, findAll() mis à jour avec count+skip+take+meta,
+      controller @Query() ajouté.
+      Fichiers : dto/query-domains.dto.ts (créé), domains.service.ts, domains.controller.ts.
