@@ -62,7 +62,7 @@ test.describe('Applications Pagination and Filters API', () => {
       domainId: domain.id,
     });
 
-    const response = await auth.request.get('applications?sortBy=name&sortOrder=asc');
+    const response = await auth.request.get('applications?sortBy=name&sortOrder=asc&limit=100');
     const result = await expectSuccess<PaginatedResponse<ApplicationResponse>>(response, 200);
 
     const appNames = result.data.map((app: ApplicationResponse) => app.name);

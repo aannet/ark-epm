@@ -32,10 +32,11 @@ tasks:
 
   - id: T-004
     nom: "Bug — Tri par nom non fonctionnel sur GET /applications"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-back-t004-recette-fs07.md"
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "FS-06"
     type: bug
@@ -44,11 +45,18 @@ tasks:
       - tool: CL
         id: "qa-ses"
         nom: "audit tests data-objects"
+      - tool: OC
+        id: "1dde61"
+        nom: "fix sortBy=name test limit in Playwright"
     notes: |
       Détecté lors de la session QA Data Objects (2026-04-07).
       Test Playwright : tests/applications/applications-pagination.api.spec.ts:50.
       GET /applications?sortBy=name&sortOrder=asc — réponse 200 mais ordre non respecté.
       À corriger par agent back (ApplicationsService.findAll — clause orderBy).
+      Résolution (2026-04-08) : le tri backend est correct, le test ne forçait pas la pagination.
+      Root cause : `limit` implicite à 20, donc "Zebra App" pouvait être hors page 1.
+      Fix : ajout de `limit=100` dans `e2e/tests/applications/applications-pagination.api.spec.ts`.
+      Vérification : `playwright test --project=api-backend tests/applications/applications-pagination.api.spec.ts` → PASS (5) FAIL (0).
 
   - id: T-005
     nom: "Bug — Isolation données entre tests IT Components (DELETE 204/409)"
@@ -526,3 +534,24 @@ tasks:
       - Installation @mui/x-tree-view dans container Docker (npm install)
       - Restart container frontend
       - Fix 5 erreurs TypeScript préexistantes (T-022)
+
+  - id: T-024
+    nom: "Recette FS-07-FRONT — Business Capabilities frontend"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-back-t004-recette-fs07.md"
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: review
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      Phase de recette de l'implémentation frontend Business Capabilities (T-018, T-020).
+      Valider la checklist §12 de la spec FS-07-BACK (synthèse : 3 vues, PNS-11, toggle/view switching,
+      expand/collapse, drawer PNS-02, CriticalityChip + TechnicalFitChip, agrégation récursive,
+      erreurs 400 CIRCULAR_REFERENCE / 409 DEPENDENCY_CONFLICT).
+
+      Gates considérées : FS-07-FRONT implémentée (T-020) + APIs FS-07-BACK et amendements (T-019).
+      Lié à la livraison : T-024.
