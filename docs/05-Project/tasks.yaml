@@ -302,15 +302,19 @@ tasks:
 
   - id: T-015
     nom: "Tests UI Playwright — Business Capabilities frontend"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260409/SESSION-HANDOFF-qa-t015-playwright-fs07.md"
+    date_resolution: "2026-04-09"
     sprint: S3
     theme: "FS-07"
     type: test
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "7d2b4c"
+        nom: "playwright ui fs-07 + stabilisation env local"
     notes: |
       Tests UI Playwright pour l'écran Business Capabilities (arbre hiérarchique, CRUD UI).
       Gate : FS-07-BACK done (T-011) ✅ + FS-07-FRONT implémenté (T-020) ✅.
@@ -537,16 +541,19 @@ tasks:
 
   - id: T-024
     nom: "Recette FS-07-FRONT — Business Capabilities frontend"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
-    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-back-t004-recette-fs07.md"
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-qa-t024-recette-fs07.md"
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "FS-07"
     type: review
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "f8a3d1"
+        nom: "recette statique fs-07 + hotfix conformité"
     notes: |
       Phase de recette de l'implémentation frontend Business Capabilities (T-018, T-020).
       Valider la checklist §12 de la spec FS-07-BACK (synthèse : 3 vues, PNS-11, toggle/view switching,
@@ -690,3 +697,32 @@ tasks:
 
       Validation : `npm run build` (frontend) validé.
       Commit de clôture : 2b0571b.
+
+  - id: T-030
+    nom: "Recette FS-07-FRONT — correctifs conformité checklist §12"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "FS-07"
+    type: bug
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: OC
+        id: "f8a3d1"
+        nom: "recette QA + hotfix conformité FS-07"
+    notes: |
+      Défauts détectés pendant T-024 (recette checklist §12) et corrigés immédiatement :
+      - Expand/collapse liste arborescente : enfants non masqués (filtre hiérarchique inactif)
+      - Tri criticality : valeurs nulles placées en premier (au lieu de nulls last)
+      - Strings en dur dans composants/pages FS-07 (i18n non conforme)
+
+      Correctifs appliqués :
+      - flattenTree() enrichi avec parentId/parent pour supporter le filtrage hiérarchique
+      - BusinessCapabilitiesPage : masquage réel des descendants repliés + tri criticality nulls-last
+      - Remplacement des textes hardcodés par clés i18n dans Drawer/Matrix/Detail/Edit/List
+      - fr.json : ajout des clés businessCapabilities.common.*, matrix.*, drawer.close/moreApplications,
+        detail.noDomain/rootCapability/subtitle, form.relatedApplicationsCount/applicationsRelationHint
+
+      Vérification : `rtk npm run build` (frontend) OK.

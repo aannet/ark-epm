@@ -254,7 +254,9 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
               {t('businessCapabilities.form.sections.applications')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {capability._count.applicationMappings} application(s) liée(s)
+              {t('businessCapabilities.form.relatedApplicationsCount', {
+                count: capability._count.applicationMappings,
+              })}
             </Typography>
 
             {applications.length > 0 ? (
@@ -281,19 +283,19 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
                             {app.name}
                           </Link>
                         </TableCell>
-                        <TableCell>{app.domain?.name || '—'}</TableCell>
+                        <TableCell>{app.domain?.name || t('businessCapabilities.detail.noValue')}</TableCell>
                         <TableCell>
                           {app.owner
                             ? `${app.owner.firstName} ${app.owner.lastName}`
-                            : '—'}
+                            : t('businessCapabilities.detail.noValue')}
                         </TableCell>
-                        <TableCell>{app.criticality || '—'}</TableCell>
+                        <TableCell>{app.criticality || t('businessCapabilities.detail.noValue')}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  La liaison avec les applications se fait depuis la page Application.
+                  {t('businessCapabilities.form.applicationsRelationHint')}
                 </Typography>
               </>
             ) : (

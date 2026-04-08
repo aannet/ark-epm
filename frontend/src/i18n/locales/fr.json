@@ -550,9 +550,12 @@
       },
       "detail": {
         "noValue": "—",
+        "noDomain": "Sans domaine",
         "tags": "Tags",
         "editButton": "Modifier",
         "backButton": "Retour",
+        "rootCapability": "Capacité racine",
+        "subtitle": "Niveau {{level}} · {{domain}}",
         "breadcrumb": {
           "home": "Accueil",
           "list": "Business Capabilities"
@@ -585,6 +588,8 @@
           "hierarchy": "Hiérarchie",
           "applications": "Applications liées"
         },
+        "relatedApplicationsCount": "{{count}} application(s) liée(s)",
+        "applicationsRelationHint": "La liaison avec les applications se fait depuis la page Application.",
         "audit": {
           "placeholder": {
             "title": "Historique des modifications",
@@ -618,8 +623,18 @@
         "hierarchy": "Hiérarchie",
         "applicationFootprint": "Empreinte applicative",
         "applicationsByLifecycle": "Répartition par cycle de vie",
+        "close": "Fermer",
+        "moreApplications": "+{{count}} autres applications",
         "editButton": "Modifier",
         "viewFullButton": "Voir la fiche complète"
+      },
+      "common": {
+        "levelWithValue": "Niveau {{level}}",
+        "levelAndApplications": "Niveau {{level}} - {{count}} application(s)"
+      },
+      "matrix": {
+        "criticalityLabel": "Criticité",
+        "applicationsChip": "{{count}} apps"
       },
       "delete": {
         "confirmTitle": "Supprimer la capacité",

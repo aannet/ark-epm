@@ -155,6 +155,8 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
   const getVisibleRows = () => {
     if (!flatList.length) return [];
 
+    const rowById = new Map(flatList.map((row) => [row.id, row]));
+
     // Sort
     const sorted = [...flatList].sort((a, b) => {
       let comparison = 0;
@@ -167,22 +169,32 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
           break;
         case 'criticality':
           const order = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-          const aIndex = a.criticality ? order.indexOf(a.criticality) : -1;
-          const bIndex = b.criticality ? order.indexOf(b.criticality) : -1;
-          comparison = aIndex - bIndex;
+          if (!a.criticality && !b.criticality) {
+            comparison = 0;
+          } else if (!a.criticality) {
+            comparison = 1;
+          } else if (!b.criticality) {
+            comparison = -1;
+          } else {
+            const aIndex = order.indexOf(a.criticality);
+            const bIndex = order.indexOf(b.criticality);
+            comparison = aIndex - bIndex;
+          }
           break;
       }
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
-    // For hierarchical view, we need to filter based on expanded state
-    // This requires knowing the parent chain
+    // For hierarchical view, filter rows with collapsed ancestors.
     return sorted.filter((row) => {
       if (row.level === 0) return true;
 
-      // Find if all ancestors are expanded
-      // Since we're working with a flat list, we need to check parentId chain
-      // For simplicity, show all rows in sorted order (the expand/collapse is visual only with indentation)
+      let currentParentId = row.parentId;
+      while (currentParentId) {
+        if (!expanded.has(currentParentId)) return false;
+        currentParentId = rowById.get(currentParentId)?.parentId ?? null;
+      }
+
       return true;
     });
   };
@@ -423,9 +435,13 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                         </Box>
                       </TableCell>
                       <TableCell>L{row.level}</TableCell>
-                      <TableCell>{row.domain?.name || '—'}</TableCell>
+                       <TableCell>{row.domain?.name || t('businessCapabilities.detail.noValue')}</TableCell>
                       <TableCell>
-                        {row.criticality ? <CriticalityChip level={row.criticality} /> : '—'}
+                         {row.criticality ? (
+                           <CriticalityChip level={row.criticality} />
+                         ) : (
+                           t('businessCapabilities.detail.noValue')
+                         )}
                       </TableCell>
                       <TableCell>
                         <Chip

@@ -102,13 +102,13 @@ export default function BusinessCapabilityDrawer({
             </Typography>
             {!isLoading && capability && (
               <Typography variant="caption" color="text.secondary">
-                Niveau {capability.level}
+                {t('businessCapabilities.common.levelWithValue', { level: capability.level })}
               </Typography>
             )}
           </Box>
           <IconButton
             onClick={handleClose}
-            aria-label="Fermer"
+            aria-label={t('businessCapabilities.drawer.close')}
             size="small"
             sx={{ color: 'text.secondary' }}
           >
@@ -294,14 +294,16 @@ export default function BusinessCapabilityDrawer({
                                   {app.name}
                                 </Link>
                               </TableCell>
-                              <TableCell>{app.domain?.name || '—'}</TableCell>
+                              <TableCell>{app.domain?.name || t('businessCapabilities.detail.noValue')}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
                       </Table>
                       {applications.length > 5 && (
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                          +{applications.length - 5} autres applications
+                          {t('businessCapabilities.drawer.moreApplications', {
+                            count: applications.length - 5,
+                          })}
                         </Typography>
                       )}
                     </>

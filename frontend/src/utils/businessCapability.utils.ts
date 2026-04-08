@@ -93,15 +93,18 @@ export function buildHierarchyPath(
  * @returns Liste plate avec chaque nœud et ses métadonnées
  */
 export function flattenTree(tree: BusinessCapabilityTreeNode[]): BusinessCapabilityListItem[] {
-  function flatten(nodes: BusinessCapabilityTreeNode[]): BusinessCapabilityListItem[] {
+  function flatten(
+    nodes: BusinessCapabilityTreeNode[],
+    parent: { id: string; name: string } | null = null
+  ): BusinessCapabilityListItem[] {
     return nodes.reduce<BusinessCapabilityListItem[]>((acc, node) => {
       const item: BusinessCapabilityListItem = {
         id: node.id,
         name: node.name,
         description: null,
         level: node.level,
-        parentId: null,
-        parent: null,
+        parentId: parent?.id ?? null,
+        parent,
         domainId: node.domainId,
         domain: node.domain,
         criticality: node.criticality,
@@ -111,7 +114,7 @@ export function flattenTree(tree: BusinessCapabilityTreeNode[]): BusinessCapabil
         tags: [],
       };
       
-      return [...acc, item, ...flatten(node.children)];
+      return [...acc, item, ...flatten(node.children, { id: node.id, name: node.name })];
     }, []);
   }
 

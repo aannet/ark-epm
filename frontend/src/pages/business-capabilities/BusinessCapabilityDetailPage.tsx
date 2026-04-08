@@ -87,7 +87,10 @@ export default function BusinessCapabilityDetailPage(): JSX.Element {
 
       <PageHeader
         title={capability.name}
-        subtitle={`Niveau ${capability.level} · ${capability.domain?.name || 'Sans domaine'}`}
+        subtitle={t('businessCapabilities.detail.subtitle', {
+          level: capability.level,
+          domain: capability.domain?.name || t('businessCapabilities.detail.noDomain'),
+        })}
         action={
           canWrite
             ? {
@@ -147,7 +150,7 @@ export default function BusinessCapabilityDetailPage(): JSX.Element {
               {capability.parent.name}
             </Link>
           ) : (
-            <Typography variant="body1">Capacité racine</Typography>
+            <Typography variant="body1">{t('businessCapabilities.detail.rootCapability')}</Typography>
           )}
         </Box>
 

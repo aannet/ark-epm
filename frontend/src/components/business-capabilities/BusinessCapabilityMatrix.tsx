@@ -47,11 +47,14 @@ export default function BusinessCapabilityMatrix({
           {node.name}
         </Typography>
         <Typography variant="caption">
-          Niveau {node.level} - {totalApps} application(s)
+          {t('businessCapabilities.common.levelAndApplications', {
+            level: node.level,
+            count: totalApps,
+          })}
         </Typography>
         {node.criticality && (
           <Typography variant="caption" display="block">
-            Criticité: {t(`businessCapabilities.criticality.${node.criticality}`)}
+            {t('businessCapabilities.matrix.criticalityLabel')}: {t(`businessCapabilities.criticality.${node.criticality}`)}
           </Typography>
         )}
       </Box>
@@ -102,7 +105,7 @@ export default function BusinessCapabilityMatrix({
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: node.children.length > 0 ? 2 : 0 }}>
               <Chip
-                label={`${totalApps} apps`}
+                label={t('businessCapabilities.matrix.applicationsChip', { count: totalApps })}
                 size="small"
                 sx={{
                   backgroundColor: 'rgba(255,255,255,0.3)',

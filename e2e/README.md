@@ -206,6 +206,23 @@ docker-compose run playwright ls -la reports/
 ### Modification des tests sans rebuild
 Les tests dans `./e2e/tests/` sont montés en volume, les modifications sont immédiates.
 
+### Erreur `libnss3.so` ou `libnspr4.so` en exécution locale
+Si tu lances Playwright en local (hors Docker) et que Chromium échoue au démarrage avec
+une erreur de librairie partagée manquante, installe les dépendances système puis
+réinstalle le navigateur Playwright :
+
+```bash
+cd e2e
+sudo npx playwright install-deps chromium
+npx playwright install chromium
+```
+
+Cette étape est généralement inutile avec `make test-e2e` (mode Docker), car l'image
+Playwright embarque déjà ces dépendances.
+
+Note Ubuntu 24.04 : si tu installes manuellement les paquets, `libasound2` est renommé
+en `libasound2t64`.
+
 ## Documentation Playwright
 
 - [API Playwright](https://playwright.dev/docs/api/class-page)
