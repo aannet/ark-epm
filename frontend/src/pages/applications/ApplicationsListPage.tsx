@@ -10,13 +10,10 @@ import {
   TableRow,
   TablePagination,
   Paper,
-  IconButton,
   TableSortLabel,
   Link as MuiLink,
   Chip,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
@@ -24,6 +21,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { RowActionsMenu } from '@/components/shared';
 import StatusChip from '@/components/shared/StatusChip';
 import { TagChipList } from '@/components/tags';
 import { ApplicationFilters, ApplicationDrawer } from '@/components/applications';
@@ -433,22 +431,15 @@ export default function ApplicationsListPage(): JSX.Element {
                   <TableCell onClick={() => handleRowClick(application.id, 'created')}>
                     {new Date(application.createdAt).toLocaleDateString('fr-FR')}
                   </TableCell>
-                  {canWrite && (
-                    <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                      <IconButton
-                        aria-label={t('common.actions.edit')}
-                        onClick={() => navigate(`/applications/${application.id}/edit`)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={t('common.actions.delete')}
-                        onClick={() => handleDeleteClick(application)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  )}
+                   {canWrite && (
+                     <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                       <RowActionsMenu
+                         onView={() => navigate(`/applications/${application.id}`)}
+                         onEdit={() => navigate(`/applications/${application.id}/edit`)}
+                         onDelete={() => handleDeleteClick(application)}
+                       />
+                     </TableCell>
+                   )}
                 </TableRow>
               ))}
             </TableBody>

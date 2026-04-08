@@ -17,6 +17,7 @@
     "actions": {
       "add": "Ajouter",
       "edit": "Modifier",
+      "view": "Voir les d\u00e9tails",
       "delete": "Supprimer",
       "cancel": "Annuler",
       "confirm": "Confirmer",

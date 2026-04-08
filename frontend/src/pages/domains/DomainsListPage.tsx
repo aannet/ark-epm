@@ -10,15 +10,12 @@ import {
   TableRow,
   TablePagination,
   Paper,
-  IconButton,
   TableSortLabel,
   Link as MuiLink,
   TextField,
   InputAdornment,
   Box,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PageContainer from '@/components/layout/PageContainer';
@@ -29,6 +26,7 @@ import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
 import { TagChipList } from '@/components/tags';
 import { DomainDrawer } from '@/components/domains';
+import { RowActionsMenu } from '@/components/shared';
 import { useDomains, useDeleteDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { Domain } from '@/types/domain';
@@ -316,22 +314,15 @@ export default function DomainsListPage(): JSX.Element {
                     <TableCell>
                       {new Date(domain.createdAt).toLocaleDateString('fr-FR')}
                     </TableCell>
-                    {canWrite && (
-                      <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                        <IconButton
-                          aria-label={t('common.actions.edit')}
-                          onClick={() => navigate(`/domains/${domain.id}/edit`)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          aria-label={t('common.actions.delete')}
-                          onClick={() => handleDeleteClick(domain)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    )}
+                     {canWrite && (
+                       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                         <RowActionsMenu
+                           onView={() => navigate(`/domains/${domain.id}`)}
+                           onEdit={() => navigate(`/domains/${domain.id}/edit`)}
+                           onDelete={() => handleDeleteClick(domain)}
+                         />
+                       </TableCell>
+                     )}
                   </TableRow>
                 ))}
               </TableBody>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type MouseEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,8 +22,6 @@ import {
   Button,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -36,6 +34,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { RowActionsMenu } from '@/components/shared';
 import BusinessCapabilityDrawer from '@/components/business-capabilities/BusinessCapabilityDrawer';
 import BusinessCapabilityTree from '@/components/business-capabilities/BusinessCapabilityTree';
 import BusinessCapabilityMatrix from '@/components/business-capabilities/BusinessCapabilityMatrix';
@@ -397,7 +396,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                           {row._count.children > 0 && (
                             <IconButton
                               size="small"
-                              onClick={(e) => {
+                         onClick={(e: MouseEvent<HTMLElement>) => {
                                 e.stopPropagation();
                                 toggleExpand(row.id);
                               }}
@@ -433,28 +432,21 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                           label={row._count.applicationMappings}
                           size="small"
                           clickable
-                          onClick={(e) => {
+                         onClick={(e: MouseEvent<HTMLElement>) => {
                             e.stopPropagation();
                             setSelectedCapabilityId(row.id);
                           }}
                         />
                       </TableCell>
-                      {canWrite && (
-                        <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                          <IconButton
-                            aria-label={t('common.actions.edit')}
-                            onClick={() => navigate(`/business-capabilities/${row.id}/edit`)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            aria-label={t('common.actions.delete')}
-                            onClick={() => handleDeleteClick(row.id, row.name)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      )}
+                       {canWrite && (
+                         <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                           <RowActionsMenu
+                             onView={() => navigate(`/business-capabilities/${row.id}`)}
+                             onEdit={() => navigate(`/business-capabilities/${row.id}/edit`)}
+                             onDelete={() => handleDeleteClick(row.id, row.name)}
+                           />
+                         </TableCell>
+                       )}
                     </TableRow>
                   ))}
                 </TableBody>

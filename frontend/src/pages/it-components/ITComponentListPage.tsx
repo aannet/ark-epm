@@ -3,12 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, Paper, IconButton, TableSortLabel, Link as MuiLink,
+  TablePagination, Paper, TableSortLabel, Link as MuiLink,
   TextField, Box, FormControl, InputLabel, Select, MenuItem,
   InputAdornment,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PageContainer from '@/components/layout/PageContainer';
@@ -17,6 +15,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { RowActionsMenu } from '@/components/shared';
 import { TagChipList } from '@/components/tags';
 import ITComponentDrawer from '@/components/it-components/ITComponentDrawer';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -185,21 +184,17 @@ export default function ITComponentListPage(): JSX.Element {
                     </TableCell>
                     <TableCell>{item._count.applications}</TableCell>
                     {canWrite && (
-                      <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                        <IconButton
-                          aria-label={t('common.actions.edit')}
-                          onClick={() => navigate(`/it-components/${item.id}/edit`)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          aria-label={t('common.actions.delete')}
-                          onClick={() => { setDeleteDialog(item); setDeleteError(null); }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    )}
+                       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                         <RowActionsMenu
+                           onView={() => navigate(`/it-components/${item.id}`)}
+                           onEdit={() => navigate(`/it-components/${item.id}/edit`)}
+                           onDelete={() => {
+                             setDeleteDialog(item);
+                             setDeleteError(null);
+                           }}
+                         />
+                       </TableCell>
+                     )}
                   </TableRow>
                 ))}
               </TableBody>

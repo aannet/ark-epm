@@ -3,15 +3,12 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, Paper, IconButton, TableSortLabel, Link as MuiLink,
+  TablePagination, Paper, Link as MuiLink, TableSortLabel,
   TextField, MenuItem, Box, FormControl, InputLabel, Select,
-  InputAdornment, Chip, Menu,
+  InputAdornment, Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
@@ -25,6 +22,7 @@ import { getDataObjects, deleteDataObject, getDataObject } from '@/services/api/
 import { hasPermission } from '@/store/auth';
 import { DataObjectListItem } from '@/types/data-object';
 import { format409Message } from '@/utils/data-objects.utils';
+import { RowActionsMenu } from '@/components/shared';
 
 type SortField = 'name' | 'type' | 'isSourceOfTruth' | 'createdAt';
 
@@ -56,7 +54,6 @@ export default function DataObjectListPage(): JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; row: DataObjectListItem } | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<DataObjectListItem | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
@@ -241,12 +238,14 @@ export default function DataObjectListPage(): JSX.Element {
                     <TableCell>{item._count?.appDataObjectMaps ?? 0}</TableCell>
                     {canWrite && (
                       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => setMenuAnchor({ el: e.currentTarget, row: item })}
-                        >
-                          <MoreVertIcon />
-                        </IconButton>
+                        <RowActionsMenu
+                          onView={() => navigate(`/data-objects/${item.id}`)}
+                          onEdit={() => navigate(`/data-objects/${item.id}/edit`)}
+                          onDelete={() => {
+                            setDeleteDialog(item);
+                            setDeleteError(null);
+                          }}
+                        />
                       </TableCell>
                     )}
                   </TableRow>
@@ -267,22 +266,6 @@ export default function DataObjectListPage(): JSX.Element {
           />
         </>
       )}
-
-      {/* Actions dropdown menu */}
-      <Menu
-        anchorEl={menuAnchor?.el}
-        open={!!menuAnchor}
-        onClose={() => setMenuAnchor(null)}
-      >
-        <MenuItem onClick={() => { navigate(`/data-objects/${menuAnchor!.row.id}/edit`); setMenuAnchor(null); }}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('common.actions.edit')}
-        </MenuItem>
-        <MenuItem onClick={() => { setDeleteDialog(menuAnchor!.row); setDeleteError(null); setMenuAnchor(null); }}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('common.actions.delete')}
-        </MenuItem>
-      </Menu>
 
       {/* Confirm delete dialog */}
       <ConfirmDialog

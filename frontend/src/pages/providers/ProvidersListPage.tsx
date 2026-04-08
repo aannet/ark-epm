@@ -1,6 +1,5 @@
 import {
   Box,
-  IconButton,
   InputAdornment,
   Paper,
   Table,
@@ -13,7 +12,7 @@ import {
   TableSortLabel,
   TextField,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +25,7 @@ import { hasPermission } from '@/store/auth';
 import ExpiryDateBadge from '@/components/providers/ExpiryDateBadge';
 import ProvidersDrawer from '@/components/providers/ProvidersDrawer';
 import { format409Message } from '@/utils/provider.utils';
+import { RowActionsMenu } from '@/components/shared';
 
 type SortField = 'name' | 'createdAt' | 'expiryDate';
 type SortOrder = 'asc' | 'desc';
@@ -123,8 +123,7 @@ export default function ProvidersListPage() {
     navigate(`/providers/${id}`);
   };
 
-  const handleDeleteClick = (provider: Provider, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteClick = (provider: Provider) => {
     setDeleteDialog(provider);
   };
 
@@ -295,23 +294,12 @@ export default function ProvidersListPage() {
                     </TableCell>
                     <TableCell align="center">{provider._count.appProviderMaps}</TableCell>
                     {canWrite && (
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/providers/${provider.id}/edit`);
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleDeleteClick(provider, e)}
-                          color="error"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                      <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                        <RowActionsMenu
+                          onView={() => navigate(`/providers/${provider.id}`)}
+                          onEdit={() => navigate(`/providers/${provider.id}/edit`)}
+                          onDelete={() => handleDeleteClick(provider)}
+                        />
                       </TableCell>
                     )}
                   </TableRow>
