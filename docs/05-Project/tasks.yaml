@@ -291,7 +291,7 @@ tasks:
   - id: T-015
     nom: "Tests UI Playwright — Business Capabilities frontend"
     statut: blocked
-    assigned_agent: front
+    assigned_agent: qa
     session_active: ~
     date_resolution: ~
     sprint: S3
@@ -301,5 +301,84 @@ tasks:
     sessions: []
     notes: |
       Tests UI Playwright pour l'écran Business Capabilities (arbre hiérarchique, CRUD UI).
-      Gate : FS-07-BACK done (T-011) + FS-07-FRONT implémenté.
+      Gate : FS-07-BACK done (T-011) + FS-07-FRONT implémenté (T-018).
       Fixture createBusinessCapability() déjà disponible dans e2e/fixtures/test-data.fixture.ts.
+
+  - id: T-016
+    nom: "Spec FS-07-FRONT — Business Capabilities frontend"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "FS-07"
+    type: spec
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: CL
+        id: "6b4a8f"
+        nom: "rédaction spec FS-07-FRONT v1.0"
+    notes: |
+      Spec frontend Business Capabilities : 3 vues (liste arborescente, arbre MUI TreeView, matrix),
+      drawer read-only, formulaire avec criticality/technicalFit, agrégation récursive client-side.
+      US01-05, US06/07 révisées, US09, US10, US13, US16, US19.
+      Gate : T-019 amendment backend (criticality + technicalFit) done avant impl T-018.
+      
+      Spec v1.0 rédigée (1000+ lignes) : 13 sections, 8 composants, 7 règles métier frontend.
+      Amendment T-019 documenté dans FS-07-BACK v1.1 (Prisma + OpenAPI + migration SQL).
+      Décisions architecture : D-01 (enums scalaires), D-02 (MUI TreeView), D-03 (agrégation client-side),
+      D-04 (US06 reformulée), D-05 (AppBreadcrumbs PNS-11).
+
+  - id: T-017
+    nom: "Spec FS-07-FRONT Lifecycle tab — Business Capabilities P2"
+    statut: open
+    assigned_agent: spec
+    session_active: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-07"
+    type: spec
+    feature: "FS-07-FRONT-P2"
+    sessions: []
+    notes: |
+      Onglet Lifecycle sur le détail d'une Business Capability.
+      Visualisation de la trajectoire de modernisation dans le temps.
+      Gate : T-018 FS-07-FRONT v1.0 done + décision modèle lifecycle BC (champs dates/phases à définir).
+
+  - id: T-018
+    nom: "Implémenter FS-07-FRONT — Business Capabilities frontend"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      Implémentation frontend Business Capabilities.
+      8 composants (Tree, Matrix, Drawer, Form, CriticalityChip, TechnicalFitChip, AppLifecycleBreakdown, Breadcrumbs partagé).
+      3 vues (liste arborescente + toggle tree/matrix), 4 pages (List, New, Detail, Edit).
+      Gates : T-016 spec stable + T-019 amendment backend done.
+
+  - id: T-019
+    nom: "Amendment FS-07-BACK — champs criticality + technicalFit"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-BACK"
+    sessions:
+      - tool: OC
+        id: b87ec4
+        nom: "amendment backend criticality + technicalFit"
+    notes: |
+      Ajout 2 champs enum sur BusinessCapability : criticality (LOW/MEDIUM/HIGH/CRITICAL),
+      technicalFit (ADEQUATE/PARTIAL/INADEQUATE/LEGACY).
+      Migration SQL (CREATE TYPE + ALTER TABLE), Prisma model, DTOs (Create/Update/Response/ListItem/TreeNode),
+      seed (12 capabilities alimentées avec valeurs réalistes), tests manuels validés.
+      Gate T-018 (impl FS-07-FRONT) débloquée.

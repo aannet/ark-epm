@@ -79,6 +79,8 @@ model BusinessCapability {
   parentId            String?              @map("parent_id") @db.Uuid
   level               Int?                 @db.SmallInt
   domainId            String?              @map("domain_id") @db.Uuid
+  criticality         CriticalityLevel?
+  technicalFit        TechnicalFitLevel?   @map("technical_fit")
   createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
   applicationMappings AppCapabilityMap[]
@@ -88,6 +90,20 @@ model BusinessCapability {
 
   @@index([parentId], map: "idx_bus_cap_parent")
   @@map("business_capabilities")
+}
+
+enum CriticalityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TechnicalFitLevel {
+  ADEQUATE
+  PARTIAL
+  INADEQUATE
+  LEGACY
 }
 
 model Provider {

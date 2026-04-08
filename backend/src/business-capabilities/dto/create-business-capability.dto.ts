@@ -4,8 +4,10 @@ import {
   IsOptional,
   IsUUID,
   MaxLength,
+  IsEnum,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { CriticalityLevel, TechnicalFitLevel } from '@prisma/client';
 
 export class CreateBusinessCapabilityDto {
   @IsString()
@@ -33,4 +35,12 @@ export class CreateBusinessCapabilityDto {
   @IsUUID()
   @IsOptional()
   domainId?: string;
+
+  @IsEnum(CriticalityLevel)
+  @IsOptional()
+  criticality?: CriticalityLevel;
+
+  @IsEnum(TechnicalFitLevel)
+  @IsOptional()
+  technicalFit?: TechnicalFitLevel;
 }

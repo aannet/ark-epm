@@ -146,20 +146,20 @@ async function main() {
   // ─── Business Capabilities (hiérarchie 3 niveaux) ──────────────────────────
   const sampleCapabilities = [
     // Level 0 (roots)
-    { name: 'Strategy & Planning', level: 0, parentName: null, domainName: null, description: 'Capacités stratégiques de niveau 0' },
-    { name: 'Customer Engagement', level: 0, parentName: null, domainName: null, description: 'Capacités client de niveau 0' },
-    { name: 'Technology Management', level: 0, parentName: null, domainName: null, description: 'Capacités IT de niveau 0' },
+    { name: 'Strategy & Planning', level: 0, parentName: null, domainName: null, description: 'Capacités stratégiques de niveau 0', criticality: 'CRITICAL', technicalFit: 'ADEQUATE' },
+    { name: 'Customer Engagement', level: 0, parentName: null, domainName: null, description: 'Capacités client de niveau 0', criticality: 'HIGH', technicalFit: 'PARTIAL' },
+    { name: 'Technology Management', level: 0, parentName: null, domainName: null, description: 'Capacités IT de niveau 0', criticality: 'HIGH', technicalFit: 'ADEQUATE' },
     // Level 1
-    { name: 'Financial Planning', level: 1, parentName: 'Strategy & Planning', domainName: 'Finance', description: 'Planification financière annuelle' },
-    { name: 'Portfolio Management', level: 1, parentName: 'Strategy & Planning', domainName: 'IT', description: 'Gestion du portefeuille projets' },
-    { name: 'Sales Management', level: 1, parentName: 'Customer Engagement', domainName: 'Ventes', description: 'Gestion des ventes et commerciaux' },
-    { name: 'Customer Service', level: 1, parentName: 'Customer Engagement', domainName: 'Service Client', description: 'Service client et support' },
-    { name: 'Infrastructure Management', level: 1, parentName: 'Technology Management', domainName: 'IT', description: 'Gestion infrastructure on-premise et cloud' },
-    { name: 'Application Development', level: 1, parentName: 'Technology Management', domainName: 'IT', description: 'Développement et maintenance applicative' },
+    { name: 'Financial Planning', level: 1, parentName: 'Strategy & Planning', domainName: 'Finance', description: 'Planification financière annuelle', criticality: 'CRITICAL', technicalFit: 'PARTIAL' },
+    { name: 'Portfolio Management', level: 1, parentName: 'Strategy & Planning', domainName: 'IT', description: 'Gestion du portefeuille projets', criticality: 'HIGH', technicalFit: 'ADEQUATE' },
+    { name: 'Sales Management', level: 1, parentName: 'Customer Engagement', domainName: 'Ventes', description: 'Gestion des ventes et commerciaux', criticality: 'HIGH', technicalFit: 'INADEQUATE' },
+    { name: 'Customer Service', level: 1, parentName: 'Customer Engagement', domainName: 'Service Client', description: 'Service client et support', criticality: 'MEDIUM', technicalFit: 'PARTIAL' },
+    { name: 'Infrastructure Management', level: 1, parentName: 'Technology Management', domainName: 'IT', description: 'Gestion infrastructure on-premise et cloud', criticality: 'CRITICAL', technicalFit: 'LEGACY' },
+    { name: 'Application Development', level: 1, parentName: 'Technology Management', domainName: 'IT', description: 'Développement et maintenance applicative', criticality: 'HIGH', technicalFit: 'PARTIAL' },
     // Level 2
-    { name: 'Budget Management', level: 2, parentName: 'Financial Planning', domainName: 'Finance', description: 'Gestion des budgets opérationnels' },
-    { name: 'Revenue Forecasting', level: 2, parentName: 'Financial Planning', domainName: 'Finance', description: 'Prévisions de revenus' },
-    { name: 'Lead Generation', level: 2, parentName: 'Sales Management', domainName: 'Marketing', description: 'Génération de leads' },
+    { name: 'Budget Management', level: 2, parentName: 'Financial Planning', domainName: 'Finance', description: 'Gestion des budgets opérationnels', criticality: 'CRITICAL', technicalFit: 'ADEQUATE' },
+    { name: 'Revenue Forecasting', level: 2, parentName: 'Financial Planning', domainName: 'Finance', description: 'Prévisions de revenus', criticality: 'HIGH', technicalFit: 'INADEQUATE' },
+    { name: 'Lead Generation', level: 2, parentName: 'Sales Management', domainName: 'Marketing', description: 'Génération de leads', criticality: 'MEDIUM', technicalFit: 'LEGACY' },
   ];
 
   const getDomainId = async (name: string | null): Promise<string | null> => {
@@ -176,7 +176,7 @@ async function main() {
       const parentId = cap.parentName ? createdCapabilities[cap.parentName] ?? null : null;
       const domainId = await getDomainId(cap.domainName);
       await prisma.$executeRaw`
-        INSERT INTO business_capabilities (id, name, description, comment, parent_id, level, domain_id, created_at, updated_at)
+        INSERT INTO business_capabilities (id, name, description, comment, parent_id, level, domain_id, criticality, technical_fit, created_at, updated_at)
         VALUES (
           gen_random_uuid(),
           ${cap.name}::varchar,
@@ -185,6 +185,8 @@ async function main() {
           ${parentId}::uuid,
           ${cap.level}::smallint,
           ${domainId}::uuid,
+          ${cap.criticality}::"CriticalityLevel",
+          ${cap.technicalFit}::"TechnicalFitLevel",
           NOW(),
           NOW()
         )

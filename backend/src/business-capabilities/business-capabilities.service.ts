@@ -17,6 +17,8 @@ export interface BusinessCapabilityTreeNode {
   level: number | null;
   parentId: string | null;
   domainId: string | null;
+  criticality: string | null;
+  technicalFit: string | null;
   domain: { id: string; name: string } | null;
   _count: { applicationMappings: number; children: number };
   children: BusinessCapabilityTreeNode[];
@@ -147,7 +149,14 @@ export class BusinessCapabilitiesService {
 
   async findTree(): Promise<{ data: BusinessCapabilityTreeNode[] }> {
     const allCapabilities = await this.prisma.businessCapability.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
+        level: true,
+        parentId: true,
+        domainId: true,
+        criticality: true,
+        technicalFit: true,
         domain: { select: { id: true, name: true } },
         _count: { select: { children: true, applicationMappings: true } },
       },
@@ -273,6 +282,8 @@ export class BusinessCapabilitiesService {
           comment: dto.comment?.trim() || null,
           parentId: dto.parentId ?? null,
           domainId: dto.domainId ?? null,
+          criticality: dto.criticality ?? null,
+          technicalFit: dto.technicalFit ?? null,
           level,
           updatedAt: new Date(),
         },
@@ -336,6 +347,8 @@ export class BusinessCapabilitiesService {
           ...(dto.comment !== undefined && { comment: dto.comment?.trim() || null }),
           ...(isReparenting && { parentId: newParentId ?? null }),
           ...(dto.domainId !== undefined && { domainId: dto.domainId ?? null }),
+          ...(dto.criticality !== undefined && { criticality: dto.criticality ?? null }),
+          ...(dto.technicalFit !== undefined && { technicalFit: dto.technicalFit ?? null }),
           level: newLevel,
           updatedAt: new Date(),
         },
