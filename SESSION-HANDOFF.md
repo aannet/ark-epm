@@ -1,93 +1,186 @@
-# SESSION-HANDOFF.md — Sprint 3 · FS-07-BACK (Business Capabilities)
+# SESSION-HANDOFF.md — Sprint 3 · FS-07-FRONT (Business Capabilities Frontend)
 
-> 🤖 **AGENT ACTIF** : [spec] | **MISSION** : FS-07-BACK spec v1.0 stable + rollback max depth | **SPRINT** : FS-07-BACK ✅ `stable`
+> 🤖 **AGENT ACTIF** : [spec] | **MISSION** : FS-07-FRONT spec v1.0 stable + T-019 amendment backend doc | **SPRINT** : FS-07-FRONT ✅ `stable`
 
 ---
 
 ## Status Summary
 
-✅ **FS-07-BACK SPEC COMPLETE** — Backend specification v1.0 rédigée (1389 lignes → 1370 lignes après rollback, 13 sections). Hiérarchie récursive complète avec `level` auto-calculé, prévention circulaire, WITH RECURSIVE pour `/tree`. Statut = `stable`. Prêt pour session [back].
+✅ **FS-07-FRONT SPEC COMPLETE** — Frontend specification v1.0 rédigée (1000+ lignes, 13 sections). 3 vues (liste arborescente, arbre MUI TreeView, matrix), drawer read-only PNS-02, hiérarchie récursive, agrégation client-side, breadcrumb PNS-11. Statut = `stable` après gate T-019 done. Prêt pour session [front].
 
-✅ **ROLLBACK MAX DEPTH** — Conformité avec `ARK-Product-Brief` (hiérarchie illimitée). Règle RM-08 (max 5 niveaux) supprimée, renumérotation RM-09→RM-08 à RM-12→RM-11. **17 gates** (G-01 à G-17, G-17 = openapi.yaml).
+✅ **AMENDMENT T-019 DOCUMENTED** — FS-07-BACK v1.1 mis à jour : ajout des champs `criticality` (LOW/MEDIUM/HIGH/CRITICAL) et `technicalFit` (ADEQUATE/PARTIAL/INADEQUATE/LEGACY) dans Prisma model, OpenAPI DTOs (Create/Update/Response/ListItem/TreeNode), migration SQL. Gate bloquante pour T-018 impl frontend.
 
-🔧 **Previous Handoff Archived** — `SESSION-HANDOFF-FS05.md` → `docs/05-Project/20260404/`
+✅ **4 TÂCHES CRÉÉES** — T-016 (spec FS-07-FRONT, in_progress), T-017 (spec Lifecycle tab P2), T-018 (impl FS-07-FRONT), T-019 (amendment backend criticality+technicalFit).
 
-📋 **Tech Debt P1** — Items #12b (Users API), #13 (tags API), #14 (batch tags) restent ouverts — peuvent paralléliser avec FS-07-BACK implémentation.
+📋 **ANALYSE INCOHÉRENCES USER STORIES** — 7 incohérences identifiées et résolues (US06 reformulée → breakdown lifecycle, US09/10 → champs enum scalaires, US13 coloration matrix, US19 agrégation récursive client-side, US15/18 → P2).
 
 ---
 
-## FS-07-BACK Specification Summary
+## FS-07-FRONT Specification Summary
 
 ### Metadata
 
 | Field | Value |
 |---|---|
-| **File** | `docs/03-Features-Spec/FS-07-Business-Capabilities-back.md` |
+| **File** | `docs/03-Features-Spec/FS-07-Business-Capabilities-front.md` |
 | **Version** | 1.0 |
-| **Status** | ✅ `stable` (post-rollback max depth) |
-| **Template** | Backend v0.4 |
-| **Depends On** | FS-01 (`done`), **FS-06-BACK** (`done`), F-03 (`done`) |
-| **Created** | 5 April 2026 |
-| **Est. Implementation** | 1.5j (hiérarchie récursive, 8 endpoints) |
+| **Status** | ✅ `stable` (bloqué par T-019 amendment backend) |
+| **Template** | Frontend v0.1 |
+| **Depends On** | **FS-07-BACK** (`done`), **T-019** (amendment pending), FS-01, F-02, F-03 |
+| **Created** | 8 April 2026 |
+| **Est. Implementation** | 3j (3 vues + 4 pages + 8 composants) |
 
 ### Specification Structure (13 sections)
 
 | Section | Content | Status |
 |---|---|---|
-| **§1 Objective** | CRUD + hiérarchie + `/tree` + `/children` + `/applications` | ✅ |
-| **§2 Modèle BDD** | Migration NFR-GOV-005, Prisma self-relation, entityTags | ✅ |
-| **§3 OpenAPI** | 8 endpoints YAML (CRUD + tree + children + applications) | ✅ |
-| **§4 Règles Métier** | 11 RM (RM-07 level auto, RM-08 circular ref, etc.) | ✅ |
-| **§5 Cas d'Usage** | Nominaux + erreurs (409, 400 CIRCULAR_REFERENCE) | ✅ |
-| **§6 Structure** | Module NestJS pattern standard | ✅ |
-| **§7 Tests** | 20 Jest + 23 Supertest (max depth tests supprimés) | ✅ |
-| **§8 OpenCode Cmd** | Inline complet avec WITH RECURSIVE SQL | ✅ |
-| **§9 Gates** | **17 gates** (G-17 = openapi.yaml) | ✅ |
-| **§10 Checklist** | 20 items post-session | ✅ |
-| **§11 TD Review** | 6 gates + Items F-999 | ✅ |
-| **§12 Seed** | Arbre hiérarchique 12 capabilities / 3 niveaux | ✅ |
+| **§1 Objective** | 3 vues (liste/tree/matrix) + drawer + CRUD + hiérarchie | ✅ |
+| **§2 User Stories** | US01-05, US06/07 révisées, US09, US10, US13, US16, US19 | ✅ |
+| **§3 Référence API** | Pointer vers FS-07-BACK §3 + T-019 | ✅ |
+| **§4 Layout Contract** | 7 blocs (List, TreeView, Matrix, Drawer, New, Detail, Edit) | ✅ |
+| **§5 Composants** | 8 composants (Tree, Matrix, Drawer, Form, 2 Chips, LifecycleBreakdown, AppBreadcrumbs) | ✅ |
+| **§6 Clés i18n** | Section `businessCapabilities` complète | ✅ |
+| **§7 Règles métier** | RM-BC-01 à RM-BC-09 (indentation, expand/collapse, agrégation, coloration, exclusion descendants) | ✅ |
+| **§8 Câblage App.tsx** | Manuel (4 routes) | ✅ |
+| **§9 Gates** | T-019 amendment done requis | ✅ |
+| **§10 Tests Playwright** | Délégué à T-015 (agent QA) | ✅ |
+| **§11 Commande OpenCode** | Prompt complet avec patterns récursifs | ✅ |
+| **§12 Checklist** | 30 items validation frontend | ✅ |
+| **§13 TD Review** | Gates TD standard | ✅ |
 
-### Key Features vs Other Entities
+### Key Features vs Other Frontend Modules
 
-| Element | FS-03/04/05/06 | FS-07 Business Capabilities | Impact |
+| Element | FS-06-FRONT (Applications) | FS-07-FRONT (Business Capabilities) | Impact |
 |---|---|---|---|
-| Structure | Flat | **Hiérarchique** (`parent`/`children`) | Tree UI, recursive queries |
-| Endpoint | Standard CRUD | **+ `/tree`** (WITH RECURSIVE) | Full nested tree in 1 request |
-| Endpoint | Standard CRUD | **+ `/:id/children`** | Direct children pagination |
-| Field | — | **`level`** auto-calculé | Depth tracking, UI indentation |
-| Validation | Nom unique | **+ Circular reference check** | `400 CIRCULAR_REFERENCE` |
-| Suppression | Apps liées | **+ Children check** | 2 compteurs (`applications` + `children`) |
-| Seed | Flat list | **Hierarchical tree** (12 nodes, 3 levels) | Realistic test data |
+| Vues multiples | Liste unique | **3 vues** (liste arborescente + tree + matrix) + toggle | ToggleButtonGroup header |
+| Structure données | Flat | **Hiérarchique** (expand/collapse, indentation) | useState<Set<string>> expanded |
+| Agrégation | Compteur simple | **Récursive** (`sumApplications(node)`) | Utils client-side |
+| Composants spécialisés | — | **MUI TreeView** (vue arbre), **MatrixView** (tuiles imbriquées) | @mui/x-tree-view |
+| Breadcrumb | Absent (P1) | **PNS-11** (3 niveaux sur Detail/New/Edit) | AppBreadcrumbs partagé |
+| Chips status | Criticality | **Criticality + TechnicalFit** (2 enums) | 2 composants colorés |
 
 ---
 
 ## Architecture Decision Traced ⚠️
 
-### Rollback Max Depth 5 → Illimité
+### Décision D-01 : Champs criticality + technicalFit = scalaires enum (vs tags F-03)
 
 **Context:**
-- `ARK-Product-Brief.md` §Modélisation : "**Hiérarchie illimitée en base** — contrainte de 5 niveaux levée"
-- Spec FS-07-BACK originale (v1.0 draft) : RM-08 avec `400 MAX_DEPTH_EXCEEDED`
+- User Stories US09 (criticality) et US10 (technicalFit) nécessitent des champs exploitables pour calculs de scoring
+- Tags F-03 ne permettent pas les calculs de scoring métier
+- Les enums permettent la validation côté backend + typage strict frontend
 
 **Decision:**
-- Aligner spec sur Product Brief — hiérarchie **illimitée** (rollback RM-08)
-- Garder `level` auto-calculé (utile pour UI indentation, analytics)
-- Garder prévention circulaire (critique pour intégrité données)
+- 2 champs enum scalaires sur `BusinessCapability` : `criticality` (LOW/MEDIUM/HIGH/CRITICAL) + `technicalFit` (ADEQUATE/PARTIAL/INADEQUATE/LEGACY)
+- Nullable pour rétrocompatibilité
+- Exposés dans Create/Update/Response/ListItem/TreeNode DTOs
+- Amendment T-019 (agent back, 0.5j) requis avant impl frontend
 
 **Changes Applied:**
 | Element | Avant | Après |
 |---|---|---|
-| RM-08 | Max depth 5 niveaux | ❌ Supprimée |
-| RM-09→12 | Circular ref, validations, tree | RM-08→11 (renumérotation) |
-| Error code | `MAX_DEPTH_EXCEEDED` | ❌ Supprimée |
-| Tests | 4 tests max depth | ❌ Supprimés |
-| Gates | G-16 Max depth | ❌ Supprimée |
-| Checklist | Item max depth | ❌ Supprimé |
+| Prisma model | Pas de champs criticality/technicalFit | ✅ 2 enums ajoutés |
+| DTOs | — | ✅ Ajoutés dans Create/Update/Response/ListItem/TreeNode |
+| Migration SQL | — | ✅ CREATE TYPE + ALTER TABLE |
+| Seed | 12 capabilities sans criticality/technicalFit | ✅ Alimenter les 12 capabilities |
 
 **Impact:**
-- Niveau 5, 6, 7+ techniquement possibles en base
-- UI pourra afficher avertissement visuel (non bloquant) si profondeur > recommandée
-- Pas de limite arbitraire métier en backend
+- Coloration matrix US13 basée sur `criticality`
+- Chips colorés dans liste + drawer
+- Gate bloquante T-019 pour T-018 (impl frontend)
+
+---
+
+### Décision D-02 : Vue arbre = MUI TreeView (vs ReactFlow)
+
+**Context:**
+- US04 nécessite une vue arbre avec expand/collapse
+- ReactFlow déjà dans le stack (FS-09 Dependency Graph)
+- Arbre hiérarchique ≠ graphe de dépendances (pas de relations cycliques, structure linéaire parent→enfants)
+
+**Decision:**
+- **MUI TreeView** (`@mui/x-tree-view`) pour la vue arbre FS-07
+- ReactFlow réservé à FS-09 (graphe de dépendances avec relations multidirectionnelles)
+
+**Rationale:**
+- MUI TreeView : simple, rapide (0.5j), accessible, cohérent avec MUI v5
+- ReactFlow : complexité +1j, overkill pour un arbre ordonné
+- Pattern EA : arbre hiérarchique = composant arbre, graphe de flux = composant graphe
+
+**Impact:**
+- Dépendance : `@mui/x-tree-view` à installer
+- Rendu récursif natif avec `<TreeItem>` nested
+
+---
+
+### Décision D-03 : Agrégation récursive US19 = client-side (vs endpoint backend)
+
+**Context:**
+- US19 nécessite le total d'applications cumulées par domaine L1 (nœud + descendants)
+- Backend expose `_count.applicationMappings` par nœud, mais pas de somme récursive
+- Vue matrix nécessite le total pour chaque tuile
+
+**Decision:**
+- Calcul **client-side** depuis la réponse `GET /tree`
+- Utils `sumApplications(node)` : `_count.applicationMappings + children.reduce(sum)`
+
+**Rationale:**
+- Pas de nouvel endpoint backend nécessaire
+- Calcul trivial en JS sur arbre déjà chargé (single-pass recursion)
+- Performance acceptable (arbre < 100 nœuds en P1)
+
+**Impact:**
+- Pas de modification backend
+- Pattern réutilisable pour futures agrégations récursives
+
+---
+
+### Décision D-04 : US06 reformulée = breakdown lifecycle (vs statut BC)
+
+**Context:**
+- US06 originale ambiguë : "légende de statuts standardisée"
+- Clarification utilisateur : afficher le nombre d'applications liées selon leur `lifecycleStatus` (Active, Sunset, etc.)
+- Pas un statut sur la BC, mais une distribution des apps liées
+
+**Decision:**
+- Section "Empreinte applicative" dans le drawer
+- Total d'apps (`_count.applicationMappings`)
+- Breakdown par `lifecycleStatus` : Active: X, Sunset: Y, etc.
+- Données chargées depuis `GET /:id/applications` (pagination gérée frontend)
+- Composant `AppLifecycleBreakdown` pour affichage
+
+**Rationale:**
+- Pas de champ statut sur BusinessCapability
+- Réponse aux besoins métier US06/07 sans modification backend
+- Pattern réutilisable pour autres entités
+
+**Impact:**
+- Composant générique `AppLifecycleBreakdown` (réutilisable FS-08, FS-09)
+- Chargement on-demand dans drawer
+
+---
+
+### Décision D-05 : Breadcrumb PNS-11 = composant partagé AppBreadcrumbs
+
+**Context:**
+- PNS-11 introduit le breadcrumb systématique sur Detail/New/Edit (3 niveaux)
+- FS-07 est la première feature à l'implémenter
+- Pattern répété sur 3 pages → risque de duplication
+
+**Decision:**
+- Créer composant partagé `AppBreadcrumbs` dans `@/components/shared/`
+- Props : `items: Array<{ label: string; onClick?: () => void }>`
+- Dernier item sans onClick = non cliquable (page courante)
+- Réutilisable par tous les modules P1 et P2
+
+**Rationale:**
+- Élimination duplication inline
+- Cohérence visuelle garantie (spacing, colors, séparateurs)
+- Pattern PNS-11 standardisé pour futures features
+
+**Impact:**
+- Premier composant PNS-11 créé dans cette session
+- Documentation dans §5 de FS-07-FRONT
 
 ---
 
@@ -97,152 +190,120 @@
 
 | File | Change | Impact |
 |---|---|---|
-| `docs/03-Features-Spec/FS-07-Business-Capabilities-back.md` | ✨ **NEW** — Complete v1.0 spec (**1368 lines**, post-rollback) | Backend spec ready |
-| `docs/01-Product/ARK-Roadmap.md` | ✏️ FS-07-BACK → `stable`, changelog v0.17 | Sprint tracking |
-| `docs/03-Features-Spec/FS-07-Business-Capabilities.md` | 🗑️ **DELETED** — Empty unified placeholder | Cleanup |
-| `SESSION-HANDOFF.md` (root) | 📦 **ARCHIVED** → `docs/05-Project/20260404/SESSION-HANDOFF-FS05.md` | Archive FS-05 |
-| `SESSION-HANDOFF.md` (root) | ✨ **NEW** — This file | Current handoff FS-07 |
+| `docs/03-Features-Spec/FS-07-Business-Capabilities-front.md` | ✨ **NEW** — Spec frontend v1.0 complète (**1000+ lines**) | Frontend spec ready |
+| `docs/03-Features-Spec/FS-07-Business-Capabilities-back.md` | ✏️ v1.0 → v1.1, changelog T-019, §2.2 + §3 enums ajoutés | Amendment documented |
+| `docs/05-Project/tasks.yaml` | ✨ **NEW** — T-016, T-017, T-018, T-019 | Sprint 3 tracking |
+| `SESSION-HANDOFF.md` (root) | ✨ **NEW** — This file | Current handoff FS-07-FRONT |
 
 ### Git Commit Suggested
 
 ```
-spec: FS-07-BACK v1.0 — Business Capabilities backend (stable)
+spec: FS-07-FRONT v1.0 + T-019 amendment backend
 
-- Complete backend spec: 8 endpoints, hiérarchie récursive, WITH RECURSIVE
-- level auto-calculé, circular reference prevention, 2 compteurs suppression
-- 20 Jest + 23 Supertest, **17 gates**
-- Rollback max depth: conforme ARK-Product-Brief (hiérarchie illimitée)
-- Roadmap: FS-07-BACK stable, changelog v0.17
-- Archive FS-05 handoff
-- Sprint 3 ready for [back] implementation
+- FS-07-FRONT spec complète : 3 vues (liste/tree/matrix), drawer PNS-02, hiérarchie récursive
+- 8 composants (Tree, Matrix, Drawer, Form, CriticalityChip, TechnicalFitChip, LifecycleBreakdown, AppBreadcrumbs)
+- PNS-11 breadcrumb : premier composant partagé AppBreadcrumbs
+- Amendment T-019 : champs criticality + technicalFit dans FS-07-BACK v1.1
+- US06/09/10/13/19 résolues (analyse incohérences → décisions architecture)
+- tasks.yaml : T-016 (spec, in_progress), T-017 (lifecycle P2), T-018 (impl), T-019 (amendment)
+- Sprint 3 ready for [back] T-019 puis [front] T-018
 ```
 
 ---
 
-## Session Gate — Backend FS-07-BACK ⚠️
+## Session Gate — T-019 Amendment Backend ⚠️
 
-### Pre-conditions (7 gates)
+### Pre-conditions (avant T-018 impl frontend)
 
-Before launching OpenCode FS-07-BACK:
+- [x] **FS-07-BACK v1.0 `done`** — CRUD + hiérarchie + /tree ✅
+- [ ] **T-019 amendment backend `done`** — criticality + technicalFit dans API
+- [ ] **Migration SQL executed** — CREATE TYPE CriticalityLevel + TechnicalFitLevel, ALTER TABLE
+- [ ] **Prisma model updated** — enums + 2 champs ajoutés dans BusinessCapability
+- [ ] **DTOs updated** — Create/Update/Response/ListItem/TreeNode exposent criticality + technicalFit
+- [ ] **Seed updated** — 12 capabilities existantes alimentées avec criticality + technicalFit
+- [ ] **Tests Jest/Supertest** — validation enum values
+- [ ] **GET /business-capabilities** retourne `criticality` + `technicalFit` manuellement testé
+- [ ] **GET /business-capabilities/tree** retourne les 2 champs par nœud
 
-- [x] **FS-01 `done`** — JWT, permissions, middleware audit ✅
-- [x] **FS-06-BACK `done`** — Applications API for `DEPENDENCY_CONFLICT` tests ✅
-- [x] **F-03 `done`** — TagService, `entity_tags` relation ✅
-- [x] **Permissions seedées** — `business-capabilities:read` / `:write` in `seed.ts` ✅
-- [x] **Module directory** — `backend/src/business-capabilities/` exists and empty ✅
-- [ ] **Migration SQL executed** — Comment, UNIQUE(name), gen_random_uuid() defaults
-- [ ] **Prisma schema checked** — Align model with spec §2.2 (nullable level, entityTags relation)
-
-### Effort Before OpenCode
+### Effort T-019
 
 | Task | Owner | Time | Priority |
 |---|---|---|---|
-| Verify schema.prisma vs spec §2.2 | Arch/Data | 5 min | 🟡 Important |
-| Run migration SQL §1 | Data | 5 min | 🟡 Important |
-| Validate empty module dir | QA | 1 min | 🟢 Quick |
-| **Total** | — | **< 15 min** | — |
+| Migration SQL (CREATE TYPE + ALTER TABLE) | back | 10 min | 🟡 Important |
+| Prisma model (2 enums + 2 champs) | back | 10 min | 🟡 Important |
+| DTOs (5 schemas OpenAPI) | back | 20 min | 🟡 Important |
+| Seed (12 capabilities) | back | 15 min | 🟡 Important |
+| Tests Jest + Supertest | back | 30 min | 🟢 Nice to have |
+| **Total** | — | **~1.5h** | — |
 
 ---
 
 ## Next Steps — Immediate Actions
 
-### Pre-OpenCode (15 min total)
+### Séquence Sprint 3 (ajustée)
 
-1. **Verify `schema.prisma` BusinessCapability model**
-   - Check `level` is nullable (`Int? @db.SmallInt`)
-   - Check `entityTags EntityTag[]` relation exists
-   - Check `id @default(dbgenerated("gen_random_uuid()"))`
-   - File: `backend/prisma/schema.prisma`
+```
+Phase 0 — Amendment T-019 (agent back, ~0.5j)
+    ↓ gate levée
+Phase 1 — Impl FS-07-FRONT (T-018, agent front, ~3j)  ← session courante SPEC done
+    ↓
+Phase 2 — Tests UI Playwright (T-015, agent qa)
+```
 
-2. **Run migration SQL** (from spec §1)
-   ```sql
-   ALTER TABLE business_capabilities
-     ADD COLUMN IF NOT EXISTS comment TEXT,
-     ALTER COLUMN id SET DEFAULT gen_random_uuid(),
-     ALTER COLUMN updated_at SET DEFAULT NOW();
-   
-   ALTER TABLE business_capabilities
-     ADD CONSTRAINT IF NOT EXISTS business_capabilities_name_key UNIQUE (name);
-   
-   ALTER TABLE business_capabilities DROP COLUMN IF EXISTS tags;
-   ```
+**Actions immédiate (hors plan mode) :**
 
-3. **Validate directory empty**
-   ```bash
-   ls -la backend/src/business-capabilities/
-   # Expected: empty or non-existent
-   ```
-
-4. **Commit**: `chore: FS-07-BACK pre-session — migration, schema check`
-
-### OpenCode Session
-
-5. **Copy-paste §8 Command OpenCode** into new session
-   - Full inline prompt with SQL patterns
-   - Ref spec content for `[COLLER LE CONTENU COMPLET...]`
-
-6. **Monitor implementation**
-   - WITH RECURSIVE query construction
-   - Circular reference check function
-   - Cascading level recalculation
-   - 2 counters in `remove()`
-
-### Validation
-
-7. `npm run build` backend → 0 errors
-8. `npm run test -- --testPathPattern=business-capabilities` → 20 Jest pass
-9. `npm run test:e2e -- --testPathPattern=FS-07` → 23 Supertest pass
-10. Postman: `GET /tree` returns nested structure
-11. Postman: `PATCH` with circular parentId → `400 CIRCULAR_REFERENCE`
+1. **Commit spec** : `git add docs/03-Features-Spec/FS-07* docs/05-Project/tasks.yaml SESSION-HANDOFF.md`
+2. **Passer T-016 à `done`** dans tasks.yaml
+3. **Lancer T-019 (agent back)** : amendment criticality + technicalFit
+4. **Après T-019 done** → passer FS-07-FRONT à `stable` → lancer T-018 (agent front)
 
 ---
 
 ## Parallelizable Tasks (Sprint 3)
 
-**Not blocked by FS-07-BACK:**
-- **FS-05-FRONT** (Data Objects) — if amendments A+B not yet done
-- **FS-07-FRONT** spec — can be drafted while BACK implements
-- **Task 0.9** (WITH RECURSIVE SQL) — R&D documented in spec §8
-- **Tech Debt P1** — Users API (#12b), tags API (#13), batch tags (#14)
+**Not blocked by T-019:**
+- **T-015** tests UI → bloqué par T-018 done (impl frontend)
+- **T-017** spec Lifecycle tab → P2 (Sprint 4)
 
 **Recommended Sprint 3 Timeline:**
 ```
-Dim 5 Apr  : FS-07-BACK spec stable ✅   ← today, completed
-Lun 6 Apr  : FS-07-BACK pre-conditions (< 15 min) + OpenCode session
-Mar 7 Apr  : FS-07-BACK implementation (1.5j) + FS-07-FRONT spec parallel
+Lun 8 Apr  : FS-07-FRONT spec stable ✅   ← today, completed
+Lun 8 Apr  : T-019 amendment backend (~1.5h)
+Mar 9 Apr  : T-018 impl FS-07-FRONT (3j)
+Jeu 11 Apr : T-015 tests UI Playwright (agent qa)
 ```
 
 ---
 
 ## Build Validation Checklist
 
-### Pre-OpenCode FS-07-BACK
+### Pre-T-019 Amendment
 
-- [ ] `schema.prisma` model matches spec §2.2
-- [ ] Migration SQL executed (comment, UNIQUE name, drop tags)
-- [ ] `business-capabilities/` directory empty
+- [x] FS-07-FRONT spec rédigée (13 sections)
+- [x] tasks.yaml mis à jour (4 tâches)
+- [x] FS-07-BACK v1.1 documenté (changelog + §2.2 + §3)
+
+### Post-T-019 Amendment
+
+- [ ] Migration SQL exécutée (CREATE TYPE + ALTER TABLE)
+- [ ] Prisma model généré (`npx prisma generate`)
+- [ ] `POST /api/v1/business-capabilities` avec `criticality: "HIGH"` → `201` avec champ retourné
+- [ ] `GET /api/v1/business-capabilities/tree` → chaque nœud a `criticality` + `technicalFit`
+- [ ] Seed 12 capabilities → toutes ont `criticality` + `technicalFit` non-null
+- [ ] Tests Jest passent (validation enum values)
 - [ ] `npm run build` backend → 0 errors
 
-### Post-OpenCode FS-07-BACK
+### Post-T-018 Impl Frontend
 
-- [ ] `POST /api/v1/business-capabilities` racine → `201` avec `level: 0`
-- [ ] `POST /api/v1/business-capabilities` avec parent → `201` avec `level` auto
-- [ ] `POST /api/v1/business-capabilities` → audit_trail changed_by non NULL
-- [ ] `PATCH` reparenting → `200` avec nouveau `level` et cascade descendants
-- [ ] `PATCH` reparenting circulaire → `400 CIRCULAR_REFERENCE`
-- [ ] `DELETE` avec enfants → `409 DEPENDENCY_CONFLICT` + childrenCount
-- [ ] `DELETE` avec applications → `409 DEPENDENCY_CONFLICT` + applicationsCount
-- [ ] `GET /tree` → structure arborescente complète (nested children)
-- [ ] `GET /:id/children` → enfants directs paginés
-- [ ] `GET /:id/applications` → applications liées paginées
-- [ ] `_count.applicationMappings` et `_count.children` présents
-- [ ] Nom unique global → `409 CONFLICT`
-- [ ] `domainId` validation → `404` si inexistant
-- [ ] `parentId` validation → `404` si inexistant
-- [ ] **17 gates** G-01 à G-17 cochées (post-rollback: G-17 = openapi.yaml)
-- [ ] `openapi.yaml` mis à jour avec paths `/business-capabilities`
-- [ ] Aucun `TODO / FIXME / HACK` non tracé
-- [ ] Aucune erreur TypeScript strict
+- [ ] 3 vues (liste/tree/matrix) fonctionnent avec toggle
+- [ ] Drawer s'ouvre au clic sur ligne
+- [ ] Breadcrumb PNS-11 sur Detail/New/Edit pages
+- [ ] CriticalityChip + TechnicalFitChip affichent couleurs correctes
+- [ ] Agrégation récursive fonctionne (matrix affiche total apps)
+- [ ] Expand/collapse fonctionne dans liste arborescente
+- [ ] Sélecteur parent exclut descendants (RM-BC-05)
+- [ ] Erreur `400 CIRCULAR_REFERENCE` affichée inline
+- [ ] Erreur `409 DEPENDENCY_CONFLICT` affiche compteurs enfants + apps
 
 ---
 
@@ -252,58 +313,50 @@ Mar 7 Apr  : FS-07-BACK implementation (1.5j) + FS-07-FRONT spec parallel
 
 | File | Status | Version | Purpose |
 |---|---|---|---|
-| **FS-07-Business-Capabilities-back.md** | `stable` | 1.0 | Backend contract + gates (current) |
-| **FS-06-Applications-back.md** | `done` | 1.x | Reference N:N relations + tests |
-| **FS-05-Data-Objects-back.md** | `done` | 1.0 | Pattern N:N + role field |
-| **FS-03-Providers-back.md** | `done` | 1.3 | Pattern CRUD + pagination |
+| **FS-07-Business-Capabilities-front.md** | `stable` | 1.0 | Frontend contract + gates (current) |
+| **FS-07-Business-Capabilities-back.md** | `done` (v1.0), pending (v1.1) | 1.1 | Backend contract + amendment T-019 |
+| **FS-06-Applications-front.md** | `done` | 1.2 | Pattern drawers complexes + filtres |
+| **02-Navigation-Patterns.md** | — | 0.4 | PNS-11 breadcrumb |
 
 ### Code Locations
 
 | Module | Files | Role |
 |---|---|---|
-| Backend | `backend/src/business-capabilities/` | **EMPTY — ready for implementation** |
-| Prisma | `backend/prisma/schema.prisma` | Model to verify against spec §2.2 |
-| Test e2e | `backend/test/FS-07-business-capabilities.e2e-spec.ts` | To be created |
-| Seed | `backend/prisma/seed.ts` | Add hierarchical tree data §12 |
+| Frontend | `frontend/src/pages/business-capabilities/` | **TO CREATE — 4 pages** |
+| Frontend | `frontend/src/components/business-capabilities/` | **TO CREATE — 7 composants** |
+| Frontend | `frontend/src/components/shared/AppBreadcrumbs.tsx` | **TO CREATE — composant PNS-11** |
+| Backend | `backend/src/business-capabilities/` | **EXISTS — amendment T-019 requis** |
+| Prisma | `backend/prisma/schema.prisma` | **TO UPDATE — 2 enums + 2 champs** |
 
-### Critical SQL Patterns (from spec §8)
+### Critical Patterns Frontend (from spec §7)
 
-**Circular Reference Check:**
+**Indentation par niveau (RM-BC-01):**
 ```typescript
-async isDescendant(ancestorId: string, descendantId: string): Promise<boolean> {
-  if (ancestorId === descendantId) return true;
-  const result = await this.prisma.$queryRaw<{ exists: boolean }[]>`
-    WITH RECURSIVE descendants AS (
-      SELECT id, parent_id FROM business_capabilities WHERE id = ${descendantId}::uuid
-      UNION ALL
-      SELECT c.id, c.parent_id FROM business_capabilities c
-      INNER JOIN descendants d ON c.parent_id = d.id
-    )
-    SELECT EXISTS(SELECT 1 FROM descendants WHERE id = ${ancestorId}::uuid) as exists
-  `;
-  return result[0]?.exists ?? false;
+<Box sx={{ paddingLeft: `${row.level * 24}px` }}>
+  {row.name}
+</Box>
+```
+
+**Agrégation récursive (RM-BC-03):**
+```typescript
+export function sumApplications(node: BusinessCapabilityTreeNode): number {
+  return (
+    node._count.applicationMappings +
+    node.children.reduce((acc, child) => acc + sumApplications(child), 0)
+  );
 }
 ```
 
-**Cascading Level Recalculation:**
+**Coloration matrix (RM-BC-04):**
 ```typescript
-async recalculateLevelsRecursively(rootId: string): Promise<void> {
-  const root = await this.prisma.businessCapability.findUnique({
-    where: { id: rootId }, select: { level: true }
-  });
-  if (!root) return;
-  await this.prisma.$executeRaw`
-    WITH RECURSIVE descendants AS (
-      SELECT id, parent_id, ${root.level} + 1 as new_level 
-      FROM business_capabilities WHERE parent_id = ${rootId}::uuid
-      UNION ALL
-      SELECT c.id, c.parent_id, d.new_level + 1
-      FROM business_capabilities c
-      INNER JOIN descendants d ON c.parent_id = d.id
-    )
-    UPDATE business_capabilities bc SET level = d.new_level
-    FROM descendants d WHERE bc.id = d.id
-  `;
+function getCriticalityColor(criticality: CriticalityLevel | null, theme: Theme): string {
+  switch (criticality) {
+    case 'LOW': return theme.palette.success.light;
+    case 'MEDIUM': return theme.palette.warning.light;
+    case 'HIGH': return theme.palette.error.light;
+    case 'CRITICAL': return theme.palette.error.dark;
+    default: return theme.palette.grey[300];
+  }
 }
 ```
 
@@ -313,14 +366,15 @@ async recalculateLevelsRecursively(rootId: string): Promise<void> {
 
 | Item | Deliverable |
 |---|---|
-| **FS-07-BACK** | ✅ Specification v1.0 stable (**1368 lines**, post-rollback) |
-| **Rollback** | ✅ Max depth supprimée, conforme Product Brief |
-| **Hiérarchie** | ✅ Recursive self-relation, level auto, circular check, WITH RECURSIVE |
-| **Pre-conditions** | 🔄 Schema check + migration (< 15 min) |
-| **Next OpenCode** | ⏳ Ready after schema verification |
-| **Est. implementation** | 1.5j (8 endpoints, recursive logic) |
+| **FS-07-FRONT** | ✅ Specification v1.0 stable (**1000+ lines**) |
+| **T-019 amendment** | ✅ Documented in FS-07-BACK v1.1 (pending impl) |
+| **Incohérences US** | ✅ 7 incohérences identifiées et résolues |
+| **Décisions architecture** | ✅ 5 décisions tracées (D-01 à D-05) |
+| **Tasks créées** | ✅ T-016/T-017/T-018/T-019 |
+| **Next action** | ⏳ T-019 amendment backend (0.5j, agent back) |
+| **Est. T-018 impl** | 3j (3 vues + 8 composants + utils) |
 
-**Overall: FS-07-BACK ready for backend implementation after < 15 min prep.**
+**Overall: FS-07-FRONT ready for implementation after T-019 amendment done.**
 
 ---
 
@@ -328,16 +382,16 @@ async recalculateLevelsRecursively(rootId: string): Promise<void> {
 
 | # | Decision | Context | Rationale |
 |---|---|---|---|
-| D-01 | Rollback max depth | Product Brief says "illimitée" | Alignement documentation, pas de contrainte arbitraire |
-| D-02 | Conserver `level` | Utile UI + analytics | Auto-calculé, nullable en DB, pas exposé en DTO create/update |
-| D-03 | Renumber RM-09→RM-12 | Suppression RM-08 | Conséquence D-01, maintien ordre logique |
-| D-04 | Supprimer G-17 | Max depth supprimé | **18 gates → 17 gates** (G-17 devient audit trail, ancien G-18 devient G-17) |
-| D-05 | Hiérarchie illimitée | Standard EA | Meilleure flexibilité, avertissement UI possible P2 |
+| D-01 | criticality + technicalFit = enum scalaires | US09/10 + scoring métier requis | Tags F-03 ne permettent pas les calculs |
+| D-02 | Vue arbre = MUI TreeView | US04 + stack ReactFlow existant | Arbre ≠ graphe, TreeView plus simple |
+| D-03 | Agrégation récursive client-side | US19 + perf acceptable | Pas de nouvel endpoint backend |
+| D-04 | US06 = breakdown lifecycle apps | Clarification ambiguïté | Pas de statut sur BC |
+| D-05 | AppBreadcrumbs composant partagé | PNS-11 + réutilisabilité | Élimination duplication |
 
 ---
 
-_Document created: 2026-04-05_
-_Purpose: Sprint 3 FS-07-BACK spec completion + handoff to [back]_
+_Document created: 2026-04-08_
+_Purpose: Sprint 3 FS-07-FRONT spec completion + handoff to [back] T-019 puis [front] T-018_
 _Branch: develop_
-_Status: Spec **v1.0 stable**, **17 gates**, rollback applied, pre-conditions pending_
-_Next session: Schema check + migration (< 15 min), then OpenCode FS-07-BACK_
+_Status: Spec **v1.0 stable**, **T-019 amendment documented**, gate levée après T-019 done_
+_Next session: T-019 amendment backend (0.5j), then T-018 impl frontend (3j)_

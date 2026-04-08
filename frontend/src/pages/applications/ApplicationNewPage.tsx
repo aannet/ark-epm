@@ -35,7 +35,8 @@ export default function ApplicationNewPage(): JSX.Element {
   const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
   const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
 
-  // Map providers and IT components response to select options format
+  // Map API responses to select options format
+  const domainOptions = (domains?.data || []).map(d => ({ id: d.id, name: d.name }));
   const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
   const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
 
@@ -132,7 +133,7 @@ export default function ApplicationNewPage(): JSX.Element {
         error={submitError}
         fieldError={fieldError}
          availableOptions={{
-           domains: domains || [],
+           domains: domainOptions,
            providers: providerOptions,
            itComponents: itComponentOptions,
            users: MOCK_USERS,

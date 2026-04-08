@@ -517,6 +517,121 @@
         }
     },
 
+    "businessCapabilities": {
+      "views": {
+        "list": "Liste",
+        "tree": "Arbre",
+        "matrix": "Matrix"
+      },
+      "list": {
+        "title": "Business Capabilities",
+        "subtitle": "Cartographie des capacités métier de l'entreprise",
+        "addButton": "Ajouter une capacité",
+        "searchPlaceholder": "Rechercher une capacité...",
+        "columns": {
+          "name": "Nom",
+          "level": "Niveau",
+          "domain": "Domaine",
+          "criticality": "Criticité",
+          "technicalFit": "Maturité technique",
+          "applicationsCount": "Applications",
+          "actions": "Actions",
+          "createdAt": "Créé le"
+        },
+        "filters": {
+          "domain": "Domaine"
+        },
+        "emptyState": {
+          "title": "Aucune capacité créée",
+          "description": "Commencez par créer votre première capacité métier.",
+          "cta": "Créer votre première capacité"
+        }
+      },
+      "detail": {
+        "noValue": "—",
+        "tags": "Tags",
+        "editButton": "Modifier",
+        "backButton": "Retour",
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Business Capabilities"
+        }
+      },
+      "form": {
+        "createTitle": "Nouvelle Business Capability",
+        "editTitle": "Modifier la Business Capability",
+        "nameLabel": "Nom",
+        "description": "Description",
+        "comment": "Commentaire",
+        "domain": "Domaine",
+        "parent": "Capacité parent",
+        "parentPlaceholder": "Sélectionner une capacité parent...",
+        "noParent": "Aucune (capacité racine)",
+        "criticality": "Criticité",
+        "technicalFit": "Maturité technique",
+        "saveButton": "Enregistrer",
+        "cancelButton": "Annuler",
+        "nameRequired": "Le nom est obligatoire",
+        "nameDuplicate": "Ce nom est déjà utilisé",
+        "circularReference": "Impossible de définir ce parent (référence circulaire détectée)",
+        "noApplications": "Aucune application liée",
+        "tabs": {
+          "general": "Général",
+          "relations": "Relations",
+          "audit": "Audit"
+        },
+        "sections": {
+          "hierarchy": "Hiérarchie",
+          "applications": "Applications liées"
+        },
+        "audit": {
+          "placeholder": {
+            "title": "Historique des modifications",
+            "description": "Cette fonctionnalité sera disponible en Phase 2"
+          }
+        },
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Business Capabilities",
+          "new": "Nouvelle capacité",
+          "edit": "Modifier"
+        }
+      },
+      "criticality": {
+        "LOW": "Faible",
+        "MEDIUM": "Moyenne",
+        "HIGH": "Haute",
+        "CRITICAL": "Critique"
+      },
+      "technicalFit": {
+        "ADEQUATE": "Adéquat",
+        "PARTIAL": "Partiel",
+        "INADEQUATE": "Inadéquat",
+        "LEGACY": "Legacy"
+      },
+      "drawer": {
+        "tabs": {
+          "info": "Informations",
+          "applications": "Applications"
+        },
+        "hierarchy": "Hiérarchie",
+        "applicationFootprint": "Empreinte applicative",
+        "applicationsByLifecycle": "Répartition par cycle de vie",
+        "editButton": "Modifier",
+        "viewFullButton": "Voir la fiche complète"
+      },
+      "delete": {
+        "confirmTitle": "Supprimer la capacité",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ?",
+        "blockedMessage": "Cette capacité a {{childrenCount}} enfant(s) et {{applicationsCount}} application(s) liée(s) et ne peut pas être supprimée"
+      },
+      "snackbar": {
+        "created": "Capacité créée avec succès",
+        "updated": "Capacité mise à jour avec succès",
+        "deleted": "Capacité supprimée avec succès"
+      }
+    },
+
     "data-objects": {
       "list": {
         "title": "Objets de Données",

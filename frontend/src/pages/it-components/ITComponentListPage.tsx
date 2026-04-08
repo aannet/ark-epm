@@ -173,7 +173,10 @@ export default function ITComponentListPage(): JSX.Element {
                     <TableCell>{item.type || '—'}</TableCell>
                     <TableCell>
                       <TagChipList
-                        tags={item.tags || []}
+                        tags={(item.tags || []).map(t => ({ 
+                          ...t.tagValue, 
+                          dimensionColor: t.tagValue.dimensionColor ?? undefined 
+                        }))}
                         maxVisible={3}
                         deduplicate={true}
                         showMoreButton={true}

@@ -38,6 +38,12 @@ import DataObjectListPage from '@/pages/data-objects/DataObjectListPage';
 import DataObjectDetailPage from '@/pages/data-objects/DataObjectDetailPage';
 import DataObjectFormPage from '@/pages/data-objects/DataObjectFormPage';
 
+// Business Capabilities pages
+import BusinessCapabilitiesPage from '@/pages/business-capabilities/BusinessCapabilitiesPage';
+import BusinessCapabilityNewPage from '@/pages/business-capabilities/BusinessCapabilityNewPage';
+import BusinessCapabilityDetailPage from '@/pages/business-capabilities/BusinessCapabilityDetailPage';
+import BusinessCapabilityEditPage from '@/pages/business-capabilities/BusinessCapabilityEditPage';
+
 function App(): JSX.Element {
   useEffect(() => {
     initializeAuth();
@@ -104,6 +110,14 @@ function App(): JSX.Element {
               <Route path=":id" element={<DomainDetailPage />} />
               <Route path=":id/edit" element={<DomainEditPage />} />
             </Route>
+
+             {/* Business Capabilities routes */}
+             <Route path="business-capabilities" element={<Outlet />}>
+               <Route index element={<BusinessCapabilitiesPage />} />
+               <Route path="new" element={<BusinessCapabilityNewPage />} />
+               <Route path=":id" element={<BusinessCapabilityDetailPage />} />
+               <Route path=":id/edit" element={<BusinessCapabilityEditPage />} />
+             </Route>
           </Route>
         </Route>
 

@@ -294,7 +294,7 @@ tasks:
 
   - id: T-015
     nom: "Tests UI Playwright — Business Capabilities frontend"
-    statut: blocked
+    statut: open
     assigned_agent: qa
     session_active: ~
     date_resolution: ~
@@ -305,8 +305,9 @@ tasks:
     sessions: []
     notes: |
       Tests UI Playwright pour l'écran Business Capabilities (arbre hiérarchique, CRUD UI).
-      Gate : FS-07-BACK done (T-011) + FS-07-FRONT implémenté (T-018).
+      Gate : FS-07-BACK done (T-011) ✅ + FS-07-FRONT implémenté (T-020) ✅.
       Fixture createBusinessCapability() déjà disponible dans e2e/fixtures/test-data.fixture.ts.
+      Débloqué 2026-04-08 après T-020 done.
 
   - id: T-016
     nom: "Spec FS-07-FRONT — Business Capabilities frontend"
@@ -405,40 +406,43 @@ tasks:
 
   - id: T-020
     nom: "Implémenter FS-07-FRONT phase 2 — Composants + pages + i18n"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
-    date_resolution: ~
+    date_resolution: "2026-04-08"
     sprint: S3
     theme: "FS-07"
     type: impl
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "5ecde5"
+        nom: "impl FS-07-FRONT phase 2 complète"
     notes: |
-      Phase 2 : compléter l'implémentation FS-07-FRONT (5 composants + 4 pages + i18n).
+      Phase 2 complète : 5 composants + 4 pages + i18n + routes.
       
-      Composants à créer (5) :
-      1. BusinessCapabilityForm (formulaire creation/edition avec validation + exclusion descendants)
-      2. BusinessCapabilityDrawer (PNS-02 read-only + breadcrumb hiérarchique + tabs Info/Applications)
-      3. BusinessCapabilityTree (MUI TreeView — installer @mui/x-tree-view si absent)
-      4. BusinessCapabilityMatrix (tuiles imbriquées colorées par criticality + sumApplications)
-      5. Util getCriticalityColor(theme) pour vue matrix
+      Composants créés (5) :
+      1. BusinessCapabilityForm (validation client-side, exclusion descendants via isDescendant, Select criticality/technicalFit)
+      2. BusinessCapabilityDrawer (PNS-02 read-only, breadcrumb hiérarchique via buildHierarchyPath, tabs Info/Applications, AppLifecycleBreakdown)
+      3. BusinessCapabilityTree (MUI x-tree-view SimpleTreeView + TreeItem, expand/collapse natif, CriticalityChip inline)
+      4. BusinessCapabilityMatrix (tuiles imbriquées Grid + Card, coloration getCriticalityColor, sumApplications recursive, Tooltip breakdown)
+      5. getCriticalityColor util ajouté dans businessCapability.utils.ts
       
-      Pages à créer (4) :
-      1. BusinessCapabilitiesPage (liste arborescente + toggle 3 vues + filtres + drawer)
-      2. BusinessCapabilityNewPage (création + breadcrumb PNS-11)
-      3. BusinessCapabilityDetailPage (détail read-only + breadcrumb PNS-11)
-      4. BusinessCapabilityEditPage (édition avec tabs Général/Relations/Audit + breadcrumb PNS-11)
+      Pages créées (4) :
+      1. BusinessCapabilitiesPage (liste arborescente flat + vue tree + vue matrix, ToggleButtonGroup, filtres search+domain, drawer)
+      2. BusinessCapabilityNewPage (AppBreadcrumbs PNS-11, BusinessCapabilityForm, tagsApi.getDimensions)
+      3. BusinessCapabilityDetailPage (read-only, CriticalityChip, TechnicalFitChip, TagChipList, navigate on parent click)
+      4. BusinessCapabilityEditPage (3 tabs Général/Relations/Audit, reparenting inline, mini-table applications, EmptyState audit P2)
       
-      i18n :
-      - Ajouter section complète businessCapabilities dans fr.json (voir spec §6)
+      i18n : section businessCapabilities (~100 clés) ajoutée dans fr.json
       
-      Tests manuels :
-      - Checklist §12 spec FS-07-FRONT (30 items)
+      Routes : câblées dans App.tsx (/business-capabilities, /new, /:id, /:id/edit)
       
-      Gates : T-018 phase 1 done (fondation + chips).
+      Extension PageHeader : ajout prop secondaryAction pour le ToggleButtonGroup
       
-      Handoff ref : docs/05-Project/20260408/SESSION-HANDOFF-front-fs07-phase1.md
+      Dépendance : @mui/x-tree-view installé
+      
+      TypeScript : 0 erreurs spécifiques aux fichiers FS-07-FRONT (erreurs préexistantes dans IT-Components/Applications non liées)
 
   - id: T-021
     nom: "Fix YAML indentation openapi.yaml — dette technique"
@@ -464,3 +468,61 @@ tasks:
       /applications/{id}/dependencies, /applications/{id}/it-components, /it-components.
       
       Commit : 4babfd7 (inclus avec Gate G-17 FS-07-BACK).
+
+  - id: T-022
+    nom: "Fix erreurs TypeScript préexistantes — IT Components + Applications"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "F-999"
+    type: debt
+    feature: "TS-FIX"
+    sessions:
+      - tool: OC
+        id: "5ecde5"
+        nom: "fix 5 erreurs TS ITComponent + Application"
+      - tool: OC
+        id: "c3f8a1"
+        nom: "stabilisation FS-07-FRONT bugfix session"
+    notes: |
+      5 erreurs TypeScript préexistantes corrigées (bloquaient npm run build) :
+      1. ITComponentDrawer.tsx:56 — EntityTagResponse[] → TagValueResponse[] mapping inline
+      2. ITComponentListPage.tsx:176 — EntityTagResponse[] → TagValueResponse[] mapping inline
+      3. ApplicationNewPage.tsx:135 — PaginatedResponse<Domain> → SelectOption[] (domainOptions)
+      4. ApplicationEditPage.tsx:158 — PaginatedResponse<Domain> → SelectOption[] (domainOptions)
+      5. ITComponentFormPage.tsx:128 — technology: null → undefined (mapping explicite)
+      
+      Détectées lors de T-020 (FS-07-FRONT phase 2).
+      Root cause : types API (EntityTagResponse, PaginatedResponse) vs types formulaires (TagValueResponse, SelectOption).
+
+  - id: T-023
+    nom: "Fix API businessCapabilities/tree — response.data.data extraction"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260408/SESSION-HANDOFF-front-fs07-bugfix.md"
+    date_resolution: "2026-04-08"
+    sprint: S3
+    theme: "FS-07"
+    type: bug
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: OC
+        id: "c3f8a1"
+        nom: "fix useBusinessCapabilitiesTree response extraction"
+    notes: |
+      Bug : nodes.reduce is not a function sur la page Business Capabilities.
+      Root cause : GET /business-capabilities/tree retourne { data: [...] }
+      mais useBusinessCapabilitiesTree retournait response.data (= { data: [...] })
+      au lieu de response.data.data (= [...]).
+      
+      Fix : frontend/src/api/businessCapabilities.ts ligne 56-59
+      - Avant : client.get<BusinessCapabilityTreeNode[]>(...) + return response.data
+      - Après : client.get<{ data: BusinessCapabilityTreeNode[] }>(...) + return response.data.data
+      
+      Également résolu cette session :
+      - Installation @mui/x-tree-view dans container Docker (npm install)
+      - Restart container frontend
+      - Fix 5 erreurs TypeScript préexistantes (T-022)

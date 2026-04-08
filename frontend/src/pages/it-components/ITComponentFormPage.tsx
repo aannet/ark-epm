@@ -125,7 +125,13 @@ export default function ITComponentFormPage({ mode }: ITComponentFormPageProps):
       />
 
       <ITComponentForm
-        initialValues={existing ?? undefined}
+        initialValues={existing ? {
+          name: existing.name,
+          technology: existing.technology ?? undefined,
+          type: existing.type ?? undefined,
+          description: existing.description ?? undefined,
+          comment: existing.comment ?? undefined,
+        } : undefined}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={isSubmitting}

@@ -1,7 +1,9 @@
 # ARK — Feature Spec FS-07-BACK : Business Capabilities (Backend)
 
-_Version 1.0 — Avril 2026_
+_Version 1.1 — Avril 2026_
 
+> **Changelog v1.1 :** Amendment T-019 (2026-04-08) — Ajout des champs `criticality` (enum LOW/MEDIUM/HIGH/CRITICAL) et `technicalFit` (enum ADEQUATE/PARTIAL/INADEQUATE/LEGACY) pour répondre aux US09 et US10 de FS-07-FRONT. Migration SQL (CREATE TYPE + ALTER TABLE), ajout dans Prisma model, DTOs (Create/Update/Response/ListItem/TreeNode), seed (12 capabilities existantes alimentées). Gate bloquante pour T-018 (impl frontend).
+>
 > **Changelog v1.0 :** Création initiale — module Business Capabilities conforme NFR-GOV-005. Implémente le CRUD complet avec migration schéma (ajout comment, UNIQUE name, fix id default gen_random_uuid(), updatedAt @updatedAt), suppression du champ legacy `tags TEXT[]`, liaison tags F-03 polymorphe. Relation auto-référente hiérarchique (`parent_id` → self, `children[]`) avec `level` auto-calculé, prévention des références circulaires. Endpoint `GET /tree` via `WITH RECURSIVE` PostgreSQL. Hiérarchie illimitée en profondeur (conforme ARK-Product-Brief). Relation N:N `app_capability_map` sans rôle (simple liaison). Onglet Relations (`_count.applicationMappings` + `GET /:id/applications`) et enfants (`_count.children` + `GET /:id/children`). Gestion des dépendances (blocage suppression si enfants ou applications liées).
 
 ---
@@ -13,12 +15,12 @@ _Version 1.0 — Avril 2026_
 | **ID** | FS-07-BACK |
 | **Titre** | Business Capabilities — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | ✅ `stable` |
+| **Statut** | ✅ `done` *(v1.0 done 2026-04-08, v1.1 amendment T-019 pending)* |
 | **Dépend de** | FS-01, **FS-06-BACK**, F-03 |
 | **Spec mère** | FS-07 Business Capabilities v1.0 |
-| **Spec front** | FS-07-FRONT — bloquée tant que cette spec n'est pas `done` |
-| **Estimé** | 1.5 jour |
-| **Version** | 1.0 |
+| **Spec front** | FS-07-FRONT — bloquée tant que T-019 n'est pas `done` |
+| **Estimé** | 1.5 jour (v1.0) + 0.5 jour (amendment v1.1) |
+| **Version** | 1.1 |
 
 > **Note FK entrantes (N:N) :** Cette entité expose `_count.applicationMappings` et `GET /:id/applications`. Elle est référencée via la table de jonction `app_capability_map`. FS-06-BACK est requis en dépendance BACK pour implémenter les DTOs et endpoints côté Application.
 
@@ -41,9 +43,9 @@ Le backend expose :
 - Compteurs `_count.applicationMappings` et `_count.children` dans les réponses
 - `level` auto-calculé à partir de la profondeur dans l'arbre (0 = racine, puis +1 par niveau)
 - Prévention des **références circulaires** (impossible de se référencer soi-même ou ses descendants)
-- **Prévention des références circulaires** (impossible de se référencer soi-même ou ses descendants)
 - Blocage suppression si enfants ou applications liées
 - Relation N:1 optionnelle avec Domain (`domainId`)
+- **⭐ Amendment v1.1 (T-019)** : champs `criticality` et `technicalFit` (enums) pour US09/US10 frontend
 
 **Hors périmètre :**
 - Frontend — couvert par `FS-07-FRONT`
@@ -51,7 +53,7 @@ Le backend expose :
 - Bulk move/reparent multiple — P2
 - Validation métier de cohérence domain/capability (p.ex. une L2 doit-elle être dans le même domain que sa L1 ?) — P2
 
-**Migration BDD requise :**
+**Migration BDD requise (v1.0) :**
 
 ```sql
 -- Ajouter les champs socle manquants et corriger les défauts
@@ -73,6 +75,19 @@ ALTER TABLE business_capabilities DROP COLUMN IF EXISTS tags;
 
 -- Note : le champ level reste dans le schéma mais est auto-calculé,
 -- pas de NOT NULL constraint pour permettre les migrations de données
+```
+
+**Migration BDD requise (v1.1 — Amendment T-019) :**
+
+```sql
+-- Créer les types enum
+CREATE TYPE "CriticalityLevel" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+CREATE TYPE "TechnicalFitLevel" AS ENUM ('ADEQUATE', 'PARTIAL', 'INADEQUATE', 'LEGACY');
+
+-- Ajouter les colonnes (nullable pour rétrocompatibilité)
+ALTER TABLE business_capabilities
+  ADD COLUMN IF NOT EXISTS criticality "CriticalityLevel",
+  ADD COLUMN IF NOT EXISTS technical_fit "TechnicalFitLevel";
 ```
 
 > **Note :** Ces migrations sont **idempotentes** (IF EXISTS / IF NOT EXISTS). Elles ne rompent pas si partiellement appliquées. Vérifier avec `\d business_capabilities` dans psql avant exécution.
@@ -232,6 +247,8 @@ model BusinessCapability {
   parentId            String?              @map("parent_id") @db.Uuid
   level               Int?                 @db.SmallInt
   domainId            String?              @map("domain_id") @db.Uuid
+  criticality         CriticalityLevel?    // ⭐ T-019 v1.1
+  technicalFit        TechnicalFitLevel?   @map("technical_fit") // ⭐ T-019 v1.1
   createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -243,6 +260,21 @@ model BusinessCapability {
 
   @@index([parentId], map: "idx_bus_cap_parent")
   @@map("business_capabilities")
+}
+
+// ⭐ T-019 v1.1 — Enums pour criticality et technicalFit
+enum CriticalityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TechnicalFitLevel {
+  ADEQUATE
+  PARTIAL
+  INADEQUATE
+  LEGACY
 }
 
 model AppCapabilityMap {
@@ -295,6 +327,7 @@ model EntityTag {
 > - `level` : auto-calculé par le service, nullable en DB pour flexibilité migration, non exposé dans create/update DTOs
 > - `parentId` : self-reference nullable (null = racine de l'arbre)
 > - `domainId` : FK optionnelle vers domains
+> - **⭐ T-019 v1.1** : `criticality` et `technicalFit` : enums nullable (rétrocompatibilité avec données existantes), exposés dans create/update DTOs
 > - Trigger audit `trg_audit_business_capabilities` déjà présent en base (ou créé via Prisma)
 > - Champ legacy `tags TEXT[]` supprimé — remplacé par F-03 `entity_tags` polymorphe
 > - Relation N:N avec Applications **sans rôle** (contrairement à providers/data-objects qui ont des rôles)
@@ -619,6 +652,8 @@ components:
           properties:
             id:   { type: string, format: uuid }
             name: { type: string }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], nullable: true, description: "⭐ T-019 v1.1" }
+        technicalFit: { type: string, enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY], nullable: true, description: "⭐ T-019 v1.1" }
         createdAt:   { type: string, format: date-time }
         _count:
           type: object
@@ -648,6 +683,8 @@ components:
           properties:
             id:   { type: string, format: uuid }
             name: { type: string }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], nullable: true, description: "⭐ T-019 v1.1" }
+        technicalFit: { type: string, enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY], nullable: true, description: "⭐ T-019 v1.1" }
         createdAt:   { type: string, format: date-time }
         updatedAt:   { type: string, format: date-time }
         _count:
@@ -674,6 +711,8 @@ components:
           properties:
             id:   { type: string, format: uuid }
             name: { type: string }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], nullable: true, description: "⭐ T-019 v1.1" }
+        technicalFit: { type: string, enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY], nullable: true, description: "⭐ T-019 v1.1" }
         _count:
           type: object
           properties:
@@ -712,6 +751,16 @@ components:
           format: uuid
           nullable: true
           description: "Domaine optionnel"
+        criticality:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          nullable: true
+          description: "⭐ T-019 v1.1 — Niveau de criticité métier"
+        technicalFit:
+          type: string
+          enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY]
+          nullable: true
+          description: "⭐ T-019 v1.1 — Maturité technique"
 
     UpdateBusinessCapabilityDto:
       type: object
@@ -737,6 +786,16 @@ components:
           type: string
           format: uuid
           nullable: true
+        criticality:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          nullable: true
+          description: "⭐ T-019 v1.1 — Niveau de criticité métier"
+        technicalFit:
+          type: string
+          enum: [ADEQUATE, PARTIAL, INADEQUATE, LEGACY]
+          nullable: true
+          description: "⭐ T-019 v1.1 — Maturité technique"
 
     ApplicationListItem:
       type: object

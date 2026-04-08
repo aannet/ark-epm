@@ -53,7 +53,15 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.descriptionLabel')}</Typography><Typography variant="body2" color="text.secondary">{itComponent.description || '—'}</Typography></Box>
             <Box>
               <Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.tagsLabel')}</Typography>
-              <TagChipList tags={itComponent.tags || []} maxVisible={5} deduplicate={true} size="small" />
+              <TagChipList 
+                tags={(itComponent.tags || []).map(t => ({ 
+                  ...t.tagValue, 
+                  dimensionColor: t.tagValue.dimensionColor ?? undefined 
+                }))} 
+                maxVisible={5} 
+                deduplicate={true} 
+                size="small" 
+              />
             </Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.applicationsCountLabel')}</Typography><Typography>{itComponent._count.applications}</Typography></Box>
             <Divider />
