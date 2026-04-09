@@ -732,20 +732,46 @@ tasks:
 
       Vérification : `rtk npm run build` (frontend) OK.
 
-  - id: T-031
-    nom: "Bug — Onglet Applications vide sur détail IT Component (liaisons non affichées)"
+  - id: T-032
+    nom: "Audit @Query() sans DTO — vérifier coercition string→number dans tous les controllers NestJS"
     statut: open
-    assigned_agent: qa
+    assigned_agent: back
     session_active: ~
     handoff_ref: ~
     date_resolution: ~
     sprint: S3
+    theme: "QA"
+    type: debt
+    feature: "BACK-AUDIT"
+    sessions:
+      - tool: CL
+        id: "f26390"
+        nom: "création tâche d'audit suite bug T-031"
+    notes: |
+      Suite au bug T-031 (page/limit reçus comme strings via @Query() sans DTO).
+      Passer en revue tous les controllers NestJS qui utilisent @Query() avec un type plain object
+      (pas une classe DTO avec @Transform / @Type(() => Number)).
+      Vérifier en particulier tous les endpoints de pagination (skip/take Prisma).
+      Correctif attendu : remplacer les plain types par des DTOs avec class-transformer,
+      ou ajouter Number() dans les services concernés.
+
+  - id: T-031
+    nom: "Bug — Onglet Applications vide sur détail IT Component (liaisons non affichées)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-09"
+    sprint: S3
     theme: "FS-05"
     type: bug
     feature: "QA-IT-COMPONENTS"
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "f26390"
+        nom: "investigation + fix backend + fixes frontend Drawer/DetailPage"
     notes: |
-      Onglet "Applications" dans la vue détail d'un IT Component n'affiche aucune application,
-      même lorsque des applications sont bien liées au composant.
-      À investiguer : vérifier si GET /it-components/:id inclut bien les applications liées
-      dans la réponse, et si le composant frontend lit correctement ce champ.
+      Root cause : GET /it-components/:id/applications reçoit page/limit comme strings via @Query()
+      (sans DTO NestJS), mais Prisma exige des integers pour skip/take.
+      Fix : backend/src/it-components/it-components.service.ts — Number(query.page) || 1 / Number(query.limit) || 20.
+      Frontend : ajout CircularProgress + reset appsPage dans Drawer (useEffect on itComponent?.id).

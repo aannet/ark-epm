@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Drawer, Box, Typography, IconButton, Tabs, Tab, Button, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
+import { Drawer, Box, Typography, IconButton, Tabs, Tab, Button, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -26,7 +26,11 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
   const [activeTab, setActiveTab] = useState(0);
   const [appsPage, setAppsPage] = useState(0);
 
-  const { data: appsData } = useQuery({
+  useEffect(() => {
+    setAppsPage(0);
+  }, [itComponent?.id]);
+
+  const { data: appsData, isLoading: isLoadingApps } = useQuery({
     queryKey: ['it-component-apps-drawer', itComponent?.id, appsPage],
     queryFn: () => itComponent ? getITComponentApplications(itComponent.id, { page: appsPage + 1, limit: 5 }) : null,
     enabled: !!itComponent && activeTab === 1,
@@ -53,14 +57,14 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.descriptionLabel')}</Typography><Typography variant="body2" color="text.secondary">{itComponent.description || '—'}</Typography></Box>
             <Box>
               <Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.tagsLabel')}</Typography>
-              <TagChipList 
-                tags={(itComponent.tags || []).map(t => ({ 
-                  ...t.tagValue, 
-                  dimensionColor: t.tagValue.dimensionColor ?? undefined 
-                }))} 
-                maxVisible={5} 
-                deduplicate={true} 
-                size="small" 
+              <TagChipList
+                tags={(itComponent.tags || []).map(t => ({
+                  ...t.tagValue,
+                  dimensionColor: t.tagValue.dimensionColor ?? undefined
+                }))}
+                maxVisible={5}
+                deduplicate={true}
+                size="small"
               />
             </Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.applicationsCountLabel')}</Typography><Typography>{itComponent._count.applications}</Typography></Box>
@@ -68,13 +72,15 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
             <Typography variant="caption" color="text.secondary">{t('it-components.detail.createdAtLabel')}: {formatDateTime(itComponent.createdAt)}</Typography>
             <Typography variant="caption" color="text.secondary">{t('it-components.detail.updatedAtLabel')}: {formatDateTime(itComponent.updatedAt)}</Typography>
           </Box>
+        ) : isLoadingApps ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress size={24} /></Box>
+        ) : appsData?.data?.length ? (
+          <>
+            <TableContainer component={Paper} elevation={0}><Table size="small"><TableHead><TableRow><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell></TableRow></TableHead><TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell>{app.name}</TableCell><TableCell>{app.domain?.name || '—'}</TableCell></TableRow>)}</TableBody></Table></TableContainer>
+            <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={5} rowsPerPageOptions={[5]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
+          </>
         ) : (
-          appsData?.data?.length ? (
-            <>
-              <TableContainer component={Paper} elevation={0}><Table size="small"><TableHead><TableRow><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell></TableRow></TableHead><TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell>{app.name}</TableCell><TableCell>{app.domain?.name || '—'}</TableCell></TableRow>)}</TableBody></Table></TableContainer>
-              <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={5} rowsPerPageOptions={[5]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
-            </>
-          ) : <EmptyState title={t('it-components.drawer.noApplications')} />
+          <EmptyState title={t('it-components.drawer.noApplications')} />
         )}
       </Box>
        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between' }}>
