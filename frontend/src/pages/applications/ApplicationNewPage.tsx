@@ -12,6 +12,7 @@ import { useCreateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
 import { useProviders } from '@/api/providers';
 import { useITComponents } from '@/api/it-components';
+import { useBusinessCapabilities } from '@/api/businessCapabilities';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
@@ -34,11 +35,13 @@ export default function ApplicationNewPage(): JSX.Element {
   const { data: domains, isLoading: isLoadingDomains } = useDomains();
   const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
   const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
+  const { data: capabilitiesData, isLoading: isLoadingCapabilities } = useBusinessCapabilities({ limit: 200 });
 
   // Map API responses to select options format
   const domainOptions = (domains?.data || []).map(d => ({ id: d.id, name: d.name }));
   const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
   const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
+  const capabilityOptions = (capabilitiesData?.data || []).map(bc => ({ id: bc.id, name: bc.name }));
 
   const handleSubmit = useCallback(
     async (values: ApplicationFormValues) => {
@@ -81,7 +84,7 @@ export default function ApplicationNewPage(): JSX.Element {
     navigate('/applications');
   };
 
-  if (isLoadingDomains || isLoadingProviders || isLoadingItComponents) {
+  if (isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities) {
     return (
       <PageContainer>
         <PageHeader title={t('applications.form.createTitle')} />
@@ -122,6 +125,7 @@ export default function ApplicationNewPage(): JSX.Element {
            domainId: null,
            providers: [],
            itComponents: [],
+           capabilityIds: [],
            ownerId: null,
            criticality: null,
            lifecycleStatus: null,
@@ -136,6 +140,7 @@ export default function ApplicationNewPage(): JSX.Element {
            domains: domainOptions,
            providers: providerOptions,
            itComponents: itComponentOptions,
+           businessCapabilities: capabilityOptions,
            users: MOCK_USERS,
            criticalities: CRITICALITIES,
            lifecycleStatuses: LIFECYCLE_STATUSES,

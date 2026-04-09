@@ -51,6 +51,7 @@ interface ApplicationFormProps {
     domains: SelectOption[];
     providers: SelectOption[];
     itComponents: SelectOption[];
+    businessCapabilities: SelectOption[];
     users: UserOption[];
     criticalities: string[];
     lifecycleStatuses: string[];
@@ -79,6 +80,7 @@ export default function ApplicationForm({
     domainId: initialValues?.domainId || null,
     providers: initialValues?.providers || [],
     itComponents: initialValues?.itComponents || [],
+    capabilityIds: initialValues?.capabilityIds || [],
     ownerId: initialValues?.ownerId || null,
     criticality: initialValues?.criticality || null,
     lifecycleStatus: initialValues?.lifecycleStatus || null,
@@ -91,6 +93,9 @@ export default function ApplicationForm({
   
   const [itComponentDialogOpen, setItComponentDialogOpen] = useState(false);
   const [selectedItComponentId, setSelectedItComponentId] = useState<string>('');
+
+  const [capabilityDialogOpen, setCapabilityDialogOpen] = useState(false);
+  const [selectedCapabilityId, setSelectedCapabilityId] = useState<string>('');
 
   const handleChange = useCallback(
     (field: keyof ApplicationFormValues, value: string | null) => {
@@ -151,6 +156,24 @@ export default function ApplicationForm({
     setValues((prev) => ({
       ...prev,
       itComponents: prev.itComponents.filter(ic => ic.id !== itComponentId),
+    }));
+  };
+
+  const handleAddCapability = () => {
+    if (selectedCapabilityId && !values.capabilityIds.includes(selectedCapabilityId)) {
+      setValues((prev) => ({
+        ...prev,
+        capabilityIds: [...prev.capabilityIds, selectedCapabilityId],
+      }));
+      setSelectedCapabilityId('');
+      setCapabilityDialogOpen(false);
+    }
+  };
+
+  const handleRemoveCapability = (capabilityId: string) => {
+    setValues((prev) => ({
+      ...prev,
+      capabilityIds: prev.capabilityIds.filter(id => id !== capabilityId),
     }));
   };
 
@@ -447,6 +470,107 @@ export default function ApplicationForm({
               onClick={handleAddItComponent}
               variant="contained"
               disabled={!selectedItComponentId}
+            >
+              {t('applications.form.addButton')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {t('applications.form.businessCapabilitiesLabel')}
+          </Typography>
+          {values.capabilityIds.length > 0 && (
+            <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {values.capabilityIds.map((capabilityId) => {
+                const capabilityName = availableOptions.businessCapabilities.find(bc => bc.id === capabilityId)?.name || capabilityId;
+                return (
+                  <Box
+                    key={capabilityId}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 1.5,
+                      bgcolor: 'action.hover',
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {capabilityName}
+                    </Typography>
+                    <Button
+                      variant="text"
+                      color="error"
+                      size="small"
+                      onClick={() => handleRemoveCapability(capabilityId)}
+                      disabled={isLoading}
+                    >
+                      {t('applications.form.removeBusinessCapability')}
+                    </Button>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={() => setCapabilityDialogOpen(true)}
+            disabled={isLoading}
+            fullWidth
+          >
+            {t('applications.form.addBusinessCapability')}
+          </Button>
+        </Box>
+
+        {/* Business Capability Selection Dialog */}
+        <Dialog
+          open={capabilityDialogOpen}
+          onClose={() => {
+            setCapabilityDialogOpen(false);
+            setSelectedCapabilityId('');
+          }}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>{t('applications.form.selectBusinessCapability')}</DialogTitle>
+          <DialogContent sx={{ pt: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel>{t('applications.form.businessCapabilitiesLabel')}</InputLabel>
+              <Select
+                value={selectedCapabilityId}
+                label={t('applications.form.businessCapabilitiesLabel')}
+                onChange={(e) => setSelectedCapabilityId(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>{t('applications.detail.noValue')}</em>
+                </MenuItem>
+                {availableOptions.businessCapabilities
+                  .filter(bc => !values.capabilityIds.includes(bc.id))
+                  .map((bc) => (
+                    <MenuItem key={bc.id} value={bc.id}>
+                      {bc.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setCapabilityDialogOpen(false);
+                setSelectedCapabilityId('');
+              }}
+            >
+              {t('applications.form.cancelButton')}
+            </Button>
+            <Button
+              onClick={handleAddCapability}
+              variant="contained"
+              disabled={!selectedCapabilityId}
             >
               {t('applications.form.addButton')}
             </Button>

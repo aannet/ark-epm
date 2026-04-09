@@ -593,26 +593,31 @@ tasks:
 
   - id: T-026
     nom: "Amendment FS-06-FRONT — Sélecteur Business Capabilities dans Applications"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "9f2c1a"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-10"
     sprint: S3
     theme: FS-07
     type: impl
     feature: FS-06-FRONT
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "c4d8e2"
+        nom: "impl capabilityIds selector FS-06-FRONT"
     notes: |
-      Amendment FS-06-FRONT pour exposer la liaison Application ↔ BusinessCapability côté UI.
-      Gate : T-025 back amendment done.
-      À faire :
-      - types/application.ts : businessCapabilities dans Application, capabilityIds dans ApplicationFormValues
-      - ApplicationForm.tsx : Autocomplete multi-sélection (pattern itComponents, sans rôle)
-      - ApplicationNewPage + ApplicationEditPage : charger useBusinessCapabilities, passer capabilityIds
-      - ApplicationDetailPage : afficher BCs liées dans section Relations
-      - fr.json : clés applications.relations.businessCapabilities.* + applications.form.businessCapabilitiesLabel
-      - BusinessCapabilityEditPage.tsx:296 : remplacer string hardcodée par clé i18n
+      Amendment FS-06-FRONT : liaison Application ↔ BusinessCapability exposée côté UI.
+
+      Livraison (2026-04-10) :
+      - types/application.ts : BusinessCapabilityMapping, businessCapabilities[] sur Application/ListItem, capabilityIds dans ApplicationFormValues
+      - ApplicationForm.tsx : section BC avec Dialog multi-select (pattern itComponents, sans rôle), prop availableOptions.businessCapabilities
+      - ApplicationNewPage + ApplicationEditPage : useBusinessCapabilities({ limit: 200 }), capabilityIds initial/init depuis BC existantes
+      - ApplicationDetailPage : chips cliquables vers /business-capabilities/:id dans section Relations
+      - fr.json : 7 clés applications.form.businessCapabilitiesLabel + relations.businessCapabilities*
+
+      Build frontend : 0 erreurs TypeScript, 0 erreurs Vite.
+      Note : BusinessCapabilityEditPage.tsx:296 string hardcodée non adressée (hors scope T-026).
 
   - id: T-027
     nom: "Commande make db-reset-reseed + seed-all.ts orchestrateur"
@@ -726,3 +731,21 @@ tasks:
         detail.noDomain/rootCapability/subtitle, form.relatedApplicationsCount/applicationsRelationHint
 
       Vérification : `rtk npm run build` (frontend) OK.
+
+  - id: T-031
+    nom: "Bug — Onglet Applications vide sur détail IT Component (liaisons non affichées)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-05"
+    type: bug
+    feature: "QA-IT-COMPONENTS"
+    sessions: []
+    notes: |
+      Onglet "Applications" dans la vue détail d'un IT Component n'affiche aucune application,
+      même lorsque des applications sont bien liées au composant.
+      À investiguer : vérifier si GET /it-components/:id inclut bien les applications liées
+      dans la réponse, et si le composant frontend lit correctement ce champ.

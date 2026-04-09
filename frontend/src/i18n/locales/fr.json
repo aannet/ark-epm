@@ -464,6 +464,10 @@
          "addItComponent": "Ajouter un composant IT",
          "removeItComponent": "Retirer",
          "selectItComponent": "Sélectionner un composant IT",
+         "businessCapabilitiesLabel": "Business Capabilities",
+         "addBusinessCapability": "Ajouter une capability",
+         "removeBusinessCapability": "Retirer",
+         "selectBusinessCapability": "Sélectionner une capability",
          "saveButton": "Enregistrer",
          "cancelButton": "Annuler",
          "addButton": "Ajouter",
@@ -474,7 +478,10 @@
          "itComponents": "Composants IT",
          "itComponentsCount": "{{count}} composant(s) IT",
          "noItComponents": "Aucun composant IT lié",
-         "itComponentsDescription": "Composants IT utilisés par cette application"
+         "itComponentsDescription": "Composants IT utilisés par cette application",
+         "businessCapabilities": "Business Capabilities",
+         "businessCapabilitiesCount": "{{count}} capability(ies) liée(s)",
+         "noBusinessCapabilities": "Aucune business capability liée"
        },
       "drawer": {
         "close": "Fermer",

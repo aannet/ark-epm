@@ -8,6 +8,7 @@ import {
   Paper,
   Grid,
   Link,
+  Chip,
   Divider,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -211,6 +212,26 @@ export default function ApplicationDetailPage(): JSX.Element {
                 ) : (
                   <Typography variant="body1">{t('applications.relations.noItComponents')}</Typography>
                 )}
+             </Grid>
+             <Grid item xs={12}>
+               <Typography variant="body2" color="text.secondary">
+                 {t('applications.relations.businessCapabilities')}
+               </Typography>
+               {application.businessCapabilities && application.businessCapabilities.length > 0 ? (
+                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+                   {application.businessCapabilities.map((bc) => (
+                     <Chip
+                       key={bc.id}
+                       label={bc.name}
+                       size="small"
+                       onClick={() => navigate(`/business-capabilities/${bc.id}`)}
+                       sx={{ cursor: 'pointer' }}
+                     />
+                   ))}
+                 </Box>
+               ) : (
+                 <Typography variant="body1">{t('applications.relations.noBusinessCapabilities')}</Typography>
+               )}
              </Grid>
              <Grid item xs={12} md={6}>
                <Typography variant="body2" color="text.secondary">

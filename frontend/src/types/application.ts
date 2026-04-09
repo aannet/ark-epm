@@ -11,6 +11,11 @@ export interface ItComponentMapping {
   name: string;
 }
 
+export interface BusinessCapabilityMapping {
+  id: string;
+  name: string;
+}
+
 export interface Application {
   id: string;
   name: string;
@@ -19,6 +24,7 @@ export interface Application {
   domain: { id: string; name: string } | null;
   providers: ProviderMapping[];
   itComponents: ItComponentMapping[];
+  businessCapabilities: BusinessCapabilityMapping[];
   owner: { id: string; firstName: string; lastName: string; email: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;
@@ -34,6 +40,7 @@ export interface ApplicationListItem {
   domain: { id: string; name: string } | null;
   providers: ProviderMapping[];
   itComponents: ItComponentMapping[];
+  businessCapabilities: BusinessCapabilityMapping[];
   owner: { id: string; firstName: string; lastName: string } | null;
   criticality: string | null;
   lifecycleStatus: string | null;
@@ -48,6 +55,7 @@ export interface ApplicationFormValues {
   domainId: string | null;
   providers: Array<{ id: string; role?: string | null }>;
   itComponents: Array<{ id: string }>;
+  capabilityIds: string[];
   ownerId: string | null;
   criticality: string | null;
   lifecycleStatus: string | null;
