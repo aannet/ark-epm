@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Box, Card, Typography, Chip, Grid, Tooltip } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { BusinessCapabilityTreeNode } from '@/types/businessCapability';
-import { getCriticalityColor, sumApplications } from '@/utils/businessCapability.utils';
+import { sumApplications } from '@/utils/businessCapability.utils';
+import CriticalityChip from './CriticalityChip';
 
 interface BusinessCapabilityMatrixProps {
   tree: BusinessCapabilityTreeNode[];
@@ -16,7 +16,6 @@ export default function BusinessCapabilityMatrix({
   isLoading,
 }: BusinessCapabilityMatrixProps): JSX.Element {
   const { t } = useTranslation();
-  const theme = useTheme();
 
   if (isLoading) {
     return (
@@ -38,8 +37,6 @@ export default function BusinessCapabilityMatrix({
 
   const renderTile = (node: BusinessCapabilityTreeNode, depth: number = 0): JSX.Element => {
     const totalApps = sumApplications(node);
-    const bgColor = getCriticalityColor(node.criticality, theme);
-    const textColor = node.criticality === 'HIGH' || node.criticality === 'CRITICAL' ? 'white' : 'text.primary';
 
     const tooltipContent = (
       <Box>
@@ -52,21 +49,15 @@ export default function BusinessCapabilityMatrix({
             count: totalApps,
           })}
         </Typography>
-        {node.criticality && (
-          <Typography variant="caption" display="block">
-            {t('businessCapabilities.matrix.criticalityLabel')}: {t(`businessCapabilities.criticality.${node.criticality}`)}
-          </Typography>
-        )}
       </Box>
     );
 
     return (
-      <Grid item xs={12} sm={depth === 0 ? 6 : 12} md={depth === 0 ? 4 : 6} key={node.id}>
+      <Grid item xs={12} sm={depth === 0 ? 6 : 12} md={6} key={node.id}>
         <Tooltip title={tooltipContent} arrow placement="top">
           <Card
             onClick={() => onNodeClick(node.id)}
             sx={{
-              backgroundColor: bgColor,
               p: 2,
               cursor: 'pointer',
               transition: 'transform 0.2s, box-shadow 0.2s',
@@ -83,7 +74,6 @@ export default function BusinessCapabilityMatrix({
               <Typography
                 variant={depth === 0 ? 'h6' : 'subtitle2'}
                 sx={{
-                  color: textColor,
                   fontWeight: 600,
                   flex: 1,
                   wordBreak: 'break-word',
@@ -91,27 +81,14 @@ export default function BusinessCapabilityMatrix({
               >
                 {node.name}
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: textColor,
-                  opacity: 0.8,
-                  ml: 1,
-                }}
-              >
-                L{node.level}
-              </Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: node.children.length > 0 ? 2 : 0 }}>
+              {node.criticality && <CriticalityChip level={node.criticality} size="small" />}
               <Chip
                 label={t('businessCapabilities.matrix.applicationsChip', { count: totalApps })}
                 size="small"
-                sx={{
-                  backgroundColor: 'rgba(255,255,255,0.3)',
-                  color: textColor,
-                  fontWeight: 500,
-                }}
+                sx={{ fontWeight: 500 }}
               />
             </Box>
 

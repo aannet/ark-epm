@@ -1,10 +1,22 @@
 
+
+# 2026-04 
+* Test Claude Dev Pro + RTK
+  * pas convaincu par le TUI
+  * mention de fichier plus rapuide avec @
+* Test de "mémoire" custom avec système de tâches YAML
+  * hook precommit  
+  * ark-begin-session
+  * ark_end-session
+
+
+
 # 2026-03-28
 
 * test Opus en Plan et Haiku en dev
   * j'ai l'impression d'avoir de meilleurs résultats et plus complets 
 * suite au POC drupal, j'ai restructuré l'agent.md en plusieurs sous agents
-* 
+
 
 # 2026-03-18
 

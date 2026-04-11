@@ -528,7 +528,6 @@
     "businessCapabilities": {
       "views": {
         "list": "Liste",
-        "tree": "Arbre",
         "matrix": "Matrix"
       },
       "list": {

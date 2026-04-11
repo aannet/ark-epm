@@ -103,4 +103,4 @@ export interface PaginatedApplicationMappings {
   };
 }
 
-export type ViewMode = 'list' | 'tree' | 'matrix';
+export type ViewMode = 'list' | 'matrix';

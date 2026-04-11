@@ -775,3 +775,88 @@ tasks:
       (sans DTO NestJS), mais Prisma exige des integers pour skip/take.
       Fix : backend/src/it-components/it-components.service.ts — Number(query.page) || 1 / Number(query.limit) || 20.
       Frontend : ajout CircularProgress + reset appsPage dans Drawer (useEffect on itComponent?.id).
+
+  - id: T-033
+    nom: "Business capabilities FIX : retirer la vue tree"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-11"
+    sprint: S3
+    theme: "FS-07"
+    type: debt
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: CL
+        id: "buzzing"
+        nom: "suppression BusinessCapabilityTree + toggle 2 vues + tests Playwright"
+    notes: |
+      Retirer la vue tree des Business Capabilities.
+      Évaluer d'abord : specs (FS-07-FRONT) + composants front (BusinessCapabilityTree) + couverture de tests.
+      Résolution 2026-04-11 : BusinessCapabilityTree.tsx supprimé, import AccountTreeIcon retiré,
+      ToggleButton tree retiré, bloc render tree retiré, ViewMode réduit à 'list'|'matrix',
+      clé i18n views.tree supprimée, tests Playwright mis à jour (2 vues, bascule liste/matrix).
+
+  - id: T-034
+    nom: "Business capabilities EVOL : vue matrix — chip criticité"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-11"
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: CL
+        id: "buzzing"
+        nom: "BusinessCapabilityMatrix — fond neutre + CriticalityChip + suppression badge niveau"
+    notes: |
+      Remplacer la couleur de background par un CriticalityChip dans la vue matrix.
+      Supprimer la mention de niveau L0/L1/L2, afficher la criticité à la place.
+      Objectif : alléger l'affichage visuel trop chargé avec les couleurs de fond actuelles.
+      Résolution 2026-04-11 : getCriticalityColor + useTheme retirés, backgroundColor supprimé,
+      badge L{level} supprimé, CriticalityChip ajouté dans le corps de la tuile.
+
+  - id: T-035
+    nom: "Business capabilities EVOL : vue matrix — limiter à 2 domaines L0 en desktop wide"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-11"
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: CL
+        id: "buzzing"
+        nom: "BusinessCapabilityMatrix — md={6} unifié (2 colonnes L0 en desktop)"
+    notes: |
+      En format desktop wide, limiter l'affichage à 2 domaines L0 maximum par rangée (actuellement 3).
+      Améliore la lisibilité sur écran large.
+      Résolution 2026-04-11 : md={depth===0?4:6} → md={6} unifié dans renderTile.
+
+  - id: T-036
+    nom: "Polishing UI — Uniformisation cadre blanc pages détail (BusinessCapability, DataObject, ITComponent)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "POLISH"
+    type: impl
+    feature: ~
+    sessions: []
+    notes: |
+      Aligner BusinessCapabilityDetailPage, DataObjectDetailPage et ITComponentDetailPage
+      sur le rendu "cadre blanc" de ApplicationDetailPage
+      (référence visuelle : /applications/11a1cd07-6eaf-4951-9847-15ef884ef35d).
+      Checklist :
+      - [ ] BusinessCapabilityDetailPage
+      - [ ] DataObjectDetailPage
+      - [ ] ITComponentDetailPage

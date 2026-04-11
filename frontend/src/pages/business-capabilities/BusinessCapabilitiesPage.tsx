@@ -24,7 +24,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import ViewListIcon from '@mui/icons-material/ViewList';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -36,7 +35,6 @@ import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
 import { RowActionsMenu } from '@/components/shared';
 import BusinessCapabilityDrawer from '@/components/business-capabilities/BusinessCapabilityDrawer';
-import BusinessCapabilityTree from '@/components/business-capabilities/BusinessCapabilityTree';
 import BusinessCapabilityMatrix from '@/components/business-capabilities/BusinessCapabilityMatrix';
 import CriticalityChip from '@/components/business-capabilities/CriticalityChip';
 import { useBusinessCapabilitiesTree, useDeleteBusinessCapability } from '@/api/businessCapabilities';
@@ -62,7 +60,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
   // View mode from URL
   const getViewFromUrl = (): ViewMode => {
     const view = searchParams.get('view') as ViewMode;
-    return ['list', 'tree', 'matrix'].includes(view) ? view : 'list';
+    return ['list', 'matrix'].includes(view) ? view : 'list';
   };
 
   const [view, setView] = useState<ViewMode>(getViewFromUrl());
@@ -282,9 +280,6 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
             <ToggleButton value="list" aria-label={t('businessCapabilities.views.list')}>
               <ViewListIcon />
             </ToggleButton>
-            <ToggleButton value="tree" aria-label={t('businessCapabilities.views.tree')}>
-              <AccountTreeIcon />
-            </ToggleButton>
             <ToggleButton value="matrix" aria-label={t('businessCapabilities.views.matrix')}>
               <GridViewIcon />
             </ToggleButton>
@@ -468,16 +463,6 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                 </TableBody>
               </Table>
             </TableContainer>
-          )}
-
-          {/* Tree View */}
-          {view === 'tree' && treeData && (
-            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 2 }}>
-              <BusinessCapabilityTree
-                tree={treeData}
-                onNodeSelect={(id) => setSelectedCapabilityId(id)}
-              />
-            </Paper>
           )}
 
           {/* Matrix View */}

@@ -89,17 +89,13 @@ test.describe('Business Capabilities UI', () => {
     await expect(page.getByRole('heading', { name: 'Business Capabilities' })).toBeVisible();
   });
 
-  test('affiche la liste et le toggle 3 vues', async ({ page }) => {
+  test('affiche la liste et le toggle 2 vues', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'Liste' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Arbre' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Matrix' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Ajouter une capacité' })).toBeVisible();
   });
 
-  test('bascule entre liste, arbre et matrix', async ({ page }) => {
-    await page.getByRole('button', { name: 'Arbre' }).click();
-    await expect(page.locator('.MuiTreeItem-root').first()).toBeVisible();
-
+  test('bascule entre liste et matrix', async ({ page }) => {
     await page.getByRole('button', { name: 'Matrix' }).click();
     await expect(page.locator('.MuiCard-root').first()).toBeVisible();
 
