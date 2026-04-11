@@ -1,7 +1,17 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.15 — Avril 2026_
+_Version 0.19 — Avril 2026_
 
+> **Changelog v0.19 :**
+> - **FS-07-BACK** : statut `stable` → `done` — 8 endpoints (CRUD + /tree + /:id/children + /:id/applications),
+>   hiérarchie WITH RECURSIVE illimitée, prévention circulaire, 19 tests Jest + 20 Supertest + 21 Playwright.
+>   Amendment T-019 (criticality + technicalFit enums) inclus.
+> - **FS-07-FRONT** : statut `draft` → `done` — 3 vues (liste arborescente, MUI TreeView, matrix),
+>   4 pages, 8 composants (CriticalityChip, TechnicalFitChip, AppLifecycleBreakdown, Form, Drawer, Tree, Matrix,
+>   AppBreadcrumbs PNS-11), agrégation récursive client-side, recette T-024 + tests Playwright T-015 validés.
+> - **FS-06-FRONT amendment** (T-026) : sélecteur Business Capabilities dans formulaires Applications (dialog multi-select, chips cliquables dans détail).
+> - **Sprint 3 complet** — FS-07 BACK+FRONT done, T-019 amendment done, T-024 recette done, T-015 tests UI done.
+>
 > **Changelog v0.18 :**
 > - **FS-05-FRONT** (Data Objects) : statut `stable` → `done` — Implémentation confirmée (10 fichiers, 4 routes, toutes US réalisées). Tracking mis à jour.
 >
@@ -165,11 +175,13 @@ _Version 0.15 — Avril 2026_
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
 | FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | ✅ `done` (anticipé Sprint 2) | 1.5j |
-| FS-07 | **Business Capabilities** — CRUD + récursion `WITH RECURSIVE` + `DimensionTagInput` + écran arbre hiérarchique | `FS-07-Business-Capabilities-back.md` v1.0 `stable` | FS-02-BACK, **FS-06-BACK**, F-03 | FS-07-BACK, F-02, F-03 | 🟡 `stable` | `draft` | 1.5j + 1.5j |
+| FS-07 | **Business Capabilities** — CRUD + WITH RECURSIVE + hiérarchie illimitée + 3 vues (liste/tree/matrix) + criticality/technicalFit + `DimensionTagInput` | FS-02-BACK, **FS-06-BACK**, F-03 | FS-07-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 1.5j + 3j |
 
 > FS-07-BACK contient la requête `WITH RECURSIVE` — à écrire et tester manuellement en SQL avant de rédiger la spec back. **Tâche 0.9 à réaliser pendant Sprint 2** (0.5j R&D SQL pur).
 
 > FS-06-FRONT est la première spec frontend à intégrer `DimensionTagInput` dans un formulaire réel — les tests Cypress F-03 (`DimensionTagInput`) sont complétés dans cette spec.
+
+> ✅ **Sprint 3 complet** — FS-07 BACK+FRONT done (2026-04-08/10), amendment T-019 (criticality+technicalFit), amendment T-025/T-026 (FS-06 liaison BC), recette T-024, tests Playwright T-015.
 
 ---
 
@@ -231,7 +243,7 @@ F-00 (Fondation technique) ✅
                           │     │     └── FS-09-BACK ──gate──► FS-09-FRONT (Graph)[Sprint 4]
                           │     └── FS-10-BACK ──gate──► FS-10-FRONT (Import)     [Sprint 5]
                           │
-                          └── FS-07-BACK ──gate──► FS-07-FRONT (Business Cap.)    [Sprint 3]
+                           └── FS-07-BACK ──gate──► FS-07-FRONT (Business Cap.) ✅  [Sprint 3]
                                 └── FS-10-BACK (déjà listé)
 
 F-03 ──(P2)──► FS-21 (Tag Dimensions Administration — UI admin)
@@ -258,7 +270,8 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | ✅ 7 | **FS-03-FRONT** | `done` — 4 pages, 32 tests | **Implémentation complete 29/03 — débloque Sprint 2 et F-999 #15** |
  | 8 | **FS-05-BACK** | ✅ `done` | **Implémentation complète — module NestJS + tests + seed** |
 | 8b | **FS-05-FRONT** | ✅ `done` | **Implémentation complète — PNS-02 drawer, Chip isSourceOfTruth, Autocomplete type, colonne role, 4 routes, 10 fichiers** |
-| 🟡 9 | **FS-07-BACK** | 🟡 `stable` — Spec rédigée v1.0, hiérarchie récursive, WITH RECURSIVE, level auto, max depth 5, circular ref check | Prêt pour implémentation backend |
+| ✅ 9  | **FS-07-BACK**  | ✅ `done` — 8 endpoints, WITH RECURSIVE, circular ref, 19 tests Jest + 20 Supertest. Amendment T-019 criticality+technicalFit. | Implémentation complète (2026-04-08) |
+| ✅ 9b | **FS-07-FRONT** | ✅ `done` — 3 vues (liste/tree/matrix), 4 pages, 8 composants, MUI TreeView, agrégation récursive. PNS-11 AppBreadcrumbs. | T-018 + T-020 complétés (2026-04-08) |
 | 10 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
 | 11+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
 
