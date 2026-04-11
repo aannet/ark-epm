@@ -840,6 +840,28 @@ tasks:
       Améliore la lisibilité sur écran large.
       Résolution 2026-04-11 : md={depth===0?4:6} → md={6} unifié dans renderTile.
 
+  - id: T-037
+    nom: "Spec FS-07-FRONT v1.1 — cohérence post T-033/T-034/T-035"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-11"
+    sprint: S3
+    theme: "FS-07"
+    type: doc
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: CL
+        id: "buzzing"
+        nom: "mise à jour spec v1.1 : suppression vue tree, matrix chip, 2 vues"
+    notes: |
+      Mise en cohérence de docs/03-Features-Spec/FS-07-Business-Capabilities-front.md
+      après implémentation T-033/T-034/T-035.
+      Corrections : titre 3→2 vues, §4.2 marquée supprimée, §4.3 matrix CriticalityChip,
+      §5 fichiers BusinessCapabilityTree retiré, §6 i18n views.tree retiré,
+      §9 gate MUI TreeView retirée, §10/§12 tests mis à jour, §11 commande OpenCode nettoyée.
+
   - id: T-036
     nom: "Polishing UI — Uniformisation cadre blanc pages détail (BusinessCapability, DataObject, ITComponent)"
     statut: done
