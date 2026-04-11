@@ -1,7 +1,9 @@
 # ARK — Feature Spec FS-07-FRONT : Business Capabilities (Frontend)
 
-_Version 1.0 — Avril 2026_
+_Version 1.1 — Avril 2026_
 
+> **Changelog v1.1 :** T-033/T-034/T-035 — suppression vue arbre MUI TreeView (redondante avec liste arborescente), vue matrix : CriticalityChip remplace couleur de fond, badge niveau supprimé, max 2 domaines L0 par rangée en desktop (`md=6`).
+>
 > **Changelog v1.0 :** Création initiale — module Business Capabilities frontend avec 3 vues (liste arborescente, arbre MUI TreeView, matrix), drawer read-only (PNS-02), formulaire avec criticality/technicalFit, hiérarchie récursive, agrégation client-side. Conforme PNS-11 (breadcrumb systématique). Intègre le composant partagé `AppBreadcrumbs` (première implémentation réelle PNS-11).
 
 ---
@@ -11,7 +13,7 @@ _Version 1.0 — Avril 2026_
 | Champ | Valeur |
 |---|---|
 | **ID** | FS-07-FRONT |
-| **Titre** | Business Capabilities — Pages React (3 vues / Détail / New / Edit) |
+| **Titre** | Business Capabilities — Pages React (2 vues / Détail / New / Edit) |
 | **Priorité** | P1 |
 | **Statut** | `draft` *(devient `stable` uniquement après que T-019 amendment backend est `done`)* |
 | **Dépend de** | **FS-07-BACK** (gate bloquante), **T-019** (amendment criticality/technicalFit), FS-01, F-02, F-03 |
@@ -27,10 +29,10 @@ _Version 1.0 — Avril 2026_
 
 **Ce que cette spec fait :**
 
-Implémenter les pages React pour la gestion des Business Capabilities : liste arborescente avec 3 vues (liste / arbre MUI TreeView / matrix), drawer de consultation read-only (PNS-02), détail complet, création et modification. Ce module est le **patron de référence pour les hiérarchies récursives**.
+Implémenter les pages React pour la gestion des Business Capabilities : liste arborescente avec 2 vues (liste / matrix), drawer de consultation read-only (PNS-02), détail complet, création et modification. Ce module est le **patron de référence pour les hiérarchies récursives**.
 
 Le frontend implémente :
-- **3 vues interchangeables via toggle** : liste arborescente indentée, arbre MUI TreeView, matrix tuiles imbriquées
+- **2 vues interchangeables via toggle** : liste arborescente indentée, matrix tuiles imbriquées
 - Liste arborescente avec expand/collapse par niveau (L0 expanded par défaut)
 - Side Drawer read-only avec breadcrumb hiérarchique cliquable et empreinte applicative
 - Page détail avec affichage des relations (parent, domain, applications liées)
@@ -75,7 +77,7 @@ Critères d'acceptation :
 - [ ] Chaque nœud parent a une icône expand/collapse
 - [ ] Par défaut, les nœuds L0 sont déployés, L1+ sont repliés
 - [ ] L'état expand/collapse persiste dans l'état local React
-- [ ] La vue arbre MUI TreeView (`?view=tree`) gère l'expand/collapse nativement
+- [x] ~~La vue arbre MUI TreeView (`?view=tree`) gère l'expand/collapse nativement~~ _(supprimée T-033 — expand/collapse géré nativement dans la vue liste)_
 
 **US-16 — Filtrage Avancé par Métier**
 
@@ -102,7 +104,7 @@ Critères d'acceptation :
 - [ ] Le drawer affiche : nom, description, domain, criticality, technicalFit, tags, breadcrumb hiérarchique
 - [ ] Le drawer est **read-only** (PNS-02) — toute modification passe par "Modifier"
 - [ ] Footer : "Modifier" (disabled sans `business-capabilities:write`) + "Voir la fiche complète"
-- [ ] Le drawer reste ouvert lors du changement de vue (liste → arbre → matrix)
+- [ ] Le drawer reste ouvert lors du changement de vue (liste → matrix)
 
 **US-06 — Distribution des Apps par Lifecycle (reformulée)**
 
@@ -289,9 +291,7 @@ zones:
           - value: list
             icon: ViewListIcon
             aria_label: t('businessCapabilities.views.list')
-          - value: tree
-            icon: AccountTreeIcon
-            aria_label: t('businessCapabilities.views.tree')
+          # vue tree supprimée — T-033
           - value: matrix
             icon: GridViewIcon
             aria_label: t('businessCapabilities.views.matrix')
@@ -428,9 +428,12 @@ zones:
 
 ---
 
-### 4.2 `BusinessCapabilitiesPage` — Vue Arbre MUI TreeView
+### ~~4.2 `BusinessCapabilitiesPage` — Vue Arbre MUI TreeView~~ _(supprimée — T-033)_
+
+> ~~Vue retirée le 2026-04-11. La liste arborescente avec expand/collapse (§4.1) couvre le même besoin.~~
 
 ```yaml
+# SUPPRIMÉ — T-033
 page: BusinessCapabilitiesPage
 route: /business-capabilities?view=tree
 auth_required: true
@@ -516,26 +519,16 @@ zones:
     
     matrix_tile:
       layout: Grid imbriqué (L0 → L1 → L2)
-      background_color: |
-        function getColor(criticality) {
-          switch(criticality) {
-            case 'LOW': return theme.palette.success.light; // vert
-            case 'MEDIUM': return theme.palette.warning.light; // jaune
-            case 'HIGH': return theme.palette.error.light; // orange
-            case 'CRITICAL': return theme.palette.error.dark; // rouge
-            default: return theme.palette.grey[300]; // gris si null
-          }
-        }
+      grid_breakpoints: xs=12, sm=6 (depth=0) ou 12 (depth>0), md=6 (tous depths — max 2 L0 par rangée)
+      # T-034: fond neutre (blanc/paper), CriticalityChip remplace background_color
+      # T-035: md=6 unifié → 2 colonnes L0 max en desktop (précédemment md=4 → 3 colonnes)
       content: |
-        <Card sx={{ bgcolor: getColor(node.criticality), p: 2 }}>
+        <Card sx={{ p: 2 }}>  {/* fond neutre — pas de backgroundColor */}
           <Typography variant="h6">{node.name}</Typography>
-          <Typography variant="caption">L{node.level}</Typography>
-          <Box sx={{ mt: 1 }}>
-            <Chip 
-              label={`${sumApplications(node)} apps`} 
-              size="small"
-              color="default"
-            />
+          {/* badge niveau L{node.level} supprimé — T-034 */}
+          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+            {node.criticality && <CriticalityChip level={node.criticality} size="small" />}
+            <Chip label={`${sumApplications(node)} apps`} size="small" />
           </Box>
           {node.children.length > 0 && (
             <Grid container spacing={1} sx={{ mt: 1 }}>
@@ -926,7 +919,7 @@ zones:
 frontend/src/
 ├── pages/
 │   └── business-capabilities/
-│       ├── BusinessCapabilitiesPage.tsx          ← 3 vues (liste/tree/matrix) + toggle
+│       ├── BusinessCapabilitiesPage.tsx          ← 2 vues (liste/matrix) + toggle
 │       ├── BusinessCapabilityNewPage.tsx
 │       ├── BusinessCapabilityDetailPage.tsx
 │       └── BusinessCapabilityEditPage.tsx
@@ -934,8 +927,7 @@ frontend/src/
 │   ├── shared/
 │   │   └── AppBreadcrumbs.tsx                    ← ⭐ nouveau composant PNS-11
 │   └── business-capabilities/
-│       ├── BusinessCapabilityTree.tsx            ← MUI TreeView
-│       ├── BusinessCapabilityMatrix.tsx          ← tuiles imbriquées US13
+│       ├── BusinessCapabilityMatrix.tsx          ← tuiles imbriquées US13 (fond neutre + CriticalityChip)
 │       ├── BusinessCapabilityDrawer.tsx          ← side panel PNS-02
 │       ├── BusinessCapabilityForm.tsx            ← formulaire new/edit (onglet Général)
 │       ├── CriticalityChip.tsx                   ← LOW/MEDIUM/HIGH/CRITICAL coloré
@@ -1062,7 +1054,6 @@ export function AppBreadcrumbs({ items }: AppBreadcrumbsProps) {
 "businessCapabilities": {
   "views": {
     "list": "Liste",
-    "tree": "Arbre",
     "matrix": "Matrix"
   },
   "list": {
@@ -1381,7 +1372,6 @@ export function AppBreadcrumbs({ items }: AppBreadcrumbsProps) {
 - [ ] **Clés `businessCapabilities.*` ajoutées dans `fr.json`** (§6 de cette spec)
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
 - [ ] **Câblage `App.tsx` réalisé manuellement** (§8 de cette spec)
-- [ ] **MUI TreeView installé** : `@mui/x-tree-view` (vérifier package.json)
 - [ ] **Layout Contract §4 relu** — un bloc par page/vue, aucun composant F-01 manquant
 - [ ] **FS-07-FRONT passé au statut `stable`** avant de lancer OpenCode
 
@@ -1396,9 +1386,8 @@ export function AppBreadcrumbs({ items }: AppBreadcrumbsProps) {
 
 - [ ] Liste arborescente affiche indentation par niveau
 - [ ] Expand/collapse fonctionnel sur nœuds parents
-- [ ] Toggle 3 vues (liste / arbre / matrix) fonctionnel
-- [ ] Vue arbre MUI TreeView affiche structure nested
-- [ ] Vue matrix affiche tuiles imbriquées colorées par criticality
+- [ ] Toggle 2 vues (liste / matrix) fonctionnel
+- [ ] Vue matrix affiche tuiles imbriquées avec CriticalityChip (fond neutre)
 - [ ] Drawer s'ouvre au clic sur ligne
 - [ ] Drawer affiche breadcrumb hiérarchique cliquable
 - [ ] Drawer affiche breakdown apps par lifecycle
@@ -1422,13 +1411,12 @@ export function AppBreadcrumbs({ items }: AppBreadcrumbsProps) {
 ```
 Contexte projet ARK — Session Frontend FS-07-FRONT :
 
-Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next + @mui/x-tree-view
+Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next
 Règles MUI obligatoires :
 - MUI v5 UNIQUEMENT — pas de Tailwind, pas de styled-components
 - Styling : sx prop uniquement — jamais de styled()
 - Inputs : variant="outlined" systématiquement sur tous les TextField
 - Pas de MUI X DataGrid — utiliser MUI Table + TableSortLabel
-- MUI TreeView : `@mui/x-tree-view` pour la vue arbre (US04)
 
 i18n :
 - Toute string visible via t('clé') — JAMAIS de string en dur dans les composants
@@ -1507,38 +1495,7 @@ const visibleRows = data.filter(row => {
 </Box>
 ```
 
-**3. Vue MUI TreeView :**
-```typescript
-import { TreeView, TreeItem } from '@mui/x-tree-view';
-
-<TreeView
-  defaultCollapseIcon={<ExpandMoreIcon />}
-  defaultExpandIcon={<ChevronRightIcon />}
-  defaultExpanded={rootIds}
-  onNodeSelect={(event, nodeId) => openDrawer(nodeId)}
->
-  {renderTree(treeData)}
-</TreeView>
-
-function renderTree(nodes: BusinessCapabilityTreeNode[]) {
-  return nodes.map(node => (
-    <TreeItem
-      key={node.id}
-      nodeId={node.id}
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography>{node.name}</Typography>
-          <Typography variant="caption" color="text.secondary">L{node.level}</Typography>
-          {node.criticality && <CriticalityChip level={node.criticality} size="small" />}
-          <Chip label={node._count.applicationMappings} size="small" />
-        </Box>
-      }
-    >
-      {node.children.length > 0 && renderTree(node.children)}
-    </TreeItem>
-  ));
-}
-```
+~~**3. Vue MUI TreeView :**~~ _(supprimée — T-033)_
 
 **4. Agrégation récursive (RM-BC-03) :**
 ```typescript
@@ -1625,11 +1582,10 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 > À compléter après génération OpenCode, avant de passer FS-07-FRONT à `done`.
 
 - [ ] Les 4 routes `/business-capabilities/*` fonctionnent depuis App.tsx
-- [ ] Toggle 3 vues (liste/tree/matrix) fonctionne avec persistence state
+- [ ] Toggle 2 vues (liste/matrix) fonctionne avec persistence state (`?view=matrix`)
 - [ ] Liste arborescente affiche indentation par niveau (`paddingLeft: level * 24px`)
 - [ ] Expand/collapse fonctionne (icônes + masquage enfants)
-- [ ] Vue arbre MUI TreeView affiche structure nested complète
-- [ ] Vue matrix affiche tuiles imbriquées colorées par criticality
+- [ ] Vue matrix affiche tuiles imbriquées avec CriticalityChip (fond neutre, max 2 L0 par rangée)
 - [ ] Drawer s'ouvre au clic sur ligne (hors nom et actions)
 - [ ] Drawer affiche breadcrumb hiérarchique cliquable
 - [ ] Drawer affiche breakdown apps par lifecycle (composant `AppLifecycleBreakdown`)
