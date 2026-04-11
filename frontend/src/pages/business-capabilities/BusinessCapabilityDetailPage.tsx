@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Typography, Stack, Button, Link, Divider } from '@mui/material';
+import { Box, Typography, Stack, Button, Link, Divider, Paper } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
@@ -102,121 +102,122 @@ export default function BusinessCapabilityDetailPage(): JSX.Element {
         }
       />
 
-      <Stack spacing={3} sx={{ mt: 3 }}>
-        {/* Description */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.form.description')}
-          </Typography>
-          <Typography variant="body1">
-            {capability.description || t('businessCapabilities.detail.noValue')}
-          </Typography>
-        </Box>
+      <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider' }}>
+        <Stack spacing={3}>
+          {/* Description */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.form.description')}
+            </Typography>
+            <Typography variant="body1">
+              {capability.description || t('businessCapabilities.detail.noValue')}
+            </Typography>
+          </Box>
 
-        {/* Comment */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.form.comment')}
-          </Typography>
-          <Typography variant="body1">
-            {capability.comment || t('businessCapabilities.detail.noValue')}
-          </Typography>
-        </Box>
+          {/* Comment */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.form.comment')}
+            </Typography>
+            <Typography variant="body1">
+              {capability.comment || t('businessCapabilities.detail.noValue')}
+            </Typography>
+          </Box>
 
-        <Divider />
+          <Divider />
 
-        {/* Domain */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.form.domain')}
-          </Typography>
-          <Typography variant="body1">
-            {capability.domain?.name || t('businessCapabilities.detail.noValue')}
-          </Typography>
-        </Box>
+          {/* Domain */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.form.domain')}
+            </Typography>
+            <Typography variant="body1">
+              {capability.domain?.name || t('businessCapabilities.detail.noValue')}
+            </Typography>
+          </Box>
 
-        {/* Parent */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.form.parent')}
-          </Typography>
-          {capability.parent ? (
-            <Link
-              component="button"
-              variant="body1"
-              onClick={() => navigate(`/business-capabilities/${capability.parent?.id}`)}
-              sx={{ cursor: 'pointer', textAlign: 'left' }}
-            >
-              {capability.parent.name}
-            </Link>
-          ) : (
-            <Typography variant="body1">{t('businessCapabilities.detail.rootCapability')}</Typography>
-          )}
-        </Box>
+          {/* Parent */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.form.parent')}
+            </Typography>
+            {capability.parent ? (
+              <Link
+                component="button"
+                variant="body1"
+                onClick={() => navigate(`/business-capabilities/${capability.parent?.id}`)}
+                sx={{ cursor: 'pointer', textAlign: 'left' }}
+              >
+                {capability.parent.name}
+              </Link>
+            ) : (
+              <Typography variant="body1">{t('businessCapabilities.detail.rootCapability')}</Typography>
+            )}
+          </Box>
 
-        <Divider />
+          <Divider />
 
-        {/* Criticality */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.form.criticality')}
-          </Typography>
-          {capability.criticality ? (
-            <CriticalityChip level={capability.criticality} />
-          ) : (
-            <Typography variant="body1">{t('businessCapabilities.detail.noValue')}</Typography>
-          )}
-        </Box>
+          {/* Criticality */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.form.criticality')}
+            </Typography>
+            {capability.criticality ? (
+              <CriticalityChip level={capability.criticality} />
+            ) : (
+              <Typography variant="body1">{t('businessCapabilities.detail.noValue')}</Typography>
+            )}
+          </Box>
 
-        {/* Technical Fit */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.form.technicalFit')}
-          </Typography>
-          {capability.technicalFit ? (
-            <TechnicalFitChip level={capability.technicalFit} />
-          ) : (
-            <Typography variant="body1">{t('businessCapabilities.detail.noValue')}</Typography>
-          )}
-        </Box>
+          {/* Technical Fit */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.form.technicalFit')}
+            </Typography>
+            {capability.technicalFit ? (
+              <TechnicalFitChip level={capability.technicalFit} />
+            ) : (
+              <Typography variant="body1">{t('businessCapabilities.detail.noValue')}</Typography>
+            )}
+          </Box>
 
-        <Divider />
+          <Divider />
 
-        {/* Tags */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.detail.tags')}
-          </Typography>
-          {capability.tags && capability.tags.length > 0 ? (
-            <TagChipList
-              tags={capability.tags}
-              maxVisible={20}
-              deduplicate={true}
-              showMoreButton={true}
-              size="small"
-            />
-          ) : (
-            <Typography variant="body1">{t('businessCapabilities.detail.noValue')}</Typography>
-          )}
-        </Box>
+          {/* Tags */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.detail.tags')}
+            </Typography>
+            {capability.tags && capability.tags.length > 0 ? (
+              <TagChipList
+                tags={capability.tags}
+                maxVisible={20}
+                deduplicate={true}
+                showMoreButton={true}
+                size="small"
+              />
+            ) : (
+              <Typography variant="body1">{t('businessCapabilities.detail.noValue')}</Typography>
+            )}
+          </Box>
 
-        {/* Metadata */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {t('businessCapabilities.list.columns.createdAt')}
-          </Typography>
-          <Typography variant="body1">
-            {new Date(capability.createdAt).toLocaleDateString('fr-FR')}
-          </Typography>
-        </Box>
+          {/* Metadata */}
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {t('businessCapabilities.list.columns.createdAt')}
+            </Typography>
+            <Typography variant="body1">
+              {new Date(capability.createdAt).toLocaleDateString('fr-FR')}
+            </Typography>
+          </Box>
+        </Stack>
+      </Paper>
 
-        {/* Back button */}
-        <Box sx={{ pt: 2 }}>
-          <Button variant="outlined" onClick={() => navigate('/business-capabilities')}>
-            {t('businessCapabilities.detail.backButton')}
-          </Button>
-        </Box>
-      </Stack>
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-start' }}>
+        <Button variant="outlined" onClick={() => navigate('/business-capabilities')}>
+          {t('businessCapabilities.detail.backButton')}
+        </Button>
+      </Box>
     </PageContainer>
   );
 }

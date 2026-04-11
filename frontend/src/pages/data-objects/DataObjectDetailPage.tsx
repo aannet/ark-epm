@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, Typography, Tabs, Tab, Button, Chip,
+  Box, Typography, Tabs, Tab, Button, Chip, Paper,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
@@ -88,56 +88,58 @@ export default function DataObjectDetailPage(): JSX.Element {
         action={canWrite ? { label: t('data-objects.detail.editButton'), onClick: () => navigate(`/data-objects/${id}/edit`), icon: <EditIcon /> } : undefined}
       />
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tab label={t('data-objects.detail.tabInfo')} />
-        <Tab label={`${t('data-objects.detail.tabApplications')} (${data._count?.appDataObjectMaps ?? 0})`} />
-      </Tabs>
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        {/* Tabs */}
+        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
+          <Tab label={t('data-objects.detail.tabInfo')} />
+          <Tab label={`${t('data-objects.detail.tabApplications')} (${data._count?.appDataObjectMaps ?? 0})`} />
+        </Tabs>
 
-      {activeTab === 0 ? (
-        <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.typeLabel')}</Typography>
-            <Typography>{data.type ?? t('data-objects.detail.noValue')}</Typography>
+        {activeTab === 0 ? (
+          <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.typeLabel')}</Typography>
+              <Typography>{data.type ?? t('data-objects.detail.noValue')}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>{t('data-objects.detail.isSourceOfTruthLabel')}</Typography>
+              {data.isSourceOfTruth ? (
+                <Chip size="small" variant="filled" color="success" label={t('data-objects.list.columns.isSourceOfTruthTrue')} />
+              ) : (
+                <Chip size="small" variant="outlined" color="default" label={t('data-objects.list.columns.isSourceOfTruthFalse')} />
+              )}
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.descriptionLabel')}</Typography>
+              <Typography>{data.description ?? t('data-objects.detail.noValue')}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.commentLabel')}</Typography>
+              <Typography>{data.comment ?? t('data-objects.detail.noValue')}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>{t('data-objects.detail.tagsLabel')}</Typography>
+              {data.tags?.length ? (
+                <TagChipList tags={data.tags} deduplicate={true} />
+              ) : (
+                <Typography variant="body2" color="text.secondary">{t('data-objects.detail.noValue')}</Typography>
+              )}
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.createdAtLabel')}</Typography>
+              <Typography>{formatDate(data.createdAt)}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.updatedAtLabel')}</Typography>
+              <Typography>{formatDate(data.updatedAt)}</Typography>
+            </Box>
           </Box>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>{t('data-objects.detail.isSourceOfTruthLabel')}</Typography>
-            {data.isSourceOfTruth ? (
-              <Chip size="small" variant="filled" color="success" label={t('data-objects.list.columns.isSourceOfTruthTrue')} />
-            ) : (
-              <Chip size="small" variant="outlined" color="default" label={t('data-objects.list.columns.isSourceOfTruthFalse')} />
-            )}
+        ) : (
+          <Box sx={{ p: 2 }}>
+            <ApplicationListTable dataObjectId={id!} />
           </Box>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.descriptionLabel')}</Typography>
-            <Typography>{data.description ?? t('data-objects.detail.noValue')}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.commentLabel')}</Typography>
-            <Typography>{data.comment ?? t('data-objects.detail.noValue')}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>{t('data-objects.detail.tagsLabel')}</Typography>
-            {data.tags?.length ? (
-              <TagChipList tags={data.tags} deduplicate={true} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">{t('data-objects.detail.noValue')}</Typography>
-            )}
-          </Box>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.createdAtLabel')}</Typography>
-            <Typography>{formatDate(data.createdAt)}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.updatedAtLabel')}</Typography>
-            <Typography>{formatDate(data.updatedAt)}</Typography>
-          </Box>
-        </Box>
-      ) : (
-        <Box sx={{ pt: 2 }}>
-          <ApplicationListTable dataObjectId={id!} />
-        </Box>
-      )}
+        )}
+      </Paper>
 
       {/* Footer actions */}
       <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' }}>

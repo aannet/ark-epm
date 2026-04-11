@@ -842,21 +842,25 @@ tasks:
 
   - id: T-036
     nom: "Polishing UI — Uniformisation cadre blanc pages détail (BusinessCapability, DataObject, ITComponent)"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-11"
     sprint: S3
     theme: "POLISH"
     type: impl
     feature: ~
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "a3f7e1"
+        nom: "Paper elevation=0 + cadre blanc sur 3 pages détail + AppBreadcrumbs/PageHeader ITComponent"
     notes: |
       Aligner BusinessCapabilityDetailPage, DataObjectDetailPage et ITComponentDetailPage
       sur le rendu "cadre blanc" de ApplicationDetailPage
       (référence visuelle : /applications/11a1cd07-6eaf-4951-9847-15ef884ef35d).
       Checklist :
-      - [ ] BusinessCapabilityDetailPage
-      - [ ] DataObjectDetailPage
-      - [ ] ITComponentDetailPage
+      - [x] BusinessCapabilityDetailPage — Stack → Paper elevation=0 border divider, bouton retour sorti du Paper
+      - [x] DataObjectDetailPage — Tabs+contenu → Paper elevation=0 border divider, px=2 sur tabs, p=4 sur info
+      - [x] ITComponentDetailPage — Breadcrumbs inline → AppBreadcrumbs, titre Box → PageHeader, Tabs+contenu → Paper elevation=0
+      Build frontend : 0 erreurs TypeScript, 0 erreurs Vite.

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, Typography, Breadcrumbs, Link, Tabs, Tab, Button,
+  Box, Typography, Link, Tabs, Tab, Button,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, TablePagination, CircularProgress
 } from '@mui/material';
@@ -10,6 +10,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PageContainer from '@/components/layout/PageContainer';
+import PageHeader from '@/components/shared/PageHeader';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import EmptyState from '@/components/shared/EmptyState';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
@@ -58,51 +60,54 @@ export default function ITComponentDetailPage(): JSX.Element {
   return (
     <PageContainer maxWidth="md">
       <ArkAlert open={!!alert} severity={alert?.severity || 'success'} message={alert?.message || ''} autoDismiss={5000} onClose={() => setAlert(null)} />
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link component="button" onClick={() => navigate('/')} underline="hover">{t('it-components.detail.breadcrumb.home')}</Link>
-        <Link component="button" onClick={() => navigate('/it-components')} underline="hover">{t('it-components.detail.breadcrumb.list')}</Link>
-        <Typography color="text.primary">{data.name}</Typography>
-      </Breadcrumbs>
 
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h4">{data.name}</Typography>
-        {data._count.applications > 0 && <Typography variant="subtitle1" color="primary">{data._count.applications} {t('it-components.detail.applicationsCount')}</Typography>}
-      </Box>
+      <AppBreadcrumbs items={[
+        { label: t('it-components.detail.breadcrumb.home'), onClick: () => navigate('/') },
+        { label: t('it-components.detail.breadcrumb.list'), onClick: () => navigate('/it-components') },
+        { label: data.name },
+      ]} />
 
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tab label={t('it-components.detail.tabInfo')} />
-        <Tab label={`${t('it-components.detail.tabApplications')} (${data._count.applications})`} />
-      </Tabs>
+      <PageHeader
+        title={data.name}
+        action={canWrite ? { label: t('it-components.detail.buttonEdit'), onClick: () => navigate(`/it-components/${id}/edit`), icon: <EditIcon /> } : undefined}
+      />
 
-      {activeTab === 0 ? (
-        <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.technologyLabel')}</Typography><Typography>{data.technology || t('it-components.detail.noValue')}</Typography></Box>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.typeLabel')}</Typography><Typography>{data.type || t('it-components.detail.noValue')}</Typography></Box>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.descriptionLabel')}</Typography><Typography>{data.description || t('it-components.detail.noValue')}</Typography></Box>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.commentLabel')}</Typography><Typography>{data.comment || t('it-components.detail.noValue')}</Typography></Box>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.tagsLabel')}</Typography><Typography variant="caption">{data.tags?.length ? `${data.tags.length} tag(s)` : '—'}</Typography></Box>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.createdAtLabel')}</Typography><Typography>{formatDateTime(data.createdAt)}</Typography></Box>
-          <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.updatedAtLabel')}</Typography><Typography>{formatDateTime(data.updatedAt)}</Typography></Box>
-        </Box>
-      ) : (
-        <Box sx={{ pt: 2 }}>
-          {isLoadingApps ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress size={24} /></Box>
-          ) : appsData?.data.length ? (
-            <>
-              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
-                <Table>
-                  <TableHead><TableRow sx={{ bgcolor: '#F1F5F9' }}><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell><TableCell>{t('applications.list.columns.owner')}</TableCell><TableCell>{t('applications.list.columns.criticality')}</TableCell><TableCell>{t('applications.list.columns.lifecycleStatus')}</TableCell></TableRow></TableHead>
-                  <TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell><Link component={RouterLink} to={`/applications/${app.id}`} underline="always" sx={{ color: 'inherit', '&:hover': { color: 'primary.main' } }}>{app.name}</Link></TableCell><TableCell>{app.domain?.name || '—'}</TableCell><TableCell>{app.owner ? `${app.owner.firstName} ${app.owner.lastName}` : '—'}</TableCell><TableCell>{app.criticality || '—'}</TableCell><TableCell>{app.lifecycleStatus || '—'}</TableCell></TableRow>)}</TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={20} rowsPerPageOptions={[20]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
-            </>
-          ) : (
-            <EmptyState title={t('it-components.detail.noApplications')} />
-          )}
-        </Box>
-      )}
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
+          <Tab label={t('it-components.detail.tabInfo')} />
+          <Tab label={`${t('it-components.detail.tabApplications')} (${data._count.applications})`} />
+        </Tabs>
+
+        {activeTab === 0 ? (
+          <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.technologyLabel')}</Typography><Typography>{data.technology || t('it-components.detail.noValue')}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.typeLabel')}</Typography><Typography>{data.type || t('it-components.detail.noValue')}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.descriptionLabel')}</Typography><Typography>{data.description || t('it-components.detail.noValue')}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.commentLabel')}</Typography><Typography>{data.comment || t('it-components.detail.noValue')}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.tagsLabel')}</Typography><Typography variant="caption">{data.tags?.length ? `${data.tags.length} tag(s)` : '—'}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.createdAtLabel')}</Typography><Typography>{formatDateTime(data.createdAt)}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.updatedAtLabel')}</Typography><Typography>{formatDateTime(data.updatedAt)}</Typography></Box>
+          </Box>
+        ) : (
+          <Box sx={{ p: 2 }}>
+            {isLoadingApps ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress size={24} /></Box>
+            ) : appsData?.data.length ? (
+              <>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+                  <Table>
+                    <TableHead><TableRow sx={{ bgcolor: '#F1F5F9' }}><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell><TableCell>{t('applications.list.columns.owner')}</TableCell><TableCell>{t('applications.list.columns.criticality')}</TableCell><TableCell>{t('applications.list.columns.lifecycleStatus')}</TableCell></TableRow></TableHead>
+                    <TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell><Link component={RouterLink} to={`/applications/${app.id}`} underline="always" sx={{ color: 'inherit', '&:hover': { color: 'primary.main' } }}>{app.name}</Link></TableCell><TableCell>{app.domain?.name || '—'}</TableCell><TableCell>{app.owner ? `${app.owner.firstName} ${app.owner.lastName}` : '—'}</TableCell><TableCell>{app.criticality || '—'}</TableCell><TableCell>{app.lifecycleStatus || '—'}</TableCell></TableRow>)}</TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={20} rowsPerPageOptions={[20]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
+              </>
+            ) : (
+              <EmptyState title={t('it-components.detail.noApplications')} />
+            )}
+          </Box>
+        )}
+      </Paper>
 
       <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/it-components')}>{t('it-components.detail.buttonBack')}</Button>
