@@ -915,23 +915,33 @@ tasks:
       Commit : 7d72a00
 
   - id: T-038
-    nom: "Business Capabilities : Vue liste — Évolution UX du tri (incompatibilité ASC/DESC avec structure arborescente)"
-    statut: open
+    nom: "Business Capabilities : Vue liste — Évolution UX du tri + indicateurs visuels de profondeur"
+    statut: done
     assigned_agent: front
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S3
     theme: "FS-07"
     type: impl
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "f9d3b1"
+        nom: "tri hiérarchique + visuels depth + expand/collapse all"
     notes: |
       Le pattern UX standard (entêtes de colonnes cliquables ASC/DESC) s'applique mal
       à la liste arborescente des Business Capabilities : les nœuds enfants "suivent"
       leur parent, ce qui brise l'ordre global attendu par l'utilisateur.
-      Revoir l'UX de tri sur cette vue (ex : tri uniquement sur L0, désactivation
-      des headers de tri, ou basculement vers une vue flat dédiée au tri).
+
+      Résolution 2026-04-12 :
+      - sortTreeHierarchically() dans businessCapability.utils.ts : tri récursif par siblings
+      - TableSortLabel supprimés ; Select "Trier par" (Nom A→Z/Z→A, Criticité ↑/↓) dans toolbar
+      - Indicateurs visuels de profondeur : gras sur L0, FiberManualRecord (●) sur feuilles,
+        chips niveau L0/L1/L2/L3 en dégradé gris, couleur texte dégradée (#424242→#BDBDBD)
+      - underline="hover" sur les liens de noms
+      - Bouton expand/collapse all (IconButton + Tooltip, icône UnfoldMore/UnfoldLess) dans toolbar
+      Bug résiduel → T-041 (recherche libre ne fonctionne plus).
 
   - id: T-039
     nom: "Amendment FS-06-BACK — Contrôle dépendances Interfaces avant suppression Application"
@@ -964,11 +974,11 @@ tasks:
 
   - id: T-040
     nom: "Implémentation FS-08-BACK — Module Interfaces (NestJS + Prisma + tests)"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
-    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-spec-fs08-back.md"
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-back-t040-fs08.md"
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-08"
     type: impl
@@ -977,6 +987,9 @@ tasks:
       - tool: CL
         id: "fs08sp"
         nom: "rédaction spec FS-08-BACK v1.1 — PRD Interfaces backend"
+      - tool: OC
+        id: "a9f3e1"
+        nom: "impl FS-08-BACK module NestJS + tests"
     notes: |
       Spec stabilisée : docs/03-Features-Spec/FS-08-Interfaces-back.md (v1.1)
       Débloque : T-006 (tests Playwright applications-dependencies), T-039 (amendment FS-06-BACK)
@@ -988,3 +1001,22 @@ tasks:
       - Tests Jest unit (13 cas) + Supertest e2e (18 cas)
       - Seed 2 interfaces de démo (dépend des apps seedées FS-06)
       - openapi.yaml mis à jour (NFR-GOV-001)
+
+  - id: T-041
+    nom: "Bug — BC vue liste : la recherche libre ne fonctionne plus"
+    statut: in_progress
+    assigned_agent: front
+    session_active: "f4a8c2"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: bug
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      Signalé après les évolutions T-038 (tri hiérarchique) et améliorations visuelles.
+      La recherche dans la barre de filtres de la vue liste BC semble ne plus déclencher
+      de filtrage. À investiguer : vérifier le flux searchInput → searchValue (handleSearchSubmit),
+      l'impact du useMemo flatList sur la dépendance treeData, et si le useEffect
+      d'initialisation de expanded interfère avec les résultats filtrés.

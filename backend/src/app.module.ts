@@ -24,6 +24,7 @@ import { ProvidersModule } from './providers/providers.module';
 import { ItComponentsModule } from './it-components/it-components.module';
 import { DataObjectsModule } from './data-objects/data-objects.module';
 import { BusinessCapabilitiesModule } from './business-capabilities/business-capabilities.module';
+import { InterfacesModule } from './interfaces/interfaces.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { BusinessCapabilitiesModule } from './business-capabilities/business-cap
     ItComponentsModule,
     DataObjectsModule,
     BusinessCapabilitiesModule,
+    InterfacesModule,
   ],
   controllers: [AppController],
   providers: [

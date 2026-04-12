@@ -51,7 +51,6 @@ model User {
   updatedAt         DateTime?      @default(now()) @map("updated_at") @db.Timestamptz(6)
   ownedApplications Application[]  @relation("ApplicationOwner")
   auditTrail        AuditTrail[]   @relation("AuditChangedBy")
-  technicalContacts Interface[]    @relation("InterfaceTechnicalContact")
   role              Role?          @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   refreshToken      RefreshToken?
 
@@ -104,6 +103,34 @@ enum TechnicalFitLevel {
   PARTIAL
   INADEQUATE
   LEGACY
+}
+
+enum InterfaceType {
+  REST
+  SOAP
+  FTP
+  SFTP
+  DATABASE
+  MESSAGE_QUEUE
+  BATCH_FILE
+  EVENT_STREAM
+  GRAPHQL
+  GRPC
+  OTHER
+
+  @@map("interface_type")
+}
+
+enum InterfaceFrequency {
+  REALTIME
+  NEAR_REALTIME
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  ON_DEMAND
+
+  @@map("interface_frequency")
 }
 
 model Provider {
@@ -171,22 +198,22 @@ model AppCapabilityMap {
 }
 
 model Interface {
-  id                 String      @id @default(uuid()) @db.Uuid
-  name               String?     @db.VarChar(255)
-  sourceAppId        String      @map("source_app_id") @db.Uuid
-  targetAppId        String      @map("target_app_id") @db.Uuid
-  type               String      @db.VarChar(50)
-  frequency          String?     @map("frequency") @db.VarChar(50)
-  criticality        String?     @map("criticality") @db.VarChar(50)
-  technicalContactId String?     @map("technical_contact_id") @db.Uuid
-  latencyMs          Int?        @map("latency_ms")
-  errorRate          Decimal?    @map("error_rate") @db.Decimal(5, 2)
-  tags               String[]    @default([])
-  createdAt          DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime?   @default(now()) @map("updated_at") @db.Timestamptz(6)
-  sourceApp          Application @relation("InterfaceSourceApp", fields: [sourceAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  targetApp          Application @relation("InterfaceTargetApp", fields: [targetAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  technicalContact   User?       @relation("InterfaceTechnicalContact", fields: [technicalContactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String?             @db.VarChar(255)
+  description      String?             @db.Text
+  comment          String?             @db.Text
+  sourceAppId      String              @map("source_app_id") @db.Uuid
+  targetAppId      String              @map("target_app_id") @db.Uuid
+  type             InterfaceType
+  frequency        InterfaceFrequency? @map("frequency")
+  criticality      CriticalityLevel?   @map("criticality")
+  technicalContact String?             @map("technical_contact") @db.VarChar(255)
+  errorRate        Decimal?            @map("error_rate") @db.Decimal(5, 2)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  sourceApp        Application         @relation("InterfaceSourceApp", fields: [sourceAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetApp        Application         @relation("InterfaceTargetApp", fields: [targetAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([sourceAppId], map: "idx_interfaces_source")
   @@index([targetAppId], map: "idx_interfaces_target")

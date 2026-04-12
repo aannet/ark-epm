@@ -731,6 +731,173 @@ paths:
         '404':
           description: Provider introuvable
 
+  /interfaces:
+    get:
+      summary: Liste des interfaces (filtrée)
+      tags: [Interfaces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sourceAppId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filtrer par application source
+        - name: targetAppId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filtrer par application cible
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
+        - name: criticality
+          in: query
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InterfaceListItem'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+        '401':
+          description: Non authentifié
+
+    post:
+      summary: Créer une interface
+      tags: [Interfaces]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInterfaceDto'
+      responses:
+        '201':
+          description: Créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterfaceResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Application source ou cible introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Auto-liaison interdite (sourceAppId == targetAppId)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /interfaces/{id}:
+    get:
+      summary: Détail d'une interface
+      tags: [Interfaces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterfaceResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Interface introuvable
+
+    patch:
+      summary: Modifier une interface
+      tags: [Interfaces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInterfaceDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterfaceResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Interface ou Application introuvable
+        '422':
+          description: Auto-liaison interdite
+
+    delete:
+      summary: Supprimer une interface
+      tags: [Interfaces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Supprimée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Interface introuvable
+
   /applications:
     get:
       summary: Liste paginée des applications
@@ -2615,6 +2782,119 @@ components:
               description:
                 type: string
                 nullable: true
+
+    InterfaceResponse:
+      type: object
+      properties:
+        id:                  { type: string, format: uuid }
+        name:                { type: string, nullable: true }
+        description:         { type: string, nullable: true }
+        comment:             { type: string, nullable: true }
+        sourceAppId:         { type: string, format: uuid }
+        sourceApp:
+          type: object
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        targetAppId:         { type: string, format: uuid }
+        targetApp:
+          type: object
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        type:
+          type: string
+          enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
+        frequency:
+          type: string
+          nullable: true
+          enum: [REALTIME, NEAR_REALTIME, HOURLY, DAILY, WEEKLY, MONTHLY, ON_DEMAND]
+        criticality:
+          type: string
+          nullable: true
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        technicalContact:    { type: string, nullable: true, description: "Nom, email ou alias libre du contact technique" }
+        errorRate:           { type: number, format: decimal, nullable: true }
+        createdAt:  { type: string, format: date-time }
+        updatedAt:  { type: string, format: date-time }
+
+    InterfaceListItem:
+      type: object
+      description: Version allégée pour la liste
+      properties:
+        id:           { type: string, format: uuid }
+        name:         { type: string, nullable: true }
+        sourceApp:
+          type: object
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        targetApp:
+          type: object
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
+        type:
+          type: string
+          enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
+        frequency:    { type: string, nullable: true }
+        criticality:  { type: string, nullable: true }
+        errorRate:    { type: number, nullable: true }
+        createdAt:    { type: string, format: date-time }
+        updatedAt:    { type: string, format: date-time }
+
+    CreateInterfaceDto:
+      type: object
+      required: [sourceAppId, targetAppId, type]
+      properties:
+        name:               { type: string, maxLength: 255, nullable: true }
+        description:        { type: string, nullable: true }
+        comment:            { type: string, nullable: true }
+        sourceAppId:        { type: string, format: uuid }
+        targetAppId:        { type: string, format: uuid }
+        type:
+          type: string
+          enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
+        frequency:
+          type: string
+          nullable: true
+          enum: [REALTIME, NEAR_REALTIME, HOURLY, DAILY, WEEKLY, MONTHLY, ON_DEMAND]
+        criticality:
+          type: string
+          nullable: true
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        technicalContact:   { type: string, maxLength: 255, nullable: true, description: "Nom, email ou alias libre du contact technique" }
+        errorRate:          { type: number, minimum: 0, maximum: 100, nullable: true }
+        tagPaths:
+          type: array
+          items: { type: string }
+          description: Chemins de tags F-03 (ex "Geography/France")
+
+    UpdateInterfaceDto:
+      type: object
+      description: Tous les champs sont optionnels (PATCH partiel)
+      properties:
+        name:               { type: string, maxLength: 255, nullable: true }
+        description:        { type: string, nullable: true }
+        comment:            { type: string, nullable: true }
+        sourceAppId:        { type: string, format: uuid }
+        targetAppId:        { type: string, format: uuid }
+        type:
+          type: string
+          enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
+        frequency:
+          type: string
+          nullable: true
+          enum: [REALTIME, NEAR_REALTIME, HOURLY, DAILY, WEEKLY, MONTHLY, ON_DEMAND]
+        criticality:
+          type: string
+          nullable: true
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        technicalContact:   { type: string, maxLength: 255, nullable: true, description: "Nom, email ou alias libre du contact technique" }
+        errorRate:          { type: number, minimum: 0, maximum: 100, nullable: true }
+        tagPaths:
+          type: array
+          items: { type: string }
 
   securitySchemes:
     bearerAuth:

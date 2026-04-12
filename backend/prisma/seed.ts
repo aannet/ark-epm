@@ -203,6 +203,69 @@ async function main() {
   }
 
   console.log('Seed business capabilities completed');
+
+  // ─── Interfaces (flux inter-applicatifs) ──────────────────────────
+  // Récupérer les applications seedées pour créer des interfaces
+  const apps = await prisma.application.findMany({
+    select: { id: true, name: true },
+    take: 5,
+  });
+
+  if (apps.length >= 2) {
+    const sampleInterfaces = [
+      {
+        name: 'CRM → ERP Commandes',
+        sourceAppId: apps[0].id,
+        targetAppId: apps[1].id,
+        type: 'DATABASE',
+        frequency: 'DAILY',
+        criticality: 'HIGH',
+        description: 'Flux de commandes clients du CRM vers l\'ERP',
+      },
+      {
+        name: 'Portail → API Gateway',
+        sourceAppId: apps[1].id,
+        targetAppId: apps.length > 2 ? apps[2].id : apps[0].id,
+        type: 'REST',
+        frequency: 'REALTIME',
+        criticality: 'CRITICAL',
+        description: 'API REST temps réel entre le portail et la gateway',
+      },
+    ];
+
+    for (const iface of sampleInterfaces) {
+      const existing = await prisma.interface.findFirst({
+        where: {
+          name: iface.name,
+          sourceAppId: iface.sourceAppId,
+          targetAppId: iface.targetAppId,
+        },
+      });
+      if (!existing) {
+        await prisma.$executeRaw`
+          INSERT INTO interfaces (id, name, description, source_app_id, target_app_id, type, frequency, criticality, created_at, updated_at)
+          VALUES (
+            gen_random_uuid(),
+            ${iface.name}::varchar,
+            ${iface.description}::text,
+            ${iface.sourceAppId}::uuid,
+            ${iface.targetAppId}::uuid,
+            ${iface.type}::"interface_type",
+            ${iface.frequency}::"interface_frequency",
+            ${iface.criticality}::"CriticalityLevel",
+            NOW(),
+            NOW()
+          )
+        `;
+        console.log(`✓ Created interface: ${iface.name}`);
+      } else {
+        console.log(`✓ Interface exists: ${iface.name}`);
+      }
+    }
+    console.log('Seed interfaces completed');
+  } else {
+    console.log('⚠ Skipping interfaces seed — fewer than 2 applications found');
+  }
 }
 
 main()
