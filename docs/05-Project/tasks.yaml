@@ -323,4 +323,26 @@ tasks:
          - BusinessCapabilityListItem (GET / list)
          - BusinessCapabilityTreeNode (GET /tree)
          - UpdateBusinessCapabilityDto (PATCH /:id — champ optionnel nullable)
-      Référence spec : docs/03-Features-Spec/P2/FS-07-P2-Lifecycle-front.md §6.
+       Référence spec : docs/03-Features-Spec/P2/FS-07-P2-Lifecycle-front.md §6.
+
+  - id: T-053
+    nom: "Frontend — Implémenter FS-07-P2-FRONT (LifecycleStepper + onglet Lifecycle BC)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-data-t052-lifecycle.md"
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT-P2"
+    sessions: []
+    notes: |
+      Gate débloquée par T-052 (2026-04-12) — lifecycleStatus disponible sur BC.
+      Spec : docs/03-Features-Spec/P2/FS-07-P2-Lifecycle-front.md (stable).
+      À implémenter :
+      1. Clés i18n businessCapabilities.lifecycle.* dans fr.json (§5 spec)
+      2. frontend/src/components/shared/LifecycleStepper.tsx (§3 spec)
+      3. Onglet "Lifecycle" dans BusinessCapabilityDetailPage (lecture seule)
+      4. Onglet "Lifecycle" dans BusinessCapabilityEditPage (éditable, PATCH /:id)
+      Commande OpenCode disponible en §8 de la spec.
