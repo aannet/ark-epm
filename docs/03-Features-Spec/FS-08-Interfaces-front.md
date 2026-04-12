@@ -13,7 +13,7 @@ _Version 0.1 — Avril 2026_
 | **ID** | FS-08-FRONT |
 | **Titre** | Interfaces — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
-| **Statut** | `draft` *(devient `stable` uniquement après que T-042 amendment est `done`)* |
+| **Statut** | `stable` *(T-042 done + T-040 done + T-043 done)* |
 | **Dépend de** | **FS-08-BACK** (gate bloquante ✅ done), **T-042** (amendment middlewareAppId), FS-01, F-02, F-03 |
 | **Spec mère** | FS-08 Interfaces — Sprint 4 |
 | **Estimé** | 1.0 jour |

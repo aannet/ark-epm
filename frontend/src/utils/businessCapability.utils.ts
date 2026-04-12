@@ -133,9 +133,46 @@ export function getRootNodeIds(tree: BusinessCapabilityTreeNode[]): string[] {
 }
 
 /**
+ * Trie récursivement l'arbre en triant les siblings à chaque niveau.
+ * Garantit que les enfants restent sous leur parent (tri hiérarchique).
+ *
+ * @param nodes - Nœuds à trier (même niveau)
+ * @param sortField - Champ de tri ('name' | 'criticality')
+ * @param sortOrder - Direction ('asc' | 'desc')
+ * @returns Arbre trié (chaque groupe de siblings trié indépendamment)
+ */
+const CRITICALITY_ORDER = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+
+export function sortTreeHierarchically(
+  nodes: BusinessCapabilityTreeNode[],
+  sortField: 'name' | 'criticality',
+  sortOrder: 'asc' | 'desc',
+): BusinessCapabilityTreeNode[] {
+  const compare = (a: BusinessCapabilityTreeNode, b: BusinessCapabilityTreeNode): number => {
+    if (sortField === 'name') return a.name.localeCompare(b.name, 'fr');
+    const ai = a.criticality ? CRITICALITY_ORDER.indexOf(a.criticality) : -1;
+    const bi = b.criticality ? CRITICALITY_ORDER.indexOf(b.criticality) : -1;
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  };
+  const sorted = [...nodes].sort((a, b) => {
+    const r = compare(a, b);
+    return sortOrder === 'asc' ? r : -r;
+  });
+  return sorted.map((node) => ({
+    ...node,
+    children: node.children?.length
+      ? sortTreeHierarchically(node.children, sortField, sortOrder)
+      : node.children,
+  }));
+}
+
+/**
  * Retourne la couleur de background selon la criticality.
  * Utilisé pour la vue matrix (US13, RM-BC-04).
- * 
+ *
  * @param criticality - Niveau de criticité (LOW/MEDIUM/HIGH/CRITICAL ou null)
  * @param theme - Thème MUI
  * @returns Couleur de background

@@ -10,7 +10,6 @@ import {
   TableRow,
   Paper,
   IconButton,
-  TableSortLabel,
   Link as MuiLink,
   TextField,
   InputAdornment,
@@ -20,6 +19,11 @@ import {
   Autocomplete,
   Chip,
   Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,6 +31,9 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
@@ -41,9 +48,9 @@ import { useBusinessCapabilitiesTree, useDeleteBusinessCapability } from '@/api/
 import { useDomains } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { ViewMode } from '@/types/businessCapability';
-import { flattenTree, getRootNodeIds } from '@/utils/businessCapability.utils';
+import { flattenTree, getRootNodeIds, sortTreeHierarchically } from '@/utils/businessCapability.utils';
 
-type SortField = 'name' | 'level' | 'criticality';
+type SortField = 'name' | 'criticality';
 type SortOrder = 'asc' | 'desc';
 
 interface AlertState {
@@ -87,11 +94,11 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
 
   const deleteCapability = useDeleteBusinessCapability();
 
-  // Flatten tree for list view
+  // Flatten tree for list view (sorted hierarchically before flattening)
   const flatList = useMemo(() => {
     if (!treeData) return [];
-    return flattenTree(treeData);
-  }, [treeData]);
+    return flattenTree(sortTreeHierarchically(treeData, sortField, sortOrder));
+  }, [treeData, sortField, sortOrder]);
 
   // Initialize expanded state with root nodes
   useEffect(() => {
@@ -117,14 +124,11 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
     }
   };
 
-  // Handle sort
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
+  // Handle sort (combined field_order value from Select)
+  const handleSortChange = (value: string) => {
+    const [field, order] = value.split('_');
+    setSortField(field as SortField);
+    setSortOrder(order as SortOrder);
   };
 
   // Handle search
@@ -135,6 +139,13 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSearchSubmit();
   };
+
+  // Expand all / collapse all
+  const allExpandableIds = flatList.filter((r) => r._count.children > 0).map((r) => r.id);
+  const isAllExpanded = allExpandableIds.length > 0 && allExpandableIds.every((id) => expanded.has(id));
+
+  const expandAll = () => setExpanded(new Set(allExpandableIds));
+  const collapseAll = () => setExpanded(new Set());
 
   // Handle expand/collapse
   const toggleExpand = (id: string) => {
@@ -149,42 +160,16 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
     });
   };
 
-  // Filter visible rows based on expanded state
+  // Filter visible rows based on expanded state (sort applied via flatList useMemo)
   const getVisibleRows = () => {
     if (!flatList.length) return [];
 
+    // When a filter is active, show all results — expand/collapse only applies to unfiltered browsing
+    if (searchValue || domainFilter) return flatList;
+
     const rowById = new Map(flatList.map((row) => [row.id, row]));
 
-    // Sort
-    const sorted = [...flatList].sort((a, b) => {
-      let comparison = 0;
-      switch (sortField) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'level':
-          comparison = a.level - b.level;
-          break;
-        case 'criticality':
-          const order = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-          if (!a.criticality && !b.criticality) {
-            comparison = 0;
-          } else if (!a.criticality) {
-            comparison = 1;
-          } else if (!b.criticality) {
-            comparison = -1;
-          } else {
-            const aIndex = order.indexOf(a.criticality);
-            const bIndex = order.indexOf(b.criticality);
-            comparison = aIndex - bIndex;
-          }
-          break;
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    // For hierarchical view, filter rows with collapsed ancestors.
-    return sorted.filter((row) => {
+    return flatList.filter((row) => {
       if (row.level === 0) return true;
 
       let currentParentId = row.parentId;
@@ -296,7 +281,12 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
       />
 
       {/* Filters */}
-      <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Tooltip title={isAllExpanded ? t('businessCapabilities.list.collapseAll') : t('businessCapabilities.list.expandAll')}>
+          <IconButton size="small" onClick={isAllExpanded ? collapseAll : expandAll}>
+            {isAllExpanded ? <UnfoldLessIcon fontSize="small" /> : <UnfoldMoreIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
         <TextField
           placeholder={t('businessCapabilities.list.searchPlaceholder')}
           value={searchInput}
@@ -324,6 +314,19 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
           )}
           isOptionEqualToValue={(option, value) => option.id === value.id}
         />
+        <FormControl size="small" sx={{ minWidth: 210 }}>
+          <InputLabel>{t('businessCapabilities.list.sortBy')}</InputLabel>
+          <Select
+            value={`${sortField}_${sortOrder}`}
+            onChange={(e) => handleSortChange(e.target.value as string)}
+            label={t('businessCapabilities.list.sortBy')}
+          >
+            <MenuItem value="name_asc">{t('businessCapabilities.list.sortOptions.nameAsc')}</MenuItem>
+            <MenuItem value="name_desc">{t('businessCapabilities.list.sortOptions.nameDesc')}</MenuItem>
+            <MenuItem value="criticality_asc">{t('businessCapabilities.list.sortOptions.criticalityAsc')}</MenuItem>
+            <MenuItem value="criticality_desc">{t('businessCapabilities.list.sortOptions.criticalityDesc')}</MenuItem>
+          </Select>
+        </FormControl>
         {(searchValue || domainFilter) && (
           <Button variant="outlined" size="small" onClick={handleResetFilters}>
             {t('applications.filters.reset')}
@@ -348,6 +351,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
         <>
           {/* List View */}
           {view === 'list' && (
+            <>
             <TableContainer
               component={Paper}
               elevation={0}
@@ -356,34 +360,10 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#F1F5F9' }}>
-                    <TableCell>
-                      <TableSortLabel
-                        active={sortField === 'name'}
-                        direction={sortField === 'name' ? sortOrder : 'asc'}
-                        onClick={() => handleSort('name')}
-                      >
-                        {t('businessCapabilities.list.columns.name')}
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell>
-                      <TableSortLabel
-                        active={sortField === 'level'}
-                        direction={sortField === 'level' ? sortOrder : 'asc'}
-                        onClick={() => handleSort('level')}
-                      >
-                        {t('businessCapabilities.list.columns.level')}
-                      </TableSortLabel>
-                    </TableCell>
+                    <TableCell>{t('businessCapabilities.list.columns.name')}</TableCell>
+                    <TableCell>{t('businessCapabilities.list.columns.level')}</TableCell>
                     <TableCell>{t('businessCapabilities.list.columns.domain')}</TableCell>
-                    <TableCell>
-                      <TableSortLabel
-                        active={sortField === 'criticality'}
-                        direction={sortField === 'criticality' ? sortOrder : 'asc'}
-                        onClick={() => handleSort('criticality')}
-                      >
-                        {t('businessCapabilities.list.columns.criticality')}
-                      </TableSortLabel>
-                    </TableCell>
+                    <TableCell>{t('businessCapabilities.list.columns.criticality')}</TableCell>
                     <TableCell>{t('businessCapabilities.list.columns.applicationsCount')}</TableCell>
                     {canWrite && (
                       <TableCell align="right">{t('businessCapabilities.list.columns.actions')}</TableCell>
@@ -400,10 +380,10 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Box sx={{ display: 'flex', alignItems: 'center', pl: row.level * 3 }}>
-                          {row._count.children > 0 && (
+                          {row._count.children > 0 ? (
                             <IconButton
                               size="small"
-                         onClick={(e: MouseEvent<HTMLElement>) => {
+                              onClick={(e: MouseEvent<HTMLElement>) => {
                                 e.stopPropagation();
                                 toggleExpand(row.id);
                               }}
@@ -415,21 +395,38 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                                 <ChevronRightIcon fontSize="small" />
                               )}
                             </IconButton>
+                          ) : (
+                            <Box sx={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 0.5 }}>
+                              <FiberManualRecordIcon sx={{ fontSize: 8, color: 'text.disabled' }} />
+                            </Box>
                           )}
                           <MuiLink
                             component={Link}
                             to={`/business-capabilities/${row.id}`}
-                            underline="always"
+                            underline="hover"
                             sx={{
-                              color: 'inherit',
+                              color: (['#424242', '#616161', '#9E9E9E', '#BDBDBD'] as const)[Math.min(row.level, 3)],
                               '&:hover': { color: 'primary.main' },
+                              fontWeight: row.level === 0 ? 700 : 'normal',
                             }}
                           >
                             {row.name}
                           </MuiLink>
                         </Box>
                       </TableCell>
-                      <TableCell>L{row.level}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`L${row.level}`}
+                          size="small"
+                          sx={{
+                            bgcolor: (['#BDBDBD', '#E0E0E0', '#EEEEEE', '#F5F5F5'] as const)[Math.min(row.level, 3)],
+                            color: row.level === 0 ? 'text.primary' : 'text.secondary',
+                            fontWeight: row.level === 0 ? 600 : 400,
+                            fontSize: '0.7rem',
+                            height: 20,
+                          }}
+                        />
+                      </TableCell>
                        <TableCell>{row.domain?.name || t('businessCapabilities.detail.noValue')}</TableCell>
                       <TableCell>
                          {row.criticality ? (
@@ -463,6 +460,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                 </TableBody>
               </Table>
             </TableContainer>
+            </>
           )}
 
           {/* Matrix View */}

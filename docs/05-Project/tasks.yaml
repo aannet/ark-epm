@@ -134,7 +134,7 @@ tasks:
 
   - id: T-003
     nom: "Implémenter FS-09 Dependency Graph — frontend ReactFlow"
-    statut: open
+    statut: blocked
     assigned_agent: front
     session_active: ~
     date_resolution: ~
@@ -142,8 +142,14 @@ tasks:
     theme: "FS-09"
     type: impl
     feature: "FS-09-FRONT"
-    sessions: []
-    notes: "Graphe de dépendances applicatives avec ReactFlow, layout dagre, filtres par domaine"
+    sessions:
+      - tool: OC
+        id: "a1b2c3"
+        nom: "rituel ouverture - gate bloqué : spec vide"
+    notes: |
+      GATE BLOQUÉ : Spec FS-09-Dependency-Graph.md est vide (0 lignes).
+      Prérequis : FS-09-BACK spec + impl done, FS-09-FRONT spec stable.
+      Action requise : Agent `spec` doit rédiger la spec FS-09 avant implémentation.
 
   - id: T-008
     nom: "Sécurité — Supprimer fallback JWT hardcodé (F-999 Item 23)"
@@ -1090,3 +1096,58 @@ tasks:
       de filtrage. À investiguer : vérifier le flux searchInput → searchValue (handleSearchSubmit),
       l'impact du useMemo flatList sur la dépendance treeData, et si le useEffect
       d'initialisation de expanded interfère avec les résultats filtrés.
+
+  - id: T-044
+    nom: "Implémentation FS-08-FRONT — Module Interfaces (React + MUI)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: FS-08
+    type: impl
+    feature: FS-08-FRONT
+    sessions:
+      - tool: OC
+        id: "a3f8e1"
+        nom: "impl FS-08-FRONT module Interfaces"
+    notes: |
+      Toutes les gates de la spec FS-08-Interfaces-front.md §9 sont levées :
+      - T-040 (FS-08-BACK) ✅ done 2026-04-12
+      - T-042 (amendment middlewareAppId) ✅ done 2026-04-12
+      - T-043 (spec FS-08-FRONT) ✅ done 2026-04-12
+
+      Prérequis manuels avant session OpenCode :
+      1. Ajouter clés interfaces.* dans src/i18n/locales/fr.json (cf. spec §6)
+      2. Câbler routes dans App.tsx (cf. spec §8)
+      3. Ajouter entrée Sidebar Interfaces dans AppShell (CompareArrowsIcon)
+      4. Passer FS-08-Interfaces-front.md statut → stable
+
+      Périmètre :
+      - InterfaceListPage + InterfaceDrawer (PNS-02) + filtres serveur
+      - InterfaceDetailPage, InterfaceNewPage, InterfaceEditPage
+      - InterfaceForm avec RM-IF-01 (sourceApp ≠ targetApp)
+      - Hooks React Query (useInterfaces, useInterface, CRUD mutations)
+      - types/interface.ts + utils/interfaces.utils.ts (formatInterfaceTitle)
+      - CriticalityChip réutilisé depuis @/components/business-capabilities/
+
+      Tests Playwright UI délégués à l'agent qa (cf. spec §10).
+
+  - id: T-045
+    nom: "Bug — Erreur 500 sur PATCH /interfaces/:id lors de l'enregistrement"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: FS-08
+    type: bug
+    feature: FS-08-BACK
+    sessions: []
+    notes: |
+      Erreur 500 Internal Server Error sur PATCH /api/v1/interfaces/:id
+      lors de l'enregistrement en édition/création d'interface.
+      Log réseau : interfaces.ts:60 PATCH http://localhost:5173/api/v1/interfaces/{uuid} → 500.
+      À investiguer : stack trace backend, validation DTO, transaction Prisma.

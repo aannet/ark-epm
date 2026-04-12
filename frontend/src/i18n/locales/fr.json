@@ -545,6 +545,15 @@
           "actions": "Actions",
           "createdAt": "Créé le"
         },
+        "sortBy": "Trier par",
+        "sortOptions": {
+          "nameAsc": "Nom (A → Z)",
+          "nameDesc": "Nom (Z → A)",
+          "criticalityAsc": "Criticité (faible → critique)",
+          "criticalityDesc": "Criticité (critique → faible)"
+        },
+        "expandAll": "Tout développer",
+        "collapseAll": "Tout réduire",
         "filters": {
           "domain": "Domaine"
         },
@@ -754,6 +763,129 @@
           "serverError": "Erreur serveur — veuillez réessayer",
           "notFound": "Objet de données introuvable"
         }
+      }
+    },
+
+    "interfaces": {
+      "list": {
+        "title": "Interfaces applicatives",
+        "subtitle": "Flux de données entre applications",
+        "addButton": "Nouvelle interface",
+        "columns": {
+          "source": "Application source",
+          "middleware": "Composant de médiation",
+          "target": "Application cible",
+          "type": "Type",
+          "criticality": "Criticité",
+          "frequency": "Fréquence",
+          "actions": "Actions"
+        },
+        "filters": {
+          "sourceApp": "Application source",
+          "middlewareApp": "Composant de médiation",
+          "targetApp": "Application cible",
+          "type": "Type d'interface",
+          "criticality": "Criticité"
+        },
+        "emptyState": {
+          "title": "Aucune interface créée",
+          "description": "Commencez par documenter vos premiers flux entre applications.",
+          "cta": "Créer une interface"
+        }
+      },
+      "detail": {
+        "noValue": "—",
+        "editButton": "Modifier",
+        "backButton": "Retour",
+        "createdAt": "Créé le",
+        "updatedAt": "Modifié le",
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Interfaces"
+        }
+      },
+      "drawer": {
+        "unnamedInterface": "Interface sans nom",
+        "type": "Type",
+        "criticality": "Criticité",
+        "frequency": "Fréquence",
+        "technicalContact": "Contact technique",
+        "errorRate": "Taux d'erreur",
+        "description": "Description",
+        "comment": "Commentaire",
+        "tags": "Tags",
+        "editButton": "Modifier",
+        "viewFullButton": "Voir la fiche complète"
+      },
+      "form": {
+        "createTitle": "Nouvelle interface",
+        "editTitle": "Modifier l'interface",
+        "sourceAppLabel": "Application source",
+        "sourceAppRequired": "L'application source est obligatoire",
+        "targetAppLabel": "Application cible",
+        "targetAppRequired": "L'application cible est obligatoire",
+        "middlewareAppLabel": "Composant de médiation",
+        "middlewareAppPlaceholder": "ESB, API Gateway... (optionnel)",
+        "nameLabel": "Nom",
+        "namePlaceholder": "ex : CRM → ERP commandes (optionnel)",
+        "typeLabel": "Type d'interface",
+        "typeRequired": "Le type est obligatoire",
+        "frequencyLabel": "Fréquence",
+        "criticalityLabel": "Criticité",
+        "technicalContactLabel": "Contact technique",
+        "technicalContactPlaceholder": "Nom, email ou alias (texte libre)",
+        "errorRateLabel": "Taux d'erreur (%)",
+        "errorRatePlaceholder": "0 – 100",
+        "descriptionLabel": "Description",
+        "commentLabel": "Commentaire",
+        "tagsLabel": "Tags dimensionnels",
+        "saveButton": "Enregistrer",
+        "cancelButton": "Annuler",
+        "selfReference": "L'application source et l'application cible doivent être différentes",
+        "applicationNotFound": "Application introuvable",
+        "breadcrumb": {
+          "home": "Accueil",
+          "list": "Interfaces",
+          "new": "Nouvelle interface",
+          "edit": "Modifier"
+        }
+      },
+      "type": {
+        "REST": "REST",
+        "SOAP": "SOAP",
+        "FTP": "FTP",
+        "SFTP": "SFTP",
+        "DATABASE": "Base de données",
+        "MESSAGE_QUEUE": "File de messages",
+        "BATCH_FILE": "Fichier batch",
+        "EVENT_STREAM": "Flux d'événements",
+        "GRAPHQL": "GraphQL",
+        "GRPC": "gRPC",
+        "OTHER": "Autre"
+      },
+      "frequency": {
+        "REALTIME": "Temps réel",
+        "NEAR_REALTIME": "Quasi temps réel",
+        "HOURLY": "Horaire",
+        "DAILY": "Quotidien",
+        "WEEKLY": "Hebdomadaire",
+        "MONTHLY": "Mensuel",
+        "ON_DEMAND": "À la demande"
+      },
+      "criticality": {
+        "LOW": "Faible",
+        "MEDIUM": "Moyenne",
+        "HIGH": "Haute",
+        "CRITICAL": "Critique"
+      },
+      "delete": {
+        "confirmTitle": "Supprimer l'interface",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer l'interface de \"{{source}}\" vers \"{{target}}\" ?"
+      },
+      "snackbar": {
+        "created": "Interface créée avec succès",
+        "updated": "Interface mise à jour avec succès",
+        "deleted": "Interface supprimée avec succès"
       }
     }
 }

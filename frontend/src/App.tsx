@@ -44,6 +44,12 @@ import BusinessCapabilityNewPage from '@/pages/business-capabilities/BusinessCap
 import BusinessCapabilityDetailPage from '@/pages/business-capabilities/BusinessCapabilityDetailPage';
 import BusinessCapabilityEditPage from '@/pages/business-capabilities/BusinessCapabilityEditPage';
 
+// Interfaces pages
+import InterfaceListPage from '@/pages/interfaces/InterfaceListPage';
+import InterfaceNewPage from '@/pages/interfaces/InterfaceNewPage';
+import InterfaceDetailPage from '@/pages/interfaces/InterfaceDetailPage';
+import InterfaceEditPage from '@/pages/interfaces/InterfaceEditPage';
+
 function App(): JSX.Element {
   useEffect(() => {
     initializeAuth();
@@ -117,6 +123,14 @@ function App(): JSX.Element {
                <Route path="new" element={<BusinessCapabilityNewPage />} />
                <Route path=":id" element={<BusinessCapabilityDetailPage />} />
                <Route path=":id/edit" element={<BusinessCapabilityEditPage />} />
+             </Route>
+
+             {/* Interfaces routes */}
+             <Route path="interfaces" element={<Outlet />}>
+               <Route index element={<InterfaceListPage />} />
+               <Route path="new" element={<InterfaceNewPage />} />
+               <Route path=":id" element={<InterfaceDetailPage />} />
+               <Route path=":id/edit" element={<InterfaceEditPage />} />
              </Route>
           </Route>
         </Route>
