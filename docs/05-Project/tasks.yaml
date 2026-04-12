@@ -394,18 +394,22 @@ tasks:
 
   - id: T-056
     nom: "Retrait complet lifecycle BC — front + back + data (revert T-052 + T-053)"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "c3f8b1"
+    session_active: ~
     handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t053-lifecycle-apps.md"
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-07"
     type: debt
     feature: "FS-07-BACK"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "c3f8b1"
+        nom: "revert complet lifecycle BC — front + back + data + db push (2026-04-12)"
     notes: |
       Revert des implémentations lifecycle sur Business Capabilities (mauvaise cible).
+      ✅ DONE 2026-04-12 : retrait 9 fichiers, 103/107 tests passent.
       Couche FRONT (assigned_agent: front) :
         - Supprimer onglets Lifecycle de BusinessCapabilityDetailPage + BusinessCapabilityEditPage
         - Supprimer businessCapabilities.lifecycle.* de fr.json (ajoutés par T-053)
