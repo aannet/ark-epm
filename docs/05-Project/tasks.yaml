@@ -146,11 +146,11 @@ tasks:
 
   - id: T-032
     nom: "Audit @Query() sans DTO — vérifier coercition string→number dans tous les controllers NestJS"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-04-12
     sprint: S3
     theme: "QA"
     type: debt
@@ -159,6 +159,9 @@ tasks:
       - tool: CL
         id: "f26390"
         nom: "création tâche d'audit suite bug T-031"
+      - tool: OC
+        id: "c4f9e2"
+        nom: "audit + fix it-components @Query plain type"
     notes: |
       Suite au bug T-031 (page/limit reçus comme strings via @Query() sans DTO).
       Passer en revue tous les controllers NestJS qui utilisent @Query() avec un type plain object
