@@ -1010,6 +1010,58 @@ tasks:
       - Seed 2 interfaces de démo (dépend des apps seedées FS-06)
       - openapi.yaml mis à jour (NFR-GOV-001)
 
+  - id: T-042
+    nom: "Amendment FS-08-BACK — champ middlewareAppId (composant de médiation)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-08"
+    type: impl
+    feature: "FS-08-BACK"
+    sessions: []
+    notes: |
+      Amendment FS-08-BACK pour ajouter le composant de médiation optionnel sur les interfaces.
+      Pré-requis bloquant de FS-08-FRONT (T-043 — gate Session Gate §9).
+
+      À faire :
+      - Prisma : ajouter middlewareAppId (UUID nullable FK → applications, relation InterfaceMiddlewareApp)
+      - Migration SQL : ALTER TABLE interfaces ADD COLUMN middleware_app_id UUID REFERENCES applications(id)
+      - DTOs : middlewareAppId?: string | null dans CreateInterfaceDto + UpdateInterfaceDto
+      - Service findAll() : filtre WHERE middlewareAppId si query param fourni
+      - Service findOne() : include middlewareApp dans la réponse
+      - Response : middlewareApp?: { id: string; name: string } | null dans InterfaceResponse + InterfaceListItem
+      - openapi.yaml : ajouter middlewareAppId query param + champ middlewareApp dans schemas (NFR-GOV-001)
+      - Tests Supertest : ajouter cas avec middlewareAppId + filtre middlewareAppId
+
+  - id: T-043
+    nom: "Spec FS-08-FRONT — Interfaces frontend"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-08"
+    type: spec
+    feature: "FS-08-FRONT"
+    sessions:
+      - tool: OC
+        id: "curr-ses"
+        nom: "rédaction spec FS-08-FRONT v0.1"
+    notes: |
+      Spec frontend Interfaces v0.1 rédigée (docs/03-Features-Spec/FS-08-Interfaces-front.md).
+      Pattern PNS-02 drawer read-only, 4 pages (List/Detail/New/Edit), filtres serveur.
+      Colonnes liste : Source | Middleware | Cible | Type (StatusChip FR) | Criticité (CriticalityChip) | Fréquence.
+      Filtres : sourceApp + middlewareApp + targetApp + type + criticality.
+      RM-IF-01 : validation client-side sourceApp ≠ targetApp avant soumission.
+      Suppression libre (pas de DEPENDENCY_CONFLICT).
+      Enums avec labels FR via i18n (interfaces.type.*, interfaces.frequency.*).
+      Dépend de T-042 (amendment middlewareAppId) pour passer à stable.
+      FS-08-Interfaces-back.md mis à jour statut → done.
+
   - id: T-041
     nom: "Bug — BC vue liste : la recherche libre ne fonctionne plus"
     statut: in_progress

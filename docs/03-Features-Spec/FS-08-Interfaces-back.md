@@ -18,7 +18,7 @@ _Version 1.1 — Avril 2026_
 | **ID** | FS-08-BACK |
 | **Titre** | Interfaces — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | `done` |
 | **Dépend de** | FS-01, **FS-06-BACK**, F-03 |
 | **Spec mère** | FS-08 Interfaces — Sprint 4 |
 | **Spec front** | FS-08-FRONT — bloquée tant que cette spec n'est pas `done` |
