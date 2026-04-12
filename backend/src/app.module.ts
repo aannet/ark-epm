@@ -30,6 +30,16 @@ import { InterfacesModule } from './interfaces/interfaces.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: (config: Record<string, unknown>) => {
+        const jwtSecret = config['JWT_SECRET'];
+        if (!jwtSecret || typeof jwtSecret !== 'string') {
+          throw new Error('JWT_SECRET is required and must be a string');
+        }
+        if (jwtSecret.length < 32) {
+          throw new Error(`JWT_SECRET must be at least 32 characters long (current: ${jwtSecret.length})`);
+        }
+        return config;
+      },
     }),
     ThrottlerModule.forRoot([
       {
@@ -42,7 +52,7 @@ import { InterfacesModule } from './interfaces/interfaces.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: configService.get('JWT_EXPIRES_IN', '15m'),
         },

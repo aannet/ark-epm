@@ -73,21 +73,25 @@ tasks:
 
   - id: T-008
     nom: "Sécurité — Supprimer fallback JWT hardcodé (F-999 Item 23)"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S3
     theme: "F-999"
     type: bug
     feature: "SECURITY"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b72558"
+        nom: "fix getOrThrow + validate() ConfigModule — 96/107 tests API passent"
     notes: |
       F-999 Item 23 — Vulnérabilité confirmée (2026-04-05).
-      backend/src/auth/jwt.strategy.ts : configService.get('JWT_SECRET') || 'fallback-secret-do-not-use-in-prod'
-      Action : remplacer par configService.getOrThrow<string>('JWT_SECRET')
-      Ajouter validation Joi dans ConfigModule (JWT_SECRET min 32 chars, required).
-      Bloquant avant toute mise en production.
+      ✅ DONE 2026-04-12 :
+      - jwt.strategy.ts : configService.getOrThrow<string>('JWT_SECRET') (supprime fallback hardcodé)
+      - app.module.ts JwtModule : configService.getOrThrow<string>('JWT_SECRET')
+      - app.module.ts ConfigModule : validate() built-in — JWT_SECRET requis + min 32 chars (fail-fast au démarrage)
+      Validation : make validate-backend ✅ + make test-api-backend 96/107 ✅ (10 échecs pré-existants T-006/T-007).
 
   - id: T-009
     nom: "Migration tests Cypress → Playwright — Data Objects (F-999 Item 22)"
