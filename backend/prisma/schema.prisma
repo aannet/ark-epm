@@ -167,6 +167,7 @@ model Application {
   owner            User?               @relation("ApplicationOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   sourceInterfaces Interface[]         @relation("InterfaceSourceApp")
   targetInterfaces Interface[]         @relation("InterfaceTargetApp")
+  middlewareInterfaces Interface[]      @relation("InterfaceMiddlewareApp")
 
   @@index([domainId], map: "idx_applications_domain")
   @@index([ownerId], map: "idx_applications_owner")
@@ -212,11 +213,14 @@ model Interface {
   createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  middlewareAppId  String?            @map("middleware_app_id") @db.Uuid
+  middlewareApp    Application?         @relation("InterfaceMiddlewareApp", fields: [middlewareAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   sourceApp        Application         @relation("InterfaceSourceApp", fields: [sourceAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   targetApp        Application         @relation("InterfaceTargetApp", fields: [targetAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([sourceAppId], map: "idx_interfaces_source")
   @@index([targetAppId], map: "idx_interfaces_target")
+  @@index([middlewareAppId], map: "idx_interfaces_middleware")
   @@map("interfaces")
 }
 

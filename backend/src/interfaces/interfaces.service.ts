@@ -15,7 +15,11 @@ export class InterfacesService {
     await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`;
   }
 
-  private async validateApplications(sourceAppId: string, targetAppId: string): Promise<void> {
+  private async validateApplications(
+    sourceAppId: string,
+    targetAppId: string,
+    middlewareAppId?: string,
+  ): Promise<void> {
     const [source, target] = await Promise.all([
       this.prisma.application.findUnique({ where: { id: sourceAppId } }),
       this.prisma.application.findUnique({ where: { id: targetAppId } }),
@@ -34,6 +38,16 @@ export class InterfacesService {
         message: `Target application ${targetAppId} not found`,
       });
     }
+
+    if (middlewareAppId) {
+      const middleware = await this.prisma.application.findUnique({ where: { id: middlewareAppId } });
+      if (!middleware) {
+        throw new NotFoundException({
+          code: 'APPLICATION_NOT_FOUND',
+          message: `Middleware application ${middlewareAppId} not found`,
+        });
+      }
+    }
   }
 
   private validateSelfReference(sourceAppId: string, targetAppId: string): void {
@@ -47,7 +61,7 @@ export class InterfacesService {
 
   async create(dto: CreateInterfaceDto, userId: string): Promise<Interface> {
     this.validateSelfReference(dto.sourceAppId, dto.targetAppId);
-    await this.validateApplications(dto.sourceAppId, dto.targetAppId);
+    await this.validateApplications(dto.sourceAppId, dto.targetAppId, dto.middlewareAppId);
 
     await this.setCurrentUser(userId);
 
@@ -61,12 +75,13 @@ export class InterfacesService {
       include: {
         sourceApp: { select: { id: true, name: true } },
         targetApp: { select: { id: true, name: true } },
+        middlewareApp: { select: { id: true, name: true } },
       },
     });
   }
 
   async findAll(query: QueryInterfaceDto): Promise<{ data: Interface[]; meta: any }> {
-    const { page = 1, limit = 20, sourceAppId, targetAppId, type, criticality, search } = query;
+    const { page = 1, limit = 20, sourceAppId, targetAppId, middlewareAppId, type, criticality, search } = query;
 
     const where: Prisma.InterfaceWhereInput = {};
 
@@ -76,6 +91,10 @@ export class InterfacesService {
 
     if (targetAppId) {
       where.targetAppId = targetAppId;
+    }
+
+    if (middlewareAppId) {
+      where.middlewareAppId = middlewareAppId;
     }
 
     if (type) {
@@ -99,6 +118,7 @@ export class InterfacesService {
         include: {
           sourceApp: { select: { id: true, name: true } },
           targetApp: { select: { id: true, name: true } },
+          middlewareApp: { select: { id: true, name: true } },
         },
       }),
       this.prisma.interface.count({ where }),
@@ -121,6 +141,7 @@ export class InterfacesService {
       include: {
         sourceApp: { select: { id: true, name: true } },
         targetApp: { select: { id: true, name: true } },
+        middlewareApp: { select: { id: true, name: true } },
       },
     });
 
@@ -146,9 +167,13 @@ export class InterfacesService {
 
     const sourceAppId = dto.sourceAppId ?? existing.sourceAppId;
     const targetAppId = dto.targetAppId ?? existing.targetAppId;
+    // Support explicit null for unsetting middlewareApp
+    const middlewareAppId = dto.middlewareAppId !== undefined
+      ? dto.middlewareAppId
+      : existing.middlewareAppId;
 
     this.validateSelfReference(sourceAppId, targetAppId);
-    await this.validateApplications(sourceAppId, targetAppId);
+    await this.validateApplications(sourceAppId, targetAppId, middlewareAppId ?? undefined);
 
     await this.setCurrentUser(userId);
 
@@ -158,13 +183,15 @@ export class InterfacesService {
       where: { id },
       data: {
         ...data,
-        errorRate: data.errorRate !== undefined 
-          ? (data.errorRate ? new Prisma.Decimal(data.errorRate) : null) 
+        errorRate: data.errorRate !== undefined
+          ? (data.errorRate ? new Prisma.Decimal(data.errorRate) : null)
           : undefined,
+        middlewareAppId: middlewareAppId ?? null,
       },
       include: {
         sourceApp: { select: { id: true, name: true } },
         targetApp: { select: { id: true, name: true } },
+        middlewareApp: { select: { id: true, name: true } },
       },
     });
   }

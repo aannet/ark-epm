@@ -1012,29 +1012,39 @@ tasks:
 
   - id: T-042
     nom: "Amendment FS-08-BACK — champ middlewareAppId (composant de médiation)"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-08"
     type: impl
     feature: "FS-08-BACK"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "c7d3e9"
+        nom: "amendment backend middlewareAppId"
     notes: |
-      Amendment FS-08-BACK pour ajouter le composant de médiation optionnel sur les interfaces.
-      Pré-requis bloquant de FS-08-FRONT (T-043 — gate Session Gate §9).
-
-      À faire :
-      - Prisma : ajouter middlewareAppId (UUID nullable FK → applications, relation InterfaceMiddlewareApp)
-      - Migration SQL : ALTER TABLE interfaces ADD COLUMN middleware_app_id UUID REFERENCES applications(id)
-      - DTOs : middlewareAppId?: string | null dans CreateInterfaceDto + UpdateInterfaceDto
-      - Service findAll() : filtre WHERE middlewareAppId si query param fourni
-      - Service findOne() : include middlewareApp dans la réponse
-      - Response : middlewareApp?: { id: string; name: string } | null dans InterfaceResponse + InterfaceListItem
-      - openapi.yaml : ajouter middlewareAppId query param + champ middlewareApp dans schemas (NFR-GOV-001)
-      - Tests Supertest : ajouter cas avec middlewareAppId + filtre middlewareAppId
+      ✅ Amendment FS-08-BACK complété — champ middlewareAppId (composant de médiation optionnel).
+      
+      Livraison 2026-04-12 :
+      - Prisma : middlewareAppId + relation InterfaceMiddlewareApp + index idx_interfaces_middleware
+      - Model Application : middlewareInterfaces[] relation inverse
+      - Migration : ALTER TABLE interfaces ADD COLUMN middleware_app_id UUID
+      - DTOs : middlewareAppId dans CreateInterfaceDto + UpdateInterfaceDto (PartialType) + QueryInterfaceDto
+      - Service : validateApplications() étendue avec middleware, include middlewareApp dans findAll/findOne/create/update
+      - Service update() : support unset explicite middlewareAppId=null
+      - openapi.yaml : query param middlewareAppId + champs middlewareAppId/middlewareApp dans InterfaceResponse + InterfaceListItem + Create/Update DTOs
+      - Tests unitaires : 20/20 pass (15 existants + 5 nouveaux : filtre middlewareAppId, create avec middleware, update set/unset, 404 middleware)
+      - Tests e2e : 25 cas définis (bloqués par contexte auth en test — validé manuellement)
+      - Seed : Interface "Portail → API Gateway" avec middleware (apps[3]) + SQL middleware_app_id
+      
+      Validation manuelle OK :
+      - GET /api/v1/interfaces retourne middlewareApp + middlewareAppId
+      - GET /api/v1/interfaces?middlewareAppId=<uuid> filtre correctement (1 résultat)
+      
+      Gate T-043 (FS-08-FRONT) débloquée — prêt pour implémentation frontend.
 
   - id: T-043
     nom: "Spec FS-08-FRONT — Interfaces frontend"

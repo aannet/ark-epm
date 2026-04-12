@@ -746,6 +746,10 @@ paths:
           in: query
           schema: { type: string, format: uuid }
           description: Filtrer par application cible
+        - name: middlewareAppId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filtrer par composant de médiation
         - name: type
           in: query
           schema:
@@ -2802,6 +2806,13 @@ components:
           properties:
             id:   { type: string, format: uuid }
             name: { type: string }
+        middlewareAppId:     { type: string, format: uuid, nullable: true }
+        middlewareApp:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
         type:
           type: string
           enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
@@ -2834,6 +2845,12 @@ components:
           properties:
             id:   { type: string, format: uuid }
             name: { type: string }
+        middlewareApp:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: string, format: uuid }
+            name: { type: string }
         type:
           type: string
           enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
@@ -2852,6 +2869,7 @@ components:
         comment:            { type: string, nullable: true }
         sourceAppId:        { type: string, format: uuid }
         targetAppId:        { type: string, format: uuid }
+        middlewareAppId:    { type: string, format: uuid, nullable: true }
         type:
           type: string
           enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]
@@ -2879,6 +2897,7 @@ components:
         comment:            { type: string, nullable: true }
         sourceAppId:        { type: string, format: uuid }
         targetAppId:        { type: string, format: uuid }
+        middlewareAppId:    { type: string, format: uuid, nullable: true }
         type:
           type: string
           enum: [REST, SOAP, FTP, SFTP, DATABASE, MESSAGE_QUEUE, BATCH_FILE, EVENT_STREAM, GRAPHQL, GRPC, OTHER]

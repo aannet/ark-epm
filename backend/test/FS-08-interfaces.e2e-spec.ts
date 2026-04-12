@@ -14,6 +14,7 @@ describe('FS-08 Interfaces (e2e)', () => {
   let authToken: string;
   let sourceAppId: string;
   let targetAppId: string;
+  let middlewareAppId: string;
   let interfaceId: string;
 
   beforeAll(async () => {
@@ -35,7 +36,7 @@ describe('FS-08 Interfaces (e2e)', () => {
     authToken = loginResponse.body.access_token;
     expect(authToken).toBeDefined();
 
-    // Create two applications for testing
+    // Create three applications for testing (source, middleware, target)
     const app1Response = await request(app.getHttpServer())
       .post('/api/v1/applications')
       .set('Authorization', `Bearer ${authToken}`)
@@ -50,10 +51,20 @@ describe('FS-08 Interfaces (e2e)', () => {
       .post('/api/v1/applications')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
+        name: `Test Middleware App ${Date.now()}`,
+        description: 'Test middleware application',
+      });
+    middlewareAppId = app2Response.body.id;
+    expect(middlewareAppId).toBeDefined();
+
+    const app3Response = await request(app.getHttpServer())
+      .post('/api/v1/applications')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
         name: `Test Target App ${Date.now()}`,
         description: 'Test target application',
       });
-    targetAppId = app2Response.body.id;
+    targetAppId = app3Response.body.id;
     expect(targetAppId).toBeDefined();
   });
 
@@ -69,6 +80,12 @@ describe('FS-08 Interfaces (e2e)', () => {
     if (sourceAppId) {
       await request(app.getHttpServer())
         .delete(`/api/v1/applications/${sourceAppId}`)
+        .set('Authorization', `Bearer ${authToken}`);
+    }
+
+    if (middlewareAppId) {
+      await request(app.getHttpServer())
+        .delete(`/api/v1/applications/${middlewareAppId}`)
         .set('Authorization', `Bearer ${authToken}`);
     }
 
@@ -110,6 +127,41 @@ describe('FS-08 Interfaces (e2e)', () => {
       expect(Array.isArray(response.body.data)).toBe(true);
     });
 
+    it('[Supertest] should filter by middlewareAppId', async () => {
+      // First create an interface with middleware
+      const createResponse = await request(app.getHttpServer())
+        .post('/api/v1/interfaces')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: 'Test Interface with Middleware',
+          sourceAppId,
+          targetAppId,
+          middlewareAppId,
+          type: InterfaceType.REST,
+          frequency: InterfaceFrequency.DAILY,
+          criticality: CriticalityLevel.HIGH,
+        });
+      
+      if (createResponse.status === 201) {
+        const tempId = createResponse.body.id;
+
+        // Test filter
+        const response = await request(app.getHttpServer())
+          .get(`/api/v1/interfaces?middlewareAppId=${middlewareAppId}`)
+          .set('Authorization', `Bearer ${authToken}`);
+
+        expect(response.status).toBe(200);
+        expect(Array.isArray(response.body.data)).toBe(true);
+        expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+        expect(response.body.data.some((iface: any) => iface.middlewareAppId === middlewareAppId)).toBe(true);
+
+        // Cleanup
+        await request(app.getHttpServer())
+          .delete(`/api/v1/interfaces/${tempId}`)
+          .set('Authorization', `Bearer ${authToken}`);
+      }
+    });
+
     it('[Supertest] should filter by type', async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v1/interfaces?type=${InterfaceType.REST}`)
@@ -143,6 +195,33 @@ describe('FS-08 Interfaces (e2e)', () => {
       expect(response.body.targetApp).toBeDefined();
 
       interfaceId = response.body.id;
+    });
+
+    it('[Supertest] should create interface with middlewareAppId', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/interfaces')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: 'Test Interface with Middleware',
+          sourceAppId,
+          targetAppId,
+          middlewareAppId,
+          type: InterfaceType.SOAP,
+          frequency: InterfaceFrequency.HOURLY,
+          criticality: CriticalityLevel.MEDIUM,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.id).toBeDefined();
+      expect(response.body.middlewareAppId).toBe(middlewareAppId);
+      expect(response.body.middlewareApp).toBeDefined();
+      expect(response.body.middlewareApp.id).toBe(middlewareAppId);
+      expect(response.body.middlewareApp.name).toBeDefined();
+
+      // Cleanup
+      await request(app.getHttpServer())
+        .delete(`/api/v1/interfaces/${response.body.id}`)
+        .set('Authorization', `Bearer ${authToken}`);
     });
 
     it('[Supertest] should create audit trail entry', async () => {
@@ -236,6 +315,21 @@ describe('FS-08 Interfaces (e2e)', () => {
       expect(response.status).toBe(404);
       expect(response.body.code).toBe('APPLICATION_NOT_FOUND');
     });
+
+    it('[Supertest] should return 404 for non-existent middleware app', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/interfaces')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          sourceAppId,
+          targetAppId,
+          middlewareAppId: '00000000-0000-0000-0000-000000000000',
+          type: InterfaceType.REST,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.code).toBe('APPLICATION_NOT_FOUND');
+    });
   });
 
   describe('GET /api/v1/interfaces/:id', () => {
@@ -250,6 +344,7 @@ describe('FS-08 Interfaces (e2e)', () => {
       expect(response.body.sourceApp.id).toBe(sourceAppId);
       expect(response.body.targetApp).toBeDefined();
       expect(response.body.targetApp.id).toBe(targetAppId);
+      expect(response.body.middlewareApp).toBeNull(); // Interface sans middleware
     });
 
     it('[Supertest] should return 404 for non-existent interface', async () => {
@@ -258,6 +353,39 @@ describe('FS-08 Interfaces (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(404);
+    });
+
+    it('[Supertest] should include middlewareApp when set', async () => {
+      // Create interface with middleware
+      const createResponse = await request(app.getHttpServer())
+        .post('/api/v1/interfaces')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: 'Interface with Middleware',
+          sourceAppId,
+          targetAppId,
+          middlewareAppId,
+          type: InterfaceType.GRAPHQL,
+          criticality: CriticalityLevel.LOW,
+        });
+
+      expect(createResponse.status).toBe(201);
+      const id = createResponse.body.id;
+
+      // Verify middlewareApp is included
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/interfaces/${id}`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.middlewareApp).toBeDefined();
+      expect(response.body.middlewareApp.id).toBe(middlewareAppId);
+      expect(response.body.middlewareApp.name).toBeDefined();
+
+      // Cleanup
+      await request(app.getHttpServer())
+        .delete(`/api/v1/interfaces/${id}`)
+        .set('Authorization', `Bearer ${authToken}`);
     });
   });
 
@@ -276,6 +404,41 @@ describe('FS-08 Interfaces (e2e)', () => {
       expect(response.body.description).toBe('Updated description');
     });
 
+    it('[Supertest] should set middlewareAppId on update', async () => {
+      // Interface sans middleware
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/interfaces/${interfaceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          middlewareAppId,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.middlewareAppId).toBe(middlewareAppId);
+      expect(response.body.middlewareApp).toBeDefined();
+      expect(response.body.middlewareApp.id).toBe(middlewareAppId);
+    });
+
+    it('[Supertest] should unset middlewareAppId when set to null', async () => {
+      // First ensure interface has middleware
+      await request(app.getHttpServer())
+        .patch(`/api/v1/interfaces/${interfaceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ middlewareAppId });
+
+      // Then unset
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/interfaces/${interfaceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          middlewareAppId: null,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.middlewareAppId).toBeNull();
+      expect(response.body.middlewareApp).toBeNull();
+    });
+
     it('[Supertest] should return 422 when sourceAppId equals targetAppId on update', async () => {
       const response = await request(app.getHttpServer())
         .patch(`/api/v1/interfaces/${interfaceId}`)
@@ -287,6 +450,18 @@ describe('FS-08 Interfaces (e2e)', () => {
 
       expect(response.status).toBe(422);
       expect(response.body.code).toBe('SELF_REFERENCE');
+    });
+
+    it('[Supertest] should return 404 for non-existent middleware app on update', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/interfaces/${interfaceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          middlewareAppId: '00000000-0000-0000-0000-000000000000',
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.code).toBe('APPLICATION_NOT_FOUND');
     });
   });
 

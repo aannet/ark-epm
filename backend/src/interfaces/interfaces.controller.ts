@@ -19,7 +19,7 @@ import { QueryInterfaceDto } from './dto/query-interface.dto';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
 import { Request } from 'express';
 
-@Controller('api/v1/interfaces')
+@Controller('interfaces')
 export class InterfacesController {
   constructor(private readonly interfacesService: InterfacesService) {}
 

@@ -217,6 +217,7 @@ async function main() {
         name: 'CRM → ERP Commandes',
         sourceAppId: apps[0].id,
         targetAppId: apps[1].id,
+        middlewareAppId: null,
         type: 'DATABASE',
         frequency: 'DAILY',
         criticality: 'HIGH',
@@ -226,10 +227,11 @@ async function main() {
         name: 'Portail → API Gateway',
         sourceAppId: apps[1].id,
         targetAppId: apps.length > 2 ? apps[2].id : apps[0].id,
+        middlewareAppId: apps.length > 3 ? apps[3].id : null,
         type: 'REST',
         frequency: 'REALTIME',
         criticality: 'CRITICAL',
-        description: 'API REST temps réel entre le portail et la gateway',
+        description: 'API REST temps réel via middleware ESB',
       },
     ];
 
@@ -243,13 +245,14 @@ async function main() {
       });
       if (!existing) {
         await prisma.$executeRaw`
-          INSERT INTO interfaces (id, name, description, source_app_id, target_app_id, type, frequency, criticality, created_at, updated_at)
+          INSERT INTO interfaces (id, name, description, source_app_id, target_app_id, middleware_app_id, type, frequency, criticality, created_at, updated_at)
           VALUES (
             gen_random_uuid(),
             ${iface.name}::varchar,
             ${iface.description}::text,
             ${iface.sourceAppId}::uuid,
             ${iface.targetAppId}::uuid,
+            ${iface.middlewareAppId}::uuid,
             ${iface.type}::"interface_type",
             ${iface.frequency}::"interface_frequency",
             ${iface.criticality}::"CriticalityLevel",
@@ -257,7 +260,7 @@ async function main() {
             NOW()
           )
         `;
-        console.log(`✓ Created interface: ${iface.name}`);
+        console.log(`✓ Created interface: ${iface.name}${iface.middlewareAppId ? ' (with middleware)' : ''}`);
       } else {
         console.log(`✓ Interface exists: ${iface.name}`);
       }

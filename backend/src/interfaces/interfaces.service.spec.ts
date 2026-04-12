@@ -21,6 +21,7 @@ describe('InterfacesService', () => {
     comment: null,
     sourceAppId: 'app-source-id',
     targetAppId: 'app-target-id',
+    middlewareAppId: null,
     type: InterfaceType.REST,
     frequency: InterfaceFrequency.DAILY,
     criticality: CriticalityLevel.HIGH,
@@ -30,6 +31,13 @@ describe('InterfacesService', () => {
     updatedAt: new Date(),
     sourceApp: { id: 'app-source-id', name: 'Source App' },
     targetApp: { id: 'app-target-id', name: 'Target App' },
+    middlewareApp: null,
+  };
+
+  const mockInterfaceWithMiddleware = {
+    ...mockInterface,
+    middlewareAppId: 'app-middleware-id',
+    middlewareApp: { id: 'app-middleware-id', name: 'Middleware App' },
   };
 
   const mockPrismaService = {
@@ -102,6 +110,19 @@ describe('InterfacesService', () => {
         }),
       );
     });
+
+    it('should filter by middlewareAppId', async () => {
+      mockPrismaService.interface.findMany.mockResolvedValue([mockInterfaceWithMiddleware]);
+      mockPrismaService.interface.count.mockResolvedValue(1);
+
+      await service.findAll({ middlewareAppId: 'app-middleware-id' });
+
+      expect(mockPrismaService.interface.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ middlewareAppId: 'app-middleware-id' }),
+        }),
+      );
+    });
   });
 
   describe('create', () => {
@@ -126,6 +147,20 @@ describe('InterfacesService', () => {
       expect(mockPrismaService.interface.create).toHaveBeenCalled();
     });
 
+    it('should create interface with middlewareAppId', async () => {
+      const dtoWithMiddleware = { ...createDto, middlewareAppId: 'app-middleware-id' };
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-source-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-target-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-middleware-id' });
+      mockPrismaService.interface.create.mockResolvedValue(mockInterfaceWithMiddleware);
+
+      const result = await service.create(dtoWithMiddleware, 'user-id');
+
+      expect(result).toEqual(mockInterfaceWithMiddleware);
+      expect(mockPrismaService.application.findUnique).toHaveBeenCalledTimes(3);
+      expect(result.middlewareApp).toEqual({ id: 'app-middleware-id', name: 'Middleware App' });
+    });
+
     it('should throw UnprocessableEntityException for self-reference', async () => {
       const invalidDto = { ...createDto, targetAppId: createDto.sourceAppId };
 
@@ -146,6 +181,16 @@ describe('InterfacesService', () => {
       mockPrismaService.application.findUnique.mockResolvedValueOnce(null);
 
       await expect(service.create(createDto, 'user-id')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException for non-existent middleware app', async () => {
+      const dtoWithMiddleware = { ...createDto, middlewareAppId: 'invalid-middleware-id' };
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-source-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-target-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.create(dtoWithMiddleware, 'user-id')).rejects.toThrow(NotFoundException);
+      expect(mockPrismaService.application.findUnique).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -185,6 +230,31 @@ describe('InterfacesService', () => {
 
       expect(result.name).toBe('Updated Interface Name');
       expect(mockPrismaService.interface.update).toHaveBeenCalled();
+    });
+
+    it('should update with middlewareAppId', async () => {
+      mockPrismaService.interface.findUnique.mockResolvedValue(mockInterface);
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-source-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-target-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-middleware-id' });
+      mockPrismaService.interface.update.mockResolvedValue(mockInterfaceWithMiddleware);
+
+      const result = await service.update('mock-uuid-12345', { middlewareAppId: 'app-middleware-id' }, 'user-id');
+
+      expect(result.middlewareAppId).toBe('app-middleware-id');
+      expect(result.middlewareApp).toEqual({ id: 'app-middleware-id', name: 'Middleware App' });
+    });
+
+    it('should unset middlewareAppId when set to null', async () => {
+      mockPrismaService.interface.findUnique.mockResolvedValue(mockInterfaceWithMiddleware);
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-source-id' });
+      mockPrismaService.application.findUnique.mockResolvedValueOnce({ id: 'app-target-id' });
+      mockPrismaService.interface.update.mockResolvedValue(mockInterface);
+
+      const result = await service.update('mock-uuid-12345', { middlewareAppId: null }, 'user-id');
+
+      expect(result.middlewareAppId).toBeNull();
+      expect(result.middlewareApp).toBeNull();
     });
 
     it('should throw UnprocessableEntityException for self-reference', async () => {

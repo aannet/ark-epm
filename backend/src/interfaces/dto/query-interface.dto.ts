@@ -11,6 +11,10 @@ export class QueryInterfaceDto {
   targetAppId?: string;
 
   @IsOptional()
+  @IsUUID()
+  middlewareAppId?: string;
+
+  @IsOptional()
   @IsEnum(InterfaceType)
   type?: InterfaceType;
 

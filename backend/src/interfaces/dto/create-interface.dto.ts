@@ -20,6 +20,10 @@ export class CreateInterfaceDto {
   @IsUUID()
   targetAppId: string;
 
+  @IsOptional()
+  @IsUUID()
+  middlewareAppId?: string;
+
   @IsEnum(InterfaceType)
   type: InterfaceType;
 
