@@ -236,3 +236,35 @@ tasks:
     type: spec
     feature: "FS-05-BACK"
     sessions: []
+
+  - id: T-050
+    nom: "QA — 3 tests API en échec non tracés (applications-validation, domains-crud, it-components)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "BACK-AUDIT"
+    sessions:
+      - tool: OC
+        id: "a4f2e1"
+        nom: "identifiés lors de la validation T-006 (2026-04-12)"
+    notes: |
+      3 tests Playwright en échec préexistants découverts lors de la session T-006 (2026-04-12).
+      Score global : 100/107 après fix T-006 (6 échecs — 3 couverts par T-007, 3 non tracés ci-dessous).
+
+      1. applications-validation.api.spec.ts:78
+         POST /applications should return 404 for non-existent business capabilityId
+         Reçu : 400 — attendu : 404
+         Cause probable : validation capabilityId retourne 400 BAD_REQUEST au lieu de 404 NOT_FOUND.
+
+      2. domains-crud.api.spec.ts:5
+         GET /domains should return array of domains
+         Échec intermittent ou structure de réponse inattendue — à investiguer.
+
+      3. it-components-crud.api.spec.ts:72
+         DELETE /it-components/:id - should delete IT component without dependencies
+         Échec au DELETE — possible 409 DEPENDENCY_CONFLICT résiduel ou app liée non nettoyée.
