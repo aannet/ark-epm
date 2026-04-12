@@ -11,6 +11,7 @@ import {
   TableRow,
   TableSortLabel,
   TextField,
+  Chip,
 } from '@mui/material';
 import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
@@ -292,7 +293,16 @@ export default function ProvidersListPage() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell align="center">{provider._count.appProviderMaps}</TableCell>
+                    <TableCell align="center">
+                      {provider._count.appProviderMaps > 0 && (
+                        <Chip
+                          label={provider._count.appProviderMaps}
+                          size="small"
+                          variant="outlined"
+                          color="info"
+                        />
+                      )}
+                    </TableCell>
                     {canWrite && (
                       <TableCell align="center" onClick={(e) => e.stopPropagation()}>
                         <RowActionsMenu

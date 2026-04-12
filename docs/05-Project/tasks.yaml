@@ -886,3 +886,38 @@ tasks:
       - [x] DataObjectDetailPage — Tabs+contenu → Paper elevation=0 border divider, px=2 sur tabs, p=4 sur info
       - [x] ITComponentDetailPage — Breadcrumbs inline → AppBreadcrumbs, titre Box → PageHeader, Tabs+contenu → Paper elevation=0
       Build frontend : 0 erreurs TypeScript, 0 erreurs Vite.
+
+  - id: T-037
+    nom: "IT Components : Vue liste — Changement affichage nombre apps en Chip MUI"
+    statut: in_progress
+    assigned_agent: front
+    session_active: "f9d3b1"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-05"
+    type: impl
+    feature: "FS-05-FRONT"
+    sessions: []
+    notes: |
+      Uniformiser l'affichage du compteur avec le pattern utilisé sur ApplicationDetailPage
+      pour la section "Composants IT" (MuiChip small label).
+
+  - id: T-038
+    nom: "Business Capabilities : Vue liste — Évolution UX du tri (incompatibilité ASC/DESC avec structure arborescente)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      Le pattern UX standard (entêtes de colonnes cliquables ASC/DESC) s'applique mal
+      à la liste arborescente des Business Capabilities : les nœuds enfants "suivent"
+      leur parent, ce qui brise l'ordre global attendu par l'utilisateur.
+      Revoir l'UX de tri sur cette vue (ex : tri uniquement sur L0, désactivation
+      des headers de tri, ou basculement vers une vue flat dédiée au tri).

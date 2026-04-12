@@ -235,7 +235,16 @@ export default function DataObjectListPage(): JSX.Element {
                         <TagChipList tags={item.tags} maxVisible={3} deduplicate={true} />
                       ) : '—'}
                     </TableCell>
-                    <TableCell>{item._count?.appDataObjectMaps ?? 0}</TableCell>
+                    <TableCell>
+                      {(item._count?.appDataObjectMaps ?? 0) > 0 && (
+                        <Chip
+                          label={item._count?.appDataObjectMaps}
+                          size="small"
+                          variant="outlined"
+                          color="info"
+                        />
+                      )}
+                    </TableCell>
                     {canWrite && (
                       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                         <RowActionsMenu

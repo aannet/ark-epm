@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TablePagination, Paper, TableSortLabel, Link as MuiLink,
   TextField, Box, FormControl, InputLabel, Select, MenuItem,
-  InputAdornment,
+  InputAdornment, Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -182,7 +182,16 @@ export default function ITComponentListPage(): JSX.Element {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>{item._count.applications}</TableCell>
+                    <TableCell>
+                      {item._count.applications > 0 && (
+                        <Chip
+                          label={item._count.applications}
+                          size="small"
+                          variant="outlined"
+                          color="info"
+                        />
+                      )}
+                    </TableCell>
                     {canWrite && (
                        <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                          <RowActionsMenu
