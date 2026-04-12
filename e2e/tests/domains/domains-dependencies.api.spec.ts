@@ -12,7 +12,7 @@ test.describe('Domains Dependencies API', () => {
       domainId: domain.id,
     });
 
-    const response = await auth.request.delete(`/domains/${domain.id}`);
+    const response = await auth.request.delete(`domains/${domain.id}`);
 
     const error = await expectError(response, 409, 'DEPENDENCY_CONFLICT');
     expect(error.message).toContain('application(s)');
@@ -29,7 +29,7 @@ test.describe('Domains Dependencies API', () => {
       level: 1,
     });
 
-    const response = await auth.request.delete(`/domains/${domain.id}`);
+    const response = await auth.request.delete(`domains/${domain.id}`);
 
     const error = await expectError(response, 409, 'DEPENDENCY_CONFLICT');
     expect(error.message).toContain('business capability(ies)');
@@ -51,7 +51,7 @@ test.describe('Domains Dependencies API', () => {
       level: 1,
     });
 
-    const response = await auth.request.delete(`/domains/${domain.id}`);
+    const response = await auth.request.delete(`domains/${domain.id}`);
 
     const error = await expectError(response, 409, 'DEPENDENCY_CONFLICT');
     expect(error.message).toContain('application(s)');

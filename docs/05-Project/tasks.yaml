@@ -56,10 +56,10 @@ tasks:
 
   - id: T-007
     nom: "Tests domains-dependencies bloqués — FS-07 Business Capabilities en cours"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S3
     theme: "FS-07"
     type: bug
@@ -68,6 +68,9 @@ tasks:
       - tool: CL
         id: "qa-ses"
         nom: "audit tests data-objects"
+      - tool: OC
+        id: "a1c3e5"
+        nom: "fix leading slash + validation 3/3 pass (2026-04-12)"
     notes: |
       Détecté lors de la session QA Data Objects (2026-04-07).
       3 tests Playwright en échec dans tests/domains/domains-dependencies.api.spec.ts :
@@ -77,6 +80,9 @@ tasks:
       Cause : contrainte de suppression domaine↔BC non active tant que FS-07-BACK
       n'est pas en statut done.
       ✅ Gate levée : FS-07-BACK done (2026-04-08). Prêt pour validation par agent QA.
+      ✅ DONE 2026-04-12 : fix leading slash dans domains-dependencies.api.spec.ts (3 occurrences
+         `/domains/${id}` → `domains/${id}`). Même pattern que T-006 fix #3.
+         15/16 tests domains passent (1 échec préexistant T-050 : domains-crud GET array).
 
   - id: T-008
     nom: "Sécurité — Supprimer fallback JWT hardcodé (F-999 Item 23)"
