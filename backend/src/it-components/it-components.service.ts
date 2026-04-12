@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 import { CreateItComponentDto } from './dto/create-it-component.dto';
 import { UpdateItComponentDto } from './dto/update-it-component.dto';
 import { QueryItComponentsDto } from './dto/query-it-components.dto';
+import { QueryItComponentApplicationsDto } from './dto/query-it-component-applications.dto';
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -230,7 +231,7 @@ export class ItComponentsService {
 
   async getApplications(
     id: string,
-    query: { page?: number; limit?: number } = {},
+    query: QueryItComponentApplicationsDto = {},
   ) {
     this.logger.log({ method: 'getApplications', id, query });
 

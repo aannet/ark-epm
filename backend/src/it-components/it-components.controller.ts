@@ -15,6 +15,7 @@ import { ItComponentsService } from './it-components.service';
 import { CreateItComponentDto } from './dto/create-it-component.dto';
 import { UpdateItComponentDto } from './dto/update-it-component.dto';
 import { QueryItComponentsDto } from './dto/query-it-components.dto';
+import { QueryItComponentApplicationsDto } from './dto/query-it-component-applications.dto';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
 
 interface AuthenticatedRequest {
@@ -50,7 +51,7 @@ export class ItComponentsController {
   @RequirePermissions('it-components:read')
   getApplications(
     @Param('id') id: string,
-    @Query() query: { page?: number; limit?: number },
+    @Query() query: QueryItComponentApplicationsDto,
   ) {
     return this.itComponentsService.getApplications(id, query);
   }
