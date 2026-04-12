@@ -43,7 +43,9 @@ tasks:
         - GET /dependencies hasDependencies=true when linked
         - GET /dependencies hasDependencies=false for isolated app
       ✅ Gate levée : FS-08-BACK done (T-040, 2026-04-12).
-      Prêt pour validation par agent QA — la table interfaces et les relations Prisma sont en place.
+      ✅ Gate levée : T-039 done (2026-04-12) — getDependencies() compte sourceInterfaces + targetInterfaces,
+         remove() lève DEPENDENCY_CONFLICT. Tests e2e Supertest FS-06 21/21 passent.
+      Prêt pour validation par agent QA — lancer : make test-api-backend (applications-dependencies.api.spec.ts).
 
   - id: T-007
     nom: "Tests domains-dependencies bloqués — FS-07 Business Capabilities en cours"
