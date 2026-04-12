@@ -140,41 +140,6 @@ tasks:
       Visualisation de la trajectoire de modernisation dans le temps.
       Gate : T-018 FS-07-FRONT v1.0 done + décision modèle lifecycle BC (champs dates/phases à définir).
 
-  - id: T-019
-    nom: "Amendment FS-07-BACK — Ajouter criticality + technicalFit (enums)"
-    statut: done
-    assigned_agent: back
-    session_active: ~
-    handoff_ref: ~
-    date_resolution: "2026-04-12"
-    sprint: S3
-    theme: "FS-07"
-    type: impl
-    feature: "FS-07-BACK"
-    sessions:
-      - tool: OC
-        id: "a1b2c4"
-        nom: "amendment criticality+technicalFit — ouverture session back"
-      - tool: OC
-        id: "a1b2c4"
-        nom: "validation complète — tous les composants en place"
-    notes: |
-      ✅ DONE — Amendment T-019 complété (2026-04-12).
-      
-      Vérifications effectuées :
-      - Migration SQL : CREATE TYPE CriticalityLevel + TechnicalFitLevel existent en DB
-      - Prisma model : enums + 2 champs nullable présents (schema.prisma lignes 94-106, 81-82)
-      - DTOs : Create/Update exposent criticality/technicalFit avec @IsEnum() validation
-      - Seed : 12 capabilities existantes alimentées avec valeurs variées
-      - API GET /business-capabilities : retourne criticality + technicalFit ✓
-      - API GET /business-capabilities/tree : retourne criticality + technicalFit par nœud ✓
-      - API POST avec criticality/technicalFit : création OK ✓
-      - API PATCH avec criticality/technicalFit : mise à jour OK ✓
-      - Tests e2e FS-07 : 20/20 passent ✓
-      - Build backend : 0 erreurs ✓
-      
-      Gate débloquée pour T-018 (impl FS-07-FRONT).
-
   - id: T-032
     nom: "Audit @Query() sans DTO — vérifier coercition string→number dans tous les controllers NestJS"
     statut: open
@@ -197,42 +162,6 @@ tasks:
       Vérifier en particulier tous les endpoints de pagination (skip/take Prisma).
       Correctif attendu : remplacer les plain types par des DTOs avec class-transformer,
       ou ajouter Number() dans les services concernés.
-
-  - id: T-039
-    nom: "Amendment FS-06-BACK — Contrôle dépendances Interfaces avant suppression Application"
-    statut: done
-    assigned_agent: back
-    session_active: ~
-    handoff_ref: ~
-    date_resolution: "2026-04-12"
-    sprint: S4
-    theme: "FS-08"
-    type: impl
-    feature: "FS-06-BACK"
-    sessions:
-      - tool: CL
-        id: "fs08sp"
-        nom: "spec FS-08-BACK v1.1 — identification dette suppression Application"
-      - tool: OC
-        id: "a9f3e1"
-        nom: "prérequis T-039 validés après T-040"
-      - tool: OC
-        id: "b3f719"
-        nom: "fix test type HTTP→REST + validation 21/21"
-    notes: |
-      Identifié lors de la rédaction FS-08-BACK (2026-04-12) — F-999 Item 24.
-      ApplicationsService.remove() ne vérifie pas _count.sourceInterfaces ni
-      _count.targetInterfaces avant suppression. La FK ON DELETE NO ACTION bloque
-      en base mais ne retourne pas de DEPENDENCY_CONFLICT propre au client.
-
-      ✅ Prérequis levés : FS-08-BACK done (T-040, 2026-04-12).
-      Relations Prisma sourceInterfaces/targetInterfaces disponibles sur model Application.
-
-      ✅ DONE (2026-04-12) :
-      - getDependencies() incluait déjà sourceInterfaces + targetInterfaces dans _count
-      - remove() levait déjà ConflictException DEPENDENCY_CONFLICT si hasDependencies
-      - Test Supertest déjà présent — corrigé : type 'HTTP' → 'REST' (InterfaceType enum)
-      - Validation : 21/21 tests e2e FS-06 passent
 
   - id: T-047
     nom: "Backend — Implémenter filtrage search/domainId dans GET /business-capabilities/tree"
@@ -257,4 +186,23 @@ tasks:
       - controller : @Query() query: { search?: string; domainId?: string }
       - service : filtrer les nœuds correspondants + inclure leurs ancêtres pour conserver
         la structure hiérarchique dans la réponse arbre.
-      (Anciennement T-043 doublon — renommé T-047 lors de la consolidation des archives)
+       (Anciennement T-043 doublon — renommé T-047 lors de la consolidation des archives)
+
+  - id: T-048
+    nom: "Business Capabilities — Ajout de 3 KPIs en tête de vue liste (niveaux hiérarchiques, applications actives, TBD)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions: []
+    notes: |
+      3 cartes KPI occupant chacune 1/3 de la largeur, affichées en tête de la vue liste Business Capabilities.
+      KPI 1 : Nombre max de niveaux hiérarchiques (profondeur de l'arbre BC).
+      KPI 2 : Nombre total d'applications actives associées aux BC affichées (tenant compte des filtres actifs).
+      KPI 3 : À définir — à préciser avec le métier avant implémentation.
+      Note : KPI 1 et 2 peuvent nécessiter un endpoint backend ou un calcul côté client depuis les données existantes.
