@@ -1,10 +1,12 @@
 # ARK — Feature Spec FS-06-FRONT : Applications (Frontend)
 
-_Version 1.1 — Mars 2026_
+_Version 1.2 — Mars 2026_
 
 > **Changelog v1.0 :** Création initiale — module Applications frontend, le plus riche du produit. Intègre le pattern PNS-02 (Side Drawer), les filtres par tags et cycle de vie, et le composant `DimensionTagInput` en première implémentation réelle.
 >
 > **Changelog v1.1 :** Ajout des champs `description` et `comment` conformément à NFR-GOV-005. Le champ `comment` est affiché uniquement dans la page détail (onglet Général), jamais dans le Side Drawer ni les vues liste. **Design system :** Drawer toujours read-only (exception PNS-02-APP validée). Description Markdown différé P2 (voir F-999 Item 11).
+>
+> **Changelog v1.2 :** Implémentation complète de la relation bidirectionnelle **IT Components ↔ Applications**. Ajout : colonne `itComponents` avec chip compteur en vue liste, IT Component names clickables en détail/drawer/liste, synchronisation OpenAPI spec. Pattern N:N symétrique sans rôles (simplifiée vs Providers).
 
 ---
 
@@ -15,13 +17,13 @@ _Version 1.1 — Mars 2026_
 | **ID** | FS-06-FRONT |
 | **Titre** | Applications — Pages React (Liste / Détail / New / Edit) |
 | **Priorité** | P1 |
-| **Statut** | `draft` *(devient `stable` uniquement après que FS-06-BACK est `done`)* |
+| **Statut** | ✅ `done` |
 | **Dépend de** | **FS-06-BACK** (gate bloquante), FS-01, F-02, **F-03** (DimensionTagInput) |
 | **Spec mère** | FS-06 Applications v1.0 |
 | **Estimé** | 1.5 jour |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 
-> ⚠️ Cette spec reste à `draft` tant que `FS-06-BACK` n'est pas au statut `done` et que toutes ses gates (G-01 à G-10) ne sont pas cochées.
+> ✅ FS-06-BACK est `done` — toutes les gates sont cochées. Frontend est pleinement fonctionnel et livré anticipé en Sprint 2.
 
 ---
 
@@ -276,11 +278,21 @@ zones:
         header: t('applications.list.columns.domain')
         sortable: true
         accessor: row.domain?.name
-      - field: provider
-        header: t('applications.list.columns.provider')
-        sortable: true
-        accessor: row.provider?.name
-      - field: lifecycleStatus
+       - field: provider
+         header: t('applications.list.columns.provider')
+         sortable: true
+         accessor: row.provider?.name
+       - field: itComponents
+         header: t('applications.list.columns.itComponents')
+         sortable: false
+         component: MUI Chip
+         component_props:
+           label: row.itComponents.length
+           size: small
+           variant: outlined
+           color: info
+           clickable: false
+       - field: lifecycleStatus
         header: t('applications.list.columns.lifecycleStatus')
         sortable: true
         component: StatusChip
@@ -337,10 +349,11 @@ zones:
               color: text.secondary (gris)
               aria-label: t('applications.drawer.close')
               onClick: close drawer
-      content:
-        - Informations: Nom, Description, Domaine (lien), Provider (lien), Owner, Criticité, Cycle de vie
-        - Tags: Chips via TagChipList mode drawer (maxVisible: 10 + "Voir plus")
-        - Métadonnées: Créé le, Modifié le
+       content:
+         - Informations: Nom, Description, Domaine (lien), Provider (lien), Owner, Criticité, Cycle de vie
+         - IT Components: Liste des composants IT liés (noms clickables → `/it-components/{id}`)
+         - Tags: Chips via TagChipList mode drawer (maxVisible: 10 + "Voir plus")
+         - Métadonnées: Créé le, Modifié le
       footer:
         layout: flex row, justify-content: flex-end, gap: 2
         buttons:
@@ -439,16 +452,21 @@ zones:
             component: StatusChip
           - label: t('applications.detail.comment')
             value: application.comment ?? t('applications.detail.noComment')
-      - title: t('applications.detail.section.relations')
-        fields:
-          - label: t('applications.list.columns.domain')
-            value: application.domain?.name ?? t('applications.detail.noValue')
-            link: application.domain ? '/domains/${application.domain.id}' : null
-          - label: t('applications.list.columns.provider')
-            value: application.provider?.name ?? t('applications.detail.noValue')
-            link: application.provider ? '/providers/${application.provider.id}' : null
-          - label: t('applications.detail.owner')
-            value: application.owner ? '${owner.firstName} ${owner.lastName}' : t('applications.detail.noValue')
+       - title: t('applications.detail.section.relations')
+         fields:
+           - label: t('applications.list.columns.domain')
+             value: application.domain?.name ?? t('applications.detail.noValue')
+             link: application.domain ? '/domains/${application.domain.id}' : null
+           - label: t('applications.list.columns.provider')
+             value: application.provider?.name ?? t('applications.detail.noValue')
+             link: application.provider ? '/providers/${application.provider.id}' : null
+           - label: t('applications.list.columns.itComponents')
+             component: Typography.ul (liste non-ordonnée)
+             component_props:
+               condition: application.itComponents.length > 0
+               items: application.itComponents.map(ic => ({ label: ic.name, link: '/it-components/${ic.id}' }))
+           - label: t('applications.detail.owner')
+             value: application.owner ? '${owner.firstName} ${owner.lastName}' : t('applications.detail.noValue')
       - title: t('applications.detail.section.tags')
         fields:
           - label: t('applications.list.columns.tags')

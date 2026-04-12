@@ -1,7 +1,11 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.5 — Mars 2026_
+_Version 0.8 — Avril 2026_
 
+> **Changelog v0.8 :** Ajout Item 24 — Contrôle dépendances Interfaces avant suppression d'Application. Amendment FS-06-BACK requis après FS-08-BACK `done` : `ApplicationsService.remove()` doit vérifier `_count.sourceInterfaces + _count.targetInterfaces` et lever `DEPENDENCY_CONFLICT` si > 0. Identifié lors de la rédaction FS-08-BACK (Sprint 4).
+>
+> **Changelog v0.7 :** Ajout Items 17-21 — Breadcrumbs systématisés (PNS-11, docs/02-Design/02-Navigation-Patterns.md v0.4) + dette technique Sprint 3 : filtres Providers, breadcrumbs Applications/Domains/Providers harmonisés, composant AppBreadcrumbs recommandé. Guidelines design mises à jour : DatePicker MUI, badge conditionnel, ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs documentés.
+>
 > **Changelog v0.5 :** Ajout Item 11 — Description Markdown pour Applications (différé P2). Drawer Applications confirmé read-only (exception PNS-02).
 >
 > **Changelog v0.4 :** Ajout §6 — Historique des revues de sprint. Mémoire longitudinale de la dette technique, alimentée à partir des gates TD §11 de chaque Feature-Spec. Pré-rempli avec Sprint 1 (F-00, F-01, FS-01, F-999).
@@ -29,10 +33,10 @@ _Version 0.1 — Mars 2026_
 |---|---|
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
-| **Priorité** | P1 (items 1–5, 8, 10) / P2 (items 6–7, 9, 11) |
-| **Statut** | `done` (items 1, 2, 3, 4, 9, 10) / `pending` (items 5, 8) / `P2` (items 6, 7, 11) |
-| **Estimé** | 1 jour (items P1) — Items 1,2,3,4,9,10 implémentés |
-| **Version** | 0.3 |
+| **Priorité** | P1 (items 1–5, 8, 10, 12, 13, 14, 15, 23, 24) / P2 (items 6–7, 9, 11, 16, 17–22) |
+| **Statut** | `done` (items 1, 2, 3, 4, 9, 10, 15) / `in-progress` (items 12, 13, 14) / `pending` (items 5, 8, 23, **24**) / `documented` (items 17–22, FS-11) |
+| **Estimé** | 1 jour (items P1 core) + 3 jours (items 12-14 debt) + 2 jours (items 17-22 Sprint 3) + 0.5j (item 23 sécurité) + 0.5j (item 24 amendment FS-06) |
+| **Version** | 0.8 |
 
 ---
 
@@ -336,7 +340,7 @@ async remove(id: string): Promise<void> {
 | **Priorité** | Faible — utile pour les équipes IT on-premise |
 
 **Décision :**
-Exposer `GET /api/health` (non authentifié) retournant :
+Exposer `GET /api/v1/health` (non authentifié) retournant :
 ```json
 { "status": "ok", "db": "ok", "timestamp": "..." }
 ```
@@ -498,29 +502,67 @@ La spec PNS-09 définit que le champ `description` doit être rendu en Markdown 
 
 ---
 
-### Item 12 — APIs Providers et Users mockées *(P1 — Sprint 3)*
+### Item 12 — APIs Providers et Users mockées *(P1 — PARTIELLEMENT DONE)*
 
 | | |
 |---|---|
-| **Statut** | 🔴 En cours — FS-06-FRONT livré avec mocks |
+| **Statut** | 🟡 Partial — Providers ✅ done, Users ❌ pending |
 | **Priorité** | Haute — blocage UX sur formulaire Application |
 
 **Contexte :**
-FS-06-FRONT implémente les sélecteurs de Provider et Owner dans le formulaire Application (`ApplicationForm.tsx`), mais les APIs `/providers` (liste) et `/users` (liste filtrée des utilisateurs actifs) ne sont pas encore disponibles. Les composants utilisent des données mockées (arrays vides).
+FS-06-FRONT implémente les sélecteurs de Provider et Owner dans le formulaire Application (`ApplicationForm.tsx`), mais les APIs `/providers` (liste) et `/users` (liste filtrée des utilisateurs actifs) ne sont pas encore disponibles. Les composants utilisaient des données mockées (arrays vides).
 
 **Décision :**
-- Livraison FS-06-FRONT avec mocks vides — formulaire fonctionnel mais sélecteurs vides
-- **Déblocage :** 
-  - FS-03-BACK (Providers CRUD + endpoint liste)
-  - FS-09-BACK (Users endpoint liste `GET /users?isActive=true&role=member`)
-- **Migration :** Remplacer `MOCK_PROVIDERS` et `MOCK_USERS` par les appels `useProviders()` et `useUsers()` quand disponibles
+- ✅ **Providers — RÉSOLU (2026-03-29)** 
+  - FS-03-BACK fournit `GET /api/v1/providers` (endpoint liste pageiné, search, sort)
+  - ApplicationNewPage et ApplicationEditPage maintenant appellent `useProviders({ limit: 200 })`
+  - Sélecteur providers popuplé avec données réelles depuis la base
+  - Commit: `2313983`
+  
+- ❌ **Users — TOUJOURS PENDING**
+  - `MOCK_USERS = []` reste en dur dans ApplicationNewPage/EditPage
+  - Sélecteur owner toujours vide
+  - Déblocage : FS-09-BACK (Users endpoint liste `GET /users?isActive=true&role=member`)
+  - Créer Item 12b pour tracker (voir section 4 ci-dessous)
 
 **Fichiers concernés :**
-- `frontend/src/pages/applications/ApplicationNewPage.tsx`
-- `frontend/src/pages/applications/ApplicationEditPage.tsx`
-- `frontend/src/components/applications/ApplicationForm.tsx`
+- `frontend/src/pages/applications/ApplicationNewPage.tsx` (providers ✅ fixed, users ❌ pending)
+- `frontend/src/pages/applications/ApplicationEditPage.tsx` (providers ✅ fixed, users ❌ pending)
+- `frontend/src/components/applications/ApplicationForm.tsx` (utilise les options passées en props)
 
-**Gate de validation :** Formulaire Application affiche les sélecteurs peuplés avec données réelles — test avec création d'une app liée à un provider existant
+**Gate de validation :** 
+- ✅ Providers : Formulaire Application affiche les sélecteurs providers peuplés avec données réelles — test avec création d'une app liée à un provider existant
+- ❌ Users : Owner dropdown reste vide (attente Item 12b)
+
+---
+
+### Item 12b — API Users mockée *(P1 — Sprint 3)* — NOUVEAU
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — FS-06-FRONT en attente |
+| **Priorité** | Moyenne — sélecteur owner vide dans formulaire Application |
+
+**Contexte :**
+Lors de la résolution du Item 12 (Providers), il s'avère que `MOCK_USERS = []` reste toujours en dur dans ApplicationNewPage et ApplicationEditPage. Le sélecteur "Owner/Responsable" affiche une liste vide alors que l'API `GET /api/v1/users` n'existe pas encore.
+
+**Décision :**
+- **Déblocage :** FS-09-BACK doit fournir endpoint liste utilisateurs
+  - `GET /api/v1/users?isActive=true` (retour : array de `{ id, firstName, lastName }`)
+  - Support filtres : `role`, `department` (optionnels)
+- **Migration :** Créer hook `useUsers()` dans `frontend/src/api/users.ts`
+  - Mirror du pattern `useProviders()` existant
+  - Appeller depuis ApplicationNewPage et ApplicationEditPage
+  - Remplacer `MOCK_USERS` par les données réelles
+
+**Fichiers à modifier :**
+- `frontend/src/pages/applications/ApplicationNewPage.tsx` 
+- `frontend/src/pages/applications/ApplicationEditPage.tsx`
+- À créer : `frontend/src/api/users.ts` (hook `useUsers()`)
+
+**Gate de validation :** Formulaire Application affiche le sélecteur owner peuplé avec tous les utilisateurs actifs — test avec assignation d'une app à un responsable existant
+
+**Liée à :** Item 12 (Providers — partial fix)
 
 ---
 
@@ -583,6 +625,405 @@ async setEntityTagsBatch(
 ```
 
 **Référence frontend :** `frontend/src/api/tags.ts` ligne 85-88 (commentaire TODO)
+
+---
+
+### Item 15 — Routes Providers commentées dans App.tsx *(P1 — Sprint 2)*
+
+| | |
+|---|---|
+| **Statut** | ✅ **DONE** — FS-03-FRONT implémentée le 2026-03-29 |
+| **Priorité** | Moyenne — bloque navigation vers module Providers |
+| **Gate de validation** | ✅ Routes `/providers` fonctionnelles avec navigation sidebar, CRUD complet |
+
+**Contexte :**
+Lors de l'implémentation de FS-04-IT-Components-front, les routes Providers dans `App.tsx` importaient des composants (`ProvidersListPage`, `ProviderNewPage`, `ProviderDetailPage`, `ProviderEditPage`) qui n'existaient pas encore dans le repository. Pour permettre la compilation TypeScript sans erreur, les routes ont été temporairement commentées.
+
+**Décision :**
+- Les routes Providers **étaient** commentées dans `App.tsx` (lignes 71-77)
+- Les imports des composants Providers **étaient** commentés (lignes 20-23)
+- **Déblocage :** FS-03-FRONT (Providers frontend) a implémenté les 4 composants manquants
+- **Migration :** Routes sont maintenant **décommentées** dans App.tsx
+
+**Fichier impacté :**
+```
+frontend/src/App.tsx (lines 19-23, 71-77)
+```
+
+**Implémentation complétée :**
+- ✅ `frontend/src/pages/providers/ProvidersListPage.tsx` (327 LOC)
+- ✅ `frontend/src/pages/providers/ProviderNewPage.tsx` (107 LOC)
+- ✅ `frontend/src/pages/providers/ProviderDetailPage.tsx` (283 LOC)
+- ✅ `frontend/src/pages/providers/ProviderEditPage.tsx` (136 LOC)
+- ✅ Composants support (Drawer, Form, RoleBadge, ExpiryDateBadge)
+
+**Gate de validation :** ✅ Routes `/providers` fonctionnelles — navigation sidebar, liste (pagination + search), création, édition, suppression avec 409 DEPENDENCY_CONFLICT handling
+
+---
+
+### Item 17 — Filtres dropdowns dans ProvidersListPage *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 En attente — Backend query param support requis |
+| **Priorité** | Basse — Spec demande 3 filtres (search + contractType + expiryDate), search seul implémenté |
+
+**Contexte :**
+La spec FS-03-Providers-front.md (§3.2 Layout Contract, §4 Checklist) demande une barre de filtres avec 3 contrôles sur ProvidersListPage :
+1. `TextField` search (debounced) — ✅ **IMPLÉMENTÉ**
+2. `FormControl` dropdown contractType — ❌ **NON IMPLÉMENTÉ**
+3. `FormControl` dropdown expiryDate (options: 30/90/180 jours) — ❌ **NON IMPLÉMENTÉ**
+
+Le backend `QueryProvidersDto` actuellement supporte **uniquement** `search`, `page`, `limit`, `sortBy`, `sortOrder`. Les query params `contractType` et `expiryDate` n'existent pas encore.
+
+**Décision :**
+- **v1.0 (actuel)** : Search seul implémenté. Spec gate partiellement déverrouillée (2/3 filtres)
+- **v1.1 (Sprint 3)** : Ajouter les query params au backend QueryProvidersDto
+  - Backend : Ajouter support `contractType?: string` et `expiryDate?: { min, max }` ou deux params séparés
+  - Frontend : Implémenter les deux dropdowns dans ProvidersListPage avec filtrage côté API
+  - Données dropdowns : Hardcodées ou générées dynamiquement à partir des entités existantes
+
+**Impact :**
+- Backend : Modification DTO + query WHERE clauses
+- Frontend : Deux nouveaux FormControl + MUI Select composants
+- UX : Amélioration expérience de filtrage (actuellement search seul)
+
+**Fichiers à modifier :**
+- `backend/src/providers/dto/query-providers.dto.ts` — ajouter fields
+- `backend/src/providers/providers.service.ts` — ajouter WHERE clauses
+- `frontend/src/pages/providers/ProvidersListPage.tsx` — ajouter dropdowns
+
+**Timing :** Sprint 3 (après FS-03-FRONT completion et Sprint 2 closure)
+
+---
+
+### Item 18 — Breadcrumbs manquants : Applications (Detail, New, Edit) *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — Pattern PNS-11 non respecté |
+| **Priorité** | Moyenne — UX/Navigation, pas bloquant P1 |
+
+**Contexte :**
+Les pages `ApplicationDetailPage`, `ApplicationNewPage`, et `ApplicationEditPage` n'affichent pas de breadcrumb. Le pattern PNS-11 (v0.4) standardise les breadcrumbs 3 niveaux (Accueil > Liste > Courant) sur toutes les pages de type Detail/New/Edit.
+
+**Décision :**
+- Ajouter breadcrumb sur les 3 pages Applications manquantes
+- Pattern : 3 niveaux avec "Accueil" link
+  - Detail : `Accueil > Applications > {app.name}`
+  - New : `Accueil > Applications > Nouvelle application`
+  - Edit : `Accueil > Applications > {app.name} > Modifier`
+
+**Implémentation :**
+Utiliser le composant partagé `AppBreadcrumbs` (recommandé par PNS-11) ou implémenter inline avec MUI `Breadcrumbs` en cohérence avec Providers et IT-Components. Ajouter les clés i18n `applications.detail.breadcrumb.*` et `applications.form.breadcrumb.*`.
+
+**Fichiers à modifier :**
+- `frontend/src/pages/applications/ApplicationDetailPage.tsx`
+- `frontend/src/pages/applications/ApplicationNewPage.tsx`
+- `frontend/src/pages/applications/ApplicationEditPage.tsx`
+- `frontend/src/i18n/locales/fr.json` — ajouter clés breadcrumb
+
+**Timing :** Sprint 3
+
+---
+
+### Item 19 — Breadcrumbs manquants : Domains (Detail, New, Edit) *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — Pattern PNS-11 non respecté |
+| **Priorité** | Moyenne — UX/Navigation, pas bloquant P1 |
+
+**Contexte :**
+Les pages `DomainDetailPage`, `DomainNewPage`, et `DomainEditPage` n'affichent pas de breadcrumb. Le pattern PNS-11 standardise les breadcrumbs sur toutes les pages de type Detail/New/Edit.
+
+**Décision :**
+- Ajouter breadcrumb sur les 3 pages Domains manquantes
+- Pattern : 3 niveaux avec "Accueil" link
+  - Detail : `Accueil > Domaines > {domain.name}`
+  - New : `Accueil > Domaines > Nouveau domaine`
+  - Edit : `Accueil > Domaines > {domain.name} > Modifier`
+
+**Implémentation :**
+Utiliser le composant partagé `AppBreadcrumbs` ou implémenter inline cohérent avec PNS-11. Ajouter clés i18n `domains.detail.breadcrumb.*` et `domains.form.breadcrumb.*`.
+
+**Fichiers à modifier :**
+- `frontend/src/pages/domains/DomainDetailPage.tsx`
+- `frontend/src/pages/domains/DomainNewPage.tsx`
+- `frontend/src/pages/domains/DomainEditPage.tsx`
+- `frontend/src/i18n/locales/fr.json` — ajouter clés breadcrumb
+
+**Timing :** Sprint 3
+
+---
+
+### Item 20 — Harmoniser breadcrumbs Providers *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Partiellement implémenté — 2 niveaux sans "Accueil", spacing inconsistant |
+| **Priorité** | Basse — Fonctionnel mais incohérent avec PNS-11 |
+
+**Contexte :**
+Les breadcrumbs Providers (FS-03-FRONT) utilisent un pattern 2 niveaux sans "Accueil" link (différent de IT-Components qui a 3 niveaux avec Accueil). De plus, la namespace i18n pour Detail page réutilise `providers.form.breadcrumb.*` au lieu d'avoir son propre namespace `detail.breadcrumb.*`. Le spacing varie entre `mb: 2` et `mb: 3` selon les pages.
+
+**Décision :**
+- Ajouter le lien "Accueil" → 3 niveaux standardisés
+  - Detail : `Accueil > Fournisseurs > {provider.name}` (actuellement : `Fournisseurs > {name}`)
+  - New : `Accueil > Fournisseurs > Nouveau fournisseur` (actuellement : `Fournisseurs > Nouveau`)
+  - Edit : `Accueil > Fournisseurs > {provider.name} > Modifier` (déjà 3 niveaux, ajuster Accueil link)
+- Standardiser spacing : `mb: 2` sur toutes les pages
+- Corriger i18n namespacing : créer `providers.detail.breadcrumb.{home,list}` distinct de `providers.form.breadcrumb.*`
+
+**Implémentation :**
+Refactor les breadcrumbs Providers existants pour cohérence avec PNS-11 et les autres entités (IT-Components).
+
+**Fichiers à modifier :**
+- `frontend/src/pages/providers/ProviderDetailPage.tsx` — ajouter Accueil link, fixer spacing, i18n
+- `frontend/src/pages/providers/ProviderNewPage.tsx` — ajouter Accueil link, spacing
+- `frontend/src/pages/providers/ProviderEditPage.tsx` — ajouter Accueil link, spacing
+- `frontend/src/i18n/locales/fr.json` — refactor namespaces
+
+**Timing :** Sprint 3
+
+---
+
+### Item 21 — Créer composant partagé AppBreadcrumbs *(Recommandé — F-01 ou FS-11)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Documenté dans PNS-11 — implémentation recommandée mais non bloquante |
+| **Priorité** | Basse — Éliminer duplication inline, améliorer maintenabilité |
+
+**Contexte :**
+Les breadcrumbs sont actuellement implémentés inline dans chaque page (ProviderDetailPage, ProviderNewPage, ProviderEditPage, ITComponentDetailPage, ITComponentFormPage — 11+ occurrences attendues après Sprint 3). Aucun composant partagé `AppBreadcrumbs` dans `frontend/src/components/shared/`.
+
+**Décision :**
+- Créer composant `AppBreadcrumbs.tsx` acceptant un tableau typé d'items
+- Composant gère automatiquement le dernier item comme texte non cliquable
+- Centralisé dans `@/components/shared/`
+- À ajouter à l'index `components/shared/index.ts`
+
+**Interface suggérée :**
+```typescript
+interface BreadcrumbItem {
+  label: string;
+  onClick?: () => void;  // omis pour le dernier élément (courant)
+}
+
+interface AppBreadcrumbsProps {
+  items: BreadcrumbItem[];
+  sx?: SxProps;
+}
+
+export const AppBreadcrumbs: React.FC<AppBreadcrumbsProps> = ({ items, sx }) => {
+  // Rendre MUI Breadcrumbs avec derniers item non cliquable
+}
+```
+
+**Impact :**
+- Réduit duplication code dans 11+ pages
+- Garantit cohérence visuelle (styling, spacing, i18n key pattern)
+- Facilite évolutions futures (theme breadcrumb, A11y)
+- Non bloquant pour Sprint 2 — recommandé pour P2/Sprint 3
+
+**Timing :** Sprint 3 ou Sprint 4 (après Items 18-20)
+
+---
+
+---
+
+### Item 22 — Migration tests FS-05-FRONT : Cypress → Playwright *(P2 — Sprint 3)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À implémenter — Décision de migration de Cypress vers Playwright |
+| **Priorité** | Moyenne — Couverture tests E2E FS-05-FRONT en attente |
+
+**Contexte :**
+Lors de l'implémentation de FS-05-FRONT (Data Objects frontend), un fichier de tests Cypress a été généré (`frontend/cypress/e2e/data-objects.cy.ts`, 37 tests). Cependant, l'exécution a échoué en raison de dépendances système manquantes (`libnspr4.so`, bibliothèques X11/NSPR) sur l'environnement de développement. Plutôt que d'investir dans la résolution de ces dépendances Cypress, la décision a été prise de migrer vers **Playwright** pour les tests E2E frontend.
+
+**Décision :**
+- **Abandonner Cypress** pour les tests E2E frontend — Playwright devient la référence
+- **Conserver le fichier `data-objects.cy.ts`** comme spécification de référence (37 tests documentés)
+- **Migrer les 37 tests** vers Playwright dans `e2e/tests/data-objects/`
+- **Supprimer les dépendances Cypress** du projet une fois la migration complète
+
+**Tests à migrer (37 tests — référence `frontend/cypress/e2e/data-objects.cy.ts`) :**
+
+| Section | N° | Tests |
+|---------|-----|-------|
+| **ListPage** (6) | 1-6 | Affichage liste, colonnes, empty state, tri, recherche, bouton ajouter |
+| **Drawer** (7) | 7-13 | Ouverture clic ligne, navigation nom, onglets Info/Apps, fermeture, navigation detail/edit, disabled read-only |
+| **DetailPage** (4) | 14-17 | Champs affichés, onglet apps, bouton modifier, redirect UUID inexistant |
+| **Création** (6) | 18-23 | Nom+description, sans description, annuler, dupliqué, nom vide, espaces |
+| **Modification** (3) | 24-26 | Modifier ok, annuler, redirect UUID inexistant |
+| **Suppression** (4) | 27-30 | Sans dépendances, annuler, avec dépendances (409), bouton disabled |
+| **Filtres** (2) | 31-32 | Par type, par source officielle |
+| **Droits UI** (6) | 33-37 | Bouton Add absent, colonne Actions absente, icônes absentes, Edit disabled, redirect /403 (×2) |
+
+**Fichiers concernés :**
+- À créer : `e2e/tests/data-objects/data-objects.spec.ts` (Playwright)
+- À supprimer après migration : `frontend/cypress/e2e/data-objects.cy.ts`
+- À supprimer après migration complète : `frontend/cypress/` (dossier entier)
+
+**Implémentation Playwright suggérée :**
+```typescript
+// e2e/tests/data-objects/data-objects.spec.ts
+import { test, expect } from '@playwright/test';
+import { login, loginAsReadOnly } from '../fixtures/auth.fixture';
+
+test.describe('Data Objects Feature', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.goto('/data-objects');
+  });
+
+  test('affiche la liste des objets de données après login', async ({ page }) => {
+    await expect(page.getByText('Objets de Données')).toBeVisible();
+  });
+  // ... 36 autres tests
+});
+```
+
+**Gate de validation :**
+- ✅ Les 37 tests Playwright passent en headless
+- ✅ `make test-e2e` inclut les tests Data Objects
+- ✅ Fichier Cypress `data-objects.cy.ts` supprimé
+- ✅ Dépendances Cypress retirées de `package.json`
+
+**Timing :** Sprint 3 (après FS-05-FRONT completion)
+
+---
+
+### Item 23 — Supprimer le secret JWT hardcodé en fallback *(P1 — Sécurité)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À corriger — Vulnérabilité de sécurité confirmée |
+| **Priorité** | Haute — Compromission d'authentification possible |
+| **Gate de validation** | Application refuse de démarrer si `JWT_SECRET` absent ; aucun fallback hardcodé dans le code |
+
+**Contexte :**
+Une revue de sécurité (2026-04-05) a identifié un secret JWT hardcodé utilisé comme valeur de repli dans `backend/src/auth/jwt.strategy.ts` :
+
+```typescript
+secretOrKey: configService.get('JWT_SECRET') || 'fallback-secret-do-not-use-in-prod',
+```
+
+Le `ConfigModule` ne valide pas la présence de `JWT_SECRET` au démarrage (pas de schéma Joi/Zod). Si la variable d'environnement n'est pas injectée (CI/CD mal configuré, environnement de dev sans `.env`, secret manquant en orchestration de conteneurs), l'application démarre silencieusement avec le secret visible dans le code source. Un attaquant ayant accès au source peut forger des JWT valides pour n'importe quel `userId`.
+
+**Décision :**
+- **Supprimer** le `|| 'fallback-secret-do-not-use-in-prod'` de `jwt.strategy.ts`
+- **Ajouter** une validation de configuration au démarrage via `ConfigModule` (schéma Joi)
+- **Utiliser** `configService.getOrThrow<string>('JWT_SECRET')` pour un fail-fast explicite
+
+**Implémentation :**
+```typescript
+// backend/src/auth/jwt.strategy.ts
+secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
+
+// backend/src/app.module.ts — ConfigModule.forRoot()
+validationSchema: Joi.object({
+  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_EXPIRES_IN: Joi.string().default('15m'),
+  // ...autres variables obligatoires
+}),
+```
+
+**Fichiers concernés :**
+- `backend/src/auth/jwt.strategy.ts` — supprimer le fallback
+- `backend/src/app.module.ts` — ajouter validation schema Joi
+
+**Gate de validation :**
+- ✅ `npm run start:dev` sans `JWT_SECRET` lève une erreur explicite au démarrage
+- ✅ Aucune chaîne `fallback` ou secret hardcodé dans le code source auth
+- ✅ Tests e2e auth passent avec `JWT_SECRET` correctement injecté
+
+**Timing :** À corriger avant toute mise en production (bloquant)
+
+---
+
+### Item 24 — Contrôle dépendances Interfaces avant suppression d'Application *(P1 — Amendment FS-06-BACK)*
+
+| | |
+|---|---|
+| **Statut** | 🟠 Documenté — À implémenter via amendment FS-06-BACK |
+| **Priorité** | P1 — Intégrité référentielle applicative |
+| **Gate de validation** | `DELETE /api/v1/applications/{id}` avec interfaces liées → `409 DEPENDENCY_CONFLICT` |
+
+**Contexte :**
+
+La table `interfaces` référence `applications` via deux FK (`source_app_id`, `target_app_id`) avec `ON DELETE NO ACTION`. La suppression d'une Application liée à des interfaces est actuellement bloquée au niveau **base de données** (erreur FK Postgres), mais pas interceptée proprement côté applicatif — aucun `DEPENDENCY_CONFLICT` avec compteurs n'est renvoyé au client.
+
+FS-06-BACK n'a pas encore été amendé pour inclure `_count.sourceInterfaces` et `_count.targetInterfaces` dans le guard de suppression de `ApplicationsService.remove()`. Ce manque a été identifié lors de la rédaction de FS-08-BACK (Sprint 4).
+
+**Décision :**
+
+Amender `FS-06-BACK` pour ajouter le contrôle suivant dans `ApplicationsService.remove()` :
+
+```typescript
+const app = await this.prisma.application.findUnique({
+  where: { id },
+  select: {
+    _count: {
+      select: {
+        sourceInterfaces: true,   // FK source_app_id
+        targetInterfaces: true,   // FK target_app_id
+        // ... autres _count existants
+      }
+    }
+  }
+});
+
+const interfaceCount = app._count.sourceInterfaces + app._count.targetInterfaces;
+if (interfaceCount > 0) {
+  throw new ConflictException({
+    code: 'DEPENDENCY_CONFLICT',
+    message: `Application is used by ${interfaceCount} interface(s)`
+  });
+}
+```
+
+**Fichiers concernés :**
+- `backend/src/applications/applications.service.ts` — méthode `remove()`, select `_count`
+- `backend/test/FS-06-applications.e2e-spec.ts` — ajouter test Supertest `DELETE` avec interface liée → `409 DEPENDENCY_CONFLICT`
+
+**Prérequis :**
+- FS-08-BACK `done` (migration table `interfaces` appliquée, relations Prisma à jour)
+
+**Timing :** Sprint 4 — Amendment après FS-08-BACK `done`, avant recette FS-08-FRONT
+
+---
+
+### Item 16 — Customisation des couleurs provider roles *(P2)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 Différé P2 — Documentation de dette |
+| **Priorité** | Basse — UI/UX, pas bloquant |
+| **Gate de validation** | Admin dashboard avec interface color picker pour rôles |
+
+**Contexte :**
+La spec FS-03-FRONT v1.1 implémente l'affichage des `provider_role` via badges MUI avec couleurs hardcodées dans le code TypeScript (`editor → primary`, `integrator → secondary`, etc.). Bien que cette solution soit fonctionnelle et UX correcte pour v1.0, elle ne permet pas aux administrateurs de personnaliser les couleurs sans modification du code et redéploiement.
+
+**Décision :**
+- **v1.1 (actuel)** : Couleurs hardcodées dans `roleColorMap` TypeScript (FS-03-FRONT ProvidersDrawer, ProviderDetailPage)
+- **v2.0 (P2)** : Admin dashboard avec UI de customisation des couleurs par rôle
+  - Endpointe API : `GET/PUT /api/v1/admin/settings/provider-role-colors` (ou similaire — à concevoir)
+  - Persistance : Configurations stockées dans table `settings` ou nouvelle table `role_color_configs`
+  - Frontend : Page admin `/admin/settings/provider-roles-colors` avec color picker MUI + preview en temps réel
+  - Fallback : Si configuration absente en DB, utiliser les hardcodes v1.1 par défaut
+
+**Impact :**
+- Nécessite : concevoir endpoint API + table persistance + page admin
+- N'impacte pas : logique métier providers/applications, audit trail, permissions
+- Timing : Sprint 4+ (post-MVP)
+
+**Fichiers affectés (future implémentation) :**
+- `backend/src/settings/` — nouveau module
+- `frontend/src/pages/admin/ProviderRoleColorsPage.tsx` — nouvelle page
+- `frontend/src/utils/roleColors.ts` — refactor pour consommer API
 
 ---
 
@@ -651,9 +1092,29 @@ Request ID :
 - [x] **Item 9** — API prefix `/api/v1` configuré dans `main.ts`
 - [x] **Item 10** — RequestIdMiddleware créé et enregistré dans AppModule
 - [x] **Item 10** — Header `X-Request-ID` présent sur toutes les réponses
-- [ ] **Item 12** — APIs Providers et Users remplacent les mocks dans ApplicationForm
+- [x] **Item 12 (Providers)** — API Providers remplace le mock dans ApplicationForm ✅ 2026-03-29
+- [ ] **Item 12b (Users)** — API Users remplace le mock dans ApplicationForm (FS-09 pending)
 - [ ] **Item 13** — Dimensions dynamiques via `/tag-dimensions` (remplacent hardcode)
 - [ ] **Item 14** — Endpoint `PUT /tags/entity/:type/:id/batch` implémenté et testé
+- [ ] **Item 15** — Routes Providers décommentées et fonctionnelles après FS-03-FRONT
+- [ ] **Item 16** — Admin dashboard pour customisation couleurs provider roles (P2 — Sprint 4+)
+
+## 4.1 Checklist P2 — Sprint 3 (Breadcrumbs & Design Guidelines)
+
+- [ ] **Item 17** — Query params contractType + expiryDate implémentés dans backend QueryProvidersDto
+- [ ] **Item 17** — Dropdowns contractType et expiryDate affichés dans ProvidersListPage
+- [ ] **Item 18** — Breadcrumbs ajoutés aux 3 pages Applications (Detail, New, Edit) — pattern PNS-11
+- [ ] **Item 18** — Clés i18n `applications.detail.breadcrumb.*` et `applications.form.breadcrumb.*` ajoutées
+- [ ] **Item 19** — Breadcrumbs ajoutés aux 3 pages Domains (Detail, New, Edit) — pattern PNS-11
+- [ ] **Item 19** — Clés i18n `domains.detail.breadcrumb.*` et `domains.form.breadcrumb.*` ajoutées
+- [ ] **Item 20** — Breadcrumbs Providers harmonisés : 3 niveaux avec Accueil link + i18n refactor
+- [ ] **Item 20** — Spacing breadcrumbs standardisé à `mb: 2` sur toutes les pages
+- [ ] **Item 21** — Composant `AppBreadcrumbs` créé dans `@/components/shared/` (optional — recommandé P2/FS-11)
+- [ ] **Item 22** — Migrer 37 tests Cypress `data-objects.cy.ts` vers Playwright `e2e/tests/data-objects/data-objects.spec.ts`
+- [ ] **Item 22** — Supprimer `frontend/cypress/` après migration complète
+- [ ] **Item 22** — Retirer dépendances Cypress de `package.json`
+- [ ] **Item 23** — Supprimer fallback JWT hardcodé dans `jwt.strategy.ts`
+- [ ] **Item 23** — Ajouter validation schema Joi pour `JWT_SECRET` dans `ConfigModule`
 ---
 
 ## 5. Journal des décisions
@@ -670,6 +1131,12 @@ Request ID :
 | 2026-03-04 | §6 | Ajout section Historique des Revues de Sprint — revue de dette obligatoire en fin de sprint | Alec |
 | 2026-03-14 | Item 11 | Ajout Description Markdown pour Applications — différé P2 | Alec |
 | 2026-03-15 | Items 12, 13, 14 | Dette technique FS-06-FRONT — mocks Providers/Users, dimensions hardcodées, endpoint batch tags manquant | Alec |
+| 2026-03-21 | Item 15 | Routes Providers commentées — fichiers FS-03-FRONT manquants | OpenCode |
+| 2026-03-21 | Item 16 | Customisation couleurs provider roles — couleurs hardcodées v1.1, admin dashboard P2 | OpenCode |
+| 2026-03-29 | Items 17-21 | Ajout dette technique Design Guidelines : filtres Providers (P2), breadcrumbs Applications/Domains/Providers (Sprint 3), composant AppBreadcrumbs (FS-11) | OpenCode/Spec |
+
+| 2026-04-05 | Item 22 | Migration tests FS-05-FRONT Cypress → Playwright — 37 tests à migrer | OpenCode/Front |
+| 2026-04-05 | Item 23 | Secret JWT fallback hardcodé détecté (revue sécurité) — `getOrThrow` + validation Joi obligatoires | Spec/Sécurité |
 
 ---
 

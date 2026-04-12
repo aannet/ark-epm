@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Stack, Paper, Typography, Box, Divider } from '@mui/material';
+import { Stack, Paper, Typography, Box, Divider } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageContainer from '@/components/layout/PageContainer';
+import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ArkAlert from '@/components/shared/ArkAlert';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { TagChipList } from '@/components/tags';
 import { useDomain } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
@@ -69,32 +70,32 @@ export default function DomainDetailPage(): JSX.Element {
         onClose={() => setAlert(null)}
       />
 
-      <Stack spacing={3}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/domains')}
-          >
-            {t('domains.detail.backButton')}
-          </Button>
-          {canWrite && (
-            <Button
-              variant="contained"
-              startIcon={<EditIcon />}
-              onClick={() => navigate(`/domains/${id}/edit`)}
-            >
-              {t('domains.detail.editButton')}
-            </Button>
-          )}
-        </Stack>
+      <AppBreadcrumbs
+        items={[
+          { label: t('domains.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('domains.detail.breadcrumb.list'), onClick: () => navigate('/domains') },
+          { label: domain.name },
+        ]}
+      />
 
-        <Paper
-          elevation={0}
-          sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}
-        >
-          <Stack spacing={2}>
-            <Typography variant="h5">{domain.name}</Typography>
+      <PageHeader
+        title={domain.name}
+        action={
+          canWrite
+            ? {
+                label: t('domains.detail.editButton'),
+                onClick: () => navigate(`/domains/${id}/edit`),
+                icon: <EditIcon />,
+              }
+            : undefined
+        }
+      />
+
+      <Paper
+        elevation={0}
+        sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}
+      >
+        <Stack spacing={2}>
             
             <Box>
               <Typography variant="caption" color="text.secondary">
@@ -158,7 +159,6 @@ export default function DomainDetailPage(): JSX.Element {
             </Stack>
           </Stack>
         </Paper>
-      </Stack>
     </PageContainer>
   );
 }

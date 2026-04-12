@@ -1,6 +1,6 @@
 # ARK — Glossary
 
-_Version 0.1 — Mars 2026_
+_Version 0.2 — Mars 2026_
 
 > Ce document définit les termes clés utilisés dans le projet ARK.
 
@@ -15,8 +15,20 @@ _Version 0.1 — Mars 2026_
 | **Interface** | Connexion entre deux applications (flux de données) |
 | **Data Object** | Donnée ou ensemble de données identifié comme pertinent pour l'entreprise |
 | **IT Component** | Composant technique hébergeant des applications |
-| **Provider** | Fournisseur de services ou de composants IT |
+| **Provider** | Fournisseur de services ou de composants IT. Relation N:N avec les Applications — chaque provider peut avoir un rôle spécifique : editor, integrator, support, vendor, ou custom (voir section "Rôles des Providers" ci-dessous et FS-03-FRONT v1.1). |
 | **Domain** | Domaine métier regroupant des applications et des capabilities |
+
+### Rôles des Providers
+
+| Rôle | Description |
+|------|-------------|
+| **editor** | Éditeur/propriétaire principal du logiciel |
+| **integrator** | Intégrateur responsable de l'implémentation et l'intégration |
+| **support** | Support technique et maintenance |
+| **vendor** | Fournisseur de composants ou d'infrastructure |
+| **custom** | Rôle personnalisé (défini au cas par cas) |
+
+> Voir **FS-03-FRONT v1.1** pour l'affichage des rôles dans l'interface frontend.
 
 ---
 

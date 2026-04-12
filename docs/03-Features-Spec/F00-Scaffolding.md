@@ -13,7 +13,7 @@ _Version 0.1 — Février 2026_
 | **ID** | F-00 |
 | **Titre** | Scaffolding Projet — NestJS + Prisma + Docker + JWT + middleware `ark.current_user_id` |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | ✅ `done` |
 | **Dépend de** | — *(spec racine, aucune dépendance)* |
 | **Estimé** | 2 jours |
 | **Version** | 0.1 |

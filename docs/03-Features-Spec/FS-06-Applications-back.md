@@ -1,10 +1,21 @@
 # ARK — Feature Spec FS-06-BACK : Applications (Backend)
 
-_Version 1.0 — Mars 2026_
+_Version 1.4 — Avril 2026_
 
-> **Changelog v1.0 :** Création initiale — module Applications, entité centrale du métier ARK. Implémente le CRUD complet avec liaisons vers domains/providers/users + support tags F-03 + gestion des dépendances entrantes (interfaces, data objects, IT components, business capabilities). Ce module est le **backbone** des modules satellites (FS-03/04/05).
+> **Changelog v1.4 :** **SUPPORT BUSINESS CAPABILITIES** — Finalisation de la liaison N:N Application ↔ Business Capability.
+> - `capabilityIds: string[]` ajouté dans `CreateApplicationDto`/`UpdateApplicationDto`.
+> - `create()` / `update()` synchronisent `app_capability_map`.
+> - Validation FK `capabilityIds` : `404` `BUSINESS_CAPABILITY_NOT_FOUND` si ID invalide.
+> - `findAll` / `findOne` exposent `businessCapabilities` (`{ id, name }`).
+> - Couverture Supertest + Playwright mise à jour.
+>
+> **Changelog v1.3 :** **SUPPORT IT COMPONENTS** — Ajout de la relation N:N Application ↔ IT Component. Nouvel endpoint `GET /applications/{id}/it-components` (paginé). DTOs : ajout champ `itComponents: Array<{id}>` dans `CreateApplicationDto` et `UpdateApplicationDto`. Response : ajout champ `itComponents` dans `ApplicationResponse`. Validation IT Components en create/update. Nouvelle RM-09. Impact tests backend.
+>
+> **Changelog v1.2 :** **ÉVOLUTION MAJEURE** — Migration modèle Provider 1:N → N:N. Une application peut désormais être liée à plusieurs providers avec des rôles distincts. Suppression FK `providerId`, création table de jonction `app_provider_map`. DTOs : `providerId` → `providers: Array<{id, role}>`. Response : `provider` (single) → `providers` (array). RM-02 et RM-03 adaptés. Impact sur tous les tests backend + frontend.
 > 
 > **Changelog v1.1 :** Ajout des champs `description` et `comment` conformément à NFR-GOV-005 (5 champs socle obligatoires). Mise à jour des DTOs et schémas OpenAPI. **Note design :** Champ description en texte simple pour P1 (Markdown différé P2 — voir F-999 Item 11).
+>
+> **Changelog v1.0 :** Création initiale — module Applications, entité centrale du métier ARK. Implémente le CRUD complet avec liaisons vers domains/providers/users + support tags F-03 + gestion des dépendances entrantes (interfaces, data objects, IT components, business capabilities). Ce module est le **backbone** des modules satellites (FS-03/04/05).
 
 ---
 
@@ -15,12 +26,12 @@ _Version 1.0 — Mars 2026_
 | **ID** | FS-06-BACK |
 | **Titre** | Applications — API REST Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
-| **Dépend de** | FS-01, F-03, **FS-02-BACK** (domains), **FS-03-BACK** (providers) |
+| **Statut** | ✅ `done` |
+| **Dépend de** | FS-01, F-03, **FS-02-BACK** (domains), **FS-03-BACK** (providers — N:N requirement) |
 | **Spec mère** | FS-06 Applications v1.0 |
 | **Spec front** | FS-06-FRONT — bloquée tant que cette spec n'est pas `done` |
-| **Estimé** | 1.5 jour |
-| **Version** | 1.1 |
+| **Estimé** | 2.0 jours (+ 0.5 jour pour migration N:N) |
+| **Version** | 1.4 |
 
 ---
 
@@ -31,10 +42,11 @@ _Version 1.0 — Mars 2026_
 Implémenter l'API REST complète pour la gestion des Applications : création, lecture, modification et suppression. L'Application est l'entité centrale du système ARK, liée aux domaines, fournisseurs, responsables, capacités métier, objets de données, composants IT et interfaces.
 
 Le backend expose :
-- CRUD complet avec gestion des relations `domain_id`, `provider_id`, `owner_id`
+- CRUD complet avec gestion des relations `domain_id`, `owner_id` et **N:N vers providers** (via `app_provider_map` avec rôles)
 - Endpoint de vérification des dépendances (`GET /:id/dependencies`) pour la suppression
 - Support des tags dimensionnels via `EntityTag` (F-03)
 - Pagination, tri et filtres côté serveur (cycle de vie, tags)
+- **Gestion des multiples providers avec rôles distincts** pour chaque application
 
 **Hors périmètre :**
 - Frontend — couvert par `FS-06-FRONT`
@@ -101,7 +113,6 @@ Le backend expose :
 │ id               UUID        PK            │
 │ name             VARCHAR(255) NOT NULL     │
 │ owner_id         UUID      FK → users      │
-│ provider_id      UUID      FK → providers  │
 │ domain_id        UUID      FK → domains    │
 │ criticality      VARCHAR(50)               │
 │   CHECK ('low','medium','high',           │
@@ -111,7 +122,8 @@ Le backend expose :
 │ updated_at       TIMESTAMPTZ auto-update   │
 ├──────────────────────────────────────────┤
 │ → domain         (N:1)                     │
-│ → provider       (N:1)                     │
+│ → appProviderMaps[] (N:N via               │
+│   app_provider_map avec provider_role)    │
 │ → owner          (N:1)                     │
 │ → business_capabilities[] (N:N via         │
 │   app_capability_map)                      │
@@ -130,7 +142,7 @@ Le backend expose :
 
 ```
 applications ──N:1──► domains
-applications ──N:1──► providers
+applications ──N:N──► providers (via app_provider_map avec rôles)
 applications ──N:1──► users (owner)
 
 applications ──N:N──► business_capabilities (via app_capability_map)
@@ -151,10 +163,7 @@ model Application {
   name             String   @db.VarChar(255)
   description      String?  @db.Text
   comment          String?  @db.Text
-        description String?  @db.Text
-        comment     String?  @db.Text
-        ownerId          String?  @map("owner_id") @db.Uuid
-  providerId       String?  @map("provider_id") @db.Uuid
+  ownerId          String?  @map("owner_id") @db.Uuid
   domainId         String?  @map("domain_id") @db.Uuid
   criticality      String?  @db.VarChar(50)
   lifecycleStatus  String?  @map("lifecycle_status") @db.VarChar(50)
@@ -162,21 +171,34 @@ model Application {
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  domain       Domain?    @relation(fields: [domainId], references: [id])
-  provider     Provider?  @relation(fields: [providerId], references: [id])
-  owner        User?      @relation(fields: [ownerId], references: [id])
+  domain            Domain?    @relation(fields: [domainId], references: [id])
+  appProviderMaps   ApplicationProviderMap[]
+  owner             User?      @relation("ApplicationOwner", fields: [ownerId], references: [id])
   
   // Relations entrantes (dépendances)
-  capabilities    AppCapabilityMap[]
-  dataObjects     AppDataObjectMap[]
-  itComponents    AppItComponentMap[]
-  sourceInterfaces Interface[] @relation("SourceApp")
-  targetInterfaces Interface[] @relation("TargetApp")
+  capabilities      AppCapabilityMap[]
+  dataObjects       AppDataObjectMap[]
+  itComponents      AppItComponentMap[]
+  sourceInterfaces  Interface[] @relation("SourceApp")
+  targetInterfaces  Interface[] @relation("TargetApp")
   
   // Tags polymorphes
-  entityTags   EntityTag[]
+  entityTags        EntityTag[]
 
   @@map("applications")
+}
+
+model ApplicationProviderMap {
+  applicationId String    @map("application_id") @db.Uuid
+  providerId    String    @map("provider_id") @db.Uuid
+  role          String?   @map("provider_role") @db.VarChar(50)
+  addedAt       DateTime  @default(now()) @map("added_at") @db.Timestamptz
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  provider      Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, providerId])
+  @@map("app_provider_map")
 }
 
 model AppCapabilityMap {
@@ -430,37 +452,83 @@ paths:
                       sourceInterfacesCount: { type: integer }
                       targetInterfacesCount: { type: integer }
 
-  /api/v1/applications/{id}/dependencies:
-    get:
-      summary: Vérifier les dépendances d'une application (pour suppression)
-      tags: [Applications]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  hasDependencies: { type: boolean }
-                  counts:
-                    type: object
-                    properties:
-                      capabilities: { type: integer }
-                      dataObjects: { type: integer }
-                      itComponents: { type: integer }
-                      sourceInterfaces: { type: integer }
-                      targetInterfaces: { type: integer }
-        '401':
-          description: Non authentifié
-        '404':
-          description: Application introuvable
+   /api/v1/applications/{id}/dependencies:
+     get:
+       summary: Vérifier les dépendances d'une application (pour suppression)
+       tags: [Applications]
+       security:
+         - bearerAuth: []
+       parameters:
+         - name: id
+           in: path
+           required: true
+           schema: { type: string, format: uuid }
+       responses:
+         '200':
+           content:
+             application/json:
+               schema:
+                 type: object
+                 properties:
+                   hasDependencies: { type: boolean }
+                   counts:
+                     type: object
+                     properties:
+                       capabilities: { type: integer }
+                       dataObjects: { type: integer }
+                       itComponents: { type: integer }
+                       sourceInterfaces: { type: integer }
+                       targetInterfaces: { type: integer }
+         '401':
+           description: Non authentifié
+         '404':
+           description: Application introuvable
+
+   /api/v1/applications/{id}/it-components:
+     get:
+       summary: Liste paginée des composants IT liés à une application
+       tags: [Applications]
+       security:
+         - bearerAuth: []
+       parameters:
+         - name: id
+           in: path
+           required: true
+           schema: { type: string, format: uuid }
+         - name: page
+           in: query
+           schema: { type: integer, default: 1 }
+         - name: limit
+           in: query
+           schema: { type: integer, default: 20 }
+         - name: sortBy
+           in: query
+           schema: { type: string, enum: [name, createdAt, type, technology], default: name }
+         - name: sortOrder
+           in: query
+           schema: { type: string, enum: [asc, desc], default: asc }
+       responses:
+         '200':
+           content:
+             application/json:
+               schema:
+                 type: object
+                 properties:
+                   data:
+                     type: array
+                     items:
+                       $ref: '#/components/schemas/ItComponentResponse'
+                   meta:
+                     type: object
+                     properties:
+                       page: { type: integer }
+                       limit: { type: integer }
+                       total: { type: integer }
+                       totalPages: { type: integer }
+         '401':
+           description: Non authentifié
+         '404':
+           description: Application introuvable
 
 components:
   schemas:
@@ -477,12 +545,15 @@ components:
           properties:
             id: { type: string, format: uuid }
             name: { type: string }
-        provider:
-          type: object
-          nullable: true
-          properties:
-            id: { type: string, format: uuid }
-            name: { type: string }
+        providers:
+          type: array
+          description: Liste des providers associés avec leurs rôles
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              role: { type: string, nullable: true, example: "editor" }
         owner:
           type: object
           nullable: true
@@ -498,126 +569,202 @@ components:
           items:
             $ref: '#/components/schemas/EntityTagResponse'
 
-    ApplicationResponse:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        name: { type: string }
-        description: { type: string, nullable: true }
-        comment: { type: string, nullable: true }
-        domain:
-          type: object
-          nullable: true
-          properties:
-            id: { type: string, format: uuid }
-            name: { type: string }
-        provider:
-          type: object
-          nullable: true
-          properties:
-            id: { type: string, format: uuid }
-            name: { type: string }
-        owner:
-          type: object
-          nullable: true
-          properties:
-            id: { type: string, format: uuid }
-            firstName: { type: string }
-            lastName: { type: string }
-            email: { type: string }
-        criticality: { type: string, nullable: true, enum: [low, medium, high, mission-critical] }
-        lifecycleStatus: { type: string, nullable: true }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityTagResponse'
+     ApplicationResponse:
+       type: object
+       properties:
+         id: { type: string, format: uuid }
+         name: { type: string }
+         description: { type: string, nullable: true }
+         comment: { type: string, nullable: true }
+         domain:
+           type: object
+           nullable: true
+           properties:
+             id: { type: string, format: uuid }
+             name: { type: string }
+         providers:
+           type: array
+           description: Liste des providers associés avec leurs rôles
+           items:
+             type: object
+             properties:
+               id: { type: string, format: uuid }
+               name: { type: string }
+               role: { type: string, nullable: true, example: "editor" }
+         itComponents:
+           type: array
+           description: Liste des composants IT liés à cette application
+           items:
+             type: object
+             properties:
+               id: { type: string, format: uuid }
+               name: { type: string }
+         owner:
+           type: object
+           nullable: true
+           properties:
+             id: { type: string, format: uuid }
+             firstName: { type: string }
+             lastName: { type: string }
+             email: { type: string }
+         criticality: { type: string, nullable: true, enum: [low, medium, high, mission-critical] }
+         lifecycleStatus: { type: string, nullable: true }
+         createdAt: { type: string, format: date-time }
+         updatedAt: { type: string, format: date-time }
+         tags:
+           type: array
+           items:
+             $ref: '#/components/schemas/EntityTagResponse'
 
-    CreateApplicationDto:
-      type: object
-      required: [name]
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        description:
-          type: string
-          nullable: true
-        comment:
-          type: string
-          nullable: true
-        domainId:
-          type: string
-          format: uuid
-          nullable: true
-        providerId:
-          type: string
-          format: uuid
-          nullable: true
-        ownerId:
-          type: string
-          format: uuid
-          nullable: true
-        criticality:
-          type: string
-          nullable: true
-          enum: [low, medium, high, mission-critical]
-        lifecycleStatus:
-          type: string
-          nullable: true
+     CreateApplicationDto:
+       type: object
+       required: [name]
+       properties:
+         name:
+           type: string
+           minLength: 1
+           maxLength: 255
+         description:
+           type: string
+           nullable: true
+         comment:
+           type: string
+           nullable: true
+         domainId:
+           type: string
+           format: uuid
+           nullable: true
+         providers:
+           type: array
+           nullable: true
+           description: Liste des providers avec leurs rôles respectifs
+           items:
+             type: object
+             required: [id]
+             properties:
+               id:
+                 type: string
+                 format: uuid
+               role:
+                 type: string
+                 nullable: true
+                 example: "editor"
+         itComponents:
+           type: array
+           nullable: true
+           description: Liste des composants IT liés à cette application
+           items:
+             type: object
+             required: [id]
+             properties:
+               id:
+                 type: string
+                 format: uuid
+         ownerId:
+           type: string
+           format: uuid
+           nullable: true
+         criticality:
+           type: string
+           nullable: true
+           enum: [low, medium, high, mission-critical]
+         lifecycleStatus:
+           type: string
+           nullable: true
 
-    UpdateApplicationDto:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        description:
-          type: string
-          nullable: true
-        comment:
-          type: string
-          nullable: true
-        domainId:
-          type: string
-          format: uuid
-          nullable: true
-        providerId:
-          type: string
-          format: uuid
-          nullable: true
-        ownerId:
-          type: string
-          format: uuid
-          nullable: true
-        criticality:
-          type: string
-          nullable: true
-          enum: [low, medium, high, mission-critical]
-        lifecycleStatus:
-          type: string
-          nullable: true
+     UpdateApplicationDto:
+       type: object
+       properties:
+         name:
+           type: string
+           minLength: 1
+           maxLength: 255
+         description:
+           type: string
+           nullable: true
+         comment:
+           type: string
+           nullable: true
+         domainId:
+           type: string
+           format: uuid
+           nullable: true
+         providers:
+           type: array
+           nullable: true
+           description: Liste des providers avec leurs rôles respectifs (remplace la liste précédente)
+           items:
+             type: object
+             required: [id]
+             properties:
+               id:
+                 type: string
+                 format: uuid
+               role:
+                 type: string
+                 nullable: true
+                 example: "integrator"
+         itComponents:
+           type: array
+           nullable: true
+           description: Liste des composants IT liés à cette application (remplace la liste précédente)
+           items:
+             type: object
+             required: [id]
+             properties:
+               id:
+                 type: string
+                 format: uuid
+         ownerId:
+           type: string
+           format: uuid
+           nullable: true
+         criticality:
+           type: string
+           nullable: true
+           enum: [low, medium, high, mission-critical]
+         lifecycleStatus:
+           type: string
+           nullable: true
 
-    EntityTagResponse:
-      type: object
-      properties:
-        entityType: { type: string }
-        entityId: { type: string, format: uuid }
-        tagValue:
-          type: object
-          properties:
-            id: { type: string, format: uuid }
-            dimensionId: { type: string, format: uuid }
-            dimensionName: { type: string }
-            dimensionColor: { type: string, nullable: true }
-            path: { type: string }
-            label: { type: string }
-            depth: { type: integer }
-            parentId: { type: string, format: uuid, nullable: true }
-        taggedAt: { type: string, format: date-time }
+     EntityTagResponse:
+       type: object
+       properties:
+         entityType: { type: string }
+         entityId: { type: string, format: uuid }
+         tagValue:
+           type: object
+           properties:
+             id: { type: string, format: uuid }
+             dimensionId: { type: string, format: uuid }
+             dimensionName: { type: string }
+             dimensionColor: { type: string, nullable: true }
+             path: { type: string }
+             label: { type: string }
+             depth: { type: integer }
+             parentId: { type: string, format: uuid, nullable: true }
+         taggedAt: { type: string, format: date-time }
+
+     ItComponentResponse:
+       type: object
+       description: Composant IT retourné par GET /applications/{id}/it-components
+       properties:
+         id: { type: string, format: uuid }
+         name: { type: string }
+         description: { type: string, nullable: true }
+         comment: { type: string, nullable: true }
+         technology: { type: string, nullable: true }
+         type: { type: string, nullable: true }
+         createdAt: { type: string, format: date-time }
+         updatedAt: { type: string, format: date-time }
+         _count:
+           type: object
+           properties:
+             applications: { type: integer, description: "Nombre d'applications liées" }
+         tags:
+           type: array
+           items:
+             $ref: '#/components/schemas/EntityTagResponse'
 ```
 
 ---
@@ -626,7 +773,7 @@ components:
 
 - **RM-01 — Nom obligatoire et unique :** `name` obligatoire, non vide, non uniquement espaces. Deux applications ne peuvent pas avoir le même nom. `409` + code `"CONFLICT"` + message `"Application name already in use"`. Intercepter l'erreur Prisma `P2002` dans un try/catch ciblé.
 
-- **RM-02 — Validation des FK :** `domainId`, `providerId`, `ownerId` optionnels mais s'ils sont fournis, doivent exister en base. `404` si inexistant.
+- **RM-02 — Validation des FK :** `domainId`, `ownerId` optionnels mais s'ils sont fournis, doivent exister en base. `404` si inexistant. Pour `providers[]`, chaque `id` dans l'array doit exister en base. `404` si au moins un provider inexistant.
 
 - **RM-03 — Suppression bloquée si entités liées :**
 
@@ -637,6 +784,7 @@ async remove(id: string): Promise<void> {
     select: {
       _count: {
         select: {
+          appProviderMaps: true,  // N:N providers
           capabilities: true,
           dataObjects: true,
           itComponents: true,
@@ -648,15 +796,16 @@ async remove(id: string): Promise<void> {
   });
   if (!app) throw new NotFoundException('Application not found');
 
-  const total = app._count.capabilities + app._count.dataObjects + 
-                app._count.itComponents + app._count.sourceInterfaces + 
-                app._count.targetInterfaces;
+  const total = app._count.appProviderMaps + app._count.capabilities + 
+                app._count.dataObjects + app._count.itComponents + 
+                app._count.sourceInterfaces + app._count.targetInterfaces;
   
   if (total > 0) {
     throw new ConflictException({
       code: 'DEPENDENCY_CONFLICT',
       message: `Application has dependencies`,
       details: {
+        providersCount: app._count.appProviderMaps,
         capabilitiesCount: app._count.capabilities,
         dataObjectsCount: app._count.dataObjects,
         itComponentsCount: app._count.itComponents,
@@ -676,6 +825,21 @@ async remove(id: string): Promise<void> {
 - **RM-06 — Droits requis :** `applications:read` sur GET. `applications:write` sur POST/PATCH/DELETE.
 
 - **RM-07 — Pas de soft delete :** Suppression physique après vérification RM-03.
+
+- **RM-08 — Rôles providers optionnels :** Le champ `role` dans chaque relation `Application-Provider` est optionnel (nullable). Valeurs courantes : `'editor'`, `'integrator'`, `'support'`, `'vendor'`, `'custom'`. Pas d'énumération stricte — permet des valeurs métier libres.
+
+- **RM-09 — Gestion N:N IT Components :** Les IT Components sont liés à une Application via la table de jointure `app_it_component_map`. 
+  - Dans les DTOs `CreateApplicationDto` et `UpdateApplicationDto`, le champ `itComponents` est un array d'objets `{ id: UUID }` (pattern identique aux providers).
+  - En `create()` : valider que tous les IDs IT Components existent en base. `404` si inexistant.
+  - En `update()` : supprimer les anciens mappings, créer les nouveaux (replacement complet, comme pour les providers).
+  - Les IT Components sont inclus dans `ApplicationResponse` avec juste `id` et `name`.
+  - L'endpoint `GET /applications/{id}/it-components` liste les IT Components liés (paginé, avec tri, même pattern que FS-04).
+
+- **RM-10 — Gestion N:N Business Capabilities :** Les business capabilities sont liées à une Application via la table de jointure `app_capability_map`.
+  - Dans les DTOs `CreateApplicationDto` et `UpdateApplicationDto`, le champ `capabilityIds` est un array de UUID.
+  - En `create()` / `update()`, tous les IDs Capability sont validés en base ; renvoyer `404` `BUSINESS_CAPABILITY_NOT_FOUND` si un ID est invalide.
+  - En `update()`, la liste des mappings est remplacée entièrement quand `capabilityIds` est fourni.
+  - `findAll()` / `findOne()` incluent `businessCapabilities` en sortie (`{ id, name }`) pour les vues liste et détail.
 
 ---
 
@@ -720,37 +884,66 @@ Les Applications supportent le système de tags dimensionnels via la relation po
 
 - [ ] `[Jest]` `ApplicationsService.findAll()` retourne un objet paginé `{ data, meta }`
 - [ ] `[Jest]` `ApplicationsService.findAll()` avec filtres lifecycleStatus et tagValueIds
-- [ ] `[Jest]` `ApplicationsService.create()` retourne l'application créée avec relations
+- [ ] `[Jest]` `ApplicationsService.create()` retourne l'application créée avec relations + providers N:N
+- [ ] `[Jest]` `ApplicationsService.create()` avec `providers: [{id, role}]` crée les entrées `app_provider_map`
+- [ ] `[Jest]` `ApplicationsService.create()` lève `NotFoundException` si un provider inexistant
 - [ ] `[Jest]` `ApplicationsService.create()` lève `ConflictException` sur erreur Prisma `P2002`
 - [ ] `[Jest]` `ApplicationsService.create()` lève `NotFoundException` si domainId inexistant
+- [ ] `[Jest]` `ApplicationsService.findOne()` retourne l'application avec `providers[]` peuplé
 - [ ] `[Jest]` `ApplicationsService.findOne()` retourne l'application avec tags
 - [ ] `[Jest]` `ApplicationsService.findOne()` lève `NotFoundException` si UUID inexistant
-- [ ] `[Jest]` `ApplicationsService.getDependencies()` retourne les compteurs de dépendances
+- [ ] `[Jest]` `ApplicationsService.update()` avec `providers[]` met à jour les mappings N:N (remplacement complet)
+- [ ] `[Jest]` `ApplicationsService.update()` avec `itComponents[]` met à jour les mappings N:N (remplacement complet)
+- [ ] `[Jest]` `ApplicationsService.getDependencies()` inclut `appProviderMaps` et `itComponents` dans les compteurs
+- [ ] `[Jest]` `ApplicationsService.getApplicationItComponents()` retourne une liste paginée d'IT Components liés
+- [ ] `[Jest]` `ApplicationsService.create()` avec `itComponents: [{id}]` crée les entrées `app_it_component_map`
+- [ ] `[Jest]` `ApplicationsService.create()` lève `NotFoundException` si un IT Component inexistant
+- [ ] `[Jest]` `ApplicationsService.create()` avec `capabilityIds: [uuid]` crée les entrées `app_capability_map`
+- [ ] `[Jest]` `ApplicationsService.create()` lève `NotFoundException` si une business capability est introuvable
+- [ ] `[Jest]` `ApplicationsService.update()` avec `capabilityIds: [uuid]` remplace les mappings `app_capability_map`
+- [ ] `[Jest]` `ApplicationsService.update()` lève `NotFoundException` si une business capability est introuvable
 - [ ] `[Jest]` `ApplicationsService.remove()` lève `NotFoundException` si UUID inexistant
+- [ ] `[Jest]` `ApplicationsService.remove()` lève `ConflictException` si des providers sont liés via `appProviderMaps`
+- [ ] `[Jest]` `ApplicationsService.remove()` lève `ConflictException` si des IT Components sont liés via `appItComponentMap`
 - [ ] `[Jest]` `ApplicationsService.remove()` lève `ConflictException` si des interfaces sont liées
 - [ ] `[Jest]` `ApplicationsService.remove()` lève `ConflictException` si des data objects sont liés
 - [ ] `[Jest]` `ApplicationsService.remove()` appelle `prisma.application.delete()` si aucune entité liée
 
 ### Tests Supertest — Contrat API
 
-- [ ] `[Supertest]` `GET /api/v1/applications` authentifié → `200` avec objet paginé
+- [ ] `[Supertest]` `GET /api/v1/applications` authentifié → `200` avec objet paginé + `providers[]` peuplé
 - [ ] `[Supertest]` `GET /api/v1/applications` liste vide → `200` avec `{ data: [], meta: {...} }`
 - [ ] `[Supertest]` `GET /api/v1/applications?page=1&limit=10` → pagination correcte
 - [ ] `[Supertest]` `GET /api/v1/applications?lifecycleStatus=production` → filtre appliqué
 - [ ] `[Supertest]` `POST /api/v1/applications` nom valide + domainId → `201` avec `ApplicationResponse`
+- [ ] `[Supertest]` `POST /api/v1/applications` avec `providers: [{id, role: 'editor'}, {id, role: 'integrator'}]` → `201` avec providers peuplés
+- [ ] `[Supertest]` `POST /api/v1/applications` avec `itComponents: [{id}, {id}]` → `201` avec itComponents peuplés
+- [ ] `[Supertest]` `POST /api/v1/applications` avec provider inexistant dans `providers[]` → `404`
+- [ ] `[Supertest]` `POST /api/v1/applications` avec IT Component inexistant dans `itComponents[]` → `404`
+- [ ] `[Supertest]` `POST /api/v1/applications` avec businessCapabilityIds invalide → `404` + `code: "BUSINESS_CAPABILITY_NOT_FOUND"`
 - [ ] `[Supertest]` `POST /api/v1/applications` nom dupliqué → `409` + `code: "CONFLICT"`
 - [ ] `[Supertest]` `POST /api/v1/applications` sans `name` → `400`
 - [ ] `[Supertest]` `POST /api/v1/applications` name uniquement espaces → `400`
 - [ ] `[Supertest]` `POST /api/v1/applications` domainId inexistant → `404`
-- [ ] `[Supertest]` `GET /api/v1/applications/{id}` existant → `200` avec domain/provider/owner peuplés
+- [ ] `[Supertest]` `POST /api/v1/applications` avec `capabilityIds` → `201` et `businessCapabilities` peuplés
+- [ ] `[Supertest]` `GET /api/v1/applications/{id}` existant → `200` avec domain/providers[]/itComponents[]/businessCapabilities[]/owner peuplés
 - [ ] `[Supertest]` `GET /api/v1/applications/{id}` UUID inexistant → `404`
-- [ ] `[Supertest]` `GET /api/v1/applications/{id}/dependencies` → `200` avec `hasDependencies` et `counts`
-- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement provider → `200`
+- [ ] `[Supertest]` `GET /api/v1/applications/{id}/dependencies` → `200` avec `hasDependencies` et `counts` (inclus `providersCount`, `itComponentsCount`)
+- [ ] `[Supertest]` `GET /api/v1/applications/{id}/it-components` paginé → `200` avec tableau d'IT Components (id, name, description, etc.)
+- [ ] `[Supertest]` `GET /api/v1/applications/{id}/it-components?page=1&limit=10` → pagination correcte
+- [ ] `[Supertest]` `GET /api/v1/applications/{id}/it-components` UUID inexistant → `404`
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement `providers[]` → `200` et mappings N:N remplacés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement `itComponents[]` → `200` et mappings N:N remplacés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` changement `capabilityIds` → `200` et mappings N:N remplacés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` vider `capabilityIds[]` → `200` et mappings supprimés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` vider `providers[]` → `200` et mappings supprimés
+- [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` vider `itComponents[]` → `200` et mappings supprimés
 - [ ] `[Supertest]` `PATCH /api/v1/applications/{id}` nom dupliqué → `409` + `code: "CONFLICT"`
 - [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` sans entités liées → `204`
-- [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` avec interfaces liées → `409` + `code: "DEPENDENCY_CONFLICT"` + compteurs
+- [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` avec providers liés → `409` + `code: "DEPENDENCY_CONFLICT"` + `providersCount`
+- [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` avec IT components liés → `409` + `code: "DEPENDENCY_CONFLICT"` + `itComponentsCount`
+- [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` avec interfaces liées → `409` + compteurs
 - [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` avec data objects liés → `409` + compteurs
-- [ ] `[Supertest]` `DELETE /api/v1/applications/{id}` avec IT components liés → `409` + compteurs
 
 ### Tests Sécurité / RBAC — Manuel ❌
 
@@ -881,4 +1074,4 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ---
 
-_FS-06-BACK v1.0 — ARK_
+_FS-06-BACK v1.4 — ARK_

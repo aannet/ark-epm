@@ -7,11 +7,11 @@ export interface TagDimension {
   color: string;
 }
 
-export function useTagDimensions() {
+export function useTagDimensions(entityType?: string) {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tag-dimensions'],
+    queryKey: ['tag-dimensions', entityType],
     queryFn: async () => {
-      const dimensions = await tagsApi.getDimensions();
+      const dimensions = await tagsApi.getDimensions(entityType);
       return dimensions.map((d) => ({
         id: d.id,
         name: d.name,

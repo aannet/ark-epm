@@ -1,0 +1,449 @@
+tasks:
+  - id: T-003
+    nom: "Implémenter FS-09 Dependency Graph — frontend ReactFlow"
+    statut: blocked
+    assigned_agent: front
+    session_active: ~
+    date_resolution: ~
+    sprint: S2
+    theme: "FS-09"
+    type: impl
+    feature: "FS-09-FRONT"
+    sessions:
+      - tool: OC
+        id: "a1b2c3"
+        nom: "rituel ouverture - gate bloqué : spec vide"
+    notes: |
+      GATE BLOQUÉ : Spec FS-09-Dependency-Graph.md est vide (0 lignes).
+      Prérequis : FS-09-BACK spec + impl done, FS-09-FRONT spec stable.
+      Action requise : Agent `spec` doit rédiger la spec FS-09 avant implémentation.
+
+  - id: T-006
+    nom: "Tests applications-dependencies bloqués — FS-08 Interfaces non implémenté"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-08"
+    type: bug
+    feature: "FS-08-BACK"
+    sessions:
+      - tool: CL
+        id: "qa-ses"
+        nom: "audit tests data-objects"
+      - tool: OC
+        id: "a9f3e1"
+        nom: "déblocage T-006 après T-040 FS-08-BACK done"
+      - tool: OC
+        id: "a4f2e1"
+        nom: "correction tests + validation 4/4 pass (2026-04-12)"
+    notes: |
+      Détecté lors de la session QA Data Objects (2026-04-07).
+      4 tests Playwright en échec dans tests/applications/applications-dependencies.api.spec.ts :
+        - DELETE 409 when application has interfaces linked
+        - DELETE 409 with detailed counts
+        - GET /dependencies hasDependencies=true when linked
+        - GET /dependencies hasDependencies=false for isolated app
+      ✅ Gate levée : FS-08-BACK done (T-040, 2026-04-12).
+      ✅ Gate levée : T-039 done (2026-04-12) — getDependencies() compte sourceInterfaces + targetInterfaces,
+         remove() lève DEPENDENCY_CONFLICT. Tests e2e Supertest FS-06 21/21 passent.
+      ✅ DONE 2026-04-12 : 3 corrections dans applications-dependencies.api.spec.ts :
+         1. enum invalides ('HTTP'/'API') → 'REST'
+         2. auto-liaison RM-01 (sourceAppId==targetAppId) → 2 apps distinctes par test
+         3. leading slash sur URLs auth.request ('/applications/...') → sans slash
+         100/107 tests passent (6 échecs préexistants : T-007 domains + bugs non liés).
+
+  - id: T-007
+    nom: "Tests domains-dependencies bloqués — FS-07 Business Capabilities en cours"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    date_resolution: "2026-04-12"
+    sprint: S3
+    theme: "FS-07"
+    type: bug
+    feature: "FS-07-BACK"
+    sessions:
+      - tool: CL
+        id: "qa-ses"
+        nom: "audit tests data-objects"
+      - tool: OC
+        id: "a1c3e5"
+        nom: "fix leading slash + validation 3/3 pass (2026-04-12)"
+    notes: |
+      Détecté lors de la session QA Data Objects (2026-04-07).
+      3 tests Playwright en échec dans tests/domains/domains-dependencies.api.spec.ts :
+        - DELETE 409 when applications are linked
+        - DELETE 409 when business capabilities are linked
+        - DELETE 409 with both apps and business capabilities linked
+      Cause : contrainte de suppression domaine↔BC non active tant que FS-07-BACK
+      n'est pas en statut done.
+      ✅ Gate levée : FS-07-BACK done (2026-04-08). Prêt pour validation par agent QA.
+      ✅ DONE 2026-04-12 : fix leading slash dans domains-dependencies.api.spec.ts (3 occurrences
+         `/domains/${id}` → `domains/${id}`). Même pattern que T-006 fix #3.
+         15/16 tests domains passent (1 échec préexistant T-050 : domains-crud GET array).
+
+  - id: T-008
+    nom: "Sécurité — Supprimer fallback JWT hardcodé (F-999 Item 23)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    date_resolution: "2026-04-12"
+    sprint: S3
+    theme: "F-999"
+    type: bug
+    feature: "SECURITY"
+    sessions:
+      - tool: OC
+        id: "b72558"
+        nom: "fix getOrThrow + validate() ConfigModule — 96/107 tests API passent"
+    notes: |
+      F-999 Item 23 — Vulnérabilité confirmée (2026-04-05).
+      ✅ DONE 2026-04-12 :
+      - jwt.strategy.ts : configService.getOrThrow<string>('JWT_SECRET') (supprime fallback hardcodé)
+      - app.module.ts JwtModule : configService.getOrThrow<string>('JWT_SECRET')
+      - app.module.ts ConfigModule : validate() built-in — JWT_SECRET requis + min 32 chars (fail-fast au démarrage)
+      Validation : make validate-backend ✅ + make test-api-backend 96/107 ✅ (10 échecs pré-existants T-006/T-007).
+
+  - id: T-009
+    nom: "Migration tests Cypress → Playwright — Data Objects (F-999 Item 22)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "F-999"
+    type: impl
+    feature: "QA-DATA-OBJECTS"
+    sessions: []
+    notes: |
+      F-999 Item 22 — 37 tests Cypress (frontend/cypress/e2e/data-objects.cy.ts) à migrer.
+      Destination : e2e/tests/data-objects/data-objects.spec.ts (Playwright).
+      Cypress inutilisable sur cet env (dépendances libnspr4/X11 manquantes).
+      Après migration : supprimer frontend/cypress/ et retirer dépendances Cypress de package.json.
+
+  - id: T-012
+    nom: "Débloquer sélecteur Owner — API Users mock (F-999 Item 12b)"
+    statut: blocked
+    assigned_agent: back
+    session_active: ~
+    date_resolution: ~
+    sprint: S3
+    theme: "F-999"
+    type: bug
+    feature: "FS-06-FRONT"
+    sessions: []
+    notes: |
+      F-999 Item 12b — MOCK_USERS = [] toujours hardcodé dans ApplicationNewPage/EditPage.
+      Sélecteur owner vide dans formulaire Application.
+      Déblocage : endpoint GET /api/v1/users?isActive=true nécessaire.
+      Migration : créer hook useUsers() dans frontend/src/api/users.ts (pattern useProviders).
+      Gate : endpoint users disponible (FS-01 ou module dédié).
+
+  - id: T-017
+    nom: "Spec FS-07-FRONT Lifecycle tab — Business Capabilities P2"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-07"
+    type: spec
+    feature: "FS-07-FRONT-P2"
+    sessions:
+      - tool: OC
+        id: "b3d7a1"
+        nom: "spec FS-07-P2-Lifecycle-front — modèle 5 phases + LifecycleStepper"
+    notes: |
+      Onglet Lifecycle sur le détail d'une Business Capability.
+      Visualisation de la trajectoire de modernisation dans le temps.
+      Gate : T-018 FS-07-FRONT v1.0 done + décision modèle lifecycle BC (champs dates/phases à définir).
+
+  - id: T-032
+    nom: "Audit @Query() sans DTO — vérifier coercition string→number dans tous les controllers NestJS"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-04-12
+    sprint: S3
+    theme: "QA"
+    type: debt
+    feature: "BACK-AUDIT"
+    sessions:
+      - tool: CL
+        id: "f26390"
+        nom: "création tâche d'audit suite bug T-031"
+      - tool: OC
+        id: "c4f9e2"
+        nom: "audit + fix it-components @Query plain type"
+    notes: |
+      Suite au bug T-031 (page/limit reçus comme strings via @Query() sans DTO).
+      Passer en revue tous les controllers NestJS qui utilisent @Query() avec un type plain object
+      (pas une classe DTO avec @Transform / @Type(() => Number)).
+      Vérifier en particulier tous les endpoints de pagination (skip/take Prisma).
+      Correctif attendu : remplacer les plain types par des DTOs avec class-transformer,
+      ou ajouter Number() dans les services concernés.
+
+  - id: T-047
+    nom: "Backend — Implémenter filtrage search/domainId dans GET /business-capabilities/tree"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-07"
+    type: debt
+    feature: "FS-07-BACK"
+    sessions:
+      - tool: CL
+        id: "f4a8c2"
+        nom: "identifié lors du fix T-041 — filtrage client-side en place en attendant"
+    notes: |
+      GET /business-capabilities/tree ignore les query params search et domainId.
+      Le contrôleur appelle findTree() sans arguments ; le service retourne l'arbre complet.
+      Fix temporaire : filtrage client-side dans flatList useMemo (BusinessCapabilitiesPage.tsx).
+      Fix permanent backend :
+      - controller : @Query() query: { search?: string; domainId?: string }
+      - service : filtrer les nœuds correspondants + inclure leurs ancêtres pour conserver
+        la structure hiérarchique dans la réponse arbre.
+       (Anciennement T-043 doublon — renommé T-047 lors de la consolidation des archives)
+
+  - id: T-048
+    nom: "Business Capabilities — Ajout de 3 KPIs en tête de vue liste (niveaux hiérarchiques, applications actives, TBD)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT"
+    sessions:
+      - tool: OC
+        id: "a3f7c2"
+        nom: "impl KpiCard shared + 3 KPIs BC (maxDepth, totalApps, totalBcs)"
+    notes: |
+      3 cartes KPI occupant chacune 1/3 de la largeur, affichées en tête de la vue liste Business Capabilities.
+      KPI 1 : Nombre max de niveaux hiérarchiques (profondeur de l'arbre BC).
+      KPI 2 : Nombre total d'applications actives associées aux BC affichées (tenant compte des filtres actifs).
+      KPI 3 : À définir — à préciser avec le métier avant implémentation.
+      Note : KPI 1 et 2 peuvent nécessiter un endpoint backend ou un calcul côté client depuis les données existantes.
+
+  - id: T-049
+    nom: "Spec — Mettre au clair la liaison entre Application et Data Objects"
+    statut: open
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-05"
+    type: spec
+    feature: "FS-05-BACK"
+    sessions: []
+
+  - id: T-050
+    nom: "QA — 3 tests API en échec non tracés (applications-validation, domains-crud, it-components)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "BACK-AUDIT"
+    sessions:
+      - tool: OC
+        id: "a4f2e1"
+        nom: "identifiés lors de la validation T-006 (2026-04-12)"
+    notes: |
+      3 tests Playwright en échec préexistants découverts lors de la session T-006 (2026-04-12).
+      Score global : 100/107 après fix T-006 (6 échecs — 3 couverts par T-007, 3 non tracés ci-dessous).
+
+      1. applications-validation.api.spec.ts:78
+         POST /applications should return 404 for non-existent business capabilityId
+         Reçu : 400 — attendu : 404
+         Cause probable : validation capabilityId retourne 400 BAD_REQUEST au lieu de 404 NOT_FOUND.
+
+      2. domains-crud.api.spec.ts:5
+         GET /domains should return array of domains
+         Échec intermittent ou structure de réponse inattendue — à investiguer.
+
+      3. it-components-crud.api.spec.ts:72
+         DELETE /it-components/:id - should delete IT component without dependencies
+          Échec au DELETE — possible 409 DEPENDENCY_CONFLICT résiduel ou app liée non nettoyée.
+
+  - id: T-051
+    nom: "Interfaces — Décision : comment traiter les interfaces manuelles (model / back / front)"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-08"
+    type: decision
+    feature: "FS-08"
+    sessions: []
+    notes: |
+      Question transverse : comment modéliser et traiter les interfaces créées/saisies manuellement
+      (par opposition aux interfaces découvertes automatiquement).
+      Impacte le modèle Prisma, le backend NestJS et le frontend React.
+      Décision structurante à formaliser avant impl ou spec FS-08.
+
+  - id: T-052
+    nom: "Amendment FS-07-BACK — Ajouter lifecycleStatus sur BusinessCapability (data + back)"
+    statut: done
+    assigned_agent: data
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-spec-t017-fs07-lifecycle.md"
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-BACK"
+    sessions:
+      - tool: OC
+        id: "d4a1f2"
+        nom: "schema lifecycleStatus + DTOs + service + db push — 103/107 tests (2026-04-12)"
+    notes: |
+      Créé par T-017 (spec agent, 2026-04-12) — gate bloquante pour FS-07-P2-FRONT.
+      Actions requises :
+      1. [data] Ajouter lifecycleStatus String? @map("lifecycle_status") @db.VarChar(50)
+         sur le modèle BusinessCapability dans schema.prisma.
+         Migration : npx prisma migrate dev --name add_lifecycle_status_to_business_capabilities
+      2. [back] Exposer lifecycleStatus dans les DTOs :
+         - BusinessCapabilityResponse (GET /:id)
+         - BusinessCapabilityListItem (GET / list)
+         - BusinessCapabilityTreeNode (GET /tree)
+         - UpdateBusinessCapabilityDto (PATCH /:id — champ optionnel nullable)
+       Référence spec : docs/03-Features-Spec/P2/FS-07-P2-Lifecycle-front.md §6.
+
+  - id: T-053
+    nom: "Frontend — Implémenter FS-07-P2-FRONT (LifecycleStepper + onglet Lifecycle BC)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t053-lifecycle-apps.md"
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-FRONT-P2"
+    sessions:
+      - tool: OC
+        id: "f3a9c1"
+        nom: "impl LifecycleStepper + onglets BC (annulé T-056 — mauvaise cible)"
+    notes: |
+      Gate débloquée par T-052 (2026-04-12) — lifecycleStatus disponible sur BC.
+      ⚠️ ANNULÉ par T-056 : implémentation réalisée sur la mauvaise entité (BC au lieu d'Applications).
+      Le composant LifecycleStepper.tsx créé ici est réutilisé par T-055 (Applications).
+      T-056 retire toutes les modifications BC (front + back + data).
+
+  - id: T-054
+    nom: "Backend — Audit endpoint GET /applications/:id : vérifier exposition lifecycleStatus"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-06"
+    type: debt
+    feature: "FS-06-BACK"
+    sessions:
+      - tool: OC
+        id: "f1a2b3"
+        nom: "audit — RAS, backend déjà correct sur les 3 points (2026-04-12)"
+    notes: |
+      Contexte : T-055 (front) ajoute le LifecycleStepper sur les pages Application.
+      Le backend Applications gère déjà lifecycleStatus (create/update/filter).
+      ✅ DONE 2026-04-12 : audit confirmé — aucune modification nécessaire.
+      1. GET /api/v1/applications/:id → mapApplicationResponse() inclut lifecycleStatus (service.ts:608)
+      2. PATCH /api/v1/applications/:id { lifecycleStatus: null } → update() data ligne 408, @IsOptional() OK
+      3. UpdateApplicationDto : @IsString() @IsOptional() lifecycleStatus?: string (dto:65)
+
+  - id: T-055
+    nom: "Frontend — LifecycleStepper sur ApplicationDetailPage + ApplicationEditPage"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t055-lifecycle-detail.md"
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    sessions:
+      - tool: OC
+        id: "f1a2b3"
+        nom: "LifecycleStepper DetailPage + fix i18n key + onglet Assessment (2026-04-12)"
+    notes: |
+      Gate : T-054 done (backend lifecycleStatus Applications vérifié).
+      ✅ DONE 2026-04-12 :
+      - LifecycleStepper.tsx : fix bug i18n (businessCapabilities.lifecycle → applications.lifecycle)
+      - fr.json : ajout common.comingSoon + applications.lifecycle.tabLabel/sectionTitle/notDefined
+        tabLabel renommé "Assessment"
+      - ApplicationDetailPage : Tabs MUI (Informations | Assessment)
+        Tab Informations : LifecycleStepper read-only inline (remplace StatusChip lifecycle)
+        Tab Assessment : "À venir" (common.comingSoon)
+      ⚠️ Partiel : ApplicationEditPage non traité → voir T-057.
+
+  - id: T-057
+    nom: "Frontend — LifecycleStepper éditable dans ApplicationEditPage"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    sessions: []
+    notes: |
+      Suite de T-055 (scope déféré).
+      Remplacer le <Select> LIFECYCLE_STATUSES dans ApplicationForm.tsx (lignes 626-645)
+      par <LifecycleStepper editable onPhaseChange={...} />.
+      Ajouter un bouton Clear (lifecycleStatus → null).
+      i18n à ajouter : applications.lifecycle.editDescription, clearButton
+                       applications.snackbar.lifecycleUpdated
+      Gate : aucune (T-054 done, LifecycleStepper disponible).
+
+  - id: T-056
+    nom: "Retrait complet lifecycle BC — front + back + data (revert T-052 + T-053)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t056-revert-bc.md"
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-07"
+    type: debt
+    feature: "FS-07-BACK"
+    sessions:
+      - tool: OC
+        id: "c3f8b1"
+        nom: "revert complet lifecycle BC — front + back + data + db push (2026-04-12)"
+    notes: |
+      Revert des implémentations lifecycle sur Business Capabilities (mauvaise cible).
+      ✅ DONE 2026-04-12 : retrait 9 fichiers, 103/107 tests passent.
+      Couche FRONT (assigned_agent: front) :
+        - Supprimer onglets Lifecycle de BusinessCapabilityDetailPage + BusinessCapabilityEditPage
+        - Supprimer businessCapabilities.lifecycle.* de fr.json (ajoutés par T-053)
+        - Supprimer lifecycleStatus des interfaces BusinessCapability + BusinessCapabilityFormValues
+        - Supprimer import Button, ArkAlert, LifecycleStepper inutilisés dans les pages BC
+      Couche BACK (même session, agent front peut faire si simple) :
+        - Retirer lifecycleStatus de UpdateBusinessCapabilityDto + CreateBusinessCapabilityDto
+        - Retirer lifecycleStatus du service BC (findTree select, create data, update data)
+      Couche DATA (nécessite accès Docker — à vérifier) :
+        - schema.prisma : supprimer lifecycleStatus sur BusinessCapability
+        - Migration : npx prisma migrate dev --name remove_lifecycle_status_from_bc
+          (exécuter dans le container : docker exec ark-epm-backend-1 ...)
+      Note : le composant LifecycleStepper.tsx (components/shared/) est CONSERVÉ — réutilisé par T-055.

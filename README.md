@@ -96,6 +96,17 @@ make test-e2e-report
 
 Tests located in `e2e/tests/`. Reports saved to `e2e/reports/html/`.
 
+If you run Playwright UI tests locally (outside Docker) and get missing shared library
+errors such as `libnss3.so` or `libnspr4.so`, install them first:
+
+```bash
+cd e2e
+sudo npx playwright install-deps chromium
+npx playwright install chromium
+```
+
+On Ubuntu 24.04, the manual package name is `libasound2t64` (not `libasound2`).
+
 See `e2e/README.md` for detailed documentation.
 
 ## Project Structure

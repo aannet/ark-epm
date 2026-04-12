@@ -16,11 +16,39 @@ import DomainNewPage from '@/pages/domains/DomainNewPage';
 import DomainDetailPage from '@/pages/domains/DomainDetailPage';
 import DomainEditPage from '@/pages/domains/DomainEditPage';
 
+// Provider pages
+import ProvidersListPage from '@/pages/providers/ProvidersListPage';
+import ProviderNewPage from '@/pages/providers/ProviderNewPage';
+import ProviderDetailPage from '@/pages/providers/ProviderDetailPage';
+import ProviderEditPage from '@/pages/providers/ProviderEditPage';
+
 // Application pages
 import ApplicationsListPage from '@/pages/applications/ApplicationsListPage';
 import ApplicationNewPage from '@/pages/applications/ApplicationNewPage';
 import ApplicationDetailPage from '@/pages/applications/ApplicationDetailPage';
 import ApplicationEditPage from '@/pages/applications/ApplicationEditPage';
+
+// IT Component pages
+import ITComponentListPage from '@/pages/it-components/ITComponentListPage';
+import ITComponentFormPage from '@/pages/it-components/ITComponentFormPage';
+import ITComponentDetailPage from '@/pages/it-components/ITComponentDetailPage';
+
+// Data Object pages
+import DataObjectListPage from '@/pages/data-objects/DataObjectListPage';
+import DataObjectDetailPage from '@/pages/data-objects/DataObjectDetailPage';
+import DataObjectFormPage from '@/pages/data-objects/DataObjectFormPage';
+
+// Business Capabilities pages
+import BusinessCapabilitiesPage from '@/pages/business-capabilities/BusinessCapabilitiesPage';
+import BusinessCapabilityNewPage from '@/pages/business-capabilities/BusinessCapabilityNewPage';
+import BusinessCapabilityDetailPage from '@/pages/business-capabilities/BusinessCapabilityDetailPage';
+import BusinessCapabilityEditPage from '@/pages/business-capabilities/BusinessCapabilityEditPage';
+
+// Interfaces pages
+import InterfaceListPage from '@/pages/interfaces/InterfaceListPage';
+import InterfaceNewPage from '@/pages/interfaces/InterfaceNewPage';
+import InterfaceDetailPage from '@/pages/interfaces/InterfaceDetailPage';
+import InterfaceEditPage from '@/pages/interfaces/InterfaceEditPage';
 
 function App(): JSX.Element {
   useEffect(() => {
@@ -57,20 +85,53 @@ function App(): JSX.Element {
               <Route path=":id/edit" element={<ApplicationEditPage />} />
             </Route>
             
-            {/* Placeholder routes for other modules */}
-            <Route path="business-capabilities/*" element={<div />} />
-            <Route path="interfaces/*" element={<div />} />
-            <Route path="data-objects/*" element={<div />} />
-            <Route path="it-components/*" element={<div />} />
-            <Route path="providers/*" element={<div />} />
-            
-            {/* Domains routes */}
+             {/* Providers routes */}
+             <Route path="providers" element={<Outlet />}>
+               <Route index element={<ProvidersListPage />} />
+               <Route path="new" element={<ProviderNewPage />} />
+               <Route path=":id" element={<ProviderDetailPage />} />
+               <Route path=":id/edit" element={<ProviderEditPage />} />
+             </Route>
+             
+             {/* IT Components routes */}
+             <Route path="it-components" element={<Outlet />}>
+               <Route index element={<ITComponentListPage />} />
+               <Route path="new" element={<ITComponentFormPage mode="create" />} />
+               <Route path=":id" element={<ITComponentDetailPage />} />
+               <Route path=":id/edit" element={<ITComponentFormPage mode="edit" />} />
+             </Route>
+
+             {/* Data Objects routes */}
+             <Route path="data-objects" element={<Outlet />}>
+               <Route index element={<DataObjectListPage />} />
+               <Route path="new" element={<DataObjectFormPage mode="create" />} />
+               <Route path=":id" element={<DataObjectDetailPage />} />
+               <Route path=":id/edit" element={<DataObjectFormPage mode="edit" />} />
+             </Route>
+             
+             {/* Domains routes */}
             <Route path="domains" element={<Outlet />}>
               <Route index element={<DomainsListPage />} />
               <Route path="new" element={<DomainNewPage />} />
               <Route path=":id" element={<DomainDetailPage />} />
               <Route path=":id/edit" element={<DomainEditPage />} />
             </Route>
+
+             {/* Business Capabilities routes */}
+             <Route path="business-capabilities" element={<Outlet />}>
+               <Route index element={<BusinessCapabilitiesPage />} />
+               <Route path="new" element={<BusinessCapabilityNewPage />} />
+               <Route path=":id" element={<BusinessCapabilityDetailPage />} />
+               <Route path=":id/edit" element={<BusinessCapabilityEditPage />} />
+             </Route>
+
+             {/* Interfaces routes */}
+             <Route path="interfaces" element={<Outlet />}>
+               <Route index element={<InterfaceListPage />} />
+               <Route path="new" element={<InterfaceNewPage />} />
+               <Route path=":id" element={<InterfaceDetailPage />} />
+               <Route path=":id/edit" element={<InterfaceEditPage />} />
+             </Route>
           </Route>
         </Route>
 

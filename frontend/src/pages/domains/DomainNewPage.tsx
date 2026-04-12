@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -7,6 +7,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import DomainForm from '@/components/domains/DomainForm';
 import ArkAlert from '@/components/shared/ArkAlert';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { useCreateDomain } from '@/api/domains';
 import { DomainFormValues } from '@/types/domain';
 import { resolveAlertMessage } from '@/utils/domain.utils';
@@ -14,15 +15,21 @@ import { hasPermission } from '@/store/auth';
 import { tagsApi } from '@/api/tags';
 
 export default function DomainNewPage(): JSX.Element {
-  if (!hasPermission('domains:write')) {
-    window.location.href = '/403';
-    return <></>;
-  }
   const { t } = useTranslation();
   const navigate = useNavigate();
   const createDomain = useCreateDomain();
 
+  // AGENT-DECISION: [front] — Permission check moved after hooks per React rules
+  const canWrite = hasPermission('domains:write');
+
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
+
+  // Redirect if no write permission
+  useEffect(() => {
+    if (!canWrite) {
+      navigate('/403');
+    }
+  }, [canWrite, navigate]);
 
   // Fetch available dimensions for tags
   const { data: dimensions, isLoading: isLoadingDimensions } = useQuery({
@@ -81,11 +88,19 @@ export default function DomainNewPage(): JSX.Element {
   const availableDimensions = dimensions?.map((d) => ({
     id: d.id,
     name: d.name,
-    color: d.color || '#1976d2',
+    color: d.color || '#007FFF',
   })) || [];
 
   return (
     <PageContainer>
+      <AppBreadcrumbs
+        items={[
+          { label: t('domains.form.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('domains.form.breadcrumb.list'), onClick: () => navigate('/domains') },
+          { label: t('domains.form.breadcrumb.new') },
+        ]}
+      />
+
       <PageHeader title={t('domains.form.createTitle')} />
 
       <ArkAlert

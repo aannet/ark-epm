@@ -5,6 +5,7 @@ import {
   ApplicationFormValues,
   PaginatedApplications,
   ApplicationDependencies,
+  ItComponentMapping,
 } from '@/types/application';
 import { queryClient } from '@/queryClient';
 
@@ -53,6 +54,39 @@ export function useApplicationDependencies(id: string, options?: { enabled?: boo
     queryKey: ['applications', id, 'dependencies'],
     queryFn: async () => {
       const response = await client.get<ApplicationDependencies>(`/applications/${id}/dependencies`);
+      return response.data;
+    },
+    enabled: options?.enabled ?? !!id,
+  });
+}
+
+export function useApplicationItComponents(id: string, query: QueryParams = {}, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['applications', id, 'it-components', query],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (query.page) params.append('page', query.page.toString());
+      if (query.limit) params.append('limit', query.limit.toString());
+      if (query.sortBy) params.append('sortBy', query.sortBy);
+      if (query.sortOrder) params.append('sortOrder', query.sortOrder);
+
+      const response = await client.get<{
+        data: (ItComponentMapping & { 
+          description: string | null;
+          comment: string | null;
+          technology: string | null;
+          type: string | null;
+          createdAt: string;
+          updatedAt: string;
+          tags: any[];
+        })[];
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      }>(`/applications/${id}/it-components?${params.toString()}`);
       return response.data;
     },
     enabled: options?.enabled ?? !!id,

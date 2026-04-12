@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TagsService } from '../tags/tags.service';
 import { CreateDomainDto } from './dto/create-domain.dto';
 import { UpdateDomainDto } from './dto/update-domain.dto';
+import { QueryDomainsDto } from './dto/query-domains.dto';
 
 @Injectable()
 export class DomainsService {
@@ -18,27 +19,51 @@ export class DomainsService {
     private readonly tagsService: TagsService,
   ) {}
 
-  async findAll() {
-    this.logger.log({ method: 'findAll' });
-    const domains = await this.prisma.domain.findMany({
-      orderBy: { name: 'asc' },
-    });
+  async findAll(query: QueryDomainsDto) {
+    this.logger.log({ method: 'findAll', query });
 
-    if (domains.length === 0) {
-      return [];
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+    const sortOrder = query.sortOrder ?? 'asc';
+
+    const where: any = {};
+    if (query.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+      ];
     }
 
-    // Batch load all tags for all domains at once
-    const domainIds = domains.map((d) => d.id);
-    const allTags = await this.tagsService.getEntitiesTags('domain', domainIds);
+    const orderBy: any = query.sortBy ? { [query.sortBy]: sortOrder } : { name: 'asc' };
+    const total = await this.prisma.domain.count({ where });
 
-    // Map tags to their respective domains
-    return domains.map((domain) => ({
-      ...domain,
-      tags: allTags
-        .filter((tag) => tag.entityId === domain.id)
-        .map((tag) => tag.tagValue),
-    }));
+    const domains = await this.prisma.domain.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy,
+    });
+
+    const domainIds = domains.map((d) => d.id);
+    const allTags = domainIds.length > 0
+      ? await this.tagsService.getEntitiesTags('domain', domainIds)
+      : [];
+
+    return {
+      data: domains.map((domain) => ({
+        ...domain,
+        tags: allTags
+          .filter((tag) => tag.entityId === domain.id)
+          .map((tag) => tag.tagValue),
+      })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string, userId?: string) {

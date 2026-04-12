@@ -5,11 +5,18 @@ import {
   IsOptional,
   IsUUID,
   IsEnum,
+  IsArray,
+  ValidateNested,
+  ArrayMinSize,
 } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { ProviderMappingDto } from './provider-mapping.dto';
+import { ItComponentMappingDto } from './it-component-mapping.dto';
 
 export class CreateApplicationDto {
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MaxLength(255)
   name: string;
 
@@ -25,9 +32,25 @@ export class CreateApplicationDto {
   @IsOptional()
   domainId?: string;
 
-  @IsUUID()
   @IsOptional()
-  providerId?: string;
+  @IsArray()
+  @ArrayMinSize(0)
+  @ValidateNested({ each: true })
+  @Type(() => ProviderMappingDto)
+  providers?: ProviderMappingDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(0)
+  @ValidateNested({ each: true })
+  @Type(() => ItComponentMappingDto)
+  itComponents?: ItComponentMappingDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(0)
+  @IsUUID('4', { each: true })
+  capabilityIds?: string[];
 
   @IsUUID()
   @IsOptional()

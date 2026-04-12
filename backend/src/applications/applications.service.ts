@@ -61,9 +61,9 @@ export class ApplicationsService {
     }
 
     let orderBy: any = {};
-    if (sortBy === 'domain' || sortBy === 'provider') {
+    if (sortBy === 'domain') {
       orderBy = {
-        [sortBy]: { name: sortOrder },
+        domain: { name: sortOrder },
       };
     } else if (sortBy) {
       orderBy = { [sortBy]: sortOrder };
@@ -80,7 +80,21 @@ export class ApplicationsService {
       orderBy,
       include: {
         domain: { select: { id: true, name: true } },
-        provider: { select: { id: true, name: true } },
+        appProviderMaps: {
+          include: {
+            provider: { select: { id: true, name: true } },
+          },
+        },
+        itComponents: {
+          include: {
+            itComponent: { select: { id: true, name: true } },
+          },
+        },
+        capabilities: {
+          include: {
+            capability: { select: { id: true, name: true } },
+          },
+        },
         owner: { select: { id: true, firstName: true, lastName: true } },
       },
     });
@@ -88,12 +102,10 @@ export class ApplicationsService {
     const appIds = applications.map((a) => a.id);
     const allTags = await this.tagsService.getEntitiesTags('application', appIds);
 
-    const data = applications.map((app) => ({
-      ...app,
-      tags: allTags
-        .filter((tag) => tag.entityId === app.id)
-        .map((tag) => tag.tagValue),
-    }));
+    const data = applications.map((app) => this.mapApplicationResponse(
+      app,
+      allTags.filter((tag) => tag.entityId === app.id).map((tag) => tag.tagValue),
+    ));
 
     return {
       data,
@@ -113,7 +125,21 @@ export class ApplicationsService {
       where: { id },
       include: {
         domain: { select: { id: true, name: true } },
-        provider: { select: { id: true, name: true } },
+        appProviderMaps: {
+          include: {
+            provider: { select: { id: true, name: true } },
+          },
+        },
+        itComponents: {
+          include: {
+            itComponent: { select: { id: true, name: true } },
+          },
+        },
+        capabilities: {
+          include: {
+            capability: { select: { id: true, name: true } },
+          },
+        },
         owner: { select: { id: true, firstName: true, lastName: true, email: true } },
       },
     });
@@ -127,10 +153,10 @@ export class ApplicationsService {
 
     const tags = await this.tagsService.getEntityTags('application', id);
 
-    return {
-      ...application,
-      tags: tags.map((t) => t.tagValue),
-    };
+    return this.mapApplicationResponse(
+      application,
+      tags.map((t) => t.tagValue),
+    );
   }
 
   async getDependencies(id: string) {
@@ -141,6 +167,7 @@ export class ApplicationsService {
       select: {
         _count: {
           select: {
+            appProviderMaps: true,
             capabilities: true,
             dataObjects: true,
             itComponents: true,
@@ -159,6 +186,7 @@ export class ApplicationsService {
     }
 
     const counts = {
+      providers: app._count.appProviderMaps,
       capabilities: app._count.capabilities,
       dataObjects: app._count.dataObjects,
       itComponents: app._count.itComponents,
@@ -174,39 +202,161 @@ export class ApplicationsService {
     };
   }
 
+  async getApplicationItComponents(id: string, query: QueryApplicationsDto) {
+    this.logger.log({ method: 'getApplicationItComponents', id, query });
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const { sortBy, sortOrder } = query;
+    const skip = (page - 1) * limit;
+
+    // Verify application exists
+    const app = await this.prisma.application.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!app) {
+      throw new NotFoundException({
+        code: 'APPLICATION_NOT_FOUND',
+        message: "L'application n'existe pas",
+      });
+    }
+
+    let orderBy: any = { name: 'asc' };
+    if (sortBy === 'createdAt') {
+      orderBy = { [sortBy]: sortOrder };
+    } else if (sortBy && ['name', 'type', 'technology'].includes(sortBy)) {
+      orderBy = { [sortBy]: sortOrder };
+    }
+
+    const total = await this.prisma.appItComponentMap.count({
+      where: { applicationId: id },
+    });
+
+    const mappings = await this.prisma.appItComponentMap.findMany({
+      where: { applicationId: id },
+      skip,
+      take: limit,
+      orderBy: {
+        itComponent: orderBy,
+      },
+      include: {
+        itComponent: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            comment: true,
+            technology: true,
+            type: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    const itComponentIds = mappings.map(m => m.itComponent.id);
+    const allTags = await this.tagsService.getEntitiesTags('it_component', itComponentIds);
+
+    const data = mappings.map(mapping => ({
+      ...mapping.itComponent,
+      _count: { applications: 0 }, // Will be populated by service if needed
+      tags: allTags
+        .filter(tag => tag.entityId === mapping.itComponent.id)
+        .map(tag => tag.tagValue),
+    }));
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async create(createDto: CreateApplicationDto, userId: string) {
-    this.logger.log({ method: 'create', data: createDto });
+    this.logger.log({ method: 'create', data: createDto, providersCount: createDto.providers?.length, itComponentsCount: createDto.itComponents?.length });
 
     await this.prisma.setCurrentUser(userId);
     await this.validateForeignKeys(createDto);
 
     try {
+      const applicationId = randomUUID();
+
       const application = await this.prisma.application.create({
         data: {
-          id: randomUUID(),
+          id: applicationId,
           name: createDto.name.trim(),
           description: createDto.description?.trim() || null,
           comment: createDto.comment?.trim() || null,
           domainId: createDto.domainId || null,
-          providerId: createDto.providerId || null,
           ownerId: createDto.ownerId || null,
           criticality: createDto.criticality || null,
           lifecycleStatus: createDto.lifecycleStatus || null,
           updatedAt: new Date(),
+          
+          // Create provider mappings in same transaction
+          ...(createDto.providers && createDto.providers.length > 0 && {
+            appProviderMaps: {
+              createMany: {
+                data: createDto.providers.map(p => ({
+                  providerId: p.id,
+                  role: p.role,
+                })),
+              },
+            },
+          }),
+          
+          // Create IT component mappings in same transaction
+          ...(createDto.itComponents && createDto.itComponents.length > 0 && {
+            itComponents: {
+              createMany: {
+                data: createDto.itComponents.map(ic => ({
+                  itComponentId: ic.id,
+                })),
+              },
+            },
+          }),
+
+          ...(createDto.capabilityIds && createDto.capabilityIds.length > 0 && {
+            capabilities: {
+              createMany: {
+                data: createDto.capabilityIds.map((capabilityId) => ({
+                  capabilityId,
+                })),
+              },
+            },
+          }),
         },
         include: {
           domain: { select: { id: true, name: true } },
-          provider: { select: { id: true, name: true } },
+          appProviderMaps: {
+            include: {
+              provider: { select: { id: true, name: true } },
+            },
+          },
+          itComponents: {
+            include: {
+              itComponent: { select: { id: true, name: true } },
+            },
+          },
+          capabilities: {
+            include: {
+              capability: { select: { id: true, name: true } },
+            },
+          },
           owner: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       });
 
       this.logger.log({ method: 'create', result: application.id });
 
-      return {
-        ...application,
-        tags: [],
-      };
+      return this.mapApplicationResponse(application, []);
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException({
@@ -219,40 +369,107 @@ export class ApplicationsService {
   }
 
   async update(id: string, updateDto: UpdateApplicationDto, userId: string) {
-    this.logger.log({ method: 'update', id, data: updateDto });
+    this.logger.log({ method: 'update', id, data: updateDto, providersCount: updateDto.providers?.length, itComponentsCount: updateDto.itComponents?.length });
 
     await this.prisma.setCurrentUser(userId);
     await this.validateForeignKeys(updateDto);
 
     try {
+      // Delete old provider mappings if providers are being updated
+      if (updateDto.providers !== undefined) {
+        await this.prisma.applicationProviderMap.deleteMany({
+          where: { applicationId: id },
+        });
+      }
+
+      // Delete old IT component mappings if itComponents are being updated
+      if (updateDto.itComponents !== undefined) {
+        await this.prisma.appItComponentMap.deleteMany({
+          where: { applicationId: id },
+        });
+      }
+
+      // Delete old business capability mappings if capabilityIds are being updated
+      if (updateDto.capabilityIds !== undefined) {
+        await this.prisma.appCapabilityMap.deleteMany({
+          where: { applicationId: id },
+        });
+      }
+
       const application = await this.prisma.application.update({
         where: { id },
         data: {
-          name: updateDto.name?.trim(),
-          description: updateDto.description?.trim() || null,
-          comment: updateDto.comment?.trim() || null,
-          domainId: updateDto.domainId || null,
-          providerId: updateDto.providerId || null,
-          ownerId: updateDto.ownerId || null,
-          criticality: updateDto.criticality || null,
-          lifecycleStatus: updateDto.lifecycleStatus || null,
+          ...(updateDto.name && { name: updateDto.name.trim() }),
+          ...(updateDto.description !== undefined && { description: updateDto.description?.trim() || null }),
+          ...(updateDto.comment !== undefined && { comment: updateDto.comment?.trim() || null }),
+          ...(updateDto.domainId !== undefined && { domainId: updateDto.domainId || null }),
+          ...(updateDto.ownerId !== undefined && { ownerId: updateDto.ownerId || null }),
+          ...(updateDto.criticality !== undefined && { criticality: updateDto.criticality || null }),
+          ...(updateDto.lifecycleStatus !== undefined && { lifecycleStatus: updateDto.lifecycleStatus || null }),
           updatedAt: new Date(),
+          
+          // Create new provider mappings if provided
+          ...(updateDto.providers !== undefined && updateDto.providers.length > 0 && {
+            appProviderMaps: {
+              createMany: {
+                data: updateDto.providers.map(p => ({
+                  providerId: p.id,
+                  role: p.role,
+                })),
+              },
+            },
+          }),
+
+          // Create new IT component mappings if provided
+          ...(updateDto.itComponents !== undefined && updateDto.itComponents.length > 0 && {
+            itComponents: {
+              createMany: {
+                data: updateDto.itComponents.map(ic => ({
+                  itComponentId: ic.id,
+                })),
+              },
+            },
+          }),
+
+          ...(updateDto.capabilityIds !== undefined && updateDto.capabilityIds.length > 0 && {
+            capabilities: {
+              createMany: {
+                data: updateDto.capabilityIds.map((capabilityId) => ({
+                  capabilityId,
+                })),
+              },
+            },
+          }),
         },
         include: {
           domain: { select: { id: true, name: true } },
-          provider: { select: { id: true, name: true } },
+          appProviderMaps: {
+            include: {
+              provider: { select: { id: true, name: true } },
+            },
+          },
+          itComponents: {
+            include: {
+              itComponent: { select: { id: true, name: true } },
+            },
+          },
+          capabilities: {
+            include: {
+              capability: { select: { id: true, name: true } },
+            },
+          },
           owner: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       });
-
+      
       this.logger.log({ method: 'update', result: application.id });
 
       const tags = await this.tagsService.getEntityTags('application', id);
 
-      return {
-        ...application,
-        tags: tags.map((t) => t.tagValue),
-      };
+      return this.mapApplicationResponse(
+        application,
+        tags.map((t) => t.tagValue),
+      );
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException({
@@ -302,14 +519,42 @@ export class ApplicationsService {
       }
     }
 
-    if (dto.providerId) {
-      const provider = await this.prisma.provider.findUnique({
-        where: { id: dto.providerId },
+    // Validate all providers exist (batch query)
+    if (dto.providers && dto.providers.length > 0) {
+      const providerIds = dto.providers.map(p => p.id);
+      const validProviders = await this.prisma.provider.findMany({
+        where: { id: { in: providerIds } },
       });
-      if (!provider) {
+      if (validProviders.length !== providerIds.length) {
         throw new NotFoundException({
           code: 'PROVIDER_NOT_FOUND',
-          message: 'Provider not found',
+          message: 'One or more providers not found',
+        });
+      }
+    }
+
+    // Validate all IT components exist (batch query)
+    if (dto.itComponents && dto.itComponents.length > 0) {
+      const itComponentIds = dto.itComponents.map(ic => ic.id);
+      const validItComponents = await this.prisma.itComponent.findMany({
+        where: { id: { in: itComponentIds } },
+      });
+      if (validItComponents.length !== itComponentIds.length) {
+        throw new NotFoundException({
+          code: 'IT_COMPONENT_NOT_FOUND',
+          message: 'One or more IT components not found',
+        });
+      }
+    }
+
+    if (dto.capabilityIds && dto.capabilityIds.length > 0) {
+      const capabilities = await this.prisma.businessCapability.findMany({
+        where: { id: { in: dto.capabilityIds } },
+      });
+      if (capabilities.length !== dto.capabilityIds.length) {
+        throw new NotFoundException({
+          code: 'BUSINESS_CAPABILITY_NOT_FOUND',
+          message: 'One or more business capabilities not found',
         });
       }
     }
@@ -327,4 +572,43 @@ export class ApplicationsService {
     }
   }
 
+  private mapApplicationResponse(
+    application: any,
+    tags: any[],
+  ) {
+    return {
+      id: application.id,
+      name: application.name,
+      description: application.description,
+      comment: application.comment,
+      domain: application.domain ? {
+        id: application.domain.id,
+        name: application.domain.name,
+      } : null,
+      providers: (application.appProviderMaps || []).map((mapping: { provider: { id: string; name: string }; role: string | null }) => ({
+        id: mapping.provider.id,
+        name: mapping.provider.name,
+        role: mapping.role,
+      })),
+      itComponents: (application.itComponents || []).map((mapping: { itComponent: { id: string; name: string } }) => ({
+        id: mapping.itComponent.id,
+        name: mapping.itComponent.name,
+      })),
+      businessCapabilities: (application.capabilities || []).map((mapping: { capability: { id: string; name: string } }) => ({
+        id: mapping.capability.id,
+        name: mapping.capability.name,
+      })),
+      owner: application.owner ? {
+        id: application.owner.id,
+        firstName: application.owner.firstName,
+        lastName: application.owner.lastName,
+        email: application.owner.email,
+      } : null,
+      criticality: application.criticality,
+      lifecycleStatus: application.lifecycleStatus,
+      createdAt: application.createdAt,
+      updatedAt: application.updatedAt,
+      tags,
+    };
+  }
 }

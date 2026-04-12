@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const API_URL = Cypress.env('API_URL') || 'http://localhost:3000';
+const API_URL = Cypress.env('API_URL') || 'http://localhost:3001';
 
 Cypress.Commands.add('login', (email = 'admin@ark.io', password = 'admin123456') => {
   cy.request('POST', `${API_URL}/auth/login`, { email, password }).then((response) => {

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Drawer,
   Box,
@@ -131,27 +131,60 @@ export default function ApplicationDrawer({
                   </Box>
                 )}
 
-                {application.provider && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('applications.list.columns.provider')}
-                    </Typography>
-                    <Link
-                      component="button"
-                      variant="body1"
-                      onClick={() => navigate(`/providers/${application.provider!.id}`)}
-                      sx={{ textAlign: 'left', textDecoration: 'underline' }}
-                    >
-                      {application.provider.name}
-                    </Link>
-                  </Box>
-                )}
+                {application.providers && application.providers.length > 0 && (
+                   <Box sx={{ mb: 2 }}>
+                     <Typography variant="body2" color="text.secondary">
+                       {t('applications.list.columns.provider')}
+                     </Typography>
+                     {application.providers.map((provider) => (
+                       <Box key={provider.id} sx={{ mb: 1 }}>
+                         <Link
+                           component="button"
+                           variant="body1"
+                           onClick={() => navigate(`/providers/${provider.id}`)}
+                           sx={{ textAlign: 'left', textDecoration: 'underline', display: 'block' }}
+                         >
+                           {provider.name}
+                         </Link>
+                         {provider.role && (
+                           <Typography variant="caption" color="text.secondary">
+                             ({provider.role})
+                           </Typography>
+                         )}
+                       </Box>
+                     ))}
+                   </Box>
+                  )}
 
-                {application.owner && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('applications.detail.owner')}
-                    </Typography>
+                  {application.itComponents && application.itComponents.length > 0 && (
+                     <Box sx={{ mb: 2 }}>
+                       <Typography variant="body2" color="text.secondary">
+                         {t('applications.relations.itComponents')}
+                       </Typography>
+                       {application.itComponents.map((itComponent) => (
+                         <Link
+                           key={itComponent.id}
+                           component={RouterLink}
+                           to={`/it-components/${itComponent.id}`}
+                           underline="always"
+                           sx={{
+                             color: 'inherit',
+                             '&:hover': { color: 'primary.main' },
+                             display: 'block',
+                             mb: 0.5,
+                           }}
+                         >
+                           {itComponent.name}
+                         </Link>
+                       ))}
+                     </Box>
+                   )}
+
+                 {application.owner && (
+                   <Box sx={{ mb: 2 }}>
+                     <Typography variant="body2" color="text.secondary">
+                       {t('applications.detail.owner')}
+                     </Typography>
                     <Typography variant="body1">
                       {application.owner.firstName} {application.owner.lastName}
                     </Typography>
@@ -247,18 +280,18 @@ export default function ApplicationDrawer({
           }}
         >
           <Button
-            variant="contained"
-            onClick={handleEdit}
-            disabled={isLoading || !application || !canWrite}
-          >
-            {t('applications.drawer.edit')}
-          </Button>
-          <Button
             variant="outlined"
             onClick={handleViewDetails}
             disabled={isLoading || !application}
           >
             {t('applications.drawer.viewFullDetails')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleEdit}
+            disabled={isLoading || !application || !canWrite}
+          >
+            {t('applications.drawer.edit')}
           </Button>
         </Box>
       </Box>

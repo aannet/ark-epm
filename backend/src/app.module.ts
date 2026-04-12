@@ -20,10 +20,26 @@ import { DomainsModule } from './domains/domains.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { TagsModule } from './tags/tags.module';
 
+import { ProvidersModule } from './providers/providers.module';
+import { ItComponentsModule } from './it-components/it-components.module';
+import { DataObjectsModule } from './data-objects/data-objects.module';
+import { BusinessCapabilitiesModule } from './business-capabilities/business-capabilities.module';
+import { InterfacesModule } from './interfaces/interfaces.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: (config: Record<string, unknown>) => {
+        const jwtSecret = config['JWT_SECRET'];
+        if (!jwtSecret || typeof jwtSecret !== 'string') {
+          throw new Error('JWT_SECRET is required and must be a string');
+        }
+        if (jwtSecret.length < 32) {
+          throw new Error(`JWT_SECRET must be at least 32 characters long (current: ${jwtSecret.length})`);
+        }
+        return config;
+      },
     }),
     ThrottlerModule.forRoot([
       {
@@ -36,7 +52,7 @@ import { TagsModule } from './tags/tags.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: configService.get('JWT_EXPIRES_IN', '15m'),
         },
@@ -50,6 +66,11 @@ import { TagsModule } from './tags/tags.module';
     DomainsModule,
     ApplicationsModule,
     TagsModule,
+    ProvidersModule,
+    ItComponentsModule,
+    DataObjectsModule,
+    BusinessCapabilitiesModule,
+    InterfacesModule,
   ],
   controllers: [AppController],
   providers: [

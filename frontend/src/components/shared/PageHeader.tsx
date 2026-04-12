@@ -1,7 +1,7 @@
 import { Box, Typography, Button } from '@mui/material';
 import { ReactNode } from 'react';
 
-interface PageHeaderProps {
+export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   action?: {
@@ -9,12 +9,14 @@ interface PageHeaderProps {
     onClick: () => void;
     icon?: ReactNode;
   };
+  secondaryAction?: ReactNode;
 }
 
 export default function PageHeader({
   title,
   subtitle,
   action,
+  secondaryAction,
 }: PageHeaderProps): JSX.Element {
   return (
     <Box
@@ -35,15 +37,18 @@ export default function PageHeader({
           </Typography>
         )}
       </Box>
-      {action && (
-        <Button
-          variant="contained"
-          startIcon={action.icon}
-          onClick={action.onClick}
-        >
-          {action.label}
-        </Button>
-      )}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {secondaryAction}
+        {action && (
+          <Button
+            variant="contained"
+            startIcon={action.icon}
+            onClick={action.onClick}
+          >
+            {action.label}
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 }

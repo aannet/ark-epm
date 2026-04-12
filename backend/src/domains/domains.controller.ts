@@ -10,10 +10,12 @@ import {
   HttpCode,
   HttpStatus,
   Req,
+  Query,
 } from '@nestjs/common';
 import { DomainsService } from './domains.service';
 import { CreateDomainDto } from './dto/create-domain.dto';
 import { UpdateDomainDto } from './dto/update-domain.dto';
+import { QueryDomainsDto } from './dto/query-domains.dto';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
 
 interface AuthenticatedRequest {
@@ -26,8 +28,8 @@ export class DomainsController {
 
   @Get()
   @RequirePermissions('domains:read')
-  findAll() {
-    return this.domainsService.findAll();
+  findAll(@Query() query: QueryDomainsDto) {
+    return this.domainsService.findAll(query);
   }
 
   @Get(':id')

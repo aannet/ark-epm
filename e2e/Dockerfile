@@ -1,8 +1,8 @@
-FROM mcr.microsoft.com/playwright:v1.41.0-jammy
+FROM mcr.microsoft.com/playwright:v1.58.2-noble
 
 WORKDIR /e2e
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
 # Installer wait-on pour attendre les services

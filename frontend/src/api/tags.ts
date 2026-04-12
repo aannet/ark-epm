@@ -14,8 +14,10 @@ export interface TagDimensionResponse {
 }
 
 export const tagsApi = {
-  getDimensions: () =>
-    apiClient.get<TagDimensionResponse[]>('/tag-dimensions').then((r) => r.data),
+  getDimensions: (entityType?: string) =>
+    apiClient.get<TagDimensionResponse[]>('/tag-dimensions', {
+      params: { entityType },
+    }).then((r) => r.data),
 
   autocomplete: (dimensionId: string, query?: string, limit = 20) =>
     apiClient

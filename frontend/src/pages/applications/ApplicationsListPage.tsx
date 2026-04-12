@@ -10,12 +10,10 @@ import {
   TableRow,
   TablePagination,
   Paper,
-  IconButton,
   TableSortLabel,
   Link as MuiLink,
+  Chip,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
@@ -23,6 +21,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import { RowActionsMenu } from '@/components/shared';
 import StatusChip from '@/components/shared/StatusChip';
 import { TagChipList } from '@/components/tags';
 import { ApplicationFilters, ApplicationDrawer } from '@/components/applications';
@@ -58,7 +57,7 @@ export default function ApplicationsListPage(): JSX.Element {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const canWrite = hasPermission('applications:write');
-  const { dimensions: availableDimensions } = useTagDimensions();
+  const { dimensions: availableDimensions } = useTagDimensions('application');
 
   // Parse URL params
   const getPageFromUrl = () => {
@@ -182,11 +181,11 @@ export default function ApplicationsListPage(): JSX.Element {
         },
       });
       setAlert({ severity: 'success', message: t('applications.alert.deleted') });
-    } catch (err: any) {
-      const status = err?.response?.status;
-      const code = err?.response?.data?.code;
+    } catch (err) {
+      const status = (err as any)?.response?.status;
+      const code = (err as any)?.response?.data?.code;
       if (status === 409 && code === 'DEPENDENCY_CONFLICT') {
-        setDeleteErrorMessage(format409Message(t, err?.response?.data?.details));
+        setDeleteErrorMessage(format409Message(t, (err as any)?.response?.data?.details));
       } else if (status && status >= 500) {
         setAlert({ severity: 'error', message: t('applications.alert.errors.serverError') });
         setDeleteDialog(null);
@@ -323,24 +322,21 @@ export default function ApplicationsListPage(): JSX.Element {
                     {t('applications.list.columns.domain')}
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'provider'}
-                    direction={sortField === 'provider' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('provider')}
-                  >
+                 <TableCell>
                     {t('applications.list.columns.provider')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'criticality'}
-                    direction={sortField === 'criticality' ? sortOrder : 'asc'}
-                    onClick={() => handleSort('criticality')}
-                  >
-                    {t('applications.list.columns.criticality')}
-                  </TableSortLabel>
-                </TableCell>
+                  </TableCell>
+                 <TableCell>
+                   {t('applications.list.columns.itComponents')}
+                 </TableCell>
+                 <TableCell>
+                   <TableSortLabel
+                     active={sortField === 'criticality'}
+                     direction={sortField === 'criticality' ? sortOrder : 'asc'}
+                     onClick={() => handleSort('criticality')}
+                   >
+                     {t('applications.list.columns.criticality')}
+                   </TableSortLabel>
+                 </TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortField === 'lifecycleStatus'}
@@ -392,10 +388,24 @@ export default function ApplicationsListPage(): JSX.Element {
                   <TableCell onClick={() => handleRowClick(application.id, 'domain')}>
                     {application.domain?.name || '—'}
                   </TableCell>
-                  <TableCell onClick={() => handleRowClick(application.id, 'provider')}>
-                    {application.provider?.name || '—'}
-                  </TableCell>
-                  <TableCell onClick={() => handleRowClick(application.id, 'criticality')}>
+                   <TableCell onClick={() => handleRowClick(application.id, 'provider')}>
+                      {application.providers?.length > 0
+                        ? application.providers.map(p => p.name).join(', ')
+                        : '—'}
+                    </TableCell>
+                   <TableCell onClick={() => handleRowClick(application.id, 'itComponents')}>
+                     {application.itComponents && application.itComponents.length > 0 ? (
+                       <Chip
+                         label={application.itComponents.length}
+                         size="small"
+                         variant="outlined"
+                         color="info"
+                       />
+                     ) : (
+                       '—'
+                     )}
+                   </TableCell>
+                   <TableCell onClick={() => handleRowClick(application.id, 'criticality')}>
                     {application.criticality ? (
                       <StatusChip type="criticality" value={application.criticality as any} />
                     ) : (
@@ -421,22 +431,15 @@ export default function ApplicationsListPage(): JSX.Element {
                   <TableCell onClick={() => handleRowClick(application.id, 'created')}>
                     {new Date(application.createdAt).toLocaleDateString('fr-FR')}
                   </TableCell>
-                  {canWrite && (
-                    <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                      <IconButton
-                        aria-label={t('common.actions.edit')}
-                        onClick={() => navigate(`/applications/${application.id}/edit`)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={t('common.actions.delete')}
-                        onClick={() => handleDeleteClick(application)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  )}
+                   {canWrite && (
+                     <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                       <RowActionsMenu
+                         onView={() => navigate(`/applications/${application.id}`)}
+                         onEdit={() => navigate(`/applications/${application.id}/edit`)}
+                         onDelete={() => handleDeleteClick(application)}
+                       />
+                     </TableCell>
+                   )}
                 </TableRow>
               ))}
             </TableBody>

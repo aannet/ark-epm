@@ -8,6 +8,7 @@ import DomainForm from '@/components/domains/DomainForm';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ArkAlert from '@/components/shared/ArkAlert';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { useDomain, useUpdateDomain } from '@/api/domains';
 import { DomainFormValues } from '@/types/domain';
 import { resolveAlertMessage } from '@/utils/domain.utils';
@@ -15,18 +16,24 @@ import { hasPermission } from '@/store/auth';
 import { tagsApi } from '@/api/tags';
 
 export default function DomainEditPage(): JSX.Element {
-  if (!hasPermission('domains:write')) {
-    window.location.href = '/403';
-    return <></>;
-  }
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+
+  // AGENT-DECISION: [front] — Permission check moved after hooks per React rules
+  const canWrite = hasPermission('domains:write');
 
   const { data: domain, isLoading, error } = useDomain(id || '');
   const updateDomain = useUpdateDomain(id || '');
 
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
+
+  // Redirect if no write permission
+  useEffect(() => {
+    if (!canWrite) {
+      navigate('/403');
+    }
+  }, [canWrite, navigate]);
 
   // Fetch available dimensions for tags
   const { data: dimensions, isLoading: isLoadingDimensions } = useQuery({
@@ -110,11 +117,20 @@ export default function DomainEditPage(): JSX.Element {
   const availableDimensions = dimensions?.map((d) => ({
     id: d.id,
     name: d.name,
-    color: d.color || '#1976d2',
+    color: d.color || '#007FFF',
   })) || [];
 
   return (
     <PageContainer>
+      <AppBreadcrumbs
+        items={[
+          { label: t('domains.form.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('domains.form.breadcrumb.list'), onClick: () => navigate('/domains') },
+          { label: domain.name, onClick: () => navigate(`/domains/${id}`) },
+          { label: t('common.actions.edit') },
+        ]}
+      />
+
       <PageHeader title={t('domains.form.editTitle')} />
 
       <ArkAlert

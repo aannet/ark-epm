@@ -17,7 +17,7 @@ _Version 0.2 — Février 2026_
 | **ID** | F-01 |
 | **Titre** | Design System & UI Foundation — Theme MUI, Layout Shell, composants partagés |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | ✅ `done` |
 | **Dépend de** | F-00 |
 | **Estimé** | 1 jour |
 | **Version** | 0.1 |

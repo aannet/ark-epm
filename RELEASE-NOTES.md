@@ -1,6 +1,237 @@
 # ARK — Release Notes
 
-_Last updated: 2026-03-18 — v0.5.1_
+_Last updated: 2026-03-29 — v0.7.0_
+
+> This file contains the complete release history for ARK, most recent first.
+> One entry per release. Each release maps to one or more completed sprints.
+> Format: add new entries at the top, above the previous release separator.
+
+---
+
+## v0.7.0 — 2026-03-29
+
+> Sprint 2 Enhancement — IT Components ↔ Applications bidirectional relationship + UI improvements
+
+### Highlights
+
+- **Bidirectional IT Components ↔ Applications** — Complete N:N relationship implementation with symmetric navigation, count badges, and validation guards
+- **Enhanced Applications List** — New IT Components count column with chip badge, clickable component/domain/provider links
+- **Comprehensive E2E Testing** — 50+ Playwright tests for APIs and bidirectional relationship validation
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| FS-06-v1.2 | Applications: IT Components count chip + clickable names | P1 |
+| FS-04-v1.1 | IT Components: clickable application names + DeleteIcon fix | P1 |
+| Bidirectional-APIs | `GET /applications/{id}/it-components`, `GET /it-components/{id}/applications` | P1 |
+
+#### Technical Improvements
+
+| Ref | Description |
+|---|---|
+| Frontend UI | 5 files updated: ApplicationsListPage (Chip column), ApplicationDetailPage (links), ApplicationDrawer (links), ITComponentDetailPage (links), ITComponentListPage (DeleteIcon fix) |
+| OpenAPI | ApplicationListItem schema now includes `itComponents` array for consistency with detail endpoint |
+| Frontend i18n | New key `applications.list.columns.itComponents` (FR: "Composants IT") |
+| E2E Tests | 40+ new API tests covering CRUD, dependencies, bidirectional queries, and deletion guards |
+| TestDataFactory | New `createItComponent()` method with auto-cleanup |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- No frontend UI tests (Playwright/Cypress) for the new clickable links — pure API tests only
+- Drag-drop IT Component reordering deferred (no use case identified)
+- Mass operations (add same ICs to multiple apps) deferred to future sprint
+
+### Migration Steps
+
+```bash
+# No manual steps required for this release
+docker-compose down
+docker-compose pull
+npx prisma migrate deploy
+docker-compose up -d
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| FS-06-Applications-front v1.2 | Applications: IT Components enhancements | ✅ done |
+| FS-04-IT-Components-front v1.1 | IT Components: bidirectional support | ✅ done |
+| OpenAPI v2.5 | Complete Application schemas with itComponents | ✅ done |
+| E2E Tests | 40+ Playwright tests for IT Components | ✅ done |
+
+---
+
+## v0.6.0 — 2026-03-29
+
+> Sprint 2 completion — Providers frontend + Design Guidelines standardization
+
+### Highlights
+
+- **Providers CRUD Frontend** — 4 pages (List, Detail, New, Edit) avec drawer PNS-02, badges rôles N:N, badges urgence expiration
+- **Design Guidelines v0.4** — Breadcrumb systématique (PNS-11), DatePicker MUI, badges conditionnels, composants métier documentés
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| FS-03-FRONT | Providers — Frontend CRUD (4 pages + drawer) | P1 |
+
+#### Technical Improvements
+
+| Ref | Description | Source |
+|---|---|---|
+| PNS-11 | Breadcrumb systématique 3 niveaux (Accueil > Liste > Courant) + composant AppBreadcrumbs recommandé | Design v0.4 |
+| UI-Kit v0.4 | DatePicker MUI (FR locale), badge conditionnel (Chip dynamique), ExpiryDateBadge, ProviderRoleBadge documentés | Design v0.4 |
+| TD-15 | Routes Providers décommentées + fonctionnelles (FS-03-FRONT implémentée) | F-999 ✅ done |
+| TD-12 | Providers API réels via `useProviders()` hook — mocks supprimés dans ApplicationForm | F-999 ✅ unblocked |
+| TD-17-21 | 5 items dette technique Sprint 3 documentés : filtres, breadcrumbs manquants, composant partagé | F-999 v0.6 |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-03-FRONT Cypress tests non implémentés (~50 cas, Phase 6 à venir)
+- Filtres contractType/expiryDate différés Sprint 3 (backend `QueryProvidersDto` non prêt)
+- Breadcrumbs manquants sur Applications/Domains (F-999 Items 18-19 Sprint 3)
+- Menu dropdown Actions (⋮) remplacé par icônes séparées Edit/Delete (fonctionnellement équivalent)
+
+### Migration Steps
+
+```bash
+# No manual steps required for this release
+docker-compose down
+docker-compose pull
+npx prisma migrate deploy
+docker-compose up -d
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| FS-03-FRONT | Providers — Frontend CRUD | ✅ done |
+| Design v0.4 | UI Kit + Navigation Patterns (PNS-11) | ✅ done |
+| F-999 v0.6 | Technical Debt Items 17-21 documented | ✅ documented |
+
+---
+
+## v0.5.2 — 2026-03-29
+
+> Hotfix — Provider Dropdown API integration
+
+### Highlights
+
+- **Provider Dropdown Fix** — ApplicationForm now displays real providers from API instead of empty mock list
+
+### What's New
+
+#### Bug Fixes
+
+| Ref | Description | Area |
+|---|---|---|
+| #12 | ApplicationNewPage/EditPage fetch providers from real API via `useProviders()` hook | frontend |
+| #12 | MOCK_PROVIDERS empty array removed, actual API response mapped to form select options | frontend |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-09 Users API not yet implemented (MOCK_USERS still placeholder)
+
+### Migration Steps
+
+```bash
+# No manual steps required for this release
+docker-compose down
+docker-compose pull
+docker-compose up -d
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| F-999 Item 12 | APIs Providers mockées → unblocked | ✅ unblocked |
+
+---
+
+## v0.5.0 — 2026-03-22
+
+> FS-03 Providers + FS-04 IT Components complete (Backend + Frontend)
+
+### Highlights
+
+- **Providers CRUD Complete** — Backend API + N:N relationships with Applications (provider roles: editor, integrator, support, vendor, custom)
+- **IT Components CRUD** — Full module implementation (backend API + frontend 4 pages + drawer)
+- **Provider Roles N:N** — Applications can link multiple providers with distinct roles per relationship
+
+### What's New
+
+#### Features
+
+| ID | Title | Priority |
+|---|---|---|
+| FS-03-BACK | Providers — Backend CRUD API | P1 |
+| FS-04-BACK | IT Components — Backend CRUD API | P1 |
+| FS-04-FRONT | IT Components — Frontend CRUD (4 pages + drawer) | P1 |
+
+#### Technical Improvements
+
+| Ref | Description | Source |
+|---|---|---|
+| N:N-Providers | app_provider_map junction table with provider_role enum (editor/integrator/support/vendor/custom) | FS-03-BACK v1.2 |
+| Audit-Trail-Fix | $transaction interactive guarantees SET LOCAL ark.current_user_id persists in same transaction as write | FS-04-BACK |
+| IT-Components-API | Full CRUD endpoints with filtering, pagination, N:1 application mapping | FS-04-BACK |
+| IT-Components-UI | PNS-02 drawer pattern, breadcrumb, RBAC, i18n fully implemented | FS-04-FRONT |
+
+### Breaking Changes
+
+> ⚠️ _None_
+
+### Known Limitations
+
+- FS-03-FRONT Providers frontend not yet started (routes commented in App.tsx)
+- Cypress tests FS-04-FRONT documented but not implemented (~30 cases)
+- Tag dimensions hardcoded in frontend (P2 — dynamic API pending)
+
+### Migration Steps
+
+```bash
+# Database migration required (N:N junction tables)
+docker-compose down
+docker-compose pull
+npx prisma migrate deploy
+docker-compose up -d
+
+# Seed providers + IT components
+docker exec ark-epm_backend_1 npx ts-node prisma/seed.ts
+```
+
+### Specs Delivered
+
+| Spec | Title | Status |
+|---|---|---|
+| FS-03-BACK | Providers — Backend CRUD API | ✅ done |
+| FS-04-BACK | IT Components — Backend CRUD API | ✅ done |
+| FS-04-FRONT | IT Components — Frontend CRUD | ✅ done |
+
+
+
+
 
 
 ---

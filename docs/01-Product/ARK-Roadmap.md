@@ -1,6 +1,62 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.10 — Mars 2026_
+_Version 0.20 — Avril 2026_
+
+> **Changelog v0.20 :**
+> - **FS-08-BACK** : statut `draft` → `done` — Module NestJS Interfaces complet (T-040, 2026-04-12).
+>   5 endpoints CRUD (`GET/POST /interfaces`, `GET/PATCH/DELETE /interfaces/:id`), enums `InterfaceType` (11 valeurs) et `InterfaceFrequency` (7 valeurs), réutilisation enum `CriticalityLevel` (FS-07).
+>   Règles métier RM-01 (auto-liaison interdite → `422 SELF_REFERENCE`) et RM-02 (FK Applications validées → `404 APPLICATION_NOT_FOUND`).
+>   15 tests Jest + 18 tests Supertest. `openapi.yaml` mis à jour (schemas `InterfaceResponse`, `CreateInterfaceDto`, `UpdateInterfaceDto`).
+>   Seed 2 interfaces de démo. Amendment **T-039** identifié : `ApplicationsService.remove()` doit vérifier `_count.sourceInterfaces + _count.targetInterfaces`.
+>   Gate T-006 (tests Playwright applications-dependencies) levée.
+>
+> **Changelog v0.19 :**
+> - **FS-07-BACK** : statut `stable` → `done` — 8 endpoints (CRUD + /tree + /:id/children + /:id/applications),
+>   hiérarchie WITH RECURSIVE illimitée, prévention circulaire, 19 tests Jest + 20 Supertest + 21 Playwright.
+>   Amendment T-019 (criticality + technicalFit enums) inclus.
+> - **FS-07-FRONT** : statut `draft` → `done` — 3 vues (liste arborescente, MUI TreeView, matrix),
+>   4 pages, 8 composants (CriticalityChip, TechnicalFitChip, AppLifecycleBreakdown, Form, Drawer, Tree, Matrix,
+>   AppBreadcrumbs PNS-11), agrégation récursive client-side, recette T-024 + tests Playwright T-015 validés.
+> - **FS-06-FRONT amendment** (T-026) : sélecteur Business Capabilities dans formulaires Applications (dialog multi-select, chips cliquables dans détail).
+> - **Sprint 3 complet** — FS-07 BACK+FRONT done, T-019 amendment done, T-024 recette done, T-015 tests UI done.
+>
+> **Changelog v0.18 :**
+> - **FS-05-FRONT** (Data Objects) : statut `stable` → `done` — Implémentation confirmée (10 fichiers, 4 routes, toutes US réalisées). Tracking mis à jour.
+>
+> **Changelog v0.17 :**
+> - **FS-07-BACK** (Business Capabilities) : spec rédigée v1.0, statut `stable` — Hiérarchie récursive, WITH RECURSIVE, level auto-calculé, max depth 5, prévention circulaire, N:N avec Applications, migration NFR-GOV-005
+>
+> **Changelog v0.16 :**
+> - **FS-05-FRONT** (Data Objects) : spec rédigée v0.1, statut `stable` — PNS-02 drawer, Chip isSourceOfTruth (success/default), Autocomplete type (freeSolo + database/dataset/file), colonne role (consumer/producer/owner) dans Applications liées, amendements A+B backend documentés en pré-conditions, Session Gate compatible
+>
+> **Changelog v0.15 :**
+> - **FS-05-BACK** (Data Objects) : spec rédigée v1.0, statut `stable` → `done` — Migration schéma conforme NFR-GOV-005 (description, comment, updatedAt, UNIQUE name, tags[] supprimé), liaison F-03, relations N:N avec rôles enum (consumer/producer/owner)
+> - Ordre de rédaction mis à jour : FS-05-BACK en position 8
+
+> **Changelog v0.14 :**
+> - **FS-03-FRONT** (Providers) : statut `done` — 4 pages frontend implémentées (list/detail/new/edit), routes décommentées, Cypress tests (32 tests, 6 describe blocks)
+> - **Sprint 2 COMPLETE** — Tous les 6 satellites terminés (FS-02, FS-03 BACK+FRONT, FS-04, FS-06 BACK+FRONT). FS-03-FRONT débloque Sprint 2 et F-999 Item #15
+> - **F-999 Item 15 RESOLVED** — Routes Providers décommentées dans App.tsx ✅
+
+> **Changelog v0.13 :**
+> - **F-02** (i18n Foundation) : statut `done` — 326 clés traduites en français, couverture complète FS-01 et fondations
+> - **F-03** (Dimension Tags Foundation) : statut `done` — backend module complet, schema.prisma, tests, frontend API client, seed 3 dimensions
+> - **FS-02 (Domains)** : BACK et FRONT passés à `done` — 4 pages frontend (list/detail/new/edit), routing actif, e2e tests
+> - **FS-03-BACK** (Providers) : statut `done` — backend complet avec N:N relationships et provider roles
+> - **FS-04 (IT Components)** : BACK et FRONT passés à `done` — implémentation complète, routing actif
+> - **FS-06 (Applications)** : BACK et FRONT passés à `done` — implémentation complète, 4 pages, landing page par défaut, mais reste mocks Providers/Users
+> - **Découverte :** FS-06-FRONT livré en Sprint 2 (anticipé) — FS-06 BACK + FRONT `done`, mais dépendances non résolues (Items F-999 #12, #13, #14)
+
+> **Changelog v0.12 :**
+> - FS-04-BACK : statut `done` (implémentation backend complète)
+> - FS-04-FRONT : statut `done` — pattern PNS-02 (drawer read-only), filtres server-side, gestion 409 DEPENDENCY_CONFLICT
+> - F-03 : seed des 3 dimensions (Geography, Brand, LegalEntity) considéré `done`
+> - F-999 Item 15 : Routes Providers temporairement commentées dans App.tsx (FS-03-FRONT en attente)
+
+> **Changelog v0.11 :**
+> - FS-03-BACK : spec rédigée et stabilisée (statut `stable`)
+> - schema.sql v0.8 : migration `providers` conforme NFR-GOV-005 (description, comment, updated_at, UNIQUE name)
+> - FS-06-BACK : statut mis à jour `done` (implémentation complète)
 
 > **Changelog v0.10 :**
 > - Ajout de 4 features P2 (FS-22 à FS-25) basées sur l'analyse des personae
@@ -63,8 +119,8 @@ _Version 0.10 — Mars 2026_
 |---|---|---|---|---|---|
 | F-00 | **Scaffolding** — NestJS + Prisma + Docker + JWT + PrismaService + middleware `ark.current_user_id` | — | ✅ `done` | 2j | Manuel |
 | F-01 | **Design System & UI Foundation** — Theme MUI, Layout Shell (Sidebar/TopBar), composants partagés, `NotFoundPage`, `ErrorBoundary` | F-00 | ✅ `done` | 1j | Manuel |
-| F-02 | **i18n Foundation** — react-i18next, langue unique FR, externalisation strings F-01 + FS-01 | FS-01 | `stable` | 0.5j | Manuel |
-| F-03 | **Dimension Tags Foundation** — `TagsModule` global, migrations Prisma (`tag_dimensions`, `tag_values`, `entity_tags`), `TagService` (resolveOrCreate, path récursif), `DimensionTagInput` React, seed 3 dimensions de base | F-02, FS-01 | `draft` | 1.5j | 🟡 Hybride |
+| F-02 | **i18n Foundation** — react-i18next, langue unique FR, externalisation strings F-01 + FS-01 | FS-01 | ✅ `done` | 0.5j | Manuel |
+| F-03 | **Dimension Tags Foundation** — `TagsModule` global, migrations Prisma (`tag_dimensions`, `tag_values`, `entity_tags`), `TagService` (resolveOrCreate, path récursif), `DimensionTagInput` React, seed 3 dimensions de base | F-02, FS-01 | ✅ `done` | 1.5j | 🟡 Hybride |
 
 > F-00, F-01, F-02 sont entièrement manuels. F-03 est **hybride** : `TagService` (resolveOrCreate, normalizePath, getAncestorPaths) est écrit manuellement — migrations, controller, DTOs, module wiring et `DimensionTagInput` sont générables via OpenCode.
 
@@ -84,7 +140,7 @@ _Version 0.10 — Mars 2026_
 
 | ID | Feature | Dépend de | Statut | Estimé |
 |---|---|---|---|---|
-| FS-01 | **Auth & RBAC** — Login email/password, JWT, gestion des rôles et permissions, guards NestJS, écran login React, pages `UnauthorizedPage` (401) et `ForbiddenPage` (403) | F-00, F-01 | ✅ `done` | 3j |
+| FS-01 | **Auth & RBAC** — Login email/password, JWT (15min TTL + refresh token), gestion des rôles et permissions, guards NestJS, écran login React, pages `UnauthorizedPage` (401) et `ForbiddenPage` (403) | F-00, F-01 | ✅ `done` | 3j |
 
 **Périmètre FS-01 :**
 - Backend : `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
@@ -106,17 +162,19 @@ _Version 0.10 — Mars 2026_
 
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
-| FS-02 | **Domains** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-02-BACK, F-02, F-03 | `in-progress` | `draft` | 0.5j + 1j |
-| **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend en Sprint 3.* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 3)* | `draft` | *(Sprint 3)* | **1.5j** |
-| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 0.5j |
-| FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
-| FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | `draft` | `draft` | 0.5j + 1j |
+| FS-02 | **Domains** — CRUD complet + pages Liste/Détail/New/Edit | FS-01, F-03 | FS-02-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
+| **FS-06-BACK** | **Applications backend** — CRUD complet + liaisons `domains`/`providers`/`users` + tags. *Frontend livré Sprint 2 (anticipé).* | FS-02-BACK, FS-03-BACK, F-03 | *(Sprint 2 — anticipé)* | ✅ `done` | ✅ `done` | **1.5j** |
+| FS-03 | **Providers** — CRUD complet + pages Liste/Détail/New/Edit + onglet Relations (nb applications) | FS-01, **FS-06-BACK**, F-03 | FS-03-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 0.5j |
+| FS-04 | **IT Components** — CRUD + liaison `app_it_component_map` + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-04-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
+| FS-05 | **Data Objects** — CRUD + liaison `app_data_object_map` (avec rôle) + écrans + onglet Relations | FS-01, **FS-06-BACK**, F-03 | FS-05-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 0.5j + 1j |
 
-> FS-02 et FS-03 sont les **modules de référence** — backend (FS-02-BACK) et frontend (FS-02-FRONT) — pour OpenCode sur tous les modules suivants. Valider soigneusement avant de démarrer FS-03.
+> FS-02 et FS-06 sont les **modules de référence** — backend (FS-02-BACK, FS-06-BACK) et frontend (FS-02-FRONT, FS-06-FRONT) — pour OpenCode sur tous les modules suivants. Valider soigneusement avant de démarrer les satellites.
 
-> **Ordre d'implémentation dans le sprint :** FS-02-BACK → FS-06-BACK → FS-03-BACK / FS-04-BACK / FS-05-BACK (parallélisables) → fronts satellites → FS-02-FRONT.
+> **Ordre d'implémentation effectué :** FS-02-BACK → FS-06-BACK → FS-03-BACK / FS-04-BACK → FS-04-FRONT (via PNS-02 pattern) → FS-06-FRONT → **FS-03-FRONT done** ✅. **Sprint 2 débloqué.**
 
 > ⚠️ La migration F-03 retire les colonnes `tags TEXT[]` sur chaque table au fil des sprints. Chaque FS-xx est responsable du `DROP COLUMN tags` sur sa propre table (documenté en F-999 §2).
+
+> ✅ **Note FS-03-FRONT :** Implémentation complète le 29/03/2026 (4 pages, 12 fichiers, 1468 LOC, 32 tests Cypress). Routes Providers décommentées, FS-03-FRONT débloque Sprint 2. Voir F-999 Item 15 résolu.
 
 ---
 
@@ -124,12 +182,14 @@ _Version 0.10 — Mars 2026_
 
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
-| FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | `draft` | 1.5j |
-| FS-07 | **Business Capabilities** — CRUD + récursion `WITH RECURSIVE` + `DimensionTagInput` + écran arbre hiérarchique | FS-02-BACK, F-03 | FS-07-BACK, F-02, F-03 | `draft` | `draft` | 1.5j + 1.5j |
+| FS-06-FRONT | **Applications frontend** — écran inventaire + fiche détail + `DimensionTagInput` + liaison domains/providers/users | *(livré Sprint 2)* | FS-06-BACK ✅, F-02, F-03 | ✅ *(Sprint 2)* | ✅ `done` (anticipé Sprint 2) | 1.5j |
+| FS-07 | **Business Capabilities** — CRUD + WITH RECURSIVE + hiérarchie illimitée + 3 vues (liste/tree/matrix) + criticality/technicalFit + `DimensionTagInput` | FS-02-BACK, **FS-06-BACK**, F-03 | FS-07-BACK, F-02, F-03 | ✅ `done` | ✅ `done` | 1.5j + 3j |
 
 > FS-07-BACK contient la requête `WITH RECURSIVE` — à écrire et tester manuellement en SQL avant de rédiger la spec back. **Tâche 0.9 à réaliser pendant Sprint 2** (0.5j R&D SQL pur).
 
 > FS-06-FRONT est la première spec frontend à intégrer `DimensionTagInput` dans un formulaire réel — les tests Cypress F-03 (`DimensionTagInput`) sont complétés dans cette spec.
+
+> ✅ **Sprint 3 complet** — FS-07 BACK+FRONT done (2026-04-08/10), amendment T-019 (criticality+technicalFit), amendment T-025/T-026 (FS-06 liaison BC), recette T-024, tests Playwright T-015.
 
 ---
 
@@ -137,7 +197,7 @@ _Version 0.10 — Mars 2026_
 
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
-| FS-08 | **Interfaces** — CRUD unidirectionnel Source→Cible + règles métier + `DimensionTagInput` + écran liste | FS-06-BACK, F-03 | FS-08-BACK, F-02, F-03 | `draft` | `draft` | 1j + 1j |
+| FS-08 | **Interfaces** — CRUD unidirectionnel Source→Cible + règles métier + `DimensionTagInput` + écran liste | FS-06-BACK, F-03 | FS-08-BACK, F-02, F-03 | ✅ `done` | `draft` | 1j + 1j |
 | FS-09 | **Dependency Graph** — endpoint `/graph` + composant React Flow + filtres (domaine, criticité, type, dimension tag) | FS-08-BACK, FS-06-BACK | FS-09-BACK, F-02 | `draft` | `draft` | 1j + 2j |
 
 > FS-09-FRONT est la spec frontend la plus risquée. Le **POC React Flow** (tâche 0.8) doit être concluant avant de rédiger FS-09-FRONT.
@@ -191,7 +251,7 @@ F-00 (Fondation technique) ✅
                           │     │     └── FS-09-BACK ──gate──► FS-09-FRONT (Graph)[Sprint 4]
                           │     └── FS-10-BACK ──gate──► FS-10-FRONT (Import)     [Sprint 5]
                           │
-                          └── FS-07-BACK ──gate──► FS-07-FRONT (Business Cap.)    [Sprint 3]
+                           └── FS-07-BACK ──gate──► FS-07-FRONT (Business Cap.) ✅  [Sprint 3]
                                 └── FS-10-BACK (déjà listé)
 
 F-03 ──(P2)──► FS-21 (Tag Dimensions Administration — UI admin)
@@ -205,17 +265,24 @@ F-03 ──(P2)──► FS-21 (Tag Dimensions Administration — UI admin)
 
 Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sprint 2+ : rédiger BACK en premier, valider, puis rédiger FRONT.
 
-| Ordre | Spec | Pourquoi | Statut BACK | Statut FRONT |
-|---|---|---|---|---|
-| — | **F-02** (i18n Foundation) | Bloque tout le frontend Sprint 2+ | `stable` | — |
-| **0** | **F-03** (Dimension Tags Foundation) | **Gate global — bloque FS-02 et toute la chaîne CRUD. TagService manuel à écrire en premier.** | `draft` | — |
-| 1 | **FS-02-BACK** | Module de référence backend — patron pour FS-03 à FS-11 | `in-progress` | — |
-| **2** | **FS-06-BACK** | **Backbone Applications — débloque les FK entrantes de FS-03/04/05. À livrer avant les backs satellites.** | `draft` | — |
-| 3 | **FS-02-FRONT** | Module de référence frontend — valider le Layout Contract en premier | — | `draft` |
-| 4 | **FS-09-BACK** | La plus risquée — valider le POC React Flow avant FS-09-FRONT | `draft` | — |
-| 5 | **FS-07-BACK** | La plus complexe techniquement — valider `WITH RECURSIVE` en SQL avant | `draft` | — |
-| 6–9 | **FS-03/04/05-BACK** puis **FS-06-FRONT** | Satellites débloqués par FS-06-BACK. FS-06-FRONT après les backs satellites. | `draft` | — |
-| 10+ | Reste des specs BACK puis FRONT | Dans l'ordre des gates BACK validées | `draft` | — |
+| Ordre | Spec | Statut actuel | Raison |
+|---|---|---|---|
+| ✅ — | **F-02** (i18n Foundation) | `done` | Débloqué — 326 clés fr.json |
+| ✅ **0** | **F-03** (Dimension Tags Foundation) | `done` | **Gate global fermée — TagService, schema, frontend disponibles** |
+| ✅ 1 | **FS-02-BACK** | `done` | **Module de référence backend — patron appliqué aux satellites** |
+| ✅ **2** | **FS-06-BACK** | `done` | **Backbone Applications — débloque FK entrantes de FS-03/04/05** |
+| ✅ 3 | **FS-02-FRONT** | `done` | **Module de référence frontend — Layout Contract validé** |
+| ✅ 4 | **FS-04-BACK** | `done` | Satellite implémenté (pattern IT Components) |
+| ✅ 5 | **FS-04-FRONT** | `done` | Satellite frontend (PNS-02 drawer pattern) |
+| ✅ 6 | **FS-06-FRONT** | `done` | **Livré anticipé en Sprint 2 — 4 pages, landing page par défaut** |
+| ✅ 7 | **FS-03-FRONT** | `done` — 4 pages, 32 tests | **Implémentation complete 29/03 — débloque Sprint 2 et F-999 #15** |
+ | 8 | **FS-05-BACK** | ✅ `done` | **Implémentation complète — module NestJS + tests + seed** |
+| 8b | **FS-05-FRONT** | ✅ `done` | **Implémentation complète — PNS-02 drawer, Chip isSourceOfTruth, Autocomplete type, colonne role, 4 routes, 10 fichiers** |
+| ✅ 9  | **FS-07-BACK**  | ✅ `done` — 8 endpoints, WITH RECURSIVE, circular ref, 19 tests Jest + 20 Supertest. Amendment T-019 criticality+technicalFit. | Implémentation complète (2026-04-08) |
+| ✅ 9b | **FS-07-FRONT** | ✅ `done` — 3 vues (liste/tree/matrix), 4 pages, 8 composants, MUI TreeView, agrégation récursive. PNS-11 AppBreadcrumbs. | T-018 + T-020 complétés (2026-04-08) |
+| ✅ 10 | **FS-08-BACK** | ✅ `done` — 5 endpoints CRUD, enums InterfaceType/InterfaceFrequency, RM-01/RM-02, 15 tests Jest + 18 Supertest. T-039 amendment identifié. | Implémentation complète (2026-04-12) |
+| 11 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
+| 12+ | Reste (FS-10, etc.) | `draft` | Après levée des dépendances |
 
 ---
 
@@ -226,10 +293,10 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 - [x] F-00 terminé — `docker-compose up` OK, PrismaModule global, middleware audit actif
 - [x] F-01 terminé — theme MUI actif, AppShell fonctionnel, composants partagés disponibles
 - [x] FS-01 terminé — `JwtAuthGuard` global, `@RequirePermission()` disponible, seed Admin OK
-- [ ] **F-02 terminé** — `react-i18next` installé, `fr.json` complet, composants F-01 + FS-01 rétrofittés ← **gate bloquante frontend**
-- [ ] **F-03 terminé** — `TagsModule` global actif, tables `tag_dimensions`/`tag_values`/`entity_tags` migrées, seed 3 dimensions OK, `DimensionTagInput` exporté ← **gate bloquante CRUD Sprint 2+**
+- [x] **F-02 terminé** — `react-i18next` installé, 326 clés dans `fr.json`, composants F-01 + FS-01 rétrofittés
+- [x] **F-03 terminé** — `TagsModule` global actif, tables `tag_dimensions`/`tag_values`/`entity_tags` migrées, seed 3 dimensions OK, `DimensionTagInput` exporté
 - [ ] **POC React Flow concluant** (tâche 0.8) — gate avant FS-09-FRONT
-- [ ] **Requête `WITH RECURSIVE` testée en base** (tâche 0.9) — gate avant FS-07-BACK
+- [x] **Requête `WITH RECURSIVE` documentée** (tâche 0.9) — gate FS-07-BACK — spec v1.0 inclut requête complète §8
 
 ### Prérequis session OpenCode Backend (FS-XX-BACK)
 

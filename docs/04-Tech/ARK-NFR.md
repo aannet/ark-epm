@@ -432,7 +432,7 @@ Voir NFR-SEC-009. L'interface UI de consultation de l'historique est différée 
 | **Priorité** | P2 |
 | **Statut** | 🔵 `deferred` |
 | **Source** | F-999 Item 6 |
-| **Gate** | `GET /api/health` → `{ "status": "ok", "db": "ok", "timestamp": "..." }` |
+| **Gate** | `GET /api/v1/health` → `{ "status": "ok", "db": "ok", "timestamp": "..." }` |
 
 Exposé via `@nestjs/terminus`. Non authentifié. Utile pour les équipes IT on-premise. À implémenter en début de P2.
 

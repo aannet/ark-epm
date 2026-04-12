@@ -23,7 +23,7 @@ export class TagsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAllDimensions(): Promise<
+  async findAllDimensions(entityType?: string): Promise<
     Array<{
       id: string;
       name: string;
@@ -36,7 +36,17 @@ export class TagsService {
       createdAt: Date;
     }>
   > {
+    const where = entityType
+      ? {
+          OR: [
+            { entityScope: { hasSome: [entityType] } },
+            { entityScope: { equals: [] } }, // For backward compatibility, include dimensions with empty entityScope
+          ],
+        }
+      : {};
+
     return this.prisma.tagDimension.findMany({
+      where,
       orderBy: { sortOrder: 'asc' },
     });
   }

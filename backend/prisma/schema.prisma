@@ -51,7 +51,6 @@ model User {
   updatedAt         DateTime?      @default(now()) @map("updated_at") @db.Timestamptz(6)
   ownedApplications Application[]  @relation("ApplicationOwner")
   auditTrail        AuditTrail[]   @relation("AuditChangedBy")
-  technicalContacts Interface[]    @relation("InterfaceTechnicalContact")
   role              Role?          @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   refreshToken      RefreshToken?
 
@@ -72,13 +71,15 @@ model Domain {
 }
 
 model BusinessCapability {
-  id                  String               @id @default(uuid()) @db.Uuid
-  name                String               @db.VarChar(255)
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String               @unique @db.VarChar(255)
   description         String?
+  comment             String?
   parentId            String?              @map("parent_id") @db.Uuid
-  level               Int                  @db.SmallInt
+  level               Int?                 @db.SmallInt
   domainId            String?              @map("domain_id") @db.Uuid
-  tags                String[]             @default([])
+  criticality         CriticalityLevel?
+  technicalFit        TechnicalFitLevel?   @map("technical_fit")
   createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
   applicationMappings AppCapabilityMap[]
@@ -90,14 +91,59 @@ model BusinessCapability {
   @@map("business_capabilities")
 }
 
+enum CriticalityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TechnicalFitLevel {
+  ADEQUATE
+  PARTIAL
+  INADEQUATE
+  LEGACY
+}
+
+enum InterfaceType {
+  REST
+  SOAP
+  FTP
+  SFTP
+  DATABASE
+  MESSAGE_QUEUE
+  BATCH_FILE
+  EVENT_STREAM
+  GRAPHQL
+  GRPC
+  OTHER
+
+  @@map("interface_type")
+}
+
+enum InterfaceFrequency {
+  REALTIME
+  NEAR_REALTIME
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  ON_DEMAND
+
+  @@map("interface_frequency")
+}
+
 model Provider {
-  id           String        @id @default(uuid()) @db.Uuid
-  name         String        @db.VarChar(255)
-  contractType String?       @map("contract_type") @db.VarChar(100)
-  expiryDate   DateTime?     @map("expiry_date") @db.Date
-  tags         String[]      @default([])
-  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications Application[]
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String        @unique @db.VarChar(255)
+  description   String?       @db.Text
+  comment       String?       @db.Text
+  contractType  String?       @map("contract_type") @db.VarChar(100)
+  expiryDate    DateTime?     @map("expiry_date") @db.Date
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  appProviderMaps ApplicationProviderMap[]
 
   @@map("providers")
 }
@@ -108,25 +154,38 @@ model Application {
   description      String?             @db.Text
   comment          String?             @db.Text
   ownerId          String?             @map("owner_id") @db.Uuid
-  providerId       String?             @map("provider_id") @db.Uuid
   domainId         String?             @map("domain_id") @db.Uuid
   criticality      String?             @map("criticality") @db.VarChar(50)
   lifecycleStatus  String?             @map("lifecycle_status") @db.VarChar(50)
   createdAt        DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime?           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  appProviderMaps  ApplicationProviderMap[]
   capabilities     AppCapabilityMap[]
   dataObjects      AppDataObjectMap[]
   itComponents     AppItComponentMap[]
   domain           Domain?             @relation(fields: [domainId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   owner            User?               @relation("ApplicationOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  provider         Provider?           @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   sourceInterfaces Interface[]         @relation("InterfaceSourceApp")
   targetInterfaces Interface[]         @relation("InterfaceTargetApp")
+  middlewareInterfaces Interface[]      @relation("InterfaceMiddlewareApp")
 
-  @@index([providerId], map: "idx_applications_provider")
   @@index([domainId], map: "idx_applications_domain")
   @@index([ownerId], map: "idx_applications_owner")
   @@map("applications")
+}
+
+model ApplicationProviderMap {
+  applicationId String    @map("application_id") @db.Uuid
+  providerId    String    @map("provider_id") @db.Uuid
+  role          String?   @map("provider_role") @db.VarChar(50)
+  addedAt       DateTime  @default(now()) @map("added_at") @db.Timestamptz(6)
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  provider      Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, providerId])
+  @@index([providerId])
+  @@map("app_provider_map")
 }
 
 model AppCapabilityMap {
@@ -140,36 +199,42 @@ model AppCapabilityMap {
 }
 
 model Interface {
-  id                 String      @id @default(uuid()) @db.Uuid
-  name               String?     @db.VarChar(255)
-  sourceAppId        String      @map("source_app_id") @db.Uuid
-  targetAppId        String      @map("target_app_id") @db.Uuid
-  type               String      @db.VarChar(50)
-  frequency          String?     @map("frequency") @db.VarChar(50)
-  criticality        String?     @map("criticality") @db.VarChar(50)
-  technicalContactId String?     @map("technical_contact_id") @db.Uuid
-  latencyMs          Int?        @map("latency_ms")
-  errorRate          Decimal?    @map("error_rate") @db.Decimal(5, 2)
-  tags               String[]    @default([])
-  createdAt          DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime?   @default(now()) @map("updated_at") @db.Timestamptz(6)
-  sourceApp          Application @relation("InterfaceSourceApp", fields: [sourceAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  targetApp          Application @relation("InterfaceTargetApp", fields: [targetAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  technicalContact   User?       @relation("InterfaceTechnicalContact", fields: [technicalContactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String?             @db.VarChar(255)
+  description      String?             @db.Text
+  comment          String?             @db.Text
+  sourceAppId      String              @map("source_app_id") @db.Uuid
+  targetAppId      String              @map("target_app_id") @db.Uuid
+  type             InterfaceType
+  frequency        InterfaceFrequency? @map("frequency")
+  criticality      CriticalityLevel?   @map("criticality")
+  technicalContact String?             @map("technical_contact") @db.VarChar(255)
+  errorRate        Decimal?            @map("error_rate") @db.Decimal(5, 2)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  middlewareAppId  String?            @map("middleware_app_id") @db.Uuid
+  middlewareApp    Application?         @relation("InterfaceMiddlewareApp", fields: [middlewareAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sourceApp        Application         @relation("InterfaceSourceApp", fields: [sourceAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetApp        Application         @relation("InterfaceTargetApp", fields: [targetAppId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([sourceAppId], map: "idx_interfaces_source")
   @@index([targetAppId], map: "idx_interfaces_target")
+  @@index([middlewareAppId], map: "idx_interfaces_middleware")
   @@map("interfaces")
 }
 
 model DataObject {
-  id              String             @id @default(uuid()) @db.Uuid
-  name            String             @db.VarChar(255)
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String             @unique @db.VarChar(255)
+  description     String?            @db.Text
+  comment         String?            @db.Text
   type            String?            @db.VarChar(100)
-  isSourceOfTruth Boolean?           @default(false) @map("is_source_of_truth")
-  tags            String[]           @default([])
-  createdAt       DateTime?          @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications    AppDataObjectMap[]
+  isSourceOfTruth Boolean            @default(false) @map("is_source_of_truth")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  appDataObjectMaps AppDataObjectMap[]
 
   @@map("data_objects")
 }
@@ -177,7 +242,8 @@ model DataObject {
 model AppDataObjectMap {
   applicationId String      @map("application_id") @db.Uuid
   dataObjectId  String      @map("data_object_id") @db.Uuid
-  role          String?     @default("consumer") @db.VarChar(50)
+  role          String      @default("consumer") @db.VarChar(50)
+
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   dataObject    DataObject  @relation(fields: [dataObjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -186,12 +252,15 @@ model AppDataObjectMap {
 }
 
 model ItComponent {
-  id           String              @id @default(uuid()) @db.Uuid
-  name         String              @db.VarChar(255)
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String              @unique @db.VarChar(255)
+  description  String?             @db.Text
+  comment      String?             @db.Text
   technology   String?             @db.VarChar(255)
   type         String?             @db.VarChar(100)
-  tags         String[]            @default([])
-  createdAt    DateTime?           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
   applications AppItComponentMap[]
 
   @@map("it_components")

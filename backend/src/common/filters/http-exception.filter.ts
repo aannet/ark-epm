@@ -26,13 +26,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status,
     );
 
-    const errorResponse = {
+    const errorResponse: Record<string, unknown> = {
       statusCode: status,
       code,
       message: exception.message,
       timestamp: new Date().toISOString(),
       path: request.url,
     };
+
+    // Preserve details field if present (for DEPENDENCY_CONFLICT etc.)
+    if (
+      typeof responseBody === 'object' &&
+      responseBody !== null &&
+      'details' in responseBody
+    ) {
+      errorResponse.details = responseBody.details;
+    }
 
     this.logger.warn({
       method: request.method,

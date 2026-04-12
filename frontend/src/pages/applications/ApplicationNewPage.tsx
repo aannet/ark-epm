@@ -6,9 +6,13 @@ import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { ApplicationForm } from '@/components/applications';
 import { useCreateApplication } from '@/api/applications';
 import { useDomains } from '@/api/domains';
+import { useProviders } from '@/api/providers';
+import { useITComponents } from '@/api/it-components';
+import { useBusinessCapabilities } from '@/api/businessCapabilities';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
@@ -16,8 +20,7 @@ import { tagsApi } from '@/api/tags';
 const CRITICALITIES = ['low', 'medium', 'high', 'mission-critical'];
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
 
-// Mock data for providers and users (until APIs are ready)
-const MOCK_PROVIDERS: { id: string; name: string }[] = [];
+// Mock data for users - replace with API calls when ready
 const MOCK_USERS: { id: string; firstName: string; lastName: string }[] = [];
 
 export default function ApplicationNewPage(): JSX.Element {
@@ -30,6 +33,15 @@ export default function ApplicationNewPage(): JSX.Element {
   const [fieldError, setFieldError] = useState<string | null>(null);
 
   const { data: domains, isLoading: isLoadingDomains } = useDomains();
+  const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
+  const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
+  const { data: capabilitiesData, isLoading: isLoadingCapabilities } = useBusinessCapabilities({ limit: 200 });
+
+  // Map API responses to select options format
+  const domainOptions = (domains?.data || []).map(d => ({ id: d.id, name: d.name }));
+  const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
+  const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
+  const capabilityOptions = (capabilitiesData?.data || []).map(bc => ({ id: bc.id, name: bc.name }));
 
   const handleSubmit = useCallback(
     async (values: ApplicationFormValues) => {
@@ -50,9 +62,9 @@ export default function ApplicationNewPage(): JSX.Element {
             alert: { severity: 'success', message: t('applications.alert.created') },
           },
         });
-      } catch (err: any) {
-        const status = err?.response?.status;
-        const code = err?.response?.data?.code;
+      } catch (err) {
+        const status = (err as any)?.response?.status;
+        const code = (err as any)?.response?.data?.code;
 
         if (status === 409 && code === 'CONFLICT') {
           setFieldError(t('applications.form.nameDuplicate'));
@@ -72,7 +84,7 @@ export default function ApplicationNewPage(): JSX.Element {
     navigate('/applications');
   };
 
-  if (isLoadingDomains) {
+  if (isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities) {
     return (
       <PageContainer>
         <PageHeader title={t('applications.form.createTitle')} />
@@ -83,6 +95,14 @@ export default function ApplicationNewPage(): JSX.Element {
 
   return (
     <PageContainer maxWidth="sm">
+      <AppBreadcrumbs
+        items={[
+          { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
+          { label: t('applications.form.breadcrumb.new') },
+        ]}
+      />
+
       <PageHeader title={t('applications.form.createTitle')} />
 
       {submitError && (
@@ -98,29 +118,33 @@ export default function ApplicationNewPage(): JSX.Element {
       )}
 
       <ApplicationForm
-        initialValues={{
-          name: '',
-          description: '',
-          comment: '',
-          domainId: null,
-          providerId: null,
-          ownerId: null,
-          criticality: null,
-          lifecycleStatus: null,
-          tags: [],
-        }}
+         initialValues={{
+           name: '',
+           description: '',
+           comment: '',
+           domainId: null,
+           providers: [],
+           itComponents: [],
+           capabilityIds: [],
+           ownerId: null,
+           criticality: null,
+           lifecycleStatus: null,
+           tags: [],
+         }}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={createApplication.isPending}
         error={submitError}
         fieldError={fieldError}
-        availableOptions={{
-          domains: domains || [],
-          providers: MOCK_PROVIDERS,
-          users: MOCK_USERS,
-          criticalities: CRITICALITIES,
-          lifecycleStatuses: LIFECYCLE_STATUSES,
-        }}
+         availableOptions={{
+           domains: domainOptions,
+           providers: providerOptions,
+           itComponents: itComponentOptions,
+           businessCapabilities: capabilityOptions,
+           users: MOCK_USERS,
+           criticalities: CRITICALITIES,
+           lifecycleStatuses: LIFECYCLE_STATUSES,
+         }}
         availableDimensions={availableDimensions}
       />
     </PageContainer>
