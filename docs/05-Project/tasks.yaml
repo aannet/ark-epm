@@ -299,16 +299,19 @@ tasks:
 
   - id: T-052
     nom: "Amendment FS-07-BACK — Ajouter lifecycleStatus sur BusinessCapability (data + back)"
-    statut: in_progress
+    statut: done
     assigned_agent: data
-    session_active: "d4a1f2"
+    session_active: ~
     handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-spec-t017-fs07-lifecycle.md"
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-07"
     type: impl
     feature: "FS-07-BACK"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "d4a1f2"
+        nom: "schema lifecycleStatus + DTOs + service + db push — 103/107 tests (2026-04-12)"
     notes: |
       Créé par T-017 (spec agent, 2026-04-12) — gate bloquante pour FS-07-P2-FRONT.
       Actions requises :
