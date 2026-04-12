@@ -8,6 +8,7 @@ const seeds = [
   'seed-tags.ts',
   'seed-data-objects.ts',
   'seed-applications.ts',
+  'seed-interfaces.ts',
 ];
 
 for (const file of seeds) {
