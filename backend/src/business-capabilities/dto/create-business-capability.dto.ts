@@ -43,4 +43,9 @@ export class CreateBusinessCapabilityDto {
   @IsEnum(TechnicalFitLevel)
   @IsOptional()
   technicalFit?: TechnicalFitLevel;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  lifecycleStatus?: string;
 }

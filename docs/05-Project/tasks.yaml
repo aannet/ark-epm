@@ -299,9 +299,9 @@ tasks:
 
   - id: T-052
     nom: "Amendment FS-07-BACK — Ajouter lifecycleStatus sur BusinessCapability (data + back)"
-    statut: open
+    statut: in_progress
     assigned_agent: data
-    session_active: ~
+    session_active: "d4a1f2"
     handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-spec-t017-fs07-lifecycle.md"
     date_resolution: ~
     sprint: S4
