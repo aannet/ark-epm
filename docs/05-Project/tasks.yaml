@@ -84,8 +84,8 @@ tasks:
 
   - id: T-006
     nom: "Tests applications-dependencies bloqués — FS-08 Interfaces non implémenté"
-    statut: blocked
-    assigned_agent: back
+    statut: open
+    assigned_agent: qa
     session_active: ~
     date_resolution: ~
     sprint: S4
@@ -96,6 +96,9 @@ tasks:
       - tool: CL
         id: "qa-ses"
         nom: "audit tests data-objects"
+      - tool: OC
+        id: "a9f3e1"
+        nom: "déblocage T-006 après T-040 FS-08-BACK done"
     notes: |
       Détecté lors de la session QA Data Objects (2026-04-07).
       4 tests Playwright en échec dans tests/applications/applications-dependencies.api.spec.ts :
@@ -103,7 +106,8 @@ tasks:
         - DELETE 409 with detailed counts
         - GET /dependencies hasDependencies=true when linked
         - GET /dependencies hasDependencies=false for isolated app
-      Bloqué par FS-08 (Interfaces) non implémenté. Gate : FS-08-BACK done.
+      ✅ Gate levée : FS-08-BACK done (T-040, 2026-04-12).
+      Prêt pour validation par agent QA — la table interfaces et les relations Prisma sont en place.
 
   - id: T-007
     nom: "Tests domains-dependencies bloqués — FS-07 Business Capabilities en cours"
@@ -958,13 +962,17 @@ tasks:
       - tool: CL
         id: "fs08sp"
         nom: "spec FS-08-BACK v1.1 — identification dette suppression Application"
+      - tool: OC
+        id: "a9f3e1"
+        nom: "prérequis T-039 validés après T-040"
     notes: |
       Identifié lors de la rédaction FS-08-BACK (2026-04-12) — F-999 Item 24.
       ApplicationsService.remove() ne vérifie pas _count.sourceInterfaces ni
       _count.targetInterfaces avant suppression. La FK ON DELETE NO ACTION bloque
       en base mais ne retourne pas de DEPENDENCY_CONFLICT propre au client.
 
-      Prérequis : FS-08-BACK done (migration table interfaces appliquée).
+      ✅ Prérequis levés : FS-08-BACK done (T-040, 2026-04-12).
+      Relations Prisma sourceInterfaces/targetInterfaces disponibles sur model Application.
 
       À faire :
       - Ajouter sourceInterfaces + targetInterfaces dans le select _count de remove()
