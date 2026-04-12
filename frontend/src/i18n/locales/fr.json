@@ -530,6 +530,14 @@
         "list": "Liste",
         "matrix": "Matrix"
       },
+      "kpi": {
+        "maxDepth": "Niveaux hiérarchiques",
+        "totalApps": "Applications affichées",
+        "totalBcs": "Total BCs",
+        "levelUnit": "niveaux",
+        "appsUnit": "mappings",
+        "bcsUnit": "capacités"
+      },
       "list": {
         "title": "Business Capabilities",
         "subtitle": "Cartographie des capacités métier de l'entreprise",

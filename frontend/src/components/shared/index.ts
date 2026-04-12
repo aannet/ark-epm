@@ -5,3 +5,4 @@ export { default as PageHeader } from './PageHeader';
 export { default as LoadingSkeleton } from './LoadingSkeleton';
 export { default as ArkAlert } from './ArkAlert';
 export { default as RowActionsMenu } from './RowActionsMenu';
+export { default as KpiCard } from './KpiCard';

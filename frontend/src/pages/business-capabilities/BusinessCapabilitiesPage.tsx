@@ -24,7 +24,10 @@ import {
   Select,
   MenuItem,
   Tooltip,
+  Grid,
 } from '@mui/material';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import ViewListIcon from '@mui/icons-material/ViewList';
@@ -40,7 +43,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
-import { RowActionsMenu } from '@/components/shared';
+import { RowActionsMenu, KpiCard } from '@/components/shared';
 import BusinessCapabilityDrawer from '@/components/business-capabilities/BusinessCapabilityDrawer';
 import BusinessCapabilityMatrix from '@/components/business-capabilities/BusinessCapabilityMatrix';
 import CriticalityChip from '@/components/business-capabilities/CriticalityChip';
@@ -48,7 +51,7 @@ import { useBusinessCapabilitiesTree, useDeleteBusinessCapability } from '@/api/
 import { useDomains } from '@/api/domains';
 import { hasPermission } from '@/store/auth';
 import { ViewMode } from '@/types/businessCapability';
-import { flattenTree, getRootNodeIds, sortTreeHierarchically } from '@/utils/businessCapability.utils';
+import { flattenTree, getRootNodeIds, sortTreeHierarchically, computeMaxDepth, computeTotalAppMappings } from '@/utils/businessCapability.utils';
 
 type SortField = 'name' | 'criticality';
 type SortOrder = 'asc' | 'desc';
@@ -108,6 +111,11 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
     }
     return items;
   }, [treeData, sortField, sortOrder, searchValue, domainFilter]);
+
+  // KPI computations — derived from flatList (filtre-aware)
+  const kpiMaxDepth = useMemo(() => computeMaxDepth(flatList), [flatList]);
+  const kpiTotalApps = useMemo(() => computeTotalAppMappings(flatList), [flatList]);
+  const kpiTotalBcs = flatList.length;
 
   // Initialize expanded state with root nodes
   useEffect(() => {
@@ -289,6 +297,36 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
         autoDismiss={5000}
         onClose={() => setAlert(null)}
       />
+
+      {/* KPI Band — visible uniquement si des données existent */}
+      {!isEmpty && (
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={4}>
+            <KpiCard
+              label={t('businessCapabilities.kpi.maxDepth')}
+              value={kpiMaxDepth}
+              unit={t('businessCapabilities.kpi.levelUnit')}
+              icon={<AccountTreeIcon />}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <KpiCard
+              label={t('businessCapabilities.kpi.totalApps')}
+              value={kpiTotalApps}
+              unit={t('businessCapabilities.kpi.appsUnit')}
+              icon={<AppRegistrationIcon />}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <KpiCard
+              label={t('businessCapabilities.kpi.totalBcs')}
+              value={kpiTotalBcs}
+              unit={t('businessCapabilities.kpi.bcsUnit')}
+              icon={<ViewListIcon />}
+            />
+          </Grid>
+        </Grid>
+      )}
 
       {/* Filters */}
       <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>

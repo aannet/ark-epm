@@ -204,16 +204,19 @@ tasks:
 
   - id: T-048
     nom: "Business Capabilities — Ajout de 3 KPIs en tête de vue liste (niveaux hiérarchiques, applications actives, TBD)"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "a3f7c2"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-07"
     type: impl
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "a3f7c2"
+        nom: "impl KpiCard shared + 3 KPIs BC (maxDepth, totalApps, totalBcs)"
     notes: |
       3 cartes KPI occupant chacune 1/3 de la largeur, affichées en tête de la vue liste Business Capabilities.
       KPI 1 : Nombre max de niveaux hiérarchiques (profondeur de l'arbre BC).

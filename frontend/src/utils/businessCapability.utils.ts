@@ -170,6 +170,30 @@ export function sortTreeHierarchically(
 }
 
 /**
+ * Calcule la profondeur maximale de l'arbre (nombre de niveaux hiérarchiques distincts).
+ * Utilisé pour KPI 1 — "Niveaux hiérarchiques" (T-048).
+ *
+ * @param flatList - Liste aplatie des Business Capabilities
+ * @returns Nombre de niveaux distincts (ex. L0+L1+L2 = 3)
+ */
+export function computeMaxDepth(flatList: BusinessCapabilityListItem[]): number {
+  if (flatList.length === 0) return 0;
+  return Math.max(...flatList.map((r) => r.level)) + 1;
+}
+
+/**
+ * Calcule la somme des applicationMappings pour toutes les BCs d'une liste plate.
+ * Utilisé pour KPI 2 — "Applications affichées" (T-048).
+ * Filtre-aware : basé sur flatList déjà filtrée par search/domainId.
+ *
+ * @param flatList - Liste aplatie des Business Capabilities (post-filtrage)
+ * @returns Total des mappings applications
+ */
+export function computeTotalAppMappings(flatList: BusinessCapabilityListItem[]): number {
+  return flatList.reduce((acc, r) => acc + r._count.applicationMappings, 0);
+}
+
+/**
  * Retourne la couleur de background selon la criticality.
  * Utilisé pour la vue matrix (US13, RM-BC-04).
  *
