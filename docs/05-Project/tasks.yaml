@@ -267,4 +267,22 @@ tasks:
 
       3. it-components-crud.api.spec.ts:72
          DELETE /it-components/:id - should delete IT component without dependencies
-         Échec au DELETE — possible 409 DEPENDENCY_CONFLICT résiduel ou app liée non nettoyée.
+          Échec au DELETE — possible 409 DEPENDENCY_CONFLICT résiduel ou app liée non nettoyée.
+
+  - id: T-051
+    nom: "Interfaces — Décision : comment traiter les interfaces manuelles (model / back / front)"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-08"
+    type: decision
+    feature: "FS-08"
+    sessions: []
+    notes: |
+      Question transverse : comment modéliser et traiter les interfaces créées/saisies manuellement
+      (par opposition aux interfaces découvertes automatiquement).
+      Impacte le modèle Prisma, le backend NestJS et le frontend React.
+      Décision structurante à formaliser avant impl ou spec FS-08.
