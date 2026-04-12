@@ -426,7 +426,7 @@ describe('Applications (e2e)', () => {
         data: {
           sourceAppId: createdAppId,
           targetAppId: createdAppId,
-          type: 'HTTP',
+          type: 'REST',
           name: 'Test Interface',
         },
       });

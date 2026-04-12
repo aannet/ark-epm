@@ -198,11 +198,11 @@ tasks:
 
   - id: T-039
     nom: "Amendment FS-06-BACK — Contrôle dépendances Interfaces avant suppression Application"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-08"
     type: impl
@@ -214,6 +214,9 @@ tasks:
       - tool: OC
         id: "a9f3e1"
         nom: "prérequis T-039 validés après T-040"
+      - tool: OC
+        id: "b3f719"
+        nom: "fix test type HTTP→REST + validation 21/21"
     notes: |
       Identifié lors de la rédaction FS-08-BACK (2026-04-12) — F-999 Item 24.
       ApplicationsService.remove() ne vérifie pas _count.sourceInterfaces ni
@@ -223,11 +226,11 @@ tasks:
       ✅ Prérequis levés : FS-08-BACK done (T-040, 2026-04-12).
       Relations Prisma sourceInterfaces/targetInterfaces disponibles sur model Application.
 
-      À faire :
-      - Ajouter sourceInterfaces + targetInterfaces dans le select _count de remove()
-      - Lever ConflictException DEPENDENCY_CONFLICT si total > 0
-      - Ajouter test Supertest dans FS-06-applications.e2e-spec.ts :
-        créer interface liée, tenter DELETE app → 409 DEPENDENCY_CONFLICT
+      ✅ DONE (2026-04-12) :
+      - getDependencies() incluait déjà sourceInterfaces + targetInterfaces dans _count
+      - remove() levait déjà ConflictException DEPENDENCY_CONFLICT si hasDependencies
+      - Test Supertest déjà présent — corrigé : type 'HTTP' → 'REST' (InterfaceType enum)
+      - Validation : 21/21 tests e2e FS-06 passent
 
   - id: T-047
     nom: "Backend — Implémenter filtrage search/domainId dans GET /business-capabilities/tree"
