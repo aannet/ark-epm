@@ -143,15 +143,19 @@ tasks:
 
   - id: T-017
     nom: "Spec FS-07-FRONT Lifecycle tab — Business Capabilities P2"
-    statut: open
+    statut: done
     assigned_agent: spec
     session_active: ~
-    date_resolution: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-07"
     type: spec
     feature: "FS-07-FRONT-P2"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b3d7a1"
+        nom: "spec FS-07-P2-Lifecycle-front — modèle 5 phases + LifecycleStepper"
     notes: |
       Onglet Lifecycle sur le détail d'une Business Capability.
       Visualisation de la trajectoire de modernisation dans le temps.
@@ -292,3 +296,28 @@ tasks:
       (par opposition aux interfaces découvertes automatiquement).
       Impacte le modèle Prisma, le backend NestJS et le frontend React.
       Décision structurante à formaliser avant impl ou spec FS-08.
+
+  - id: T-052
+    nom: "Amendment FS-07-BACK — Ajouter lifecycleStatus sur BusinessCapability (data + back)"
+    statut: open
+    assigned_agent: data
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-07"
+    type: impl
+    feature: "FS-07-BACK"
+    sessions: []
+    notes: |
+      Créé par T-017 (spec agent, 2026-04-12) — gate bloquante pour FS-07-P2-FRONT.
+      Actions requises :
+      1. [data] Ajouter lifecycleStatus String? @map("lifecycle_status") @db.VarChar(50)
+         sur le modèle BusinessCapability dans schema.prisma.
+         Migration : npx prisma migrate dev --name add_lifecycle_status_to_business_capabilities
+      2. [back] Exposer lifecycleStatus dans les DTOs :
+         - BusinessCapabilityResponse (GET /:id)
+         - BusinessCapabilityListItem (GET / list)
+         - BusinessCapabilityTreeNode (GET /tree)
+         - UpdateBusinessCapabilityDto (PATCH /:id — champ optionnel nullable)
+      Référence spec : docs/03-Features-Spec/P2/FS-07-P2-Lifecycle-front.md §6.
