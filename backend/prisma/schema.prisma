@@ -80,7 +80,6 @@ model BusinessCapability {
   domainId            String?              @map("domain_id") @db.Uuid
   criticality         CriticalityLevel?
   technicalFit        TechnicalFitLevel?   @map("technical_fit")
-  lifecycleStatus     String?              @map("lifecycle_status") @db.VarChar(50)
   createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
   applicationMappings AppCapabilityMap[]

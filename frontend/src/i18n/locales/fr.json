@@ -668,23 +668,10 @@
         "confirmMessage": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ?",
         "blockedMessage": "Cette capacité a {{childrenCount}} enfant(s) et {{applicationsCount}} application(s) liée(s) et ne peut pas être supprimée"
       },
-      "lifecycle": {
-        "tabLabel": "Lifecycle",
-        "sectionTitle": "Trajectoire de modernisation",
-        "editDescription": "Sélectionnez la phase actuelle de cette capacité métier dans sa trajectoire de modernisation.",
-        "notDefined": "Aucune phase de lifecycle définie pour cette capacité.",
-        "clearButton": "Réinitialiser",
-        "draft": "Brouillon",
-        "in_progress": "En développement",
-        "production": "En production",
-        "deprecated": "Dépréciée",
-        "retired": "Retirée"
-      },
       "snackbar": {
         "created": "Capacité créée avec succès",
         "updated": "Capacité mise à jour avec succès",
-        "deleted": "Capacité supprimée avec succès",
-        "lifecycleUpdated": "Phase de lifecycle mise à jour"
+        "deleted": "Capacité supprimée avec succès"
       }
     },
 

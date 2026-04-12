@@ -19,7 +19,6 @@ export interface BusinessCapabilityTreeNode {
   domainId: string | null;
   criticality: string | null;
   technicalFit: string | null;
-  lifecycleStatus: string | null;
   domain: { id: string; name: string } | null;
   _count: { applicationMappings: number; children: number };
   children: BusinessCapabilityTreeNode[];
@@ -158,7 +157,6 @@ export class BusinessCapabilitiesService {
         domainId: true,
         criticality: true,
         technicalFit: true,
-        lifecycleStatus: true,
         domain: { select: { id: true, name: true } },
         _count: { select: { children: true, applicationMappings: true } },
       },
@@ -286,7 +284,6 @@ export class BusinessCapabilitiesService {
           domainId: dto.domainId ?? null,
           criticality: dto.criticality ?? null,
           technicalFit: dto.technicalFit ?? null,
-          lifecycleStatus: dto.lifecycleStatus ?? null,
           level,
           updatedAt: new Date(),
         },
@@ -352,7 +349,6 @@ export class BusinessCapabilitiesService {
           ...(dto.domainId !== undefined && { domainId: dto.domainId ?? null }),
           ...(dto.criticality !== undefined && { criticality: dto.criticality ?? null }),
           ...(dto.technicalFit !== undefined && { technicalFit: dto.technicalFit ?? null }),
-          ...(dto.lifecycleStatus !== undefined && { lifecycleStatus: dto.lifecycleStatus ?? null }),
           level: newLevel,
           updatedAt: new Date(),
         },

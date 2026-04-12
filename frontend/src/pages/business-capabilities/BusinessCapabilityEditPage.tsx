@@ -16,15 +16,12 @@ import {
   TableHead,
   TableRow,
   Link,
-  Button,
 } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
-import ArkAlert from '@/components/shared/ArkAlert';
-import LifecycleStepper, { BcLifecyclePhase } from '@/components/shared/LifecycleStepper';
 import BusinessCapabilityForm from '@/components/business-capabilities/BusinessCapabilityForm';
 import {
   useBusinessCapability,
@@ -61,8 +58,6 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
   const [circularReferenceError, setCircularReferenceError] = useState(false);
   const [dimensions, setDimensions] = useState<TagDimensionResponse[]>([]);
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
-  const [selectedPhase, setSelectedPhase] = useState<BcLifecyclePhase | null>(null);
-  const [lifecycleAlert, setLifecycleAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
 
   const { data: capability, isLoading, error: fetchError } = useBusinessCapability(id || '');
   const { data: applicationsData } = useBusinessCapabilityApplications(id || '', { limit: 100 });
@@ -79,11 +74,10 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
     });
   }, []);
 
-  // Initialize selectedParentId and selectedPhase from capability
+  // Initialize selectedParentId from capability
   useEffect(() => {
     if (capability) {
       setSelectedParentId(capability.parentId);
-      setSelectedPhase((capability.lifecycleStatus as BcLifecyclePhase) ?? null);
     }
   }, [capability]);
 
@@ -150,16 +144,6 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
     }
   };
 
-  const handleLifecycleSave = async () => {
-    setLifecycleAlert(null);
-    try {
-      await updateMutation.mutateAsync({ lifecycleStatus: selectedPhase ?? null });
-      setLifecycleAlert({ severity: 'success', message: t('businessCapabilities.snackbar.lifecycleUpdated') });
-    } catch {
-      setLifecycleAlert({ severity: 'error', message: t('common.snackbar.error') });
-    }
-  };
-
   const handleCancel = () => {
     navigate(`/business-capabilities/${id}`);
   };
@@ -202,7 +186,6 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
       >
         <Tab label={t('businessCapabilities.form.tabs.general')} />
         <Tab label={t('businessCapabilities.form.tabs.relations')} />
-        <Tab label={t('businessCapabilities.lifecycle.tabLabel')} />
         <Tab label={t('businessCapabilities.form.tabs.audit')} />
       </Tabs>
 
@@ -324,58 +307,8 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
         </Stack>
       </TabPanel>
 
-      {/* Tab: Lifecycle */}
-      <TabPanel value={activeTab} index={2}>
-        <Stack spacing={3}>
-          {lifecycleAlert && (
-            <ArkAlert
-              open
-              severity={lifecycleAlert.severity}
-              message={lifecycleAlert.message}
-              autoDismiss={4000}
-              onClose={() => setLifecycleAlert(null)}
-            />
-          )}
-          <Typography variant="body2" color="text.secondary">
-            {t('businessCapabilities.lifecycle.editDescription')}
-          </Typography>
-          <LifecycleStepper
-            currentPhase={selectedPhase}
-            editable
-            onPhaseChange={(phase) => setSelectedPhase(phase)}
-          />
-          {selectedPhase !== null && (
-            <Box>
-              <Button
-                variant="outlined"
-                size="small"
-                color="inherit"
-                onClick={() => setSelectedPhase(null)}
-              >
-                {t('businessCapabilities.lifecycle.clearButton')}
-              </Button>
-            </Box>
-          )}
-          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-            <Button
-              variant="contained"
-              disabled={selectedPhase === (capability.lifecycleStatus as BcLifecyclePhase ?? null) || updateMutation.isPending}
-              onClick={handleLifecycleSave}
-            >
-              {t('common.actions.save')}
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setSelectedPhase((capability.lifecycleStatus as BcLifecyclePhase) ?? null)}
-            >
-              {t('common.actions.cancel')}
-            </Button>
-          </Box>
-        </Stack>
-      </TabPanel>
-
       {/* Tab: Audit */}
-      <TabPanel value={activeTab} index={3}>
+      <TabPanel value={activeTab} index={2}>
         <EmptyState
           title={t('businessCapabilities.form.audit.placeholder.title')}
           description={t('businessCapabilities.form.audit.placeholder.description')}

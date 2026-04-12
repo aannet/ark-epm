@@ -44,8 +44,4 @@ export class CreateBusinessCapabilityDto {
   @IsOptional()
   technicalFit?: TechnicalFitLevel;
 
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  lifecycleStatus?: string;
 }

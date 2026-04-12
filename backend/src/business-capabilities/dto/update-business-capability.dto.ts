@@ -45,8 +45,4 @@ export class UpdateBusinessCapabilityDto {
   @IsOptional()
   technicalFit?: TechnicalFitLevel | null;
 
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  lifecycleStatus?: string | null;
 }

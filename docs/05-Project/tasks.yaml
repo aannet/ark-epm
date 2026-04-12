@@ -394,9 +394,9 @@ tasks:
 
   - id: T-056
     nom: "Retrait complet lifecycle BC — front + back + data (revert T-052 + T-053)"
-    statut: open
+    statut: in_progress
     assigned_agent: front
-    session_active: ~
+    session_active: "c3f8b1"
     handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t053-lifecycle-apps.md"
     date_resolution: ~
     sprint: S4
