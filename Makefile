@@ -197,3 +197,7 @@ validate-backend: build-backend
 	  echo "  Check: curl http://localhost:3001/api/v1/health"; \
 	  echo "  Check: nothing else occupies port 3000 or 3001 (npx serve, etc.)"; \
 	  exit 1; }
+
+project-dashboard:
+	@echo "Dashboard disponible sur http://localhost:4000/docs/05-Project/tasks-dashboard/"
+	npx serve . --listen 4000

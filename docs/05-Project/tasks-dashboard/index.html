@@ -1059,7 +1059,7 @@
     cntTotal.textContent = cntOpen.textContent = cntDone.textContent = '—';
   }
 
-  // ── Bootstrap — charge tasks + roadmap en parallèle ────────────────────────
+  // ── Bootstrap — charge tasks + roadmap + archive en parallèle ──────────────
   const tasksPromise = fetch('../tasks.yaml')
     .then(res => {
       if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
@@ -1072,10 +1072,17 @@
     .then(text => text ? jsyaml.load(text) : null)
     .catch(() => null);  // non-bloquant
 
-  Promise.all([tasksPromise, roadmapPromise])
-    .then(([tasksDoc, roadmapDoc]) => {
+  const archivePromise = fetch('../tasks-done.yaml')
+    .then(res => res.ok ? res.text() : null)
+    .then(text => text ? jsyaml.load(text) : null)
+    .catch(() => null);  // non-bloquant
+
+  Promise.all([tasksPromise, roadmapPromise, archivePromise])
+    .then(([tasksDoc, roadmapDoc, archiveDoc]) => {
       roadmapData = (roadmapDoc && roadmapDoc.sprints) ? roadmapDoc.sprints : [];
-      init((tasksDoc && tasksDoc.tasks) ? tasksDoc.tasks : []);
+      const active  = (tasksDoc  && tasksDoc.tasks)  ? tasksDoc.tasks  : [];
+      const archive = (archiveDoc && archiveDoc.tasks) ? archiveDoc.tasks : [];
+      init([...active, ...archive]);
     })
     .catch(err => {
       const msg = String(err);
