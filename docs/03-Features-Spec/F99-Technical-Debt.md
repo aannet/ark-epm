@@ -1,8 +1,10 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.7 — Avril 2026_
+_Version 0.8 — Avril 2026_
 
-> **Changelog v0.6 :** Ajout Items 17-21 — Breadcrumbs systématisés (PNS-11, docs/02-Design/02-Navigation-Patterns.md v0.4) + dette technique Sprint 3 : filtres Providers, breadcrumbs Applications/Domains/Providers harmonisés, composant AppBreadcrumbs recommandé. Guidelines design mises à jour : DatePicker MUI, badge conditionnel, ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs documentés.
+> **Changelog v0.8 :** Ajout Item 24 — Contrôle dépendances Interfaces avant suppression d'Application. Amendment FS-06-BACK requis après FS-08-BACK `done` : `ApplicationsService.remove()` doit vérifier `_count.sourceInterfaces + _count.targetInterfaces` et lever `DEPENDENCY_CONFLICT` si > 0. Identifié lors de la rédaction FS-08-BACK (Sprint 4).
+>
+> **Changelog v0.7 :** Ajout Items 17-21 — Breadcrumbs systématisés (PNS-11, docs/02-Design/02-Navigation-Patterns.md v0.4) + dette technique Sprint 3 : filtres Providers, breadcrumbs Applications/Domains/Providers harmonisés, composant AppBreadcrumbs recommandé. Guidelines design mises à jour : DatePicker MUI, badge conditionnel, ExpiryDateBadge, ProviderRoleBadge, AppBreadcrumbs documentés.
 >
 > **Changelog v0.5 :** Ajout Item 11 — Description Markdown pour Applications (différé P2). Drawer Applications confirmé read-only (exception PNS-02).
 >
@@ -31,10 +33,10 @@ _Version 0.1 — Mars 2026_
 |---|---|
 | **ID** | F-999 |
 | **Titre** | Technical Debt & Conventions Transverses |
-| **Priorité** | P1 (items 1–5, 8, 10, 12, 13, 14, 15, 23) / P2 (items 6–7, 9, 11, 16, 17–22) |
-| **Statut** | `done` (items 1, 2, 3, 4, 9, 10, 15) / `in-progress` (items 12, 13, 14) / `pending` (items 5, 8, 23) / `documented` (items 17–22, FS-11) |
-| **Estimé** | 1 jour (items P1 core) + 3 jours (items 12-14 debt) + 2 jours (items 17-22 Sprint 3) + 0.5j (item 23 sécurité) |
-| **Version** | 0.7 |
+| **Priorité** | P1 (items 1–5, 8, 10, 12, 13, 14, 15, 23, 24) / P2 (items 6–7, 9, 11, 16, 17–22) |
+| **Statut** | `done` (items 1, 2, 3, 4, 9, 10, 15) / `in-progress` (items 12, 13, 14) / `pending` (items 5, 8, 23, **24**) / `documented` (items 17–22, FS-11) |
+| **Estimé** | 1 jour (items P1 core) + 3 jours (items 12-14 debt) + 2 jours (items 17-22 Sprint 3) + 0.5j (item 23 sécurité) + 0.5j (item 24 amendment FS-06) |
+| **Version** | 0.8 |
 
 ---
 
@@ -939,6 +941,58 @@ validationSchema: Joi.object({
 - ✅ Tests e2e auth passent avec `JWT_SECRET` correctement injecté
 
 **Timing :** À corriger avant toute mise en production (bloquant)
+
+---
+
+### Item 24 — Contrôle dépendances Interfaces avant suppression d'Application *(P1 — Amendment FS-06-BACK)*
+
+| | |
+|---|---|
+| **Statut** | 🟠 Documenté — À implémenter via amendment FS-06-BACK |
+| **Priorité** | P1 — Intégrité référentielle applicative |
+| **Gate de validation** | `DELETE /api/v1/applications/{id}` avec interfaces liées → `409 DEPENDENCY_CONFLICT` |
+
+**Contexte :**
+
+La table `interfaces` référence `applications` via deux FK (`source_app_id`, `target_app_id`) avec `ON DELETE NO ACTION`. La suppression d'une Application liée à des interfaces est actuellement bloquée au niveau **base de données** (erreur FK Postgres), mais pas interceptée proprement côté applicatif — aucun `DEPENDENCY_CONFLICT` avec compteurs n'est renvoyé au client.
+
+FS-06-BACK n'a pas encore été amendé pour inclure `_count.sourceInterfaces` et `_count.targetInterfaces` dans le guard de suppression de `ApplicationsService.remove()`. Ce manque a été identifié lors de la rédaction de FS-08-BACK (Sprint 4).
+
+**Décision :**
+
+Amender `FS-06-BACK` pour ajouter le contrôle suivant dans `ApplicationsService.remove()` :
+
+```typescript
+const app = await this.prisma.application.findUnique({
+  where: { id },
+  select: {
+    _count: {
+      select: {
+        sourceInterfaces: true,   // FK source_app_id
+        targetInterfaces: true,   // FK target_app_id
+        // ... autres _count existants
+      }
+    }
+  }
+});
+
+const interfaceCount = app._count.sourceInterfaces + app._count.targetInterfaces;
+if (interfaceCount > 0) {
+  throw new ConflictException({
+    code: 'DEPENDENCY_CONFLICT',
+    message: `Application is used by ${interfaceCount} interface(s)`
+  });
+}
+```
+
+**Fichiers concernés :**
+- `backend/src/applications/applications.service.ts` — méthode `remove()`, select `_count`
+- `backend/test/FS-06-applications.e2e-spec.ts` — ajouter test Supertest `DELETE` avec interface liée → `409 DEPENDENCY_CONFLICT`
+
+**Prérequis :**
+- FS-08-BACK `done` (migration table `interfaces` appliquée, relations Prisma à jour)
+
+**Timing :** Sprint 4 — Amendment après FS-08-BACK `done`, avant recette FS-08-FRONT
 
 ---
 

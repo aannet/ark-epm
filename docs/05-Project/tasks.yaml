@@ -932,3 +932,53 @@ tasks:
       leur parent, ce qui brise l'ordre global attendu par l'utilisateur.
       Revoir l'UX de tri sur cette vue (ex : tri uniquement sur L0, désactivation
       des headers de tri, ou basculement vers une vue flat dédiée au tri).
+
+  - id: T-039
+    nom: "Amendment FS-06-BACK — Contrôle dépendances Interfaces avant suppression Application"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-08"
+    type: impl
+    feature: "FS-06-BACK"
+    sessions: []
+    notes: |
+      Identifié lors de la rédaction FS-08-BACK (2026-04-12) — F-999 Item 24.
+      ApplicationsService.remove() ne vérifie pas _count.sourceInterfaces ni
+      _count.targetInterfaces avant suppression. La FK ON DELETE NO ACTION bloque
+      en base mais ne retourne pas de DEPENDENCY_CONFLICT propre au client.
+
+      Prérequis : FS-08-BACK done (migration table interfaces appliquée).
+
+      À faire :
+      - Ajouter sourceInterfaces + targetInterfaces dans le select _count de remove()
+      - Lever ConflictException DEPENDENCY_CONFLICT si total > 0
+      - Ajouter test Supertest dans FS-06-applications.e2e-spec.ts :
+        créer interface liée, tenter DELETE app → 409 DEPENDENCY_CONFLICT
+
+  - id: T-040
+    nom: "Implémentation FS-08-BACK — Module Interfaces (NestJS + Prisma + tests)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-08"
+    type: impl
+    feature: "FS-08-BACK"
+    sessions: []
+    notes: |
+      Spec stabilisée : docs/03-Features-Spec/FS-08-Interfaces-back.md (v1.1)
+      Débloque : T-006 (tests Playwright applications-dependencies), T-039 (amendment FS-06-BACK)
+
+      Périmètre :
+      - Migration schéma (enums InterfaceType/InterfaceFrequency, fix id/updatedAt,
+        drop tags[], drop latency_ms, technical_contact texte libre, add description/comment)
+      - Module NestJS : interfaces.module/controller/service + DTOs create/update/query
+      - Tests Jest unit (13 cas) + Supertest e2e (18 cas)
+      - Seed 2 interfaces de démo (dépend des apps seedées FS-06)
+      - openapi.yaml mis à jour (NFR-GOV-001)
