@@ -889,19 +889,30 @@ tasks:
 
   - id: T-037
     nom: "IT Components : Vue liste — Changement affichage nombre apps en Chip MUI"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "f9d3b1"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S3
     theme: "FS-05"
     type: impl
     feature: "FS-05-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "k2-5front"
+        nom: "uniformisation Chips compteurs vues liste (IT/Providers/DataObjects)"
     notes: |
-      Uniformiser l'affichage du compteur avec le pattern utilisé sur ApplicationDetailPage
-      pour la section "Composants IT" (MuiChip small label).
+      Uniformisation des compteurs d'applications liées en Chip MUI outlined+info.
+      
+      Fichiers modifiés :
+      - ITComponentListPage.tsx : Chip outlined+info, conditionnel si > 0
+      - ProvidersListPage.tsx : idem pour appProviderMaps
+      - DataObjectListPage.tsx : idem pour appDataObjectMaps
+      
+      Pattern établi : Chip size=small variant=outlined color=info,
+      cellule vide si valeur = 0 pour alléger l'affichage.
+      Commit : 7d72a00
 
   - id: T-038
     nom: "Business Capabilities : Vue liste — Évolution UX du tri (incompatibilité ASC/DESC avec structure arborescente)"
