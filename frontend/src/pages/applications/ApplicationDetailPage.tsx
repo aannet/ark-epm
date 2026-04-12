@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,6 +10,8 @@ import {
   Link,
   Chip,
   Divider,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -19,6 +21,7 @@ import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import StatusChip from '@/components/shared/StatusChip';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { TagChipList } from '@/components/tags';
+import { LifecycleStepper } from '@/components/shared/LifecycleStepper';
 import { useApplication } from '@/api/applications';
 import { hasPermission } from '@/store/auth';
 
@@ -27,6 +30,7 @@ export default function ApplicationDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const canWrite = hasPermission('applications:write');
+  const [activeTab, setActiveTab] = useState(0);
 
   const { data: application, isLoading, error } = useApplication(id || '', {
     enabled: !!id,
@@ -79,220 +83,246 @@ export default function ApplicationDetailPage(): JSX.Element {
         }
       />
 
-      <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider' }}>
-        {/* Section Informations générales */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            {t('applications.detail.section.general')}
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.list.columns.name')}
-              </Typography>
-              <Typography variant="body1">{application.name}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.detail.criticality')}
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                {application.criticality ? (
-                  <StatusChip type="criticality" value={application.criticality as any} />
-                ) : (
-                  <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
-                )}
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.list.columns.description')}
-              </Typography>
-              <Typography variant="body1">
-                {application.description || t('applications.detail.noDescription')}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.list.columns.lifecycleStatus')}
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                {application.lifecycleStatus ? (
-                  <StatusChip type="lifecycle" value={application.lifecycleStatus as any} />
-                ) : (
-                  <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
-                )}
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.detail.comment')}
-              </Typography>
-              <Typography variant="body1">
-                {application.comment || t('applications.detail.noComment')}
-              </Typography>
-            </Grid>
-          </Grid>
-        </Box>
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 2 }}
+        >
+          <Tab label={t('applications.detail.section.general')} />
+          <Tab label={t('applications.lifecycle.tabLabel')} />
+        </Tabs>
 
-        <Divider sx={{ my: 3 }} />
-
-        {/* Section Relations */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            {t('applications.detail.section.relations')}
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.list.columns.domain')}
+        {/* Tab 0 — Informations */}
+        {activeTab === 0 && (
+          <Box sx={{ p: 4 }}>
+            {/* Section Informations générales */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('applications.detail.section.general')}
               </Typography>
-              {application.domain ? (
-                <Link
-                  component="button"
-                  variant="body1"
-                  onClick={() => navigate(`/domains/${application.domain!.id}`)}
-                  sx={{ textDecoration: 'underline' }}
-                >
-                  {application.domain.name}
-                </Link>
-              ) : (
-                <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
-              )}
-            </Grid>
-             <Grid item xs={12} md={6}>
-               <Typography variant="body2" color="text.secondary">
-                 {t('applications.list.columns.provider')}
-               </Typography>
-               {application.providers && application.providers.length > 0 ? (
-                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                   {application.providers.map((provider) => (
-                     <Box key={provider.id}>
-                       <Link
-                         component="button"
-                         variant="body1"
-                         onClick={() => navigate(`/providers/${provider.id}`)}
-                         sx={{ textDecoration: 'underline', display: 'block' }}
-                       >
-                         {provider.name}
-                       </Link>
-                       {provider.role && (
-                         <Typography variant="caption" color="text.secondary">
-                           ({provider.role})
-                         </Typography>
-                       )}
-                     </Box>
-                   ))}
-                 </Box>
-               ) : (
-                 <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
-               )}
-              </Grid>
-             <Grid item xs={12} md={6}>
-               <Typography variant="body2" color="text.secondary">
-                 {t('applications.relations.itComponents')}
-               </Typography>
-               {application.itComponents && application.itComponents.length > 0 ? (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {application.itComponents.map((itComponent) => (
-                      <Link
-                        key={itComponent.id}
-                        component={RouterLink}
-                        to={`/it-components/${itComponent.id}`}
-                        underline="always"
-                        sx={{
-                          color: 'inherit',
-                          '&:hover': { color: 'primary.main' },
-                        }}
-                      >
-                        {itComponent.name}
-                      </Link>
-                    ))}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.list.columns.name')}
+                  </Typography>
+                  <Typography variant="body1">{application.name}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.detail.criticality')}
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    {application.criticality ? (
+                      <StatusChip type="criticality" value={application.criticality as any} />
+                    ) : (
+                      <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
+                    )}
                   </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.list.columns.description')}
+                  </Typography>
+                  <Typography variant="body1">
+                    {application.description || t('applications.detail.noDescription')}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.detail.comment')}
+                  </Typography>
+                  <Typography variant="body1">
+                    {application.comment || t('applications.detail.noComment')}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {t('applications.lifecycle.sectionTitle')}
+                </Typography>
+                {application.lifecycleStatus ? (
+                  <LifecycleStepper
+                    currentPhase={application.lifecycleStatus}
+                    editable={false}
+                  />
                 ) : (
-                  <Typography variant="body1">{t('applications.relations.noItComponents')}</Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    {t('applications.lifecycle.notDefined')}
+                  </Typography>
                 )}
-             </Grid>
-             <Grid item xs={12}>
-               <Typography variant="body2" color="text.secondary">
-                 {t('applications.relations.businessCapabilities')}
-               </Typography>
-               {application.businessCapabilities && application.businessCapabilities.length > 0 ? (
-                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
-                   {application.businessCapabilities.map((bc) => (
-                     <Chip
-                       key={bc.id}
-                       label={bc.name}
-                       size="small"
-                       onClick={() => navigate(`/business-capabilities/${bc.id}`)}
-                       sx={{ cursor: 'pointer' }}
-                     />
-                   ))}
-                 </Box>
-               ) : (
-                 <Typography variant="body1">{t('applications.relations.noBusinessCapabilities')}</Typography>
-               )}
-             </Grid>
-             <Grid item xs={12} md={6}>
-               <Typography variant="body2" color="text.secondary">
-                 {t('applications.detail.owner')}
-               </Typography>
-              <Typography variant="body1">
-                {application.owner
-                  ? `${application.owner.firstName} ${application.owner.lastName}`
-                  : t('applications.detail.noValue')}
+              </Box>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Section Relations */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('applications.detail.section.relations')}
               </Typography>
-            </Grid>
-          </Grid>
-        </Box>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.list.columns.domain')}
+                  </Typography>
+                  {application.domain ? (
+                    <Link
+                      component="button"
+                      variant="body1"
+                      onClick={() => navigate(`/domains/${application.domain!.id}`)}
+                      sx={{ textDecoration: 'underline' }}
+                    >
+                      {application.domain.name}
+                    </Link>
+                  ) : (
+                    <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
+                  )}
+                </Grid>
+                 <Grid item xs={12} md={6}>
+                   <Typography variant="body2" color="text.secondary">
+                     {t('applications.list.columns.provider')}
+                   </Typography>
+                   {application.providers && application.providers.length > 0 ? (
+                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                       {application.providers.map((provider) => (
+                         <Box key={provider.id}>
+                           <Link
+                             component="button"
+                             variant="body1"
+                             onClick={() => navigate(`/providers/${provider.id}`)}
+                             sx={{ textDecoration: 'underline', display: 'block' }}
+                           >
+                             {provider.name}
+                           </Link>
+                           {provider.role && (
+                             <Typography variant="caption" color="text.secondary">
+                               ({provider.role})
+                             </Typography>
+                           )}
+                         </Box>
+                       ))}
+                     </Box>
+                   ) : (
+                     <Typography variant="body1">{t('applications.detail.noValue')}</Typography>
+                   )}
+                  </Grid>
+                 <Grid item xs={12} md={6}>
+                   <Typography variant="body2" color="text.secondary">
+                     {t('applications.relations.itComponents')}
+                   </Typography>
+                   {application.itComponents && application.itComponents.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {application.itComponents.map((itComponent) => (
+                        <Link
+                          key={itComponent.id}
+                          component={RouterLink}
+                          to={`/it-components/${itComponent.id}`}
+                          underline="always"
+                          sx={{
+                            color: 'inherit',
+                            '&:hover': { color: 'primary.main' },
+                          }}
+                        >
+                          {itComponent.name}
+                        </Link>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body1">{t('applications.relations.noItComponents')}</Typography>
+                  )}
+                 </Grid>
+                 <Grid item xs={12}>
+                   <Typography variant="body2" color="text.secondary">
+                     {t('applications.relations.businessCapabilities')}
+                   </Typography>
+                   {application.businessCapabilities && application.businessCapabilities.length > 0 ? (
+                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+                       {application.businessCapabilities.map((bc) => (
+                         <Chip
+                           key={bc.id}
+                           label={bc.name}
+                           size="small"
+                           onClick={() => navigate(`/business-capabilities/${bc.id}`)}
+                           sx={{ cursor: 'pointer' }}
+                         />
+                       ))}
+                     </Box>
+                   ) : (
+                     <Typography variant="body1">{t('applications.relations.noBusinessCapabilities')}</Typography>
+                   )}
+                 </Grid>
+                 <Grid item xs={12} md={6}>
+                   <Typography variant="body2" color="text.secondary">
+                     {t('applications.detail.owner')}
+                   </Typography>
+                  <Typography variant="body1">
+                    {application.owner
+                      ? `${application.owner.firstName} ${application.owner.lastName}`
+                      : t('applications.detail.noValue')}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
 
-        <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: 3 }} />
 
-        {/* Section Tags */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            {t('applications.detail.section.tags')}
-          </Typography>
-          {application.tags && application.tags.length > 0 ? (
-            <TagChipList
-              tags={application.tags}
-              deduplicate={true}
-              showMoreButton={false}
-              size="small"
-            />
-          ) : (
+            {/* Section Tags */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('applications.detail.section.tags')}
+              </Typography>
+              {application.tags && application.tags.length > 0 ? (
+                <TagChipList
+                  tags={application.tags}
+                  deduplicate={true}
+                  showMoreButton={false}
+                  size="small"
+                />
+              ) : (
+                <Typography variant="body1" color="text.secondary">
+                  —
+                </Typography>
+              )}
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Section Métadonnées */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {t('applications.detail.section.metadata')}
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.list.columns.createdAt')}
+                  </Typography>
+                  <Typography variant="body1">
+                    {new Date(application.createdAt).toLocaleDateString('fr-FR')}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('applications.detail.updatedAt')}
+                  </Typography>
+                  <Typography variant="body1">
+                    {new Date(application.updatedAt).toLocaleDateString('fr-FR')}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
+        )}
+
+        {/* Tab 1 — Assessment */}
+        {activeTab === 1 && (
+          <Box sx={{ p: 4 }}>
             <Typography variant="body1" color="text.secondary">
-              —
+              {t('common.comingSoon')}
             </Typography>
-          )}
-        </Box>
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* Section Métadonnées */}
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            {t('applications.detail.section.metadata')}
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.list.columns.createdAt')}
-              </Typography>
-              <Typography variant="body1">
-                {new Date(application.createdAt).toLocaleDateString('fr-FR')}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" color="text.secondary">
-                {t('applications.detail.updatedAt')}
-              </Typography>
-              <Typography variant="body1">
-                {new Date(application.updatedAt).toLocaleDateString('fr-FR')}
-              </Typography>
-            </Grid>
-          </Grid>
-        </Box>
+          </Box>
+        )}
       </Paper>
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-start' }}>

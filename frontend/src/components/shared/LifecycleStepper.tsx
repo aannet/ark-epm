@@ -132,7 +132,7 @@ export function LifecycleStepper({
               <CheckIcon sx={{ fontSize: 14, flexShrink: 0 }} />
             )}
             <Box component="span" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {t(`businessCapabilities.lifecycle.${phase}`)}
+              {t(`applications.lifecycle.${phase}`)}
             </Box>
           </Box>
         );

@@ -47,6 +47,7 @@
       "description": "Commencez par créer votre premier élément."
     },
     "noData": "Aucune donnée",
+    "comingSoon": "À venir",
     "confirmDialog": {
       "defaultTitle": "Confirmer la suppression",
       "defaultMessage": "Cette action est irréversible.",
@@ -514,7 +515,10 @@
          "in_progress": "En développement",
          "production": "En production",
          "deprecated": "Dépréciée",
-         "retired": "Retirée"
+         "retired": "Retirée",
+         "tabLabel": "Assessment",
+         "sectionTitle": "Trajectoire de modernisation",
+         "notDefined": "Aucune phase de lifecycle définie pour cette application."
        },
         "roles": {
           "editor": "Éditeur",

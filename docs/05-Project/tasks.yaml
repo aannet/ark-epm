@@ -348,27 +348,55 @@ tasks:
 
   - id: T-054
     nom: "Backend — Audit endpoint GET /applications/:id : vérifier exposition lifecycleStatus"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-06"
     type: debt
     feature: "FS-06-BACK"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "f1a2b3"
+        nom: "audit — RAS, backend déjà correct sur les 3 points (2026-04-12)"
     notes: |
       Contexte : T-055 (front) ajoute le LifecycleStepper sur les pages Application.
       Le backend Applications gère déjà lifecycleStatus (create/update/filter).
-      Vérifier que :
-      1. GET /api/v1/applications/:id retourne bien lifecycleStatus dans la réponse
-      2. PATCH /api/v1/applications/:id accepte { lifecycleStatus: null } (réinitialisation)
-      3. Si un cas est manquant : corriger DTO + service
-      Gate pour T-055.
+      ✅ DONE 2026-04-12 : audit confirmé — aucune modification nécessaire.
+      1. GET /api/v1/applications/:id → mapApplicationResponse() inclut lifecycleStatus (service.ts:608)
+      2. PATCH /api/v1/applications/:id { lifecycleStatus: null } → update() data ligne 408, @IsOptional() OK
+      3. UpdateApplicationDto : @IsString() @IsOptional() lifecycleStatus?: string (dto:65)
 
   - id: T-055
     nom: "Frontend — LifecycleStepper sur ApplicationDetailPage + ApplicationEditPage"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    sessions:
+      - tool: OC
+        id: "f1a2b3"
+        nom: "LifecycleStepper DetailPage + fix i18n key + onglet Assessment (2026-04-12)"
+    notes: |
+      Gate : T-054 done (backend lifecycleStatus Applications vérifié).
+      ✅ DONE 2026-04-12 :
+      - LifecycleStepper.tsx : fix bug i18n (businessCapabilities.lifecycle → applications.lifecycle)
+      - fr.json : ajout common.comingSoon + applications.lifecycle.tabLabel/sectionTitle/notDefined
+        tabLabel renommé "Assessment"
+      - ApplicationDetailPage : Tabs MUI (Informations | Assessment)
+        Tab Informations : LifecycleStepper read-only inline (remplace StatusChip lifecycle)
+        Tab Assessment : "À venir" (common.comingSoon)
+      ⚠️ Partiel : ApplicationEditPage non traité → voir T-057.
+
+  - id: T-057
+    nom: "Frontend — LifecycleStepper éditable dans ApplicationEditPage"
     statut: open
     assigned_agent: front
     session_active: ~
@@ -380,17 +408,13 @@ tasks:
     feature: "FS-06-FRONT"
     sessions: []
     notes: |
-      Gate : T-054 done (backend lifecycleStatus Applications vérifié).
-      Composant LifecycleStepper.tsx disponible dans components/shared/ (créé par T-053).
-      À implémenter :
-      1. i18n : ajouter dans applications.lifecycle les clés manquantes :
-         tabLabel, sectionTitle, editDescription, notDefined, clearButton
-         + applications.snackbar.lifecycleUpdated
-      2. ApplicationDetailPage : onglet "Lifecycle" (lecture seule, LifecycleStepper non éditable)
-         Remplace/complète la ligne StatusChip lifecycleStatus existante
-      3. ApplicationEditPage : onglet "Lifecycle" (éditable, PATCH /:id { lifecycleStatus })
-         Remplace le <Select> LIFECYCLE_STATUSES par LifecycleStepper editable
-      Pattern identique à ce qui a été fait pour BC dans T-053.
+      Suite de T-055 (scope déféré).
+      Remplacer le <Select> LIFECYCLE_STATUSES dans ApplicationForm.tsx (lignes 626-645)
+      par <LifecycleStepper editable onPhaseChange={...} />.
+      Ajouter un bouton Clear (lifecycleStatus → null).
+      i18n à ajouter : applications.lifecycle.editDescription, clearButton
+                       applications.snackbar.lifecycleUpdated
+      Gate : aucune (T-054 done, LifecycleStepper disponible).
 
   - id: T-056
     nom: "Retrait complet lifecycle BC — front + back + data (revert T-052 + T-053)"
