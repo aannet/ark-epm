@@ -1,7 +1,15 @@
 # ARK — Roadmap des Feature-Specs P1
 
-_Version 0.19 — Avril 2026_
+_Version 0.20 — Avril 2026_
 
+> **Changelog v0.20 :**
+> - **FS-08-BACK** : statut `draft` → `done` — Module NestJS Interfaces complet (T-040, 2026-04-12).
+>   5 endpoints CRUD (`GET/POST /interfaces`, `GET/PATCH/DELETE /interfaces/:id`), enums `InterfaceType` (11 valeurs) et `InterfaceFrequency` (7 valeurs), réutilisation enum `CriticalityLevel` (FS-07).
+>   Règles métier RM-01 (auto-liaison interdite → `422 SELF_REFERENCE`) et RM-02 (FK Applications validées → `404 APPLICATION_NOT_FOUND`).
+>   15 tests Jest + 18 tests Supertest. `openapi.yaml` mis à jour (schemas `InterfaceResponse`, `CreateInterfaceDto`, `UpdateInterfaceDto`).
+>   Seed 2 interfaces de démo. Amendment **T-039** identifié : `ApplicationsService.remove()` doit vérifier `_count.sourceInterfaces + _count.targetInterfaces`.
+>   Gate T-006 (tests Playwright applications-dependencies) levée.
+>
 > **Changelog v0.19 :**
 > - **FS-07-BACK** : statut `stable` → `done` — 8 endpoints (CRUD + /tree + /:id/children + /:id/applications),
 >   hiérarchie WITH RECURSIVE illimitée, prévention circulaire, 19 tests Jest + 20 Supertest + 21 Playwright.
@@ -189,7 +197,7 @@ _Version 0.19 — Avril 2026_
 
 | ID | Feature | Dépend de (BACK) | Dépend de (FRONT) | Statut BACK | Statut FRONT | Estimé |
 |---|---|---|---|---|---|---|
-| FS-08 | **Interfaces** — CRUD unidirectionnel Source→Cible + règles métier + `DimensionTagInput` + écran liste | FS-06-BACK, F-03 | FS-08-BACK, F-02, F-03 | `draft` | `draft` | 1j + 1j |
+| FS-08 | **Interfaces** — CRUD unidirectionnel Source→Cible + règles métier + `DimensionTagInput` + écran liste | FS-06-BACK, F-03 | FS-08-BACK, F-02, F-03 | ✅ `done` | `draft` | 1j + 1j |
 | FS-09 | **Dependency Graph** — endpoint `/graph` + composant React Flow + filtres (domaine, criticité, type, dimension tag) | FS-08-BACK, FS-06-BACK | FS-09-BACK, F-02 | `draft` | `draft` | 1j + 2j |
 
 > FS-09-FRONT est la spec frontend la plus risquée. Le **POC React Flow** (tâche 0.8) doit être concluant avant de rédiger FS-09-FRONT.
@@ -272,8 +280,9 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 | 8b | **FS-05-FRONT** | ✅ `done` | **Implémentation complète — PNS-02 drawer, Chip isSourceOfTruth, Autocomplete type, colonne role, 4 routes, 10 fichiers** |
 | ✅ 9  | **FS-07-BACK**  | ✅ `done` — 8 endpoints, WITH RECURSIVE, circular ref, 19 tests Jest + 20 Supertest. Amendment T-019 criticality+technicalFit. | Implémentation complète (2026-04-08) |
 | ✅ 9b | **FS-07-FRONT** | ✅ `done` — 3 vues (liste/tree/matrix), 4 pages, 8 composants, MUI TreeView, agrégation récursive. PNS-11 AppBreadcrumbs. | T-018 + T-020 complétés (2026-04-08) |
-| 10 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
-| 11+ | Reste (FS-08, FS-10, etc.) | `draft` | Après levée des dépendances |
+| ✅ 10 | **FS-08-BACK** | ✅ `done` — 5 endpoints CRUD, enums InterfaceType/InterfaceFrequency, RM-01/RM-02, 15 tests Jest + 18 Supertest. T-039 amendment identifié. | Implémentation complète (2026-04-12) |
+| 11 | **FS-09-BACK** | `draft` | POC React Flow à valider d'abord |
+| 12+ | Reste (FS-10, etc.) | `draft` | Après levée des dépendances |
 
 ---
 

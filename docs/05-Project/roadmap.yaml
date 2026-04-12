@@ -61,15 +61,15 @@ sprints:
     features:
       - id: "FS-07"
         nom: "Business Capabilities"
-        back: stable
-        front: draft
+        back: done
+        front: done
 
   - id: "S4"
     nom: "Sprint 4 — Graphe de dépendances"
     features:
       - id: "FS-08"
         nom: "Interfaces"
-        back: draft
+        back: done
         front: draft
       - id: "FS-09"
         nom: "Dependency Graph"
