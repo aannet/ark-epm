@@ -330,7 +330,7 @@ tasks:
     statut: done
     assigned_agent: front
     session_active: ~
-    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-data-t052-lifecycle.md"
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t053-lifecycle-apps.md"
     date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-07"
@@ -397,7 +397,7 @@ tasks:
     statut: open
     assigned_agent: front
     session_active: ~
-    handoff_ref: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-front-t053-lifecycle-apps.md"
     date_resolution: ~
     sprint: S4
     theme: "FS-07"
