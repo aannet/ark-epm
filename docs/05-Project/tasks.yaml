@@ -944,7 +944,10 @@ tasks:
     theme: "FS-08"
     type: impl
     feature: "FS-06-BACK"
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "fs08sp"
+        nom: "spec FS-08-BACK v1.1 — identification dette suppression Application"
     notes: |
       Identifié lors de la rédaction FS-08-BACK (2026-04-12) — F-999 Item 24.
       ApplicationsService.remove() ne vérifie pas _count.sourceInterfaces ni
@@ -964,13 +967,16 @@ tasks:
     statut: open
     assigned_agent: back
     session_active: ~
-    handoff_ref: ~
+    handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-spec-fs08-back.md"
     date_resolution: ~
     sprint: S4
     theme: "FS-08"
     type: impl
     feature: "FS-08-BACK"
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "fs08sp"
+        nom: "rédaction spec FS-08-BACK v1.1 — PRD Interfaces backend"
     notes: |
       Spec stabilisée : docs/03-Features-Spec/FS-08-Interfaces-back.md (v1.1)
       Débloque : T-006 (tests Playwright applications-dependencies), T-039 (amendment FS-06-BACK)
