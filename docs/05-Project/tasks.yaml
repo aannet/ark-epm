@@ -1080,22 +1080,29 @@ tasks:
 
   - id: T-041
     nom: "Bug — BC vue liste : la recherche libre ne fonctionne plus"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "f4a8c2"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S3
     theme: "FS-07"
     type: bug
     feature: "FS-07-FRONT"
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "f4a8c2"
+        nom: "fix getVisibleRows — bypass expand filter quand search/domainFilter actif"
     notes: |
       Signalé après les évolutions T-038 (tri hiérarchique) et améliorations visuelles.
       La recherche dans la barre de filtres de la vue liste BC semble ne plus déclencher
       de filtrage. À investiguer : vérifier le flux searchInput → searchValue (handleSearchSubmit),
       l'impact du useMemo flatList sur la dépendance treeData, et si le useEffect
       d'initialisation de expanded interfère avec les résultats filtrés.
+
+      Fix : dans getVisibleRows(), ajout de `if (searchValue || domainFilter) return flatList;`
+      avant la logique expand/collapse. Quand un filtre est actif, le backend retourne déjà
+      les résultats filtrés — l'expand state n'a pas à masquer ces résultats.
 
   - id: T-044
     nom: "Implémentation FS-08-FRONT — Module Interfaces (React + MUI)"
@@ -1134,20 +1141,49 @@ tasks:
 
       Tests Playwright UI délégués à l'agent qa (cf. spec §10).
 
-  - id: T-045
-    nom: "Bug — Erreur 500 sur PATCH /interfaces/:id lors de l'enregistrement"
+  - id: T-043
+    nom: "Backend — Implémenter filtrage search/domainId dans GET /business-capabilities/tree"
     statut: open
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
     date_resolution: ~
     sprint: S4
+    theme: "FS-07"
+    type: debt
+    feature: "FS-07-BACK"
+    sessions:
+      - tool: CL
+        id: "f4a8c2"
+        nom: "identifié lors du fix T-041 — filtrage client-side en place en attendant"
+    notes: |
+      GET /business-capabilities/tree ignore les query params search et domainId.
+      Le contrôleur appelle findTree() sans arguments ; le service retourne l'arbre complet.
+      Fix temporaire : filtrage client-side dans flatList useMemo (BusinessCapabilitiesPage.tsx).
+      Fix permanent backend :
+      - controller : @Query() query: { search?: string; domainId?: string }
+      - service : filtrer les nœuds correspondants + inclure leurs ancêtres pour conserver
+        la structure hiérarchique dans la réponse arbre.
+
+  - id: T-045
+    nom: "Bug — Erreur 500 sur PATCH /interfaces/:id lors de l'enregistrement"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-12"
+    sprint: S4
     theme: FS-08
     type: bug
     feature: FS-08-BACK
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "1dde62"
+        nom: "fix setCurrentUser interfaces - use $executeRawUnsafe"
     notes: |
-      Erreur 500 Internal Server Error sur PATCH /api/v1/interfaces/:id
-      lors de l'enregistrement en édition/création d'interface.
-      Log réseau : interfaces.ts:60 PATCH http://localhost:5173/api/v1/interfaces/{uuid} → 500.
-      À investiguer : stack trace backend, validation DTO, transaction Prisma.
+      Root cause : interfaces.service.ts utilisait sa propre méthode setCurrentUser() avec $executeRaw
+      (paramétré), ce qui générait SET LOCAL ark.current_user_id = $1 — invalide pour PostgreSQL.
+      Tous les autres services utilisent this.prisma.setCurrentUser() qui emploie $executeRawUnsafe.
+      Fix : suppression de la méthode privée setCurrentUser() dans interfaces.service.ts,
+      remplacement des 2 appels (create + update) par this.prisma.setCurrentUser(userId).
+      Vérification frontend : PATCH /api/v1/interfaces/:id fonctionne correctement.

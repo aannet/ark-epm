@@ -561,6 +561,10 @@
           "title": "Aucune capacité créée",
           "description": "Commencez par créer votre première capacité métier.",
           "cta": "Créer votre première capacité"
+        },
+        "noResults": {
+          "title": "Aucun résultat",
+          "description": "Aucune capacité ne correspond à vos critères de recherche."
         }
       },
       "detail": {

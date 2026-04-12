@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsEnum, IsNumber, Min, Max, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, IsNumber, Min, Max, IsArray, ValidateIf } from 'class-validator';
 import { InterfaceType, InterfaceFrequency, CriticalityLevel } from '@prisma/client';
 
 export class CreateInterfaceDto {

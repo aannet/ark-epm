@@ -95,10 +95,19 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
   const deleteCapability = useDeleteBusinessCapability();
 
   // Flatten tree for list view (sorted hierarchically before flattening)
+  // Client-side filtering applied here since GET /tree ignores search/domainId params
   const flatList = useMemo(() => {
     if (!treeData) return [];
-    return flattenTree(sortTreeHierarchically(treeData, sortField, sortOrder));
-  }, [treeData, sortField, sortOrder]);
+    let items = flattenTree(sortTreeHierarchically(treeData, sortField, sortOrder));
+    if (searchValue) {
+      const lower = searchValue.toLowerCase();
+      items = items.filter((item) => item.name.toLowerCase().includes(lower));
+    }
+    if (domainFilter) {
+      items = items.filter((item) => item.domainId === domainFilter);
+    }
+    return items;
+  }, [treeData, sortField, sortOrder, searchValue, domainFilter]);
 
   // Initialize expanded state with root nodes
   useEffect(() => {
@@ -240,6 +249,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
 
   const visibleRows = getVisibleRows();
   const isEmpty = !treeData || treeData.length === 0;
+  const isFilteredEmpty = !isEmpty && !!(searchValue || domainFilter) && visibleRows.length === 0;
 
   return (
     <PageContainer>
@@ -346,6 +356,12 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
                 }
               : undefined
           }
+        />
+      ) : isFilteredEmpty ? (
+        <EmptyState
+          title={t('businessCapabilities.list.noResults.title')}
+          description={t('businessCapabilities.list.noResults.description')}
+          action={{ label: t('applications.filters.reset'), onClick: handleResetFilters }}
         />
       ) : (
         <>

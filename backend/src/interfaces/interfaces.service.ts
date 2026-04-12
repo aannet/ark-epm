@@ -11,10 +11,6 @@ export class InterfacesService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  private async setCurrentUser(userId: string): Promise<void> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`;
-  }
-
   private async validateApplications(
     sourceAppId: string,
     targetAppId: string,
@@ -63,7 +59,7 @@ export class InterfacesService {
     this.validateSelfReference(dto.sourceAppId, dto.targetAppId);
     await this.validateApplications(dto.sourceAppId, dto.targetAppId, dto.middlewareAppId);
 
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const { tagPaths, ...data } = dto;
 
@@ -175,7 +171,7 @@ export class InterfacesService {
     this.validateSelfReference(sourceAppId, targetAppId);
     await this.validateApplications(sourceAppId, targetAppId, middlewareAppId ?? undefined);
 
-    await this.setCurrentUser(userId);
+    await this.prisma.setCurrentUser(userId);
 
     const { tagPaths, ...data } = dto;
 
