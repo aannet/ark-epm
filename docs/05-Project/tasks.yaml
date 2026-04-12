@@ -20,10 +20,10 @@ tasks:
 
   - id: T-006
     nom: "Tests applications-dependencies bloqués — FS-08 Interfaces non implémenté"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-08"
     type: bug
@@ -35,6 +35,9 @@ tasks:
       - tool: OC
         id: "a9f3e1"
         nom: "déblocage T-006 après T-040 FS-08-BACK done"
+      - tool: OC
+        id: "a4f2e1"
+        nom: "correction tests + validation 4/4 pass (2026-04-12)"
     notes: |
       Détecté lors de la session QA Data Objects (2026-04-07).
       4 tests Playwright en échec dans tests/applications/applications-dependencies.api.spec.ts :
@@ -45,7 +48,11 @@ tasks:
       ✅ Gate levée : FS-08-BACK done (T-040, 2026-04-12).
       ✅ Gate levée : T-039 done (2026-04-12) — getDependencies() compte sourceInterfaces + targetInterfaces,
          remove() lève DEPENDENCY_CONFLICT. Tests e2e Supertest FS-06 21/21 passent.
-      Prêt pour validation par agent QA — lancer : make test-api-backend (applications-dependencies.api.spec.ts).
+      ✅ DONE 2026-04-12 : 3 corrections dans applications-dependencies.api.spec.ts :
+         1. enum invalides ('HTTP'/'API') → 'REST'
+         2. auto-liaison RM-01 (sourceAppId==targetAppId) → 2 apps distinctes par test
+         3. leading slash sur URLs auth.request ('/applications/...') → sans slash
+         100/107 tests passent (6 échecs préexistants : T-007 domains + bugs non liés).
 
   - id: T-007
     nom: "Tests domains-dependencies bloqués — FS-07 Business Capabilities en cours"
@@ -197,9 +204,9 @@ tasks:
 
   - id: T-048
     nom: "Business Capabilities — Ajout de 3 KPIs en tête de vue liste (niveaux hiérarchiques, applications actives, TBD)"
-    statut: open
+    statut: in_progress
     assigned_agent: front
-    session_active: ~
+    session_active: "a3f7c2"
     handoff_ref: ~
     date_resolution: ~
     sprint: S4
@@ -213,3 +220,16 @@ tasks:
       KPI 2 : Nombre total d'applications actives associées aux BC affichées (tenant compte des filtres actifs).
       KPI 3 : À définir — à préciser avec le métier avant implémentation.
       Note : KPI 1 et 2 peuvent nécessiter un endpoint backend ou un calcul côté client depuis les données existantes.
+
+  - id: T-049
+    nom: "Spec — Mettre au clair la liaison entre Application et Data Objects"
+    statut: open
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-05"
+    type: spec
+    feature: "FS-05-BACK"
+    sessions: []
