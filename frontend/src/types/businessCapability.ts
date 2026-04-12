@@ -15,6 +15,7 @@ export interface BusinessCapability {
   domain: { id: string; name: string } | null;
   criticality: CriticalityLevel | null;
   technicalFit: TechnicalFitLevel | null;
+  lifecycleStatus: string | null;
   createdAt: string;
   updatedAt: string;
   _count: {
@@ -66,6 +67,7 @@ export interface BusinessCapabilityFormValues {
   domainId: string | null;
   criticality: CriticalityLevel | null;
   technicalFit: TechnicalFitLevel | null;
+  lifecycleStatus?: string | null;
   tags: TagValueResponse[];
 }
 

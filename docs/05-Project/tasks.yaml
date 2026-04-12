@@ -327,22 +327,95 @@ tasks:
 
   - id: T-053
     nom: "Frontend — Implémenter FS-07-P2-FRONT (LifecycleStepper + onglet Lifecycle BC)"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
     handoff_ref: "docs/05-Project/20260412/SESSION-HANDOFF-data-t052-lifecycle.md"
-    date_resolution: ~
+    date_resolution: "2026-04-12"
     sprint: S4
     theme: "FS-07"
     type: impl
     feature: "FS-07-FRONT-P2"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "f3a9c1"
+        nom: "impl LifecycleStepper + onglets BC (annulé T-056 — mauvaise cible)"
     notes: |
       Gate débloquée par T-052 (2026-04-12) — lifecycleStatus disponible sur BC.
-      Spec : docs/03-Features-Spec/P2/FS-07-P2-Lifecycle-front.md (stable).
+      ⚠️ ANNULÉ par T-056 : implémentation réalisée sur la mauvaise entité (BC au lieu d'Applications).
+      Le composant LifecycleStepper.tsx créé ici est réutilisé par T-055 (Applications).
+      T-056 retire toutes les modifications BC (front + back + data).
+
+  - id: T-054
+    nom: "Backend — Audit endpoint GET /applications/:id : vérifier exposition lifecycleStatus"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-06"
+    type: debt
+    feature: "FS-06-BACK"
+    sessions: []
+    notes: |
+      Contexte : T-055 (front) ajoute le LifecycleStepper sur les pages Application.
+      Le backend Applications gère déjà lifecycleStatus (create/update/filter).
+      Vérifier que :
+      1. GET /api/v1/applications/:id retourne bien lifecycleStatus dans la réponse
+      2. PATCH /api/v1/applications/:id accepte { lifecycleStatus: null } (réinitialisation)
+      3. Si un cas est manquant : corriger DTO + service
+      Gate pour T-055.
+
+  - id: T-055
+    nom: "Frontend — LifecycleStepper sur ApplicationDetailPage + ApplicationEditPage"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    sessions: []
+    notes: |
+      Gate : T-054 done (backend lifecycleStatus Applications vérifié).
+      Composant LifecycleStepper.tsx disponible dans components/shared/ (créé par T-053).
       À implémenter :
-      1. Clés i18n businessCapabilities.lifecycle.* dans fr.json (§5 spec)
-      2. frontend/src/components/shared/LifecycleStepper.tsx (§3 spec)
-      3. Onglet "Lifecycle" dans BusinessCapabilityDetailPage (lecture seule)
-      4. Onglet "Lifecycle" dans BusinessCapabilityEditPage (éditable, PATCH /:id)
-      Commande OpenCode disponible en §8 de la spec.
+      1. i18n : ajouter dans applications.lifecycle les clés manquantes :
+         tabLabel, sectionTitle, editDescription, notDefined, clearButton
+         + applications.snackbar.lifecycleUpdated
+      2. ApplicationDetailPage : onglet "Lifecycle" (lecture seule, LifecycleStepper non éditable)
+         Remplace/complète la ligne StatusChip lifecycleStatus existante
+      3. ApplicationEditPage : onglet "Lifecycle" (éditable, PATCH /:id { lifecycleStatus })
+         Remplace le <Select> LIFECYCLE_STATUSES par LifecycleStepper editable
+      Pattern identique à ce qui a été fait pour BC dans T-053.
+
+  - id: T-056
+    nom: "Retrait complet lifecycle BC — front + back + data (revert T-052 + T-053)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-07"
+    type: debt
+    feature: "FS-07-BACK"
+    sessions: []
+    notes: |
+      Revert des implémentations lifecycle sur Business Capabilities (mauvaise cible).
+      Couche FRONT (assigned_agent: front) :
+        - Supprimer onglets Lifecycle de BusinessCapabilityDetailPage + BusinessCapabilityEditPage
+        - Supprimer businessCapabilities.lifecycle.* de fr.json (ajoutés par T-053)
+        - Supprimer lifecycleStatus des interfaces BusinessCapability + BusinessCapabilityFormValues
+        - Supprimer import Button, ArkAlert, LifecycleStepper inutilisés dans les pages BC
+      Couche BACK (même session, agent front peut faire si simple) :
+        - Retirer lifecycleStatus de UpdateBusinessCapabilityDto + CreateBusinessCapabilityDto
+        - Retirer lifecycleStatus du service BC (findTree select, create data, update data)
+      Couche DATA (nécessite accès Docker — à vérifier) :
+        - schema.prisma : supprimer lifecycleStatus sur BusinessCapability
+        - Migration : npx prisma migrate dev --name remove_lifecycle_status_from_bc
+          (exécuter dans le container : docker exec ark-epm-backend-1 ...)
+      Note : le composant LifecycleStepper.tsx (components/shared/) est CONSERVÉ — réutilisé par T-055.
