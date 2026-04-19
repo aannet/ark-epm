@@ -556,6 +556,9 @@ tasks:
       - tool: OC
         id: "8f3a2c"
         nom: "impl FS-11-FRONT Omnisearch — build OK (2026-04-19)"
+      - tool: OC
+        id: "8f3a2c"
+        nom: "amendement US-06 — auto-focus champ recherche (2026-04-19)"
     notes: |
       ✅ Gate levée : T-060 done (2026-04-19) — backend /api/v1/search disponible.
       ✅ Gate levée : T-059 spec FS-11-FRONT stable (passée à stable 2026-04-19).
@@ -574,6 +577,8 @@ tasks:
       Modifications :
         - frontend/src/components/layout/TopBar.tsx (intégration Omnisearch)
         - frontend/src/i18n/locales/fr.json (clés search.*)
+      ✅ Amendement US-06 2026-04-19 : auto-focus à l'ouverture (inputRef + useEffect)
+        - Commit : 84991d1
       Validation : build TypeScript ✅, aucun TODO/FIXME.
 
   - id: T-062
