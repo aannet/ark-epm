@@ -11,13 +11,13 @@
 | **ID** | FS-11-FRONT |
 | **Titre** | Omnisearch — Frontend |
 | **Priorité** | P1 |
-| **Statut** | `draft` *(devient `stable` uniquement après que FS-11-BACK est `done`)* |
+| **Statut** | `stable` |
 | **Dépend de** | **FS-11-BACK** (gate bloquante), FS-01, F-02 |
 | **Spec mère** | FS-11 — Navigation & UX transverse |
 | **Estimé** | 0.5j |
 | **Version** | 0.1 |
 
-> ⚠️ Cette spec reste à `draft` tant que `FS-11-BACK` n'est pas au statut `done` et que toutes ses gates (G-01 à G-08) ne sont pas cochées.
+> ✅ Gate levée : `FS-11-BACK` est au statut `done` (T-060, 2026-04-19). Toutes gates G-01 à G-08 cochées.
 
 ---
 

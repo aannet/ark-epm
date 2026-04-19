@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
+import { Omnisearch } from '@/components/search';
 
 function getPageTitle(pathname: string): string {
   if (pathname.startsWith('/applications')) return 'Applications';
@@ -32,6 +33,10 @@ export default function TopBar(): JSX.Element {
       <Typography variant="h3" component="h1">
         {title}
       </Typography>
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      <Omnisearch />
     </Box>
   );
 }

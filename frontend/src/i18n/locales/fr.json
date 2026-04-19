@@ -787,6 +787,27 @@
       }
     },
 
+    "search": {
+      "openButton": "Ouvrir la recherche (Ctrl+K)",
+      "placeholder": "Rechercher une application, un domaine, une capacité...",
+      "inputAriaLabel": "Champ de recherche",
+      "minChars": "Saisissez au moins {{count}} caractères",
+      "noResults": "Aucun résultat trouvé",
+      "tryDifferentTerm": "Essayez un terme de recherche différent",
+      "seeAllResults": "Voir les {{count}} résultats",
+      "resultCount": "{{count}} affichés sur {{total}}",
+      "footerKeyboardHint": "↑↓ pour naviguer · Enter pour ouvrir · Esc pour fermer",
+      "types": {
+        "application": "Applications",
+        "domain": "Domaines",
+        "businessCapability": "Capacités métier",
+        "provider": "Fournisseurs",
+        "itComponent": "Composants IT",
+        "dataObject": "Objets de données",
+        "interface": "Interfaces"
+      }
+    },
+
     "interfaces": {
       "list": {
         "title": "Interfaces applicatives",

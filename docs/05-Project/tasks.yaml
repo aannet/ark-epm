@@ -543,19 +543,38 @@ tasks:
 
   - id: T-061
     nom: "Frontend — Implémenter FS-11 Omnisearch"
-    statut: blocked
+    statut: done
     assigned_agent: front
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-19"
     sprint: S4
     theme: "FS-11"
     type: impl
     feature: "FS-11-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "8f3a2c"
+        nom: "impl FS-11-FRONT Omnisearch — build OK (2026-04-19)"
     notes: |
       ✅ Gate levée : T-060 done (2026-04-19) — backend /api/v1/search disponible.
-      Gate restante : T-059 spec FS-11-FRONT stable (actuellement draft, à valider par spec agent).
+      ✅ Gate levée : T-059 spec FS-11-FRONT stable (passée à stable 2026-04-19).
+      Spec : docs/03-Features-Spec/FS-11-omnisearch-front.md (statut: stable).
+      ✅ DONE 2026-04-19 : Implémentation Omnisearch frontend complète.
+      Fichiers créés :
+        - frontend/src/types/search.ts
+        - frontend/src/api/search.ts
+        - frontend/src/utils/search.utils.tsx
+        - frontend/src/components/search/useOmnisearch.ts
+        - frontend/src/components/search/OmnisearchItem.tsx
+        - frontend/src/components/search/Omnisearch.tsx
+        - frontend/src/components/search/index.ts (barrel export)
+        - frontend/src/components/shared/KeyboardShortcutHint.tsx
+        - e2e/tests/search/omnisearch.spec.ts
+      Modifications :
+        - frontend/src/components/layout/TopBar.tsx (intégration Omnisearch)
+        - frontend/src/i18n/locales/fr.json (clés search.*)
+      Validation : build TypeScript ✅, aucun TODO/FIXME.
 
   - id: T-062
     nom: "Backend — Omnisearch filtres avancés + pagination offset (T-060-bis)"

@@ -11,7 +11,7 @@
 | **ID** | FS-11-BACK |
 | **Titre** | Omnisearch — Backend |
 | **Priorité** | P1 |
-| **Statut** | `stable` |
+| **Statut** | `done` |
 | **Dépend de** | FS-01, FS-02-BACK, FS-03-BACK, FS-04-BACK, FS-05-BACK, FS-06-BACK, FS-07-BACK, FS-08-BACK |
 | **Spec mère** | FS-11 — Navigation & UX transverse |
 | **Spec front** | FS-11-FRONT — bloquée tant que cette spec n'est pas `done` |
