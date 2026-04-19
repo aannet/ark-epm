@@ -1834,6 +1834,92 @@ paths:
         '404':
           description: Dimension ou valeur de tag introuvable
 
+  /search:
+    get:
+      summary: Recherche transverse sur toutes les entités EA
+      tags: [Search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Terme de recherche (min 2 caractères)
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+            example: "CRM"
+        - name: types
+          in: query
+          required: false
+          description: Types d'entités à inclure (tous par défaut si absent)
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [application, domain, businessCapability, provider, itComponent, dataObject, interface]
+            example: ["application", "domain"]
+        - name: limit
+          in: query
+          required: false
+          description: Nombre maximum de résultats retournés (défaut 20, max 50)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+            example: 20
+      responses:
+        '200':
+          description: Liste de résultats triés par pertinence
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    maxItems: 50
+                    items:
+                      $ref: '#/components/schemas/SearchResultItem'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        description: Nombre total de résultats (avant limit)
+                        example: 34
+                      query:
+                        type: string
+                        example: "CRM"
+                      types:
+                        type: array
+                        items:
+                          type: string
+                        example: ["application", "domain", "businessCapability", "provider", "itComponent", "dataObject", "interface"]
+                      limit:
+                        type: integer
+                        example: 20
+        '400':
+          description: Requête invalide (q manquant, trop court, ou types invalide)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  code:
+                    type: string
+                    example: "SEARCH_QUERY_INVALID"
+                  message:
+                    type: string
+                    example: "Le terme de recherche doit contenir au moins 2 caractères"
+        '401':
+          description: Non authentifié
+
 components:
   schemas:
 
@@ -2685,6 +2771,53 @@ components:
           maxLength: 100
         isSourceOfTruth:
           type: boolean
+
+    SearchResultItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID de l'entité
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        type:
+          type: string
+          enum: [application, domain, businessCapability, provider, itComponent, dataObject, interface]
+          description: Type d'entité pour la navigation frontend
+          example: "application"
+        name:
+          type: string
+          description: Nom de l'entité (match highlighté côté client)
+          example: "CRM Salesforce"
+        description:
+          type: string
+          nullable: true
+          description: Description tronquée (max 150 caractères)
+          example: "Application CRM principale pour la gestion des clients..."
+        score:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Score de pertinence (10 = match exact name, 5 = name contient, 1 = description contient)
+          example: 10
+        meta:
+          type: object
+          nullable: true
+          description: Métadonnées contextuelles selon le type
+          properties:
+            domainName:
+              type: string
+              nullable: true
+              description: Nom du domaine parent (pour Application, BC, Domain)
+            criticality:
+              type: string
+              nullable: true
+              enum: [LOW, MEDIUM, HIGH, CRITICAL]
+              description: Niveau de criticité (pour Application, BC, Interface)
+            lifecycleStatus:
+              type: string
+              nullable: true
+              description: Statut de cycle de vie (pour Application uniquement)
 
     ErrorResponse:
       type: object

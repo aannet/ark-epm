@@ -516,19 +516,30 @@ tasks:
       Débloque : T-060 (implémentation backend) et T-061 (implémentation frontend).
 
   - id: T-060
-    nom: "Backend — Implémenter FS-11 Omnisearch"
-    statut: blocked
+    nom: "Backend — Implémenter FS-11 Omnisearch (MVP : q, types[], limit, scoring)"
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-19"
     sprint: S4
     theme: "FS-11"
     type: impl
     feature: "FS-11-BACK"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b3f7a2"
+        nom: "impl SearchModule NestJS MVP (2026-04-19)"
     notes: |
-      Gate : T-059 spec FS-11-BACK stable.
+      ✅ DONE 2026-04-19 : SearchModule NestJS implémenté.
+      - Endpoint : GET /api/v1/search?q={query}&types[]={type}&limit={n}
+      - Scoring : 10/9/5/1 (exact/prefix/substring/description)
+      - 7 entités : applications, domains, businessCapabilities, providers, itComponents, dataObjects, interfaces
+      - Tests Jest unit : 12/12 pass
+      - Build TypeScript : ✅
+      - openapi.yaml : ✅ mis à jour avec path /search et schema SearchResultItem
+      Hors scope (T-062) : domainIds[], tagIds[], pagination offset.
+      Débloque : T-061 (frontend), T-062 (filtres avancés).
 
   - id: T-061
     nom: "Frontend — Implémenter FS-11 Omnisearch"
@@ -543,4 +554,24 @@ tasks:
     feature: "FS-11-FRONT"
     sessions: []
     notes: |
-      Gate : T-059 spec FS-11-FRONT stable + T-060 done.
+      ✅ Gate levée : T-060 done (2026-04-19) — backend /api/v1/search disponible.
+      Gate restante : T-059 spec FS-11-FRONT stable (actuellement draft, à valider par spec agent).
+
+  - id: T-062
+    nom: "Backend — Omnisearch filtres avancés + pagination offset (T-060-bis)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-11"
+    type: impl
+    feature: "FS-11-BACK-P2"
+    sessions: []
+    notes: |
+      Scope P2 (ex-T-060-bis) : ajouter filtres domainIds[], tagIds[], pagination offset.
+      Dépend de : T-060 done.
+      Amendement US : domainIds[], tagIds[], page, limit max 100, meta totalPages/currentPage.
+      Spec : docs/03-Features-Spec/FS-11-omnisearch-userstories.md §Amendement A.
+
