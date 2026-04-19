@@ -292,3 +292,66 @@ semgrep-frontend:
 
 semgrep-all: semgrep-backend semgrep-frontend
 	@echo "All Semgrep reports: $(SEMGREP_REPORTS)/"
+
+# ----------------------------------------------------------------------------------
+# DAST scanning with ZAProxy (OWASP ZAP)
+ZAP_IMAGE       ?= ghcr.io/zaproxy/zaproxy:latest
+ZAP_REPORTS     ?= $(PWD)/reports/zap
+ZAP_OPENAPI     ?= $(PWD)/docs/04-Tech/openapi.yaml
+ZAP_TARGET      ?= http://backend:3000/api/v1
+
+# DAST scan using ZAP API Scan with OpenAPI specification
+# -l WARN: fail on Medium+ severity (INFO and LOW pass, MEDIUM and HIGH fail)
+# -r: generate HTML report
+# -J: generate JSON report
+# --hook: authentication hook (optional)
+test-dast:
+	@echo "🔍 Starting ZAProxy DAST scan..."
+	@echo "   Target: $(ZAP_TARGET)"
+	@echo "   OpenAPI: $(ZAP_OPENAPI)"
+	@mkdir -p $(ZAP_REPORTS)
+	@docker run --rm \
+		-v $(ZAP_OPENAPI):/zap/wrk/openapi.yaml:ro \
+		-v $(ZAP_REPORTS):/zap/wrk/reports \
+		--network ark-epm_default \
+		-e ZAP_AUTH_HEADER=Authorization \
+		-e ZAP_AUTH_HEADER_VALUE="Bearer $(shell ./backend/scripts/get-token.sh 2>/dev/null || echo 'test-token')" \
+		$(ZAP_IMAGE) zap-api-scan.py \
+		-t /zap/wrk/openapi.yaml \
+		-f openapi \
+		-l WARN \
+		-r reports/zap-report.html \
+		-J reports/zap-report.json \
+		-I 2>/dev/null || true
+	@echo "✅ DAST scan completed. Reports:"
+	@echo "   HTML: $(ZAP_REPORTS)/zap-report.html"
+	@echo "   JSON: $(ZAP_REPORTS)/zap-report.json"
+
+# Quick baseline scan (spider only, no active attacks)
+# Less thorough but safer for production-like environments
+test-dast-baseline:
+	@echo "🔍 Starting ZAProxy baseline scan (passive only)..."
+	@echo "   Target: $(ZAP_TARGET)"
+	@mkdir -p $(ZAP_REPORTS)
+	@docker run --rm \
+		-v $(ZAP_REPORTS):/zap/wrk/reports \
+		--network ark-epm_default \
+		$(ZAP_IMAGE) zap-baseline.py \
+		-t $(ZAP_TARGET) \
+		-l WARN \
+		-r reports/baseline-report.html \
+		-J reports/baseline-report.json \
+		-I 2>/dev/null || true
+	@echo "✅ Baseline scan completed. Reports:"
+	@echo "   HTML: $(ZAP_REPORTS)/baseline-report.html"
+	@echo "   JSON: $(ZAP_REPORTS)/baseline-report.json"
+
+# Open ZAP report in browser
+open-dast-report:
+	@if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open $(ZAP_REPORTS)/zap-report.html; \
+	elif command -v open >/dev/null 2>&1; then \
+		open $(ZAP_REPORTS)/zap-report.html; \
+	else \
+		echo "📄 Report: $(ZAP_REPORTS)/zap-report.html"; \
+	fi

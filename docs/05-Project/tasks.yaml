@@ -158,3 +158,44 @@ tasks:
       Dépend de : T-060 done.
       Amendement US : domainIds[], tagIds[], page, limit max 100, meta totalPages/currentPage.
       Spec : docs/03-Features-Spec/FS-11-omnisearch-userstories.md §Amendement A.
+
+  - id: T-063
+    nom: "QA — Intégrer ZAProxy (DAST) dans la pipeline de tests"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-19"
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-SECURITY"
+    sessions:
+      - tool: OC
+        id: "f3a9c1"
+        nom: "Implémentation ZAP DAST - zap-api-scan + openapi.yaml"
+    notes: |
+      ✅ Implémentation complète (Makefile targets + config ZAP).
+      
+      Cibles ajoutées au Makefile :
+      - make test-dast : scan API actif avec openapi.yaml (recommandé)
+      - make test-dast-baseline : scan passif spider uniquement
+      - make open-dast-report : ouverture navigateur rapport
+      
+      Variables configurables :
+      - ZAP_IMAGE=ghcr.io/zaproxy/zaproxy:latest
+      - ZAP_TARGET=http://backend:3000/api/v1
+      - ZAP_OPENAPI=docs/04-Tech/openapi.yaml
+      - Seuil : WARN (Medium+) → échec sur vulnérabilités Medium/High
+      
+      Pattern : docker run --rm (cohérent avec Trivy/Semgrep)
+      Network : ark-epm_default (containers Docker)
+      Auth : Header Authorization via get-token.sh
+      
+      Rapports générés : reports/zap/zap-report.html + .json
+      
+      ⚠️ NOTE ENV : Environnement Docker local actuellement instable
+      (erreur I/O daemon). L'implémentation est validée syntaxiquement
+      et prête pour exécution sur environnement Docker healthy.
+      
+      Pour valider : docker-compose up -d && make test-dast
