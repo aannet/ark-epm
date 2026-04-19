@@ -258,12 +258,13 @@ SEMGREP_CONV     = $(PWD)/semgrep/json-to-html.py
 
 semgrep-backend:
 	@mkdir -p $(SEMGREP_REPORTS)
-	@echo "Scanning backend with Semgrep..."
+	@echo "Scanning backend with Semgrep (TypeScript + Node.js)..."
 	@docker run --rm \
 		-v $(PWD)/backend:/src \
 		-v $(SEMGREP_REPORTS):/reports \
 		$(SEMGREP_IMAGE) semgrep scan \
-		--config=auto --json --output=/reports/backend.json /src 2>/dev/null || true
+		--config=p/typescript --config=p/nodejs \
+		--json --output=/reports/backend.json /src 2>/dev/null || true
 	@docker run --rm \
 		-v $(SEMGREP_CONV):/to-html.py:ro \
 		-v $(SEMGREP_REPORTS):/reports \
@@ -274,12 +275,13 @@ semgrep-backend:
 
 semgrep-frontend:
 	@mkdir -p $(SEMGREP_REPORTS)
-	@echo "Scanning frontend with Semgrep..."
+	@echo "Scanning frontend with Semgrep (TypeScript + React)..."
 	@docker run --rm \
 		-v $(PWD)/frontend:/src \
 		-v $(SEMGREP_REPORTS):/reports \
 		$(SEMGREP_IMAGE) semgrep scan \
-		--config=auto --json --output=/reports/frontend.json /src 2>/dev/null || true
+		--config=p/typescript --config=p/react \
+		--json --output=/reports/frontend.json /src 2>/dev/null || true
 	@docker run --rm \
 		-v $(SEMGREP_CONV):/to-html.py:ro \
 		-v $(SEMGREP_REPORTS):/reports \
