@@ -55,6 +55,50 @@ test.describe('US-01 — Accès rapide recherche', () => {
 });
 
 // ──────────────────────────────────────────
+// 6. AUTO-FOCUS À L'OUVERTURE (US-06)
+// ──────────────────────────────────────────
+test.describe('US-06 — Auto-focus à l\'ouverture', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.goto('/applications');
+  });
+
+  test('le champ de recherche est focalisé à l\'ouverture initiale', async ({ page }) => {
+    await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
+    // Attendre la fin de l'animation du Dialog (80ms dans l'implémentation)
+    await page.waitForTimeout(100);
+    const input = page.getByPlaceholder(/Rechercher une application/i);
+    await expect(input).toBeFocused();
+  });
+
+  test('le champ est refocalisé à la réouverture après fermeture', async ({ page }) => {
+    const searchButton = page.getByRole('button', { name: /Ouvrir la recherche/i });
+    const input = page.getByPlaceholder(/Rechercher une application/i);
+
+    // Ouvrir puis fermer
+    await searchButton.click();
+    await page.waitForTimeout(100);
+    await page.keyboard.press('Escape');
+    await expect(input).not.toBeVisible();
+
+    // Réouvrir et vérifier le focus
+    await searchButton.click();
+    await page.waitForTimeout(100);
+    await expect(input).toBeFocused();
+  });
+
+  test('l\'utilisateur peut taper immédiatement sans clic souris', async ({ page }) => {
+    await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
+    // Attendre le focus
+    await page.waitForTimeout(100);
+
+    // Taper directement sans cliquer sur le champ
+    await page.keyboard.type('CRM');
+    await expect(page.getByPlaceholder(/Rechercher une application/i)).toHaveValue('CRM');
+  });
+});
+
+// ──────────────────────────────────────────
 // 2. RECHERCHE TEMPS RÉEL (US-02)
 // ──────────────────────────────────────────
 test.describe('US-02 — Recherche temps réel', () => {

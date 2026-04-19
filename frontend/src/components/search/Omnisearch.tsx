@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Box,
   Dialog,
@@ -40,6 +40,7 @@ interface GroupedResults {
 export function Omnisearch(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
   const {
     results,
     meta,
@@ -51,6 +52,16 @@ export function Omnisearch(): JSX.Element {
     open,
     setOpen,
   } = useOmnisearch();
+
+  // Focus automatique à chaque ouverture (première et réouvertures)
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   const groupedResults = useMemo((): GroupedResults[] => {
     const groups: Record<SearchableEntityType, SearchResultItem[]> = {
@@ -174,7 +185,7 @@ export function Omnisearch(): JSX.Element {
         <Box sx={{ p: 2, pb: 0 }}>
           <TextField
             fullWidth
-            autoFocus
+            inputRef={inputRef}
             variant="outlined"
             placeholder={t('search.placeholder')}
             value={query}

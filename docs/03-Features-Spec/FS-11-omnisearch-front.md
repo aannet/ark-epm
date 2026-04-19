@@ -80,6 +80,14 @@ En tant qu'utilisateur, je veux cliquer sur un résultat pour naviguer vers sa p
 - La popover se ferme automatiquement après navigation
 - Le focus est réinitialisé
 
+### US-06 — Auto-focus à l'ouverture
+En tant qu'utilisateur, je veux que le curseur se positionne automatiquement dans le champ de recherche à chaque ouverture de la popover, afin de pouvoir taper immédiatement sans clic souris.
+
+**Critères d'acceptation :**
+- Le champ de recherche reçoit le focus à chaque ouverture (première ouverture ET réouvertures suivantes)
+- Focus déclenché après la fin de l'animation d'entrée du Dialog
+- L'utilisateur peut taper immédiatement sans action supplémentaire
+
 ---
 
 ## 3. Référence Contrat API
@@ -149,8 +157,11 @@ dialog:
             conditional: isLoading
             then: CircularProgress (size=20)
             else: null
-        autoFocus: true
+        inputRef: inputRef (useRef<HTMLInputElement>)
         aria-label: t('search.inputAriaLabel')
+      # Note: autoFocus remplacé par inputRef + useEffect(open) pour garantir
+      # le focus à chaque ouverture (première ET réouvertures). Déclenchement
+      # après 80ms pour laisser l'animation MUI Fade se terminer.
     
     body:
       loading_state:
@@ -519,6 +530,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 - [ ] `Ctrl+K` ouvre la popover depuis n'importe quelle page
 - [ ] Icône recherche visible dans TopBar
+- [ ] Le champ de recherche reçoit le focus à chaque ouverture (y compris réouvertures)
 - [ ] Debounce 300ms respecté (vérifier avec console.log)
 - [ ] Minimum 2 caractères avant requête
 - [ ] Résultats groupés par type avec sous-titres
