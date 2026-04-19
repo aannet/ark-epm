@@ -489,3 +489,58 @@ tasks:
       - reports/semgrep/ (gitignored)
 
       Commit : 1c96b4e — feat(arch): T-058 — Ajout scanners sécurité Trivy + Semgrep avec output HTML
+
+  - id: T-059
+    nom: "Spec FS-11 Omnisearch — rédaction specs back et front"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260419/SESSION-HANDOFF-spec-t059-omnisearch.md"
+    date_resolution: "2026-04-19"
+    sprint: S4
+    theme: "FS-11"
+    type: spec
+    feature: "FS-11"
+    sessions:
+      - tool: OC
+        id: "c3a7f1"
+        nom: "rédaction specs FS-11 Omnisearch back+front (2026-04-19)"
+    notes: |
+      ✅ DONE 2026-04-19 : specs créées et passées en stable (BACK) / draft (FRONT).
+      Fichiers créés :
+        - docs/03-Features-Spec/FS-11-omnisearch-back.md (statut: stable)
+        - docs/03-Features-Spec/FS-11-omnisearch-front.md (statut: draft — gate FS-11-BACK done)
+      Périmètre : recherche transverse sur 7 entités (apps, domains, BC, providers, IT comps, data objects, interfaces).
+      Backend : endpoint GET /api/v1/search?q=...&types[]=...&limit=...
+      Frontend : composant Omnisearch dans TopBar (Ctrl+K), résultats groupés par type.
+      Débloque : T-060 (implémentation backend) et T-061 (implémentation frontend).
+
+  - id: T-060
+    nom: "Backend — Implémenter FS-11 Omnisearch"
+    statut: blocked
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-11"
+    type: impl
+    feature: "FS-11-BACK"
+    sessions: []
+    notes: |
+      Gate : T-059 spec FS-11-BACK stable.
+
+  - id: T-061
+    nom: "Frontend — Implémenter FS-11 Omnisearch"
+    statut: blocked
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-11"
+    type: impl
+    feature: "FS-11-FRONT"
+    sessions: []
+    notes: |
+      Gate : T-059 spec FS-11-FRONT stable + T-060 done.
