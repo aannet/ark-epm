@@ -201,3 +201,92 @@ validate-backend: build-backend
 project-dashboard:
 	@echo "Dashboard disponible sur http://localhost:4000/docs/05-Project/tasks-dashboard/"
 	npx serve . --listen 4000
+
+# ----------------------------------------------------------------------------------
+# Security scanning with Trivy
+TRIVY_IMAGE   ?= aquasec/trivy:latest
+TRIVY_TPL      = $(PWD)/trivy/html.tpl
+TRIVY_REPORTS  = $(PWD)/reports/trivy
+
+scan-backend:
+	@mkdir -p $(TRIVY_REPORTS)
+	@echo "Scanning backend image with Trivy..."
+	@docker run --rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(TRIVY_TPL):/tpl/html.tpl \
+		-v $(TRIVY_REPORTS):/reports \
+		$(TRIVY_IMAGE) image \
+		--format template --template "@/tpl/html.tpl" \
+		-o /reports/backend.html \
+		ark-epm-backend:latest
+	@echo "Report: $(TRIVY_REPORTS)/backend.html"
+
+scan-frontend:
+	@mkdir -p $(TRIVY_REPORTS)
+	@echo "Scanning frontend image with Trivy..."
+	@docker run --rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(TRIVY_TPL):/tpl/html.tpl \
+		-v $(TRIVY_REPORTS):/reports \
+		$(TRIVY_IMAGE) image \
+		--format template --template "@/tpl/html.tpl" \
+		-o /reports/frontend.html \
+		ark-epm-frontend:latest
+	@echo "Report: $(TRIVY_REPORTS)/frontend.html"
+
+scan-fs:
+	@mkdir -p $(TRIVY_REPORTS)
+	@echo "Scanning filesystem with Trivy..."
+	@docker run --rm \
+		-v $(PWD):/workdir \
+		-v $(TRIVY_TPL):/tpl/html.tpl \
+		-v $(TRIVY_REPORTS):/reports \
+		$(TRIVY_IMAGE) fs \
+		--format template --template "@/tpl/html.tpl" \
+		-o /reports/fs.html \
+		/workdir
+	@echo "Report: $(TRIVY_REPORTS)/fs.html"
+
+scan-all: scan-backend scan-frontend scan-fs
+	@echo "All reports: $(TRIVY_REPORTS)/"
+
+# ----------------------------------------------------------------------------------
+# SAST scanning with Semgrep
+SEMGREP_IMAGE   ?= semgrep/semgrep:latest
+SEMGREP_REPORTS  = $(PWD)/reports/semgrep
+SEMGREP_CONV     = $(PWD)/semgrep/json-to-html.py
+
+semgrep-backend:
+	@mkdir -p $(SEMGREP_REPORTS)
+	@echo "Scanning backend with Semgrep..."
+	@docker run --rm \
+		-v $(PWD)/backend:/src \
+		-v $(SEMGREP_REPORTS):/reports \
+		$(SEMGREP_IMAGE) semgrep scan \
+		--config=auto --json --output=/reports/backend.json /src 2>/dev/null || true
+	@docker run --rm \
+		-v $(SEMGREP_CONV):/to-html.py:ro \
+		-v $(SEMGREP_REPORTS):/reports \
+		python:3.12-alpine python /to-html.py \
+		/reports/backend.json /reports/backend.html "Backend" 2>/dev/null || \
+		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check /reports/backend.json"
+	@echo "Report: $(SEMGREP_REPORTS)/backend.html"
+
+semgrep-frontend:
+	@mkdir -p $(SEMGREP_REPORTS)
+	@echo "Scanning frontend with Semgrep..."
+	@docker run --rm \
+		-v $(PWD)/frontend:/src \
+		-v $(SEMGREP_REPORTS):/reports \
+		$(SEMGREP_IMAGE) semgrep scan \
+		--config=auto --json --output=/reports/frontend.json /src 2>/dev/null || true
+	@docker run --rm \
+		-v $(SEMGREP_CONV):/to-html.py:ro \
+		-v $(SEMGREP_REPORTS):/reports \
+		python:3.12-alpine python /to-html.py \
+		/reports/frontend.json /reports/frontend.html "Frontend" 2>/dev/null || \
+		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check /reports/frontend.json"
+	@echo "Report: $(SEMGREP_REPORTS)/frontend.html"
+
+semgrep-all: semgrep-backend semgrep-frontend
+	@echo "All Semgrep reports: $(SEMGREP_REPORTS)/"

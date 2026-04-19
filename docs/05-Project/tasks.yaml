@@ -447,3 +447,28 @@ tasks:
         - Migration : npx prisma migrate dev --name remove_lifecycle_status_from_bc
           (exécuter dans le container : docker exec ark-epm-backend-1 ...)
       Note : le composant LifecycleStepper.tsx (components/shared/) est CONSERVÉ — réutilisé par T-055.
+
+  - id: T-058
+    nom: "Ajouter Trivy en image Docker appelable via commande make"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-19"
+    sprint: S4
+    theme: "F-999"
+    type: impl
+    feature: "SECURITY"
+    sessions:
+      - tool: OC
+        id: "f8a2b1"
+        nom: "impl targets Trivy dans Makefile — Option A"
+    notes: |
+      ✅ DONE 2026-04-19 :
+      - Ajout de 4 targets dans Makefile :
+        • scan-backend : scan de l'image ark-epm-backend:latest
+        • scan-frontend : scan de l'image ark-epm-frontend:latest
+        • scan-all : scan des deux images backend + frontend
+        • scan-fs : scan du filesystem local
+      - Trivy téléchargé automatiquement via aquasec/trivy:latest
+      - Test validé : scan backend (2547 vuln CVE) + scan frontend (multi-CVE Go/Node)
