@@ -19,9 +19,11 @@ import {
   DialogActions,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import ClearIcon from '@mui/icons-material/Clear';
 import { ApplicationFormValues } from '@/types/application';
 import { DimensionTagInput } from '@/components/tags';
 import { TagValueResponse } from '@/components/tags/DimensionTagInput.types';
+import { LifecycleStepper } from '@/components/shared/LifecycleStepper';
 
 interface DimensionOption {
   id: string;
@@ -623,26 +625,31 @@ export default function ApplicationForm({
           </RadioGroup>
         </Box>
 
-        <FormControl fullWidth disabled={isLoading}>
-          <InputLabel id="lifecycle-status-label">
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
             {t('applications.form.lifecycleStatusLabel')}
-          </InputLabel>
-          <Select
-            labelId="lifecycle-status-label"
-            value={values.lifecycleStatus || ''}
-            label={t('applications.form.lifecycleStatusLabel')}
-            onChange={(e) => handleChange('lifecycleStatus', e.target.value || null)}
-          >
-            <MenuItem value="">
-              <em>{t('applications.detail.noValue')}</em>
-            </MenuItem>
-            {availableOptions.lifecycleStatuses.map((status) => (
-              <MenuItem key={status} value={status}>
-                {t(`applications.lifecycle.${status}`)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('applications.lifecycle.editDescription')}
+          </Typography>
+          <LifecycleStepper
+            currentPhase={values.lifecycleStatus}
+            editable
+            onPhaseChange={(phase) => handleChange('lifecycleStatus', phase)}
+          />
+          {values.lifecycleStatus && (
+            <Button
+              variant="text"
+              size="small"
+              startIcon={<ClearIcon />}
+              onClick={() => handleChange('lifecycleStatus', null)}
+              disabled={isLoading}
+              sx={{ mt: 1 }}
+            >
+              {t('applications.lifecycle.clearButton')}
+            </Button>
+          )}
+        </Box>
 
         {availableDimensions.length > 0 && (
           <Box>

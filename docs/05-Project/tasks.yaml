@@ -397,16 +397,19 @@ tasks:
 
   - id: T-057
     nom: "Frontend — LifecycleStepper éditable dans ApplicationEditPage"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-19"
     sprint: S4
     theme: "FS-06"
     type: impl
     feature: "FS-06-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "f9a3c1"
+        nom: "impl LifecycleStepper editable + clear button dans ApplicationForm"
     notes: |
       Suite de T-055 (scope déféré).
       Remplacer le <Select> LIFECYCLE_STATUSES dans ApplicationForm.tsx (lignes 626-645)

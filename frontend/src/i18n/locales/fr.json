@@ -518,15 +518,20 @@
          "retired": "Retirée",
          "tabLabel": "Assessment",
          "sectionTitle": "Trajectoire de modernisation",
-         "notDefined": "Aucune phase de lifecycle définie pour cette application."
+         "notDefined": "Aucune phase de lifecycle définie pour cette application.",
+         "editDescription": "Cliquez sur une phase pour modifier le cycle de vie",
+         "clearButton": "Effacer"
        },
-        "roles": {
-          "editor": "Éditeur",
-          "integrator": "Intégrateur",
-          "support": "Support",
-          "vendor": "Éditeur (tiers)",
-          "custom": "Personnalisé"
-        }
+         "roles": {
+           "editor": "Éditeur",
+           "integrator": "Intégrateur",
+           "support": "Support",
+           "vendor": "Éditeur (tiers)",
+           "custom": "Personnalisé"
+         },
+         "snackbar": {
+           "lifecycleUpdated": "Cycle de vie mis à jour"
+         }
     },
 
     "businessCapabilities": {
