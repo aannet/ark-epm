@@ -449,7 +449,7 @@ tasks:
       Note : le composant LifecycleStepper.tsx (components/shared/) est CONSERVÉ — réutilisé par T-055.
 
   - id: T-058
-    nom: "Ajouter Trivy en image Docker appelable via commande make"
+    nom: "Ajouter scanners sécurité Trivy + Semgrep via commande make (output HTML)"
     statut: done
     assigned_agent: arch
     session_active: ~
@@ -462,13 +462,27 @@ tasks:
     sessions:
       - tool: OC
         id: "f8a2b1"
-        nom: "impl targets Trivy dans Makefile — Option A"
+        nom: "impl Trivy + Semgrep — output HTML via templates"
     notes: |
       ✅ DONE 2026-04-19 :
-      - Ajout de 4 targets dans Makefile :
-        • scan-backend : scan de l'image ark-epm-backend:latest
-        • scan-frontend : scan de l'image ark-epm-frontend:latest
-        • scan-all : scan des deux images backend + frontend
-        • scan-fs : scan du filesystem local
-      - Trivy téléchargé automatiquement via aquasec/trivy:latest
-      - Test validé : scan backend (2547 vuln CVE) + scan frontend (multi-CVE Go/Node)
+
+      Trivy (CVE scanner Docker images) :
+      - Template HTML officiel : trivy/html.tpl
+      - 4 targets Makefile :
+        • scan-backend → reports/trivy/backend.html (5.9 Mo, 2547 vuln)
+        • scan-frontend → reports/trivy/frontend.html
+        • scan-fs → reports/trivy/fs.html
+        • scan-all → les 3 rapports
+
+      Semgrep (SAST scanner code source) :
+      - Script conversion JSON→HTML : semgrep/json-to-html.py
+      - 3 targets Makefile :
+        • semgrep-backend → reports/semgrep/backend.html (5 findings)
+        • semgrep-frontend → reports/semgrep/frontend.html (1 finding)
+        • semgrep-all → les 2 rapports
+
+      Structure reports/ :
+      - reports/trivy/ (gitignored)
+      - reports/semgrep/ (gitignored)
+
+      Commit : 1c96b4e — feat(arch): T-058 — Ajout scanners sécurité Trivy + Semgrep avec output HTML
