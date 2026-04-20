@@ -1,7 +1,9 @@
 # ARK — Feature Spec FS-07-BACK : Business Capabilities (Backend)
 
-_Version 1.1 — Avril 2026_
+_Version 1.2 — Avril 2026_
 
+> **Changelog v1.2 :** Amendment T-047 (2026-04-21) — Ajout du filtrage `search` et `domainId` sur l'endpoint `GET /tree`. L'arbre est élagué côté serveur : nœuds matchants + tous leurs descendants + leurs ancêtres. Suppression du filtrage client-side temporaire dans `BusinessCapabilitiesPage.tsx`. Ajout RM-12 et 5 cas de test Supertest.
+>
 > **Changelog v1.1 :** Amendment T-019 (2026-04-08) — Ajout des champs `criticality` (enum LOW/MEDIUM/HIGH/CRITICAL) et `technicalFit` (enum ADEQUATE/PARTIAL/INADEQUATE/LEGACY) pour répondre aux US09 et US10 de FS-07-FRONT. Migration SQL (CREATE TYPE + ALTER TABLE), ajout dans Prisma model, DTOs (Create/Update/Response/ListItem/TreeNode), seed (12 capabilities existantes alimentées). Gate bloquante pour T-018 (impl frontend).
 >
 > **Changelog v1.0 :** Création initiale — module Business Capabilities conforme NFR-GOV-005. Implémente le CRUD complet avec migration schéma (ajout comment, UNIQUE name, fix id default gen_random_uuid(), updatedAt @updatedAt), suppression du champ legacy `tags TEXT[]`, liaison tags F-03 polymorphe. Relation auto-référente hiérarchique (`parent_id` → self, `children[]`) avec `level` auto-calculé, prévention des références circulaires. Endpoint `GET /tree` via `WITH RECURSIVE` PostgreSQL. Hiérarchie illimitée en profondeur (conforme ARK-Product-Brief). Relation N:N `app_capability_map` sans rôle (simple liaison). Onglet Relations (`_count.applicationMappings` + `GET /:id/applications`) et enfants (`_count.children` + `GET /:id/children`). Gestion des dépendances (blocage suppression si enfants ou applications liées).
@@ -537,10 +539,19 @@ paths:
 
   /api/v1/business-capabilities/tree:
     get:
-      summary: Arbre hiérarchique complet (WITH RECURSIVE)
+      summary: Arbre hiérarchique avec filtrage optionnel (élagage serveur)
       tags: [BusinessCapabilities]
       security:
         - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle sur le nom (insensible à la casse)
+        - name: domainId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filtrer par domaine
       responses:
         '200':
           description: Arbre hiérarchique complet en structure nested
@@ -904,6 +915,14 @@ async remove(id: string): Promise<void> {
 
 - **RM-11 — Endpoint `/tree` WITH RECURSIVE :** Requête SQL récursive pour retourner l'arbre complet. Structure de réponse : tableau de racines (`parentId = null`), chaque nœud contenant ses enfants nested.
 
+- **RM-12 — Filtrage `/tree` par search et domainId (T-047) :** Quand au moins un des query params `search` ou `domainId` est fourni, l'arbre est **élagué côté serveur** :
+
+  1. **Identification des nœuds matchants** : `name ILIKE '%search%'` (insensible à la casse) ET/OU `domainId = valeur`. Les filtres se combinent en AND.
+  2. **Inclusion des ancêtres** : pour chaque nœud matchant, remonter la chaîne des `parentId` jusqu'à la racine — ces ancêtres sont inclus pour conserver la structure hiérarchique.
+  3. **Inclusion de tous les descendants** : pour chaque nœud matchant, inclure récursivement tous ses enfants (et petits-enfants, etc.) — comportement intuitif : si un L1 matche, on voit tout son sous-arbre.
+  4. **Élagage** : les nœuds qui ne sont ni matchants, ni ancêtres, ni descendants sont exclus de la réponse.
+  5. **Sans filtre** : comportement inchangé — retourne l'arbre complet.
+
 ---
 
 ## 5. Comportements Backend par Cas d'Usage
@@ -1037,6 +1056,11 @@ async findOne(id: string): Promise<BusinessCapabilityWithTags> {
 - [ ] `[Supertest]` `GET /api/v1/business-capabilities/{id}/children` → `200` liste paginée
 - [ ] `[Supertest]` `GET /api/v1/business-capabilities/{id}/applications` → `200` liste paginée
 - [ ] `[Supertest]` `GET /api/v1/business-capabilities/tree` → `200` avec structure arborescente
+- [ ] `[Supertest]` `GET /api/v1/business-capabilities/tree?search=Finance` → `200` arbre élagué (nœuds matchants + descendants + ancêtres uniquement)
+- [ ] `[Supertest]` `GET /api/v1/business-capabilities/tree?domainId=xxx` → `200` arbre élagué par domaine
+- [ ] `[Supertest]` `GET /api/v1/business-capabilities/tree?search=Finance&domainId=xxx` → `200` arbre élagué par combinaison AND des filtres
+- [ ] `[Supertest]` `GET /api/v1/business-capabilities/tree?search=ZZZ` → `200` avec `{ data: [] }` (aucun match)
+- [ ] `[Supertest]` `GET /api/v1/business-capabilities/tree` sans filtre → `200` arbre complet (comportement inchangé)
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` changement nom → `200`
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` reparenting valide → `200` avec nouveau `level`
 - [ ] `[Supertest]` `PATCH /api/v1/business-capabilities/{id}` reparenting circulaire → `400` + `code: "CIRCULAR_REFERENCE"`

@@ -55,9 +55,9 @@ tasks:
 
   - id: T-047
     nom: "Backend — Implémenter filtrage search/domainId dans GET /business-capabilities/tree"
-    statut: open
+    statut: in_progress
     assigned_agent: back
-    session_active: ~
+    session_active: "d7e9f1"
     handoff_ref: ~
     date_resolution: ~
     sprint: S4
@@ -215,13 +215,16 @@ tasks:
 
   - id: T-065
     nom: "Retravailler design de la vue détail d'une Application"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "b3f7a2"
-    handoff_ref: ~
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260421/SESSION-HANDOFF-front-t065.md"
+    date_resolution: "2026-04-21"
     sprint: S4
     theme: "FS-06"
     type: impl
     feature: "FS-06-FRONT"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b3f7a2"
+        nom: "Redesign ApplicationDetailPage — 2-col layout, 3 tabs, header enrichi"

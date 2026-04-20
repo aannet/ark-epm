@@ -1,7 +1,9 @@
 # ARK — Feature Spec FS-07-FRONT : Business Capabilities (Frontend)
 
-_Version 1.1 — Avril 2026_
+_Version 1.2 — Avril 2026_
 
+> **Changelog v1.2 :** Amendment T-047 (2026-04-21) — Filtrage `search` et `domainId` désormais côté serveur sur `GET /tree` (élagage arbre : matchants + descendants + ancêtres). Suppression du filtrage client-side temporaire dans `flatList` useMemo. US-16 critères cochés. Correction commentaires §4.2 et §4.3.
+>
 > **Changelog v1.1 :** T-033/T-034/T-035 — suppression vue arbre MUI TreeView (redondante avec liste arborescente), vue matrix : CriticalityChip remplace couleur de fond, badge niveau supprimé, max 2 domaines L0 par rangée en desktop (`md=6`).
 >
 > **Changelog v1.0 :** Création initiale — module Business Capabilities frontend avec 3 vues (liste arborescente, arbre MUI TreeView, matrix), drawer read-only (PNS-02), formulaire avec criticality/technicalFit, hiérarchie récursive, agrégation client-side. Conforme PNS-11 (breadcrumb systématique). Intègre le composant partagé `AppBreadcrumbs` (première implémentation réelle PNS-11).
@@ -87,9 +89,9 @@ Afin de produire des rapports segmentés pour les différents directeurs métier
 
 Critères d'acceptation :
 - [ ] Un filtre Domain (Autocomplete) est disponible en en-tête
-- [ ] Le filtre est appliqué côté serveur (`?domainId=xxx`)
-- [ ] Une recherche textuelle (`?search=`) est disponible
-- [ ] Les filtres se combinent (AND)
+- [x] Le filtre est appliqué côté serveur (`?domainId=xxx`)
+- [x] Une recherche textuelle (`?search=`) est disponible
+- [x] Les filtres se combinent (AND)
 
 ### 2.2 Drawer et consultation (US03, US06, US07)
 
@@ -455,7 +457,7 @@ zones:
 
   filters:
     # Identique à §4.1 (search + domainId)
-    # Note: filtres non appliqués côté serveur sur /tree — filtrage client-side post-load
+    # Note: filtrage désormais côté serveur (T-047) — params transmis à GET /tree
 
   body:
     component: MUI TreeView (from @mui/x-tree-view)
@@ -507,7 +509,7 @@ zones:
 
   filters:
     # Identique à §4.1 (search + domainId)
-    # Filtrage client-side post-load
+    # Filtrage côté serveur via query params transmis à GET /tree
 
   body:
     component: BusinessCapabilityMatrix

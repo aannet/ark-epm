@@ -101,16 +101,8 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
   // Client-side filtering applied here since GET /tree ignores search/domainId params
   const flatList = useMemo(() => {
     if (!treeData) return [];
-    let items = flattenTree(sortTreeHierarchically(treeData, sortField, sortOrder));
-    if (searchValue) {
-      const lower = searchValue.toLowerCase();
-      items = items.filter((item) => item.name.toLowerCase().includes(lower));
-    }
-    if (domainFilter) {
-      items = items.filter((item) => item.domainId === domainFilter);
-    }
-    return items;
-  }, [treeData, sortField, sortOrder, searchValue, domainFilter]);
+    return flattenTree(sortTreeHierarchically(treeData, sortField, sortOrder));
+  }, [treeData, sortField, sortOrder]);
 
   // KPI computations — derived from flatList (filtre-aware)
   const kpiMaxDepth = useMemo(() => computeMaxDepth(flatList), [flatList]);
@@ -257,7 +249,9 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
 
   const visibleRows = getVisibleRows();
   const isEmpty = !treeData || treeData.length === 0;
-  const isFilteredEmpty = !isEmpty && !!(searchValue || domainFilter) && visibleRows.length === 0;
+  const hasFilters = !!(searchValue || domainFilter);
+  const isFilteredEmpty = isEmpty && hasFilters;
+  const isTrulyEmpty = isEmpty && !hasFilters;
 
   return (
     <PageContainer>
@@ -382,7 +376,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
         )}
       </Box>
 
-      {isEmpty ? (
+      {isTrulyEmpty ? (
         <EmptyState
           title={t('businessCapabilities.list.emptyState.title')}
           description={t('businessCapabilities.list.emptyState.description')}

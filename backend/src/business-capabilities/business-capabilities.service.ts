@@ -147,7 +147,10 @@ export class BusinessCapabilitiesService {
     };
   }
 
-  async findTree(): Promise<{ data: BusinessCapabilityTreeNode[] }> {
+  async findTree(query?: QueryBusinessCapabilitiesDto): Promise<{ data: BusinessCapabilityTreeNode[] }> {
+    const { search, domainId } = query ?? {};
+    const hasFilters = !!(search || domainId);
+
     const allCapabilities = await this.prisma.businessCapability.findMany({
       select: {
         id: true,
@@ -168,18 +171,101 @@ export class BusinessCapabilitiesService {
     );
     const roots: BusinessCapabilityTreeNode[] = [];
 
+    if (!hasFilters) {
+      for (const cap of allCapabilities) {
+        const node = map.get(cap.id)!;
+        if (cap.parentId) {
+          const parent = map.get(cap.parentId);
+          if (parent) parent.children.push(node);
+        } else {
+          roots.push(node);
+        }
+      }
+      this.logger.log({ method: 'findTree', roots: roots.length, filtered: false });
+      return { data: roots };
+    }
+
+    const keepIds = this.collectKeepIds(allCapabilities, search, domainId);
+
+    const parentMap = new Map<string, string>();
     for (const cap of allCapabilities) {
+      if (cap.parentId) parentMap.set(cap.id, cap.parentId);
+    }
+
+    const ancestorIds = new Set<string>();
+    for (const id of keepIds) {
+      let current = parentMap.get(id);
+      while (current && !ancestorIds.has(current)) {
+        ancestorIds.add(current);
+        current = parentMap.get(current);
+      }
+    }
+
+    const allKeepIds = new Set([...keepIds, ...ancestorIds]);
+
+    for (const cap of allCapabilities) {
+      if (!allKeepIds.has(cap.id)) continue;
       const node = map.get(cap.id)!;
       if (cap.parentId) {
-        const parent = map.get(cap.parentId);
-        if (parent) parent.children.push(node);
+        if (allKeepIds.has(cap.parentId)) {
+          const parent = map.get(cap.parentId);
+          if (parent) parent.children.push(node);
+        }
       } else {
         roots.push(node);
       }
     }
 
-    this.logger.log({ method: 'findTree', roots: roots.length });
+    this.logger.log({ method: 'findTree', roots: roots.length, filtered: true, search, domainId });
     return { data: roots };
+  }
+
+  private collectKeepIds(
+    allCapabilities: {
+      id: string;
+      name: string;
+      parentId: string | null;
+      domainId: string | null;
+      _count: { children: number; applicationMappings: number };
+    }[],
+    search?: string,
+    domainId?: string,
+  ): Set<string> {
+    const matchingIds = new Set<string>();
+
+    for (const cap of allCapabilities) {
+      const matchesSearch = !search || cap.name.toLowerCase().includes(search.toLowerCase());
+      const matchesDomain = !domainId || cap.domainId === domainId;
+      if (matchesSearch && matchesDomain) {
+        matchingIds.add(cap.id);
+      }
+    }
+
+    const childMap = new Map<string, string[]>();
+    for (const cap of allCapabilities) {
+      if (cap.parentId) {
+        const siblings = childMap.get(cap.parentId) ?? [];
+        siblings.push(cap.id);
+        childMap.set(cap.parentId, siblings);
+      }
+    }
+
+    const keepIds = new Set<string>();
+    const addDescendants = (id: string) => {
+      keepIds.add(id);
+      const children = childMap.get(id);
+      if (children) {
+        for (const childId of children) {
+          addDescendants(childId);
+        }
+      }
+    };
+
+    for (const id of matchingIds) {
+      addDescendants(id);
+    }
+
+    return keepIds;
   }
 
   async findOne(id: string) {

@@ -36,8 +36,8 @@ export class BusinessCapabilitiesController {
 
   @Get('tree')
   @RequirePermissions('business-capabilities:read')
-  findTree() {
-    return this.businessCapabilitiesService.findTree();
+  findTree(@Query() query: QueryBusinessCapabilitiesDto) {
+    return this.businessCapabilitiesService.findTree(query);
   }
 
   @Get(':id')
