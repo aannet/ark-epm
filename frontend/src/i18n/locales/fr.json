@@ -437,7 +437,13 @@
         "criticality": "Criticité",
         "owner": "Responsable",
         "comment": "Commentaire interne",
-        "updatedAt": "Modifié le"
+        "updatedAt": "Modifié le",
+        "tabs": {
+          "general": "Informations générales",
+          "interfaces": "Interfaces",
+          "assessment": "Assessment"
+        },
+        "phaseActuelle": "Phase actuelle"
       },
        "form": {
          "breadcrumb": {

@@ -198,4 +198,30 @@ tasks:
       (erreur I/O daemon). L'implémentation est validée syntaxiquement
       et prête pour exécution sur environnement Docker healthy.
       
-      Pour valider : docker-compose up -d && make test-dast
+       Pour valider : docker-compose up -d && make test-dast
+
+  - id: T-064
+    nom: "Mettre à jour vers Material UI and MUI X v9"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-999"
+    type: debt
+    feature: "F-999-FRONT-MUI"
+    sessions: []
+
+  - id: T-065
+    nom: "Retravailler design de la vue détail d'une Application"
+    statut: in_progress
+    assigned_agent: front
+    session_active: "b3f7a2"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    sessions: []

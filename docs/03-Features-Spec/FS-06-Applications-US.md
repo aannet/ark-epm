@@ -36,7 +36,22 @@ Doit afficher le tire
 DETAIL
 En tant qu'utilisateur connecté
 Afin de consulter le détail des informations d'une application
-J'accède à une page dédié en lecture seule
+J'accède à une page dédiée en lecture seule
+
+La page est organisée en 3 onglets :
+* Informations générales — layout 2 colonnes (principale + sidebar)
+* Interfaces — à venir (placeholder)
+* Assessment — trajectoire de modernisation (LifecycleStepper)
+
+Header enrichi : icône initiale + nom + domaine en sous-titre + chips criticité/lifecycle + bouton Modifier
+
+Colonne principale (onglet Informations) :
+* Informations générales : description, responsable, criticité, phase actuelle
+* Relations : domaine (row cliquable), business capabilities (chips), fournisseurs (cards grille avec rôle), composants IT (cards grille)
+
+Sidebar droite (onglet Informations) :
+* Tags
+* Métadonnées : commentaire interne, créé le, modifié le
 
 
 

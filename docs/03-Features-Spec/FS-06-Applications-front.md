@@ -401,6 +401,8 @@ zones:
 
 ### 4.2 `ApplicationDetailPage`
 
+> **v1.3 — Redesign T-065** : Layout 2 colonnes, header enrichi, 3 tabs, déplacements owner/comment/tags/metadata.
+
 ```yaml
 page: ApplicationDetailPage
 route: /applications/:id
@@ -415,77 +417,157 @@ layout:
   shell: AppShell
   container: PageContainer
   container_props:
-    maxWidth: md
+    maxWidth: xl
 
 zones:
   header:
-    component: PageHeader
-    props:
-      title: application.name
-      action:
+    layout: flex row, alignItems: center, gap: 2
+    elements:
+      - component: MUI Avatar
+        props:
+          bgColor: primary.dark
+          size: 48px
+          content: application.name.charAt(0).toUpperCase()
+      - component: Box (flex: 1)
+        elements:
+          - component: Typography variant=h2
+            value: application.name
+          - component: Typography variant=body2 color=text.secondary
+            value: application.domain?.name
+            condition: application.domain !== null
+      - component: Stack direction=row spacing=1
+        elements:
+          - component: StatusChip type=criticality
+            condition: application.criticality !== null
+            value: application.criticality
+          - component: StatusChip type=lifecycle
+            condition: application.lifecycleStatus !== null
+            value: application.lifecycleStatus
+      - component: MUI Button variant=contained
         condition: hasPermission('applications:write')
         label: t('applications.detail.editButton')
-        onClick: navigate('/applications/${application.id}/edit')
         icon: EditIcon
+        onClick: navigate('/applications/${application.id}/edit')
+
+  breadcrumbs:
+    component: AppBreadcrumbs
+    props:
+      items:
+        - label: t('applications.detail.breadcrumb.home'), onClick: navigate('/')
+        - label: t('applications.detail.breadcrumb.list'), onClick: navigate('/applications')
+        - label: application.name
 
   alerts:
     - trigger: location.state?.alert
       component: ArkAlert
-      position: sous PageHeader
+      position: sous header
       auto_dismiss: 5000ms
       on_mount: window.history.replaceState({}, '')
 
-  body:
-    loading_state: LoadingSkeleton
-    sections:
-      - title: t('applications.detail.section.general')
-        fields:
-          - label: t('applications.list.columns.name')
-            value: application.name
-          - label: t('applications.list.columns.description')
-            value: application.description ?? t('applications.detail.noDescription')
-          - label: t('applications.detail.criticality')
-            value: application.criticality ?? t('applications.detail.noValue')
-            component: StatusChip
-          - label: t('applications.list.columns.lifecycleStatus')
-            value: application.lifecycleStatus ?? t('applications.detail.noValue')
-            component: StatusChip
-          - label: t('applications.detail.comment')
-            value: application.comment ?? t('applications.detail.noComment')
-       - title: t('applications.detail.section.relations')
-         fields:
-           - label: t('applications.list.columns.domain')
-             value: application.domain?.name ?? t('applications.detail.noValue')
-             link: application.domain ? '/domains/${application.domain.id}' : null
-           - label: t('applications.list.columns.provider')
-             value: application.provider?.name ?? t('applications.detail.noValue')
-             link: application.provider ? '/providers/${application.provider.id}' : null
-           - label: t('applications.list.columns.itComponents')
-             component: Typography.ul (liste non-ordonnée)
-             component_props:
-               condition: application.itComponents.length > 0
-               items: application.itComponents.map(ic => ({ label: ic.name, link: '/it-components/${ic.id}' }))
-           - label: t('applications.detail.owner')
-             value: application.owner ? '${owner.firstName} ${owner.lastName}' : t('applications.detail.noValue')
-      - title: t('applications.detail.section.tags')
-        fields:
-          - label: t('applications.list.columns.tags')
-            component: TagChipList
-            component_props:
-              tags: deduplicateByDepth(application.tags)
-              maxVisible: undefined
-              size: small
-      - title: t('applications.detail.section.metadata')
-        fields:
-          - label: t('applications.list.columns.createdAt')
-            value: application.createdAt formaté date locale FR
-          - label: t('applications.detail.updatedAt')
-            value: application.updatedAt formaté date locale FR
+  tabs:
+    - label: t('applications.detail.tabs.general')
+      index: 0
+    - label: t('applications.detail.tabs.interfaces')
+      index: 1
+      note: placeholder — common.comingSoon
+    - label: t('applications.detail.tabs.assessment')
+      index: 2
+      note: LifecycleStepper + assessment futur
+
+  body_tab_0:
+    layout: Grid container spacing=4
+    column_main:
+      grid: xs=12 md=8
+      sections:
+        - title: t('applications.detail.section.general')
+          fields:
+            - label: t('applications.list.columns.description')
+              value: application.description ?? t('applications.detail.noDescription')
+            - label: t('applications.detail.owner')
+              value: application.owner ? '${owner.firstName} ${owner.lastName}' : t('applications.detail.noValue')
+            - layout: Stack direction=row spacing=4
+              fields:
+                - label: t('applications.detail.criticality')
+                  component: StatusChip type=criticality
+                  value: application.criticality
+                  fallback: t('applications.detail.noValue')
+                - label: t('applications.detail.phaseActuelle')
+                  component: StatusChip type=lifecycle
+                  value: application.lifecycleStatus
+                  fallback: t('applications.detail.noValue')
+
+        - title: t('applications.detail.section.relations')
+          fields:
+            - label: t('applications.list.columns.domain')
+              component: ClickableRow (chevron >)
+              value: application.domain?.name ?? t('applications.detail.noValue')
+              onClick: navigate('/domains/${application.domain.id}')
+            - label: t('applications.relations.businessCapabilities')
+              condition: application.businessCapabilities.length > 0
+              component: MUI Chips (flexWrap, gap: 1)
+              items: application.businessCapabilities.map(bc => Chip label=bc.name onClick=navigate('/business-capabilities/${bc.id}'))
+            - label: t('applications.form.providersLabel')
+              condition: application.providers.length > 0
+              component: Grid container spacing=1.5
+              items: |
+                application.providers.map(p => RelationCard
+                  name=p.name
+                  sublabel=p.role (traduit via applications.roles.*)
+                  onClick=navigate('/providers/${p.id}')
+                )
+              grid_cols: xs=12 sm=6
+            - label: t('applications.form.itComponentsLabel')
+              condition: application.itComponents.length > 0
+              component: Grid container spacing=1.5
+              items: |
+                application.itComponents.map(ic => RelationCard
+                  name=ic.name
+                  onClick=navigate('/it-components/${ic.id}')
+                )
+              grid_cols: xs=12 sm=6
+
+    column_sidebar:
+      grid: xs=12 md=4
+      sections:
+        - title: t('applications.detail.section.tags')
+          component: TagChipList
+          component_props:
+            tags: deduplicateByDepth(application.tags)
+            deduplicate: true
+            showMoreButton: false
+            size: small
+          fallback: Typography "—"
+
+        - title: t('applications.detail.section.metadata')
+          fields:
+            - label: t('applications.detail.comment')
+              value: application.comment ?? t('applications.detail.noComment')
+            - label: t('applications.list.columns.createdAt')
+              value: application.createdAt formaté date locale FR
+            - label: t('applications.detail.updatedAt')
+              value: application.updatedAt formaté date locale FR
+
+  body_tab_1:
+    component: Typography color=text.secondary
+    value: t('common.comingSoon')
+    note: placeholder Interfaces — FS-08
+
+  body_tab_2:
+    condition: application.lifecycleStatus !== null
+    elements:
+      - component: Typography variant=h6
+        value: t('applications.lifecycle.sectionTitle')
+      - component: LifecycleStepper
+        props:
+          currentPhase: application.lifecycleStatus
+          editable: false
+    fallback: Typography color=text.secondary t('applications.lifecycle.notDefined')
 
   footer:
     - component: MUI Button
       props:
         variant: outlined
+        startIcon: ArrowBackIcon
         label: t('applications.detail.backButton')
         onClick: navigate('/applications')
 ```
