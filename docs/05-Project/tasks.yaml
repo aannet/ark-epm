@@ -55,11 +55,11 @@ tasks:
 
   - id: T-047
     nom: "Backend — Implémenter filtrage search/domainId dans GET /business-capabilities/tree"
-    statut: in_progress
+    statut: done
     assigned_agent: back
-    session_active: "d7e9f1"
-    handoff_ref: ~
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260421/SESSION-HANDOFF-back-t047.md"
+    date_resolution: "2026-04-21"
     sprint: S4
     theme: "FS-07"
     type: debt
@@ -68,14 +68,21 @@ tasks:
       - tool: CL
         id: "f4a8c2"
         nom: "identifié lors du fix T-041 — filtrage client-side en place en attendant"
+      - tool: OC
+        id: "d7e9f1"
+        nom: "implémenté filtrage serveur search/domainId + élagage arbre + clean front + specs v1.2"
     notes: |
-      GET /business-capabilities/tree ignore les query params search et domainId.
-      Le contrôleur appelle findTree() sans arguments ; le service retourne l'arbre complet.
-      Fix temporaire : filtrage client-side dans flatList useMemo (BusinessCapabilitiesPage.tsx).
-      Fix permanent backend :
-      - controller : @Query() query: { search?: string; domainId?: string }
-      - service : filtrer les nœuds correspondants + inclure leurs ancêtres pour conserver
-        la structure hiérarchique dans la réponse arbre.
+      ✅ Implémenté (T-047, session d7e9f1, 2026-04-21).
+      Backend : controller accepte QueryBusinessCapabilitiesDto sur /tree ;
+      service findTree(query?) avec algorithme collectKeepIds() :
+      nœuds matchants + tous leurs descendants + leurs ancêtres.
+      Sans filtre = comportement inchangé (arbre complet).
+      Frontend : supprimé filtrage client-side dans flatList useMemo ;
+      corrigé logique isTrulyEmpty vs isFilteredEmpty.
+      Specs : FS-07-BACK v1.2 (RM-12, 6 cas test), FS-07-FRONT v1.2 (US-16 [x], commentaires).
+      ⚠️ RESTANT : les 6 cas Supertest /tree filtré listés dans la spec ne sont
+      pas encore écrits en code (backend/test/FS-07-business-capabilities.e2e-spec.ts).
+      ⚠️ RESTANT : openapi.yaml pas mis à jour avec les params /tree (NFR-GOV-001).
        (Anciennement T-043 doublon — renommé T-047 lors de la consolidation des archives)
 
   - id: T-049
@@ -228,3 +235,21 @@ tasks:
       - tool: OC
         id: "b3f7a2"
         nom: "Redesign ApplicationDetailPage — 2-col layout, 3 tabs, header enrichi"
+
+  - id: T-066
+    nom: "openapi.yaml à mettre à jour sur tous les endpoints"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-999"
+    type: debt
+    feature: "F-999-API-CONTRACT"
+    sessions: []
+    notes: |
+      NFR-GOV-001 : le contrat openapi.yaml doit refléter tous les endpoints implémentés.
+      RESTANT identifié dans T-047 : params search/domainId sur GET /business-capabilities/tree
+      non documentés. Étendre l'audit à l'ensemble des routes /api/v1/.
+      Référence : docs/04-Tech/openapi.yaml | docs/04-Tech/ARK-NFR.md (NFR-GOV-001).
