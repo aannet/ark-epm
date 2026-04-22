@@ -256,16 +256,30 @@ tasks:
 
   - id: T-067
     nom: "Horodater tous les rapports de tests dans /reports"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-22"
     sprint: S4
     theme: "QA"
     type: impl
     feature: "QA-REPORTS"
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "2e64f9"
+        nom: "rituel ouverture + impl horodatage rapports"
+    notes: |
+      ✅ Implémenté (session 2e64f9, 2026-04-22).
+      Format : préfixe timestamp YYYYMMDD-HHMMSS au début du nom de fichier.
+      Outils couverts :
+      - Trivy (scan-backend, scan-frontend, scan-fs) → reports/trivy/YYYYmmdd-HHMMSS-{backend,frontend,fs}.html
+      - Semgrep (semgrep-backend, semgrep-frontend) → reports/semgrep/YYYYmmdd-HHMMSS-{backend,frontend}.{html,json}
+      - ZAP (test-dast, test-dast-baseline) → reports/zap/YYYYmmdd-HHMMSS-{zap,baseline}-report.{html,json}
+      open-dast-report : ouvre le rapport HTML le plus récent (ls -t).
+      openapi-zap.yaml : fichier temporaire supprimé après chaque run test-dast.
+      Pas de symlink, pas de purge auto (conforme demande).
+      e2e/reports/ : hors périmètre — nouvelle tâche à créer pour déporter les rapports Playwright dans reports/.
 
   - id: T-068
     nom: "fix bug 'make test-dast' qui ne produit rien"

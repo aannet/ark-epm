@@ -4,6 +4,9 @@
 BACKEND_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.backend.1' | head -1)
 POSTGRES_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.postgres.1' | head -1)
 
+# Timestamp for report files (YYYYMMDD-HHMMSS)
+TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
+
 dev:
 	cd frontend && npm run dev
 
@@ -217,9 +220,9 @@ scan-backend:
 		-v $(TRIVY_REPORTS):/reports \
 		$(TRIVY_IMAGE) image \
 		--format template --template "@/tpl/html.tpl" \
-		-o /reports/backend.html \
+		-o /reports/$(TIMESTAMP)-backend.html \
 		ark-epm-backend:latest
-	@echo "Report: $(TRIVY_REPORTS)/backend.html"
+	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-backend.html"
 
 scan-frontend:
 	@mkdir -p $(TRIVY_REPORTS)
@@ -230,9 +233,9 @@ scan-frontend:
 		-v $(TRIVY_REPORTS):/reports \
 		$(TRIVY_IMAGE) image \
 		--format template --template "@/tpl/html.tpl" \
-		-o /reports/frontend.html \
+		-o /reports/$(TIMESTAMP)-frontend.html \
 		ark-epm-frontend:latest
-	@echo "Report: $(TRIVY_REPORTS)/frontend.html"
+	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-frontend.html"
 
 scan-fs:
 	@mkdir -p $(TRIVY_REPORTS)
@@ -243,9 +246,9 @@ scan-fs:
 		-v $(TRIVY_REPORTS):/reports \
 		$(TRIVY_IMAGE) fs \
 		--format template --template "@/tpl/html.tpl" \
-		-o /reports/fs.html \
+		-o /reports/$(TIMESTAMP)-fs.html \
 		/workdir
-	@echo "Report: $(TRIVY_REPORTS)/fs.html"
+	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-fs.html"
 
 scan-all: scan-backend scan-frontend scan-fs
 	@echo "All reports: $(TRIVY_REPORTS)/"
@@ -264,14 +267,14 @@ semgrep-backend:
 		-v $(SEMGREP_REPORTS):/reports \
 		$(SEMGREP_IMAGE) semgrep scan \
 		--config=p/typescript --config=p/nodejs \
-		--json --output=/reports/backend.json /src 2>/dev/null || true
+		--json --output=/reports/$(TIMESTAMP)-backend.json /src 2>/dev/null || true
 	@docker run --rm \
 		-v $(SEMGREP_CONV):/to-html.py:ro \
 		-v $(SEMGREP_REPORTS):/reports \
 		python:3.12-alpine python /to-html.py \
-		/reports/backend.json /reports/backend.html "Backend" 2>/dev/null || \
-		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check /reports/backend.json"
-	@echo "Report: $(SEMGREP_REPORTS)/backend.html"
+		/reports/$(TIMESTAMP)-backend.json /reports/$(TIMESTAMP)-backend.html "Backend" 2>/dev/null || \
+		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check $(SEMGREP_REPORTS)/$(TIMESTAMP)-backend.json"
+	@echo "Report: $(SEMGREP_REPORTS)/$(TIMESTAMP)-backend.html"
 
 semgrep-frontend:
 	@mkdir -p $(SEMGREP_REPORTS)
@@ -281,14 +284,14 @@ semgrep-frontend:
 		-v $(SEMGREP_REPORTS):/reports \
 		$(SEMGREP_IMAGE) semgrep scan \
 		--config=p/typescript --config=p/react \
-		--json --output=/reports/frontend.json /src 2>/dev/null || true
+		--json --output=/reports/$(TIMESTAMP)-frontend.json /src 2>/dev/null || true
 	@docker run --rm \
 		-v $(SEMGREP_CONV):/to-html.py:ro \
 		-v $(SEMGREP_REPORTS):/reports \
 		python:3.12-alpine python /to-html.py \
-		/reports/frontend.json /reports/frontend.html "Frontend" 2>/dev/null || \
-		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check /reports/frontend.json"
-	@echo "Report: $(SEMGREP_REPORTS)/frontend.html"
+		/reports/$(TIMESTAMP)-frontend.json /reports/$(TIMESTAMP)-frontend.html "Frontend" 2>/dev/null || \
+		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check $(SEMGREP_REPORTS)/$(TIMESTAMP)-frontend.json"
+	@echo "Report: $(SEMGREP_REPORTS)/$(TIMESTAMP)-frontend.html"
 
 semgrep-all: semgrep-backend semgrep-frontend
 	@echo "All Semgrep reports: $(SEMGREP_REPORTS)/"
@@ -325,10 +328,11 @@ test-dast:
 		-t /zap/wrk/openapi.yaml \
 		-f openapi \
 		-l WARN \
-		-r reports/zap-report.html \
-		-J reports/zap-report.json \
+		-r reports/$(TIMESTAMP)-zap-report.html \
+		-J reports/$(TIMESTAMP)-zap-report.json \
 		-I; \
 	ZAP_EXIT=$$?; \
+	rm -f $(ZAP_REPORTS)/openapi-zap.yaml; \
 	if [ $$ZAP_EXIT -eq 0 ]; then \
 		echo "✅ DAST scan completed. No Medium+ findings."; \
 	elif [ $$ZAP_EXIT -eq 1 ]; then \
@@ -338,8 +342,8 @@ test-dast:
 	else \
 		echo "❌ DAST scan exited with code $$ZAP_EXIT."; \
 	fi; \
-	echo "   HTML: $(ZAP_REPORTS)/zap-report.html"; \
-	echo "   JSON: $(ZAP_REPORTS)/zap-report.json"; \
+	echo "   HTML: $(ZAP_REPORTS)/$(TIMESTAMP)-zap-report.html"; \
+	echo "   JSON: $(ZAP_REPORTS)/$(TIMESTAMP)-zap-report.json"; \
 	exit $$ZAP_EXIT
 
 # Quick baseline scan (spider only, no active attacks)
@@ -356,8 +360,8 @@ test-dast-baseline:
 		$(ZAP_IMAGE) zap-baseline.py \
 		-t $(ZAP_TARGET) \
 		-l WARN \
-		-r reports/baseline-report.html \
-		-J reports/baseline-report.json \
+		-r reports/$(TIMESTAMP)-baseline-report.html \
+		-J reports/$(TIMESTAMP)-baseline-report.json \
 		-I; \
 	ZAP_EXIT=$$?; \
 	if [ $$ZAP_EXIT -eq 0 ]; then \
@@ -369,17 +373,14 @@ test-dast-baseline:
 	else \
 		echo "❌ Baseline scan exited with code $$ZAP_EXIT."; \
 	fi; \
-	echo "   HTML: $(ZAP_REPORTS)/baseline-report.html"; \
-	echo "   JSON: $(ZAP_REPORTS)/baseline-report.json"; \
+	echo "   HTML: $(ZAP_REPORTS)/$(TIMESTAMP)-baseline-report.html"; \
+	echo "   JSON: $(ZAP_REPORTS)/$(TIMESTAMP)-baseline-report.json"; \
 	exit $$ZAP_EXIT
 
 # Open ZAP report in browser
 open-dast-report:
-	@if [ -f $(ZAP_REPORTS)/zap-report.html ]; then \
-		REPORT=$(ZAP_REPORTS)/zap-report.html; \
-	elif [ -f $(ZAP_REPORTS)/baseline-report.html ]; then \
-		REPORT=$(ZAP_REPORTS)/baseline-report.html; \
-	else \
+	@REPORT=$$(ls -t $(ZAP_REPORTS)/*.html 2>/dev/null | head -1); \
+	if [ -z "$$REPORT" ]; then \
 		echo "❌ No ZAP report found in $(ZAP_REPORTS)."; \
 		echo "   Run 'make test-dast' or 'make test-dast-baseline' first."; \
 		exit 1; \
