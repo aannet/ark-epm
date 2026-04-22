@@ -253,3 +253,32 @@ tasks:
       RESTANT identifié dans T-047 : params search/domainId sur GET /business-capabilities/tree
       non documentés. Étendre l'audit à l'ensemble des routes /api/v1/.
       Référence : docs/04-Tech/openapi.yaml | docs/04-Tech/ARK-NFR.md (NFR-GOV-001).
+
+  - id: T-067
+    nom: "Horodater tous les rapports de tests dans /reports"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-REPORTS"
+    sessions: []
+
+  - id: T-068
+    nom: "fix bug 'make test-dast' qui ne produit rien"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-22"
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "QA-SECURITY"
+    sessions:
+      - tool: OC
+        id: "e8c4a2"
+        nom: "fix Makefile test-dast + baseline + open-dast-report"

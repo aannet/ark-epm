@@ -310,22 +310,37 @@ test-dast:
 	@echo "   Target: $(ZAP_TARGET)"
 	@echo "   OpenAPI: $(ZAP_OPENAPI)"
 	@mkdir -p $(ZAP_REPORTS)
-	@docker run --rm \
-		-v $(ZAP_OPENAPI):/zap/wrk/openapi.yaml:ro \
+	@echo "🔍 Checking backend accessibility..."
+	@curl -s --fail http://localhost:3001/api/v1/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || { echo "❌ Backend not accessible at http://localhost:3001/api/v1. Is docker-compose up?"; exit 1; }
+	@echo "🔍 Preparing OpenAPI spec for ZAP container..."
+	@sed 's|http://localhost:3000/api/v1|http://backend:3000/api/v1|g' $(ZAP_OPENAPI) > $(ZAP_REPORTS)/openapi-zap.yaml
+	@ZAP_TOKEN=$$(./backend/scripts/get-token.sh 2>/dev/null) || { echo "⚠️  Warning: get-token.sh failed, using fallback token"; ZAP_TOKEN="test-token"; }; \
+	docker run --rm \
+		-v $(ZAP_REPORTS)/openapi-zap.yaml:/zap/wrk/openapi.yaml:ro \
 		-v $(ZAP_REPORTS):/zap/wrk/reports \
 		--network ark-epm_default \
 		-e ZAP_AUTH_HEADER=Authorization \
-		-e ZAP_AUTH_HEADER_VALUE="Bearer $(shell ./backend/scripts/get-token.sh 2>/dev/null || echo 'test-token')" \
+		-e ZAP_AUTH_HEADER_VALUE="Bearer $$ZAP_TOKEN" \
 		$(ZAP_IMAGE) zap-api-scan.py \
 		-t /zap/wrk/openapi.yaml \
 		-f openapi \
 		-l WARN \
 		-r reports/zap-report.html \
 		-J reports/zap-report.json \
-		-I 2>/dev/null || true
-	@echo "✅ DAST scan completed. Reports:"
-	@echo "   HTML: $(ZAP_REPORTS)/zap-report.html"
-	@echo "   JSON: $(ZAP_REPORTS)/zap-report.json"
+		-I; \
+	ZAP_EXIT=$$?; \
+	if [ $$ZAP_EXIT -eq 0 ]; then \
+		echo "✅ DAST scan completed. No Medium+ findings."; \
+	elif [ $$ZAP_EXIT -eq 1 ]; then \
+		echo "⚠️  DAST scan completed with Medium+ findings (exit code 1). Review reports:"; \
+	elif [ $$ZAP_EXIT -eq 2 ]; then \
+		echo "❌ DAST scan failed with error (exit code 2)."; \
+	else \
+		echo "❌ DAST scan exited with code $$ZAP_EXIT."; \
+	fi; \
+	echo "   HTML: $(ZAP_REPORTS)/zap-report.html"; \
+	echo "   JSON: $(ZAP_REPORTS)/zap-report.json"; \
+	exit $$ZAP_EXIT
 
 # Quick baseline scan (spider only, no active attacks)
 # Less thorough but safer for production-like environments
@@ -333,6 +348,8 @@ test-dast-baseline:
 	@echo "🔍 Starting ZAProxy baseline scan (passive only)..."
 	@echo "   Target: $(ZAP_TARGET)"
 	@mkdir -p $(ZAP_REPORTS)
+	@echo "🔍 Checking backend accessibility..."
+	@curl -s --fail http://localhost:3001/api/v1/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || { echo "❌ Backend not accessible at http://localhost:3001/api/v1. Is docker-compose up?"; exit 1; }
 	@docker run --rm \
 		-v $(ZAP_REPORTS):/zap/wrk/reports \
 		--network ark-epm_default \
@@ -341,17 +358,36 @@ test-dast-baseline:
 		-l WARN \
 		-r reports/baseline-report.html \
 		-J reports/baseline-report.json \
-		-I 2>/dev/null || true
-	@echo "✅ Baseline scan completed. Reports:"
-	@echo "   HTML: $(ZAP_REPORTS)/baseline-report.html"
-	@echo "   JSON: $(ZAP_REPORTS)/baseline-report.json"
+		-I; \
+	ZAP_EXIT=$$?; \
+	if [ $$ZAP_EXIT -eq 0 ]; then \
+		echo "✅ Baseline scan completed. No Medium+ findings."; \
+	elif [ $$ZAP_EXIT -eq 1 ]; then \
+		echo "⚠️  Baseline scan completed with Medium+ findings (exit code 1). Review reports:"; \
+	elif [ $$ZAP_EXIT -eq 2 ]; then \
+		echo "❌ Baseline scan failed with error (exit code 2)."; \
+	else \
+		echo "❌ Baseline scan exited with code $$ZAP_EXIT."; \
+	fi; \
+	echo "   HTML: $(ZAP_REPORTS)/baseline-report.html"; \
+	echo "   JSON: $(ZAP_REPORTS)/baseline-report.json"; \
+	exit $$ZAP_EXIT
 
 # Open ZAP report in browser
 open-dast-report:
-	@if command -v xdg-open >/dev/null 2>&1; then \
-		xdg-open $(ZAP_REPORTS)/zap-report.html; \
-	elif command -v open >/dev/null 2>&1; then \
-		open $(ZAP_REPORTS)/zap-report.html; \
+	@if [ -f $(ZAP_REPORTS)/zap-report.html ]; then \
+		REPORT=$(ZAP_REPORTS)/zap-report.html; \
+	elif [ -f $(ZAP_REPORTS)/baseline-report.html ]; then \
+		REPORT=$(ZAP_REPORTS)/baseline-report.html; \
 	else \
-		echo "📄 Report: $(ZAP_REPORTS)/zap-report.html"; \
+		echo "❌ No ZAP report found in $(ZAP_REPORTS)."; \
+		echo "   Run 'make test-dast' or 'make test-dast-baseline' first."; \
+		exit 1; \
+	fi; \
+	if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "$$REPORT" || echo "📄 Report: $$REPORT (xdg-open failed, no browser available)"; \
+	elif command -v open >/dev/null 2>&1; then \
+		open "$$REPORT" || echo "📄 Report: $$REPORT (open failed, no browser available)"; \
+	else \
+		echo "📄 Report: $$REPORT"; \
 	fi
