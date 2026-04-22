@@ -148,8 +148,9 @@ date_resolution: ~                 # ~ si non terminé, YYYY-MM-DD si done
 sprint: S1|S2|...
 theme: "FS-XX" | "QA" | "F-999"
 type: spec|decision|review|debt|impl|test|doc|poc
-feature: "FS-XX-BACK"
-sessions:
+  feature: "FS-XX-BACK"
+  priorité: high|medium|low
+  sessions:
   - tool: OC|CL
     id: "6hexchars"
     nom: "description courte"
@@ -167,7 +168,7 @@ notes: |
 | `blocked` | Gate non levée — voir `notes` pour les prérequis |
 
 ### Rituel d'ouverture
-Utiliser `/ark-open-session` : lit tasks.yaml + SESSION-HANDOFF.md, filtre les tâches disponibles, pose le verrou `session_active`.
+Utiliser `/ark-open-session` : lit tasks.yaml + SESSION-HANDOFF.md, filtre les tâches disponibles, **trie par priorité décroissante (high → medium → low)**, pose le verrou `session_active`.
 
 ### Rituel de clôture
 Utiliser `/ark-close-session` : met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff si pertinent.

@@ -233,6 +233,10 @@
     .badge-doc      { background: rgba(107,114,128,0.2); color: var(--c-doc); }
     .badge-poc      { background: rgba(234,179,8,0.2);   color: var(--c-poc); }
 
+    .badge-priority-high   { background: rgba(239,68,68,0.2);  color: #ef4444; }
+    .badge-priority-medium { background: rgba(234,179,8,0.2);  color: #eab308; }
+    .badge-priority-low    { background: rgba(107,114,128,0.12); color: #9ca3af; }
+
     .badge-sprint {
       background: rgba(255,255,255,0.08);
       color: #a0a0c0;
@@ -641,6 +645,10 @@
       <select id="f-feature"><option value="">Toutes</option></select>
     </label>
     <label>
+      Priorité
+      <select id="f-priority"><option value="">Toutes</option><option value="high">high</option><option value="medium">medium</option><option value="low">low</option></select>
+    </label>
+    <label>
       Recherche
       <input type="text" id="f-search" placeholder="nom, notes…" />
     </label>
@@ -689,6 +697,7 @@
   const fType         = document.getElementById('f-type');
   const fAgent        = document.getElementById('f-agent');
   const fFeature      = document.getElementById('f-feature');
+  const fPriority     = document.getElementById('f-priority');
   const fSearch       = document.getElementById('f-search');
   const btnReset      = document.getElementById('btn-reset');
   const viewTasks     = document.getElementById('view-tasks');
@@ -940,6 +949,11 @@
       ? `<span class="${typeClass}">${escapeHtml(task.type)}</span>`
       : '<span class="dash">—</span>';
 
+    const pClass = task.priorité === 'high' ? 'badge-priority-high' : task.priorité === 'low' ? 'badge-priority-low' : 'badge-priority-medium';
+    const priorityHtml = task.priorité
+      ? `<span class="badge ${pClass}">${escapeHtml(task.priorité)}</span>`
+      : '<span class="dash">—</span>';
+
     return `
       <tr class="${isDone ? 'done' : ''}">
         <td><span class="status-check">${statusIcon(task.statut)}</span></td>
@@ -948,6 +962,7 @@
         <td>${sprintHtml}</td>
         <td>${dash(task.theme)}</td>
         <td>${typeHtml}</td>
+        <td>${priorityHtml}</td>
         <td>${dash(task.assigned_agent)}</td>
         <td>${dash(task.feature)}</td>
         <td>${renderSessions(task.sessions)}</td>
@@ -959,7 +974,7 @@
   function renderTable(tasks) {
     const rows = tasks.length > 0
       ? tasks.map(renderRow).join('')
-      : `<tr class="empty-row"><td colspan="11">Aucune tâche ne correspond aux filtres.</td></tr>`;
+      :       `<tr class="empty-row"><td colspan="12">Aucune tâche ne correspond aux filtres.</td></tr>`;
 
     return `
       <div class="table-wrapper">
@@ -972,6 +987,7 @@
               <th>Sprint</th>
               <th>Thème</th>
               <th>Type</th>
+              <th>Priorité</th>
               <th>Agent</th>
               <th>Feature</th>
               <th>Sessions</th>
@@ -998,6 +1014,7 @@
     const type    = fType.value;
     const agent   = fAgent.value;
     const feature = fFeature.value;
+    const priority = fPriority.value;
     const search  = fSearch.value.trim().toLowerCase();
 
     filtered = allTasks.filter(t => {
@@ -1006,6 +1023,7 @@
       if (type    && t.type            !== type)    return false;
       if (agent   && t.assigned_agent  !== agent)   return false;
       if (feature && t.feature         !== feature) return false;
+      if (priority && t.priorité       !== priority) return false;
       if (search) {
         const haystack = [t.nom, t.notes, t.id].join(' ').toLowerCase();
         if (!haystack.includes(search)) return false;
@@ -1023,13 +1041,14 @@
     populateSelect(fSprint,  uniqueVals(allTasks, 'sprint'));
     populateSelect(fType,    uniqueVals(allTasks, 'type'));
     populateSelect(fAgent,   uniqueVals(allTasks, 'assigned_agent'));
-    populateSelect(fFeature, uniqueVals(allTasks, 'feature'));
+    populateSelect(fFeature,  uniqueVals(allTasks, 'feature'));
+    populateSelect(fPriority, uniqueVals(allTasks, 'priorité'));
 
-    [fStatut, fSprint, fType, fAgent, fFeature].forEach(el => el.addEventListener('change', applyFilters));
+    [fStatut, fSprint, fType, fAgent, fFeature, fPriority].forEach(el => el.addEventListener('change', applyFilters));
     fSearch.addEventListener('input', applyFilters);
     btnReset.addEventListener('click', () => {
       fStatut.value = ''; fSprint.value = ''; fType.value = '';
-      fAgent.value  = ''; fFeature.value = ''; fSearch.value = '';
+      fAgent.value  = ''; fFeature.value = ''; fPriority.value = ''; fSearch.value = '';
       applyFilters();
     });
     applyFilters();

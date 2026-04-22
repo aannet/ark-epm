@@ -18,10 +18,11 @@ Sinon, demande : **"Décris la tâche à ajouter :"**
 Les arguments inline entre crochets pré-remplissent les champs correspondants :
 - `[back|front|data|qa|spec|arch]` → `assigned_agent`
 - `[bug|impl|spec|debt|doc|poc|test|decision|review]` → `type`
-- `[FS-XX|F-NNN|QA]` → `theme`
-- `[S1|S2|S3|S4]` → `sprint`
+  - `[FS-XX|F-NNN|QA]` → `theme`
+  - `[S1|S2|S3|S4]` → `sprint`
+  - `[high|medium|low]` → `priorité` (défaut : `medium`)
 
-Exemple : `/ark-task-add Corriger le tri [back] [bug]` → `assigned_agent: back`, `type: bug` pré-remplis.
+Exemple : `/ark-task-add Corriger le tri [back] [bug] [high]` → `assigned_agent: back`, `type: bug`, `priorité: high` pré-remplis.
 
 ---
 
@@ -75,13 +76,18 @@ Pour chaque champ, réponds avec le numéro ou tape librement.
    [2] <variante back/front selon theme>
    [3] ~
 
-5. sprint
-   [1] <sprint courant dans tasks.yaml>  ← Recommandé
-   [2] <sprint suivant>
-   [3] <sprint précédent>
+ 5. sprint
+    [1] <sprint courant dans tasks.yaml>  ← Recommandé
+    [2] <sprint suivant>
+    [3] <sprint précédent>
 
-6. notes (optionnel — Entrée pour passer)
-   [texte libre ou vide]
+ 6. priorité
+    [1] high
+    [2] medium (Recommandé)
+    [3] low
+
+ 7. notes (optionnel — Entrée pour passer)
+    [texte libre ou vide]
 ```
 
 ### Règles de génération des alternatives
@@ -93,6 +99,7 @@ Pour chaque champ, réponds avec le numéro ou tape librement.
 | `theme` | Si FS-XX ou F-NNN dans la description → 1er choix ; sinon les 3 thèmes les plus récents dans tasks.yaml |
 | `feature` | Dérivé du theme : FS-05 → FS-05-FRONT / FS-05-BACK / ~ selon `assigned_agent` |
 | `sprint` | Sprint courant en 1er (dernier sprint visible dans tasks.yaml), puis +1 et -1 |
+| `priorité` | Défaut `medium`. `[high]` / `[medium]` / `[low]` dans les arguments inline |
 
 La date du jour est à déduire depuis le contexte ou demander à l'utilisateur si nécessaire pour `date_resolution`.
 
@@ -117,6 +124,7 @@ Crée l'entrée complète :
     theme: "<choix utilisateur>"
     type: <choix utilisateur>
     feature: "<choix utilisateur>"
+    priorité: medium
     sessions: []
     notes: |
       <notes si fournies, sinon supprimer ce champ>

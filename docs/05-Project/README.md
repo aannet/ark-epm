@@ -105,6 +105,7 @@ docs/05-Project/
   theme: "FS-XX" | "QA" | "F-999"
   type: spec|decision|review|debt|impl|test|doc|poc
   feature: "FS-XX-BACK"
+  priorité: high|medium|low
   sessions:
     - tool: OC|CL                    # OC = OpenCode  /  CL = Claude Code
       id: "a1b2c3"                   # 6 premiers hex de l'UUID de session

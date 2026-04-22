@@ -21,8 +21,9 @@ date_resolution: ~                 # ~ si non terminé, YYYY-MM-DD si done
 sprint: S1|S2|S3|S4...
 theme: "FS-XX" | "QA" | "F-999" | etc.
 type: spec|decision|review|debt|impl|test|doc|poc
-feature: "FS-XX-BACK"
-sessions:
+  feature: "FS-XX-BACK"
+  priorité: high|medium|low
+  sessions:
   - tool: CL                       # OC = OpenCode, CL = Claude
     id: "a1b2c3"                   # 6 premiers hex de l'UUID de session
     nom: "description courte"

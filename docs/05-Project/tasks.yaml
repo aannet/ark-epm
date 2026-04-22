@@ -9,6 +9,7 @@ tasks:
     theme: "FS-09"
     type: impl
     feature: "FS-09-FRONT"
+    priorité: medium
     sessions:
       - tool: OC
         id: "a1b2c3"
@@ -28,6 +29,7 @@ tasks:
     theme: "F-999"
     type: impl
     feature: "QA-DATA-OBJECTS"
+    priorité: medium
     sessions: []
     notes: |
       F-999 Item 22 — 37 tests Cypress (frontend/cypress/e2e/data-objects.cy.ts) à migrer.
@@ -45,6 +47,7 @@ tasks:
     theme: "F-999"
     type: bug
     feature: "FS-06-FRONT"
+    priorité: medium
     sessions: []
     notes: |
       F-999 Item 12b — MOCK_USERS = [] toujours hardcodé dans ApplicationNewPage/EditPage.
@@ -96,6 +99,7 @@ tasks:
     theme: "FS-05"
     type: spec
     feature: "FS-05-BACK"
+    priorité: low
     sessions: []
 
   - id: T-050
@@ -109,6 +113,7 @@ tasks:
     theme: "QA"
     type: bug
     feature: "BACK-AUDIT"
+    priorité: medium
     sessions:
       - tool: OC
         id: "a4f2e1"
@@ -141,6 +146,7 @@ tasks:
     theme: "FS-08"
     type: decision
     feature: "FS-08"
+    priorité: medium
     sessions: []
     notes: |
       Question transverse : comment modéliser et traiter les interfaces créées/saisies manuellement
@@ -159,6 +165,7 @@ tasks:
     theme: "FS-11"
     type: impl
     feature: "FS-11-BACK-P2"
+    priorité: low
     sessions: []
     notes: |
       Scope P2 (ex-T-060-bis) : ajouter filtres domainIds[], tagIds[], pagination offset.
@@ -218,6 +225,7 @@ tasks:
     theme: "F-999"
     type: debt
     feature: "F-999-FRONT-MUI"
+    priorité: medium
     sessions: []
 
   - id: T-065
@@ -247,6 +255,7 @@ tasks:
     theme: "F-999"
     type: debt
     feature: "F-999-API-CONTRACT"
+    priorité: medium
     sessions: []
     notes: |
       NFR-GOV-001 : le contrat openapi.yaml doit refléter tous les endpoints implémentés.
@@ -308,6 +317,7 @@ tasks:
     theme: "QA"
     type: impl
     feature: "QA-REPORTS"
+    priorité: medium
     sessions: []
     notes: |
       Suite T-067 : uniformiser l'horodatage des rapports de tests.

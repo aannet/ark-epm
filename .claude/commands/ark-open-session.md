@@ -29,6 +29,9 @@ Dans tasks.yaml, filtre les tâches qui te concernent :
 - Ignorer : `statut: blocked` (gate non levée)
 - Ignorer : `statut: done`
 
+**Trie les tâches restantes par priorité décroissante** (`high` → `medium` → `low`).
+La tâche la plus prioritaire est proposée par défaut.
+
 ### Étape 2 — Vérifier les gates
 
 Certaines tâches ont des prérequis explicites dans leurs `notes`. Vérifie qu'ils sont levés.
@@ -53,6 +56,7 @@ Règle stricte : modifier UNIQUEMENT les champs `statut` et `session_active` de 
 ```
 Agent     : [back|front|data|qa|spec|arch]
 Tâche     : T-XXX — nom
+Priorité  : [high|medium|low]
 Statut    : in_progress (session_active: xxxxxx)
 Gates OK  : oui / non [liste des gates]
 Contexte  : [liste des fichiers chargés]
