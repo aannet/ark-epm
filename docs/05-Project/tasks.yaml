@@ -293,6 +293,30 @@ tasks:
     type: bug
     feature: "QA-SECURITY"
     sessions:
-      - tool: OC
-        id: "e8c4a2"
-        nom: "fix Makefile test-dast + baseline + open-dast-report"
+       - tool: OC
+         id: "e8c4a2"
+         nom: "fix Makefile test-dast + baseline + open-dast-report"
+
+  - id: T-069
+    nom: "Déporter rapports Playwright e2e/reports/ → reports/playwright/ avec horodatage"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-REPORTS"
+    sessions: []
+    notes: |
+      Suite T-067 : uniformiser l'horodatage des rapports de tests.
+      Scope : déporter les rapports Playwright de e2e/reports/ vers reports/playwright/.
+      Modifications prévues :
+      - e2e/playwright.config.ts : outputFolder 'reports/html' → '../../../reports/playwright/YYYYMMDD-HHMMSS'
+      - e2e/package.json : script "test:report" → adapter le chemin
+      - .gitignore : ajouter reports/playwright/ (ou ajuster le pattern existant)
+      - Optionnel : Makefile target 'test-e2e-report' pour ouvrir le rapport le plus récent
+      Dépend de : T-067 done (format d'horodatage validé).
+      Non bloquant : peut démarrer dès maintenant.
+
