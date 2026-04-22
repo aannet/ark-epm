@@ -260,7 +260,7 @@ tasks:
     assigned_agent: qa
     session_active: ~
     handoff_ref: ~
-    date_resolution: "2026-04-22"
+    date_resolution: "2026-04-23"
     sprint: S4
     theme: "QA"
     type: impl
