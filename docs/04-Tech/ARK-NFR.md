@@ -397,6 +397,30 @@ Documentation OpenAPI/Swagger générée depuis les décorateurs NestJS via `@ne
 
 ---
 
+### NFR-MAINT-006 — Analyse statique multi-langages (MegaLinter)
+
+| Champ | Valeur |
+|---|---|
+| **Priorité** | P1 |
+| **Statut** | ✅ `covered` |
+| **Source** | T-070, F-999 |
+| **Gate** | `make test-megalinter` produit un rapport horodaté dans `reports/megalinter/` sans erreur d'exécution |
+
+Intégration de **MegaLinter** (oxsecurity/megalinter:v8) dans la chaîne de qualité ARK, aux côtés de :
+- **Trivy** — scan de vulnérabilités images & filesystem (NFR-SEC-001)
+- **Semgrep** — SAST TypeScript/React/Node.js (NFR-SEC-002)
+- **ZAP** — DAST API actif (NFR-SEC-003)
+
+**Linters activés** : TypeScript/ESLint (backend utilise `eslint.config.mjs` existant ; frontend utilise defaults), Markdown, JSON, YAML, Dockerfile (Hadolint), Makefile (checkmake), SQL (sqlfluff), ENV (dotenv-linter).
+
+**Exclusions** : `node_modules/`, `dist/`, `build/`, `reports/`, `prisma/migrations/`, `*.generated.ts`, `coverage/`, `frontend/cypress/`, `test-results/`, `playwright-report/`.
+
+**Reporting** : horodatage `YYYYMMDD-HHMMSS` dans `reports/megalinter/` (cohérent T-067). Format HTML + JSON. Commande d'ouverture : `make open-megalinter-report`.
+
+**Seuil** : `DISABLE_ERRORS: false` — échec CI si erreurs détectées.
+
+---
+
 ## 5. Observabilité
 
 ### NFR-OBS-001 — Logging structuré JSON
@@ -793,6 +817,7 @@ SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
 | NFR-MAINT-003 | Architecture modulaire | Maintenabilité | P1 | ✅ `covered` |
 | NFR-MAINT-004 | Migrations Prisma | Maintenabilité | P1 | ✅ `covered` |
 | NFR-MAINT-005 | Swagger auto-généré | Maintenabilité | P1 | ✅ `covered` |
+| NFR-MAINT-006 | Analyse statique multi-langages (MegaLinter) | Maintenabilité | P1 | ✅ `covered` |
 | NFR-OBS-001 | Logging JSON Winston | Observabilité | P1 | ✅ `covered` |
 | NFR-OBS-002 | Audit trail base | Observabilité | P1 | ✅ `covered` |
 | NFR-OBS-003 | Healthcheck endpoint | Observabilité | P2 | 🔵 `deferred` |
@@ -810,8 +835,8 @@ SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
 | NFR-GOV-004 | Intégrations exclues | Gouvernance | — | N/A |
 | NFR-GOV-005 | Champs socle + tags + audit trigger | Gouvernance | P1 | ✅ `covered` |
 
-**Bilan P1 (31 NFR) :**
-- ✅ Couverts : 17
+**Bilan P1 (32 NFR) :**
+- ✅ Couverts : 18
 - ⚠️ Partiels : 8
 - ❌ Manquants : 5 (tous dans F-999 — à implémenter avant Sprint 2)
 - 🔵 Différés P2 : 5
@@ -822,6 +847,7 @@ SELECT * FROM entity_tags WHERE entity_type = '[entity_type]' LIMIT 1;
 
 | Date | NFR | Modification | Auteur |
 |---|---|---|---|
+| 2026-04-23 | NFR-MAINT-006 | Ajout MegaLinter (T-070) — analyse statique multi-langages (TypeScript, Markdown, JSON, YAML, Dockerfile, Makefile, SQL, ENV). Cible `make test-megalinter`, rapport horodaté dans `reports/megalinter/`. | OpenCode |
 | 2026-03-08 | NFR-GOV-005 | Remplacement du modèle de tags plat par le modèle hiérarchique dimensionnel (F-03). Ajout champs socle sur TagDimension (comment, updatedAt). Référence F-03 — v0.3 | Alec |
 | 2026-03-08 | NFR-GOV-005 | Ajout champs socle obligatoires (name, description, comment, created_at, updated_at), liaison tags polymorphique, triggers audit — v0.2 | Alec |
 | 2026-03-08 | NFR-GOV-005 | Domain marqué comme conforme suite à FS-02 v1.3 (champs socle, tags via F-03, audit trigger) | OpenCode |

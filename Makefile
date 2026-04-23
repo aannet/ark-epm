@@ -377,6 +377,38 @@ test-dast-baseline:
 	echo "   JSON: $(ZAP_REPORTS)/$(TIMESTAMP)-baseline-report.json"; \
 	exit $$ZAP_EXIT
 
+# ----------------------------------------------------------------------------------
+# MegaLinter — Multi-language static analysis
+MEGALINTER_IMAGE   ?= oxsecurity/megalinter:v8
+MEGALINTER_REPORTS ?= $(PWD)/reports/megalinter
+
+test-megalinter:
+	@echo "🔍 Running MegaLinter (multi-language static analysis)..."
+	@mkdir -p $(MEGALINTER_REPORTS)
+	@docker run --rm \
+		-v $(PWD):/tmp/lint:ro \
+		-v $(MEGALINTER_REPORTS):/reports \
+		-e REPORT_OUTPUT_FOLDER=/reports/$(TIMESTAMP) \
+		-e DISABLE_ERRORS=false \
+		$(MEGALINTER_IMAGE)
+	@echo "Report: $(MEGALINTER_REPORTS)/$(TIMESTAMP)/megalinter-report.html"
+
+# Open MegaLinter report in browser
+open-megalinter-report:
+	@REPORT=$$(ls -t $(MEGALINTER_REPORTS)/*/megalinter-report.html 2>/dev/null | head -1); \
+	if [ -z "$$REPORT" ]; then \
+		echo "❌ No MegaLinter report found in $(MEGALINTER_REPORTS)."; \
+		echo "   Run 'make test-megalinter' first."; \
+		exit 1; \
+	fi; \
+	if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "$$REPORT" || echo "📄 Report: $$REPORT (xdg-open failed, no browser available)"; \
+	elif command -v open >/dev/null 2>&1; then \
+		open "$$REPORT" || echo "📄 Report: $$REPORT (open failed, no browser available)"; \
+	else \
+		echo "📄 Report: $$REPORT"; \
+	fi
+
 # Open ZAP report in browser
 open-dast-report:
 	@REPORT=$$(ls -t $(ZAP_REPORTS)/*.html 2>/dev/null | head -1); \

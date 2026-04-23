@@ -330,3 +330,28 @@ tasks:
       Dépend de : T-067 done (format d'horodatage validé).
       Non bloquant : peut démarrer dès maintenant.
 
+  - id: T-070
+    nom: "QA — Implémenter MegaLinter dans la suite des outils de qualité"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-23"
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-MEGALINTER"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "d4e5f6"
+        nom: "Implémentation MegaLinter — config, Makefile, NFR"
+    notes: |
+      ✅ Implémenté (session d4e5f6, 2026-04-23).
+      Configuration : .mega-linter.yml avec 7 linters actifs (TYPESCRIPT_ES, MARKDOWN, JSON, YAML, DOCKERFILE, SQL, ENV).
+      Exclusions : node_modules, dist, build, reports, migrations, generated, cypress, etc.
+      Makefile : targets test-megalinter et open-megalinter-report (cohérent T-067).
+      Rapports : horodatés dans reports/megalinter/YYYYMMDD-HHMMSS/ (HTML + JSON).
+      NFR : NFR-MAINT-006 ajouté dans ARK-NFR.md (section Maintenabilité).
+      Première exécution : 0 erreur (all files linted without errors).
+

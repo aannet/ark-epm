@@ -51,6 +51,7 @@ e2e/reports/*
 # --- Reports ---
 reports/trivy/
 reports/semgrep/
+reports/megalinter/
 
 # --- Misc ---
 npm-debug.log*
