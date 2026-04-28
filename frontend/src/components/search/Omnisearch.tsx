@@ -174,11 +174,13 @@ export function Omnisearch(): JSX.Element {
         onClose={() => setOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            mt: 8,
-            borderRadius: 2,
-            overflow: 'hidden',
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 8,
+              borderRadius: 2,
+              overflow: 'hidden',
+            },
           },
         }}
       >
@@ -190,17 +192,19 @@ export function Omnisearch(): JSX.Element {
             placeholder={t('search.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: isLoading ? (
-                <InputAdornment position="end">
-                  <CircularProgress size={20} />
-                </InputAdornment>
-              ) : null,
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+                endAdornment: isLoading ? (
+                  <InputAdornment position="end">
+                    <CircularProgress size={20} />
+                  </InputAdornment>
+                ) : null,
+              },
             }}
             sx={{
               '& .MuiOutlinedInput-root': {

@@ -188,12 +188,14 @@ export default function ProvidersListPage() {
           onKeyDown={handleSearchKeyDown}
           size="small"
           fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
           }}
           sx={{
             backgroundColor: '#f5f5f5',
@@ -321,7 +323,6 @@ export default function ProvidersListPage() {
           {/* Pagination */}
           <TablePagination
             rowsPerPageOptions={[10, 20, 50]}
-            component="div"
             count={data?.meta.total ?? 0}
             rowsPerPage={rowsPerPage}
             page={page - 1}

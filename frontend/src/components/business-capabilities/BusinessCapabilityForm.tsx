@@ -301,7 +301,7 @@ export default function BusinessCapabilityForm({
         )}
 
         {/* Actions */}
-        <Stack direction="row" spacing={2} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
           <Button variant="outlined" onClick={onCancel} disabled={isLoading}>
             {t('businessCapabilities.form.cancelButton')}
           </Button>

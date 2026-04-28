@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   Paper,
-  Grid,
   Chip,
   Tabs,
   Tab,
@@ -17,6 +16,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { Grid } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
@@ -104,7 +104,7 @@ function RelationCard({
       onClick={onClick}
     >
       <Box>
-        <Typography variant="body2" fontWeight={500}>{name}</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>{name}</Typography>
         {sublabel && (
           <Typography variant="caption" color="text.secondary">{sublabel}</Typography>
         )}
@@ -204,7 +204,7 @@ export default function ApplicationDetailPage(): JSX.Element {
         {activeTab === 0 && (
           <Box sx={{ p: 4 }}>
             <Grid container spacing={4}>
-              <Grid item xs={12} md={8}>
+              <Grid size={{ xs: 12, md: 8 }}>
                 <Box sx={{ mb: 4 }}>
                   <Typography variant="h6" gutterBottom>
                     {t('applications.detail.section.general')}
@@ -287,17 +287,17 @@ export default function ApplicationDetailPage(): JSX.Element {
                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block' }}>
                           {t('applications.form.providersLabel')}
                         </Typography>
-                        <Grid container spacing={1.5}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                           {application.providers.map((provider) => (
-                            <Grid item xs={12} sm={6} key={provider.id}>
+                            <Box key={provider.id} sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 6px)' } }}>
                               <RelationCard
                                 name={provider.name}
                                 sublabel={provider.role ? t(`applications.roles.${provider.role}`) ?? provider.role : null}
                                 onClick={() => navigate(`/providers/${provider.id}`)}
                               />
-                            </Grid>
+                            </Box>
                           ))}
-                        </Grid>
+                        </Box>
                       </Box>
                     )}
 
@@ -306,23 +306,23 @@ export default function ApplicationDetailPage(): JSX.Element {
                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block' }}>
                           {t('applications.form.itComponentsLabel')}
                         </Typography>
-                        <Grid container spacing={1.5}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                           {application.itComponents.map((itc) => (
-                            <Grid item xs={12} sm={6} key={itc.id}>
+                            <Box key={itc.id} sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 6px)' } }}>
                               <RelationCard
                                 name={itc.name}
                                 onClick={() => navigate(`/it-components/${itc.id}`)}
                               />
-                            </Grid>
+                            </Box>
                           ))}
-                        </Grid>
+                        </Box>
                       </Box>
                     )}
                   </Stack>
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Box sx={{ mb: 4 }}>
                   <Typography variant="h6" gutterBottom>
                     {t('applications.detail.section.tags')}

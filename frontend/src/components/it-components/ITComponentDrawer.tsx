@@ -39,7 +39,7 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
   if (!itComponent) return <></>;
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 400, backgroundColor: 'background.paper', display: 'flex', flexDirection: 'column' } }}>
+    <Drawer anchor="right" open={open} onClose={onClose} slotProps={{ paper: { sx: { width: 400, backgroundColor: 'background.paper', display: 'flex', flexDirection: 'column' } } }}>
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6">{t('it-components.drawer.title')}</Typography>
         <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}><CloseIcon /></IconButton>
@@ -51,7 +51,7 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
         {activeTab === 0 ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.nameLabel')}</Typography><Typography variant="subtitle1" fontWeight={600}>{itComponent.name}</Typography></Box>
+            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.nameLabel')}</Typography><Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{itComponent.name}</Typography></Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.technologyLabel')}</Typography><Typography>{itComponent.technology || '—'}</Typography></Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.typeLabel')}</Typography><Typography>{itComponent.type || '—'}</Typography></Box>
             <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.drawer.descriptionLabel')}</Typography><Typography variant="body2" color="text.secondary">{itComponent.description || '—'}</Typography></Box>
@@ -77,7 +77,7 @@ export default function ITComponentDrawer({ itComponent, open, onClose }: ITComp
         ) : appsData?.data?.length ? (
           <>
             <TableContainer component={Paper} elevation={0}><Table size="small"><TableHead><TableRow><TableCell>{t('applications.list.columns.name')}</TableCell><TableCell>{t('applications.list.columns.domain')}</TableCell></TableRow></TableHead><TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell>{app.name}</TableCell><TableCell>{app.domain?.name || '—'}</TableCell></TableRow>)}</TableBody></Table></TableContainer>
-            <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={5} rowsPerPageOptions={[5]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
+            <TablePagination count={appsData.meta.total} page={appsPage} rowsPerPage={5} rowsPerPageOptions={[5]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
           </>
         ) : (
           <EmptyState title={t('it-components.drawer.noApplications')} />

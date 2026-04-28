@@ -149,7 +149,7 @@ export default function DataObjectListPage(): JSX.Element {
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           size="small"
           sx={{ minWidth: 250 }}
-          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }}
+          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }}
         />
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel>{t('data-objects.list.filterType')}</InputLabel>
@@ -264,7 +264,6 @@ export default function DataObjectListPage(): JSX.Element {
           </TableContainer>
 
           <TablePagination
-            component="div"
             count={data?.meta?.total ?? 0}
             page={(data?.meta?.page ?? 1) - 1}
             rowsPerPage={rowsPerPage}

@@ -112,7 +112,7 @@ export default function ITComponentListPage(): JSX.Element {
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           size="small"
           sx={{ minWidth: 250 }}
-          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }}
+          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }}
         />
         <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>{t('it-components.list.filterType')}</InputLabel>
@@ -210,7 +210,6 @@ export default function ITComponentListPage(): JSX.Element {
             </Table>
           </TableContainer>
           <TablePagination
-            component="div"
             count={data?.meta?.total || 0}
             page={(data?.meta?.page || 1) - 1}
             rowsPerPage={rowsPerPage}

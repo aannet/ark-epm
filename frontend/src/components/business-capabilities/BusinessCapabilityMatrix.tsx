@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Box, Card, Typography, Chip, Grid, Tooltip } from '@mui/material';
+import { Box, Card, Typography, Chip, Tooltip, Grid } from '@mui/material';
 import { BusinessCapabilityTreeNode } from '@/types/businessCapability';
 import { sumApplications } from '@/utils/businessCapability.utils';
 import CriticalityChip from './CriticalityChip';
@@ -40,7 +40,7 @@ export default function BusinessCapabilityMatrix({
 
     const tooltipContent = (
       <Box>
-        <Typography variant="body2" fontWeight="bold">
+        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
           {node.name}
         </Typography>
         <Typography variant="caption">
@@ -53,7 +53,7 @@ export default function BusinessCapabilityMatrix({
     );
 
     return (
-      <Grid item xs={12} sm={depth === 0 ? 6 : 12} md={6} key={node.id}>
+      <Grid size={{ xs: 12, sm: depth === 0 ? 6 : 12, md: 6 }} key={node.id}>
         <Tooltip title={tooltipContent} arrow placement="top">
           <Card
             onClick={() => onNodeClick(node.id)}

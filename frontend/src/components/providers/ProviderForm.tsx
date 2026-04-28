@@ -85,7 +85,7 @@ export default function ProviderForm({
           error={!!error}
           helperText={error}
           disabled={isLoading}
-          inputProps={{ maxLength: 255 }}
+          slotProps={{ htmlInput: { maxLength: 255 } }}
         />
 
         {/* Description Field */}
@@ -97,7 +97,7 @@ export default function ProviderForm({
           rows={3}
           fullWidth
           disabled={isLoading}
-          inputProps={{ maxLength: 2000 }}
+          slotProps={{ htmlInput: { maxLength: 2000 } }}
         />
 
         {/* Comment Field */}
@@ -109,7 +109,7 @@ export default function ProviderForm({
           rows={2}
           fullWidth
           disabled={isLoading}
-          inputProps={{ maxLength: 2000 }}
+          slotProps={{ htmlInput: { maxLength: 2000 } }}
         />
 
         {/* Contract Type Field */}
@@ -120,7 +120,7 @@ export default function ProviderForm({
           defaultValue={initialValues?.contractType ?? ''}
           fullWidth
           disabled={isLoading}
-          inputProps={{ maxLength: 100 }}
+          slotProps={{ htmlInput: { maxLength: 100 } }}
         />
 
         {/* Expiry Date Field (MUI DatePicker) */}
@@ -164,7 +164,7 @@ export default function ProviderForm({
         )}
 
         {/* Buttons */}
-        <Stack direction="row" spacing={2} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
           <Button
             variant="outlined"
             onClick={onCancel}

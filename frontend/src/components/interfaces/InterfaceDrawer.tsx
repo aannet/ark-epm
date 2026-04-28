@@ -58,7 +58,7 @@ export default function InterfaceDrawer({
       anchor="right"
       open={open}
       onClose={handleClose}
-      PaperProps={{ sx: { width: 400, backgroundColor: 'background.paper' } }}
+      slotProps={{ paper: { sx: { width: 400, backgroundColor: 'background.paper' } } }}
     >
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}

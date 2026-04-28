@@ -35,11 +35,11 @@ export default function EmptyState({
       <Box sx={{ color: 'text.secondary', mb: 2 }}>
         {icon || <Inbox sx={{ fontSize: 64 }} />}
       </Box>
-      <Typography variant="h4" color="text.primary" gutterBottom textAlign="center">
+      <Typography variant="h4" color="text.primary" gutterBottom sx={{ textAlign: 'center' }}>
         {title || t('common.emptyState.title')}
       </Typography>
       {(description || !title) && (
-        <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 3 }}>
           {description || t('common.emptyState.description')}
         </Typography>
       )}

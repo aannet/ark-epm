@@ -1,8 +1,7 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Autocomplete,
   TextField,
-  Chip,
   CircularProgress,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +17,6 @@ export function DimensionTagInput({
   onChange,
   disabled = false,
   multiple = true,
-  color,
 }: DimensionTagInputProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
@@ -146,11 +144,6 @@ export function DimensionTagInput({
     [dimensionId, onChange, value],
   );
 
-  const chipColor = useMemo(() => {
-    if (color) return color;
-    return 'default';
-  }, [color]);
-
   return (
     <Autocomplete
       multiple={multiple}
@@ -169,42 +162,21 @@ export function DimensionTagInput({
           {...params}
           label={dimensionName}
           placeholder={t('tags.autocomplete.placeholder')}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {loading ? (
-                  <CircularProgress color="inherit" size={20} />
-                ) : null}
-                {params.InputProps.endAdornment}
-              </>
-            ),
+          slotProps={{
+            input: {
+              ...(params as any).InputProps,
+              endAdornment: (
+                <>
+                  {loading ? (
+                    <CircularProgress color="inherit" size={20} />
+                  ) : null}
+                  {(params as any).InputProps?.endAdornment}
+                </>
+              ),
+            },
           }}
         />
       )}
-      renderTags={(tagValue, getTagProps) =>
-        tagValue.map((option, index) => {
-          const { key, ...tagProps } = getTagProps({ index });
-          return (
-            <Chip
-              key={key}
-              {...tagProps}
-              label={option.label}
-              title={t('tags.tooltip.fullPath', { path: option.path })}
-              sx={{
-                backgroundColor: chipColor,
-                color: '#fff',
-                '& .MuiChip-deleteIcon': {
-                  color: 'rgba(255,255,255,0.7)',
-                  '&:hover': {
-                    color: '#fff',
-                  },
-                },
-              }}
-            />
-          );
-        })
-      }
       noOptionsText={t('tags.autocomplete.noOptions')}
       loadingText={t('tags.autocomplete.loading')}
     />

@@ -169,7 +169,7 @@ export default function ProviderDetailPage() {
       </Breadcrumbs>
 
       {/* Title & Action Buttons */}
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 600 }}>
             {provider.name}
@@ -280,7 +280,7 @@ export default function ProviderDetailPage() {
             <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={4}>
                 <Box>
-                  <Typography variant="caption" color="text.secondary" display="block">
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     {t('providers.detail.createdAtLabel')}
                   </Typography>
                   <Typography variant="body2">
@@ -293,7 +293,7 @@ export default function ProviderDetailPage() {
                 </Box>
                 {provider.updatedAt && (
                   <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       {t('providers.detail.updatedAtLabel')}
                     </Typography>
                     <Typography variant="body2">

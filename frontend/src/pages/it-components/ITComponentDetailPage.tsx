@@ -100,7 +100,7 @@ export default function ITComponentDetailPage(): JSX.Element {
                     <TableBody>{appsData.data.map(app => <TableRow key={app.id}><TableCell><Link component={RouterLink} to={`/applications/${app.id}`} underline="always" sx={{ color: 'inherit', '&:hover': { color: 'primary.main' } }}>{app.name}</Link></TableCell><TableCell>{app.domain?.name || '—'}</TableCell><TableCell>{app.owner ? `${app.owner.firstName} ${app.owner.lastName}` : '—'}</TableCell><TableCell>{app.criticality || '—'}</TableCell><TableCell>{app.lifecycleStatus || '—'}</TableCell></TableRow>)}</TableBody>
                   </Table>
                 </TableContainer>
-                <TablePagination component="div" count={appsData.meta.total} page={appsPage} rowsPerPage={20} rowsPerPageOptions={[20]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
+                <TablePagination count={appsData.meta.total} page={appsPage} rowsPerPage={20} rowsPerPageOptions={[20]} onPageChange={(_, p) => setAppsPage(p)} labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`} />
               </>
             ) : (
               <EmptyState title={t('it-components.detail.noApplications')} />

@@ -216,17 +216,23 @@ tasks:
 
   - id: T-064
     nom: "Mettre à jour vers Material UI and MUI X v9"
-    statut: open
+    statut: in_progress
     assigned_agent: front
     session_active: ~
-    handoff_ref: ~
+    handoff_ref: "docs/05-Project/20260428/SESSION-HANDOFF-front-t064.md"
     date_resolution: ~
     sprint: S4
     theme: "F-999"
     type: debt
     feature: "F-999-FRONT-MUI"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b2d4e6"
+        nom: "rituel ouverture + migration big-bang MUI v5→v9 + suppression x-tree-view inutilisé"
+      - tool: OC
+        id: "b2d4e6"
+        nom: "fix régression fond bleu drawers + fix débordement ApplicationDetailPage (incomplet)"
 
   - id: T-065
     nom: "Retravailler design de la vue détail d'une Application"
@@ -246,9 +252,9 @@ tasks:
 
   - id: T-066
     nom: "openapi.yaml à mettre à jour sur tous les endpoints"
-    statut: open
+    statut: in_progress
     assigned_agent: arch
-    session_active: ~
+    session_active: "c7d4e2"
     handoff_ref: ~
     date_resolution: ~
     sprint: S4
@@ -353,5 +359,26 @@ tasks:
       Makefile : targets test-megalinter et open-megalinter-report (cohérent T-067).
       Rapports : horodatés dans reports/megalinter/YYYYMMDD-HHMMSS/ (HTML + JSON).
       NFR : NFR-MAINT-006 ajouté dans ARK-NFR.md (section Maintenabilité).
-      Première exécution : 0 erreur (all files linted without errors).
+        Première exécution : 0 erreur (all files linted without errors).
+
+  - id: T-071
+    nom: "Frontend — Audit + fix Grids imbriqués sur toutes les pages (follow-up T-064)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-999"
+    type: debt
+    feature: "F-999-FRONT-MUI"
+    priorité: medium
+    sessions: []
+    notes: |
+      Follow-up T-064 : pattern Grid container imbriqué provoque des marges négatives
+      et débordement en MUI v9 (ApplicationDetailPage corrigé en T-064).
+      Pages à auditer : BusinessCapabilitiesPage, ProviderDetailPage,
+      ITComponentDetailPage, DataObjectListPage, DomainsListPage,
+      ProvidersListPage, ITComponentListPage.
+      Approche : remplacer Grid container imbriqués par Box flex (gap + flex-basis).
 

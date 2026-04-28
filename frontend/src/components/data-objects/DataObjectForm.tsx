@@ -79,7 +79,7 @@ export default function DataObjectForm({
             : ''
         }
         disabled={isLoading}
-        inputProps={{ maxLength: 255 }}
+        slotProps={{ htmlInput: { maxLength: 255 } }}
       />
 
       {/* Type — Autocomplete freeSolo */}
@@ -123,7 +123,7 @@ export default function DataObjectForm({
         multiline
         rows={3}
         disabled={isLoading}
-        inputProps={{ maxLength: 2000 }}
+        slotProps={{ htmlInput: { maxLength: 2000 } }}
       />
 
       {/* Comment */}
@@ -137,7 +137,7 @@ export default function DataObjectForm({
         multiline
         rows={3}
         disabled={isLoading}
-        inputProps={{ maxLength: 2000 }}
+        slotProps={{ htmlInput: { maxLength: 2000 } }}
       />
 
       {/* Actions */}

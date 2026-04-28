@@ -327,19 +327,11 @@ export const theme = createTheme({
     },
 
     // ── Drawer / Sidebar ──────────────────────────────────────────────────
-    // La Sidebar utilise primary.main (#1A237E) comme fond.
-    // Les items actifs ont l'icône en secondary (#007FFF).
-    // Voir src/components/layout/Sidebar.tsx pour l'implémentation des items.
-
-    MuiDrawer: {
-      styleOverrides: {
-        paper: {
-          backgroundColor: tokens.primary,
-          borderRight: 'none',
-          color: '#FFFFFF',
-        },
-      },
-    },
+    // La Sidebar (src/components/layout/Sidebar.tsx) utilise un <Box> avec
+    // bgcolor='primary.main' — pas un <Drawer>. Ne PAS override MuiDrawer ici
+    // car tous les drawers de droite (aperçu rapide) hériteraient de ce fond
+    // bleu. Les drawers droits définissent leur propre sx via slotProps.paper.
+    // AGENT-DECISION: front — suppression override MuiDrawer (T-064 regression)
 
     // ── Tooltip ────────────────────────────────────────────────────────────
 

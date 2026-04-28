@@ -295,7 +295,7 @@ export default function InterfaceForm({
           label={t('interfaces.form.errorRateLabel')}
           placeholder={t('interfaces.form.errorRatePlaceholder')}
           type="number"
-          inputProps={{ min: 0, max: 100, step: 0.01 }}
+          slotProps={{ htmlInput: { min: 0, max: 100, step: 0.01 } }}
           value={errorRate}
           onChange={(e) => setErrorRate(e.target.value)}
           fullWidth

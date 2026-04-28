@@ -212,12 +212,14 @@ export default function DomainsListPage(): JSX.Element {
           onKeyDown={handleSearchKeyDown}
           size="small"
           fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
           }}
           sx={{ backgroundColor: '#f5f5f5', borderRadius: 1 }}
         />
@@ -329,7 +331,6 @@ export default function DomainsListPage(): JSX.Element {
             </Table>
           </TableContainer>
           <TablePagination
-            component="div"
             count={data?.meta?.total || 0}
             page={(data?.meta?.page || 1) - 1}
             rowsPerPage={rowsPerPage}

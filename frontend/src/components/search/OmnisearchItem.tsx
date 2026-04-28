@@ -43,7 +43,7 @@ export function OmnisearchItem({
       </ListItemIcon>
       <ListItemText
         primary={
-          <Typography variant="body2" fontWeight={600} component="span">
+          <Typography variant="body2" component="span" sx={{ fontWeight: 600 }}>
             {highlightMatch(result.name, query)}
           </Typography>
         }

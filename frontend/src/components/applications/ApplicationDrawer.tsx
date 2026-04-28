@@ -63,7 +63,7 @@ export default function ApplicationDrawer({
       anchor="right"
       open={open}
       onClose={handleClose}
-      PaperProps={{ sx: { width: 400, backgroundColor: 'background.paper' } }}
+      slotProps={{ paper: { sx: { width: 400, backgroundColor: 'background.paper' } } }}
     >
       <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}

@@ -40,7 +40,7 @@ export default function DataObjectDrawer({
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: 400, backgroundColor: 'background.paper' } }}
+      slotProps={{ paper: { sx: { width: 400, backgroundColor: 'background.paper' } } }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* Header */}
@@ -67,7 +67,7 @@ export default function DataObjectDrawer({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">{t('data-objects.drawer.nameLabel')}</Typography>
-                <Typography variant="subtitle1" fontWeight={600}>{dataObject.name}</Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{dataObject.name}</Typography>
               </Box>
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">{t('data-objects.drawer.typeLabel')}</Typography>

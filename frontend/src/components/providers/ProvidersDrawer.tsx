@@ -93,12 +93,14 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
       anchor="right"
       open={open}
       onClose={handleClose}
-      PaperProps={{
-        sx: {
-          width: 400,
-          backgroundColor: 'background.paper',
-          display: 'flex',
-          flexDirection: 'column',
+      slotProps={{
+        paper: {
+          sx: {
+            width: 400,
+            backgroundColor: 'background.paper',
+            display: 'flex',
+            flexDirection: 'column',
+          },
         },
       }}
     >
@@ -139,7 +141,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
             {tabIndex === 0 && (
               <Box sx={{ p: 2 }}>
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" display="block">
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     {t('providers.list.columns.name')}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -150,7 +152,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
                 {provider.description && (
                   <>
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                         {t('providers.detail.descriptionLabel')}
                       </Typography>
                       <Typography variant="body2">{provider.description}</Typography>
@@ -161,7 +163,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
                 {provider.comment && (
                   <>
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                         {t('providers.detail.commentLabel')}
                       </Typography>
                       <Typography variant="body2">{provider.comment}</Typography>
@@ -172,7 +174,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
                 {provider.contractType && (
                   <>
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                         {t('providers.drawer.contractType')}
                       </Typography>
                       <Typography variant="body2">{provider.contractType}</Typography>
@@ -183,7 +185,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
                 {provider.expiryDate && (
                   <>
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                         {t('providers.drawer.expiryDate')}
                       </Typography>
                       <ExpiryDateBadge date={provider.expiryDate} />
@@ -195,7 +197,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
                   <>
                     <Divider sx={{ my: 2 }} />
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                         {t('providers.detail.tagsLabel')}
                       </Typography>
                       <TagChipList
@@ -213,7 +215,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
 
                 {/* Metadata */}
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" display="block">
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     {t('providers.detail.createdAtLabel')}
                   </Typography>
                   <Typography variant="caption">
@@ -223,7 +225,7 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
 
                 {provider.updatedAt && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       {t('providers.detail.updatedAtLabel')}
                     </Typography>
                     <Typography variant="caption">
@@ -271,7 +273,6 @@ export default function ProvidersDrawer({ providerId, open, onClose }: Providers
                     {/* Pagination */}
                     <TablePagination
                       rowsPerPageOptions={[5, 10, 20]}
-                      component="div"
                       count={appsData.meta.total}
                       rowsPerPage={appRowsPerPage}
                       page={appPage - 1}

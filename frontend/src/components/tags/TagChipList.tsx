@@ -106,8 +106,10 @@ export function TagChipList({
         anchor="right"
         open={drawerOpen}
         onClose={handleCloseDrawer}
-        PaperProps={{
-          sx: { width: { xs: '100%', sm: 400 } },
+        slotProps={{
+          paper: {
+            sx: { width: { xs: '100%', sm: 400 } },
+          },
         }}
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

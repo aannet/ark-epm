@@ -87,16 +87,18 @@ export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
                 >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    sx: {
+                <ListItemText>
+                  <Typography
+                    component="span"
+                    sx={{
                       color: active ? white : alpha(white, 0.85),
                       fontWeight: active ? 600 : 400,
                       fontSize: '0.875rem',
-                    },
-                  }}
-                />
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                </ListItemText>
               </ListItemButton>
             </ListItem>
           );

@@ -24,8 +24,8 @@ import {
   Select,
   MenuItem,
   Tooltip,
-  Grid,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import AddIcon from '@mui/icons-material/Add';
@@ -295,7 +295,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
       {/* KPI Band — visible uniquement si des données existent */}
       {!isEmpty && (
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <KpiCard
               label={t('businessCapabilities.kpi.maxDepth')}
               value={kpiMaxDepth}
@@ -303,7 +303,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
               icon={<AccountTreeIcon />}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <KpiCard
               label={t('businessCapabilities.kpi.totalApps')}
               value={kpiTotalApps}
@@ -311,7 +311,7 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
               icon={<AppRegistrationIcon />}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <KpiCard
               label={t('businessCapabilities.kpi.totalBcs')}
               value={kpiTotalBcs}
@@ -336,12 +336,14 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
           onKeyDown={handleSearchKeyDown}
           size="small"
           sx={{ flexGrow: 1, minWidth: 200 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
           }}
         />
         <Autocomplete
