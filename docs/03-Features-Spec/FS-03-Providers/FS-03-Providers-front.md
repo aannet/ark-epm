@@ -378,6 +378,8 @@ zones:
 
 ### 4.3 `ProviderDetailPage`
 
+> **v1.1 — Redesign T-073** : Layout 2 colonnes, header enrichi (Avatar + Edit inline), AppBreadcrumbs, Delete déplacé en bas de page.
+
 ```yaml
 page: ProviderDetailPage
 route: /providers/:id
@@ -388,15 +390,11 @@ layout:
   shell: AppShell
   container: PageContainer
   container_props:
-    maxWidth: sm (ou md selon contenu)
+    maxWidth: xl
 
 zones:
-  alert:
-    component: ArkAlert
-    condition: location.state.alert exists
-
   breadcrumb:
-    component: MUI Breadcrumbs
+    component: AppBreadcrumbs   # PNS-11
     items:
       - label: t('providers.detail.breadcrumb.home')
         onClick: navigate('/')
@@ -404,60 +402,114 @@ zones:
         onClick: navigate('/providers')
       - label: provider.name (current)
 
+  alerts:
+    - trigger: location.state?.alert
+      component: ArkAlert
+      position: sous header
+      auto_dismiss: 5000ms
+      on_mount: window.history.replaceState({}, '')
+
   header:
-    component: Box (flex, space-between)
-    content:
-      - title: provider.name (Typography variant h4)
-      - badge: _count.applications (si > 0)
+    layout: flex row, alignItems: center, gap: 2
+    elements:
+      - component: MUI Avatar
+        props:
+          bgColor: error.dark
+          size: 48px
+          content: provider.name.charAt(0).toUpperCase()
+      - component: Box (flex: 1)
+        elements:
+          - component: Typography variant=h2
+            value: provider.name
+          - component: Typography variant=body2 color=text.secondary
+            condition: provider.contractType !== null
+            value: provider.contractType
+      - component: MUI Button variant=contained
+        condition: hasPermission('providers:write')
+        label: t('providers.detail.buttonEdit')
+        icon: EditIcon
+        onClick: navigate('/providers/${provider.id}/edit')
 
-  body:
-    component: MUI Tabs
-    items:
-      - label: t('providers.detail.tabInfo')
-        content:
-          - description: provider.description
-          - comment: provider.comment
-          - contractType: label + value
-          - expiryDate: label + formatted date
-          - tags: TagChipList (deduplicateByDepth)
-          - createdAt: label + formatted datetime
-          - updatedAt: label + formatted datetime
+  tabs:
+    - label: t('providers.detail.tabInfo')
+      index: 0
+    - label: t('providers.detail.tabApplications')
+      index: 1
 
-       - label: t('providers.detail.tabApplications')
-         content:
-           - table: ApplicationListTable (paginée 20/page)
-             columns:
-               - name (lien → détail application)
-               - domain.name
-               - owner (firstName + lastName)
-               - criticality
-               - lifecycleStatus
-               - providerRole (NEW — v1.1)
-                 header: t('applications.list.columns.providerRole')
-                 render: Badge component avec couleur par rôle
-                 colors:
-                   - editor: primary (bleu)
-                   - integrator: secondary (orange)
-                   - support: info (cyan)
-                   - vendor: warning (jaune)
-                   - custom: default (gris)
-                 nullable: true (si null, ne pas afficher de badge)
+  body_tab_0:
+    layout: Box flex (gap:4, flexWrap:wrap, alignItems:flex-start)
+    column_main:
+      flex: "2 1 400px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.general')
+          fields:
+            - label: t('providers.detail.descriptionLabel')
+              condition: provider.description !== null
+              value: provider.description
+            - label: t('providers.detail.commentLabel')
+              condition: provider.comment !== null
+              value: provider.comment
+            - label: t('providers.detail.contractTypeLabel')
+              condition: provider.contractType !== null
+              value: provider.contractType
+            - label: t('providers.detail.expiryDateLabel')
+              condition: provider.expiryDate !== null
+              value: <ExpiryDateBadge date={provider.expiryDate} />
+    column_sidebar:
+      flex: "1 1 220px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.tags')
+          component: TagChipList (deduplicate, showMoreButton:false)
+          value: provider.tags
+        - title: t('applications.detail.section.metadata')
+          fields:
+            - label: t('providers.detail.createdAtLabel')
+              value: provider.createdAt formaté date locale FR
+            - label: t('providers.detail.updatedAtLabel')
+              condition: provider.updatedAt !== null
+              value: provider.updatedAt formaté date locale FR
+
+  body_tab_1:
+    layout: Box (p: 2)
+    component: ApplicationListTable (paginée 20/page)
+    source: GET /api/v1/providers/:id/applications
+    empty_state: Typography (t('common.noData'))
+    columns:
+      - name
+      - domain.name
+      - owner (firstName + lastName)
+      - criticality
+      - providerRole (ProviderRoleBadge)
 
   footer:
-    component: Box (flex, space-between)
+    layout: Box (sx: { display: 'flex', justifyContent: 'space-between', mt: 3 })
     buttons:
-      - label: t('providers.detail.buttonEdit')
-        variant: contained
-        disabled: !hasPermission('providers:write')
-        onClick: navigate('/providers/:id/edit')
-      - label: t('providers.detail.buttonDelete')
-        variant: contained
-        color: error
-        disabled: !hasPermission('providers:write')
-        onClick: open confirm-delete dialog
       - label: t('providers.detail.buttonBack')
         variant: outlined
+        startIcon: ArrowBackIcon
+        align: left
         onClick: navigate('/providers')
+      - label: t('providers.detail.buttonDelete')
+        condition: hasPermission('providers:write')
+        variant: contained
+        color: error
+        startIcon: DeleteIcon
+        align: right
+        onClick: openConfirmDelete
+
+  dialogs:
+    - id: confirm-delete
+      component: ConfirmDialog
+      props:
+        title: t('providers.delete.confirmTitle')
+        message: t('providers.delete.confirmMessage', { name: provider.name })
+        confirmLabel: t('common.actions.delete')
+        severity: warning
+      on_confirm: DELETE /api/v1/providers/:id
+      on_success: navigate('/providers', { state: { alert: success } })
+      on_409_DEPENDENCY_CONFLICT:
+        message: format409Message(t, applicationsCount)
+        confirmButton: disabled
 ```
 
 ### 4.4 `ProviderFormPage` (Create & Edit)

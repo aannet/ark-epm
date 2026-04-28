@@ -597,6 +597,7 @@
         "editButton": "Modifier",
         "backButton": "Retour",
         "rootCapability": "Capacité racine",
+        "updatedAt": "Modifié le",
         "subtitle": "Niveau {{level}} · {{domain}}",
         "breadcrumb": {
           "home": "Accueil",

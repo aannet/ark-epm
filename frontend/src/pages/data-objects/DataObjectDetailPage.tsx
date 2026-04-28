@@ -2,20 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, Typography, Tabs, Tab, Button, Chip, Paper,
+  Box, Typography, Tabs, Tab, Button, Chip, Paper, Avatar, Stack,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import EmptyState from '@/components/shared/EmptyState';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
-import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { TagChipList } from '@/components/tags';
 import ApplicationListTable from '@/components/data-objects/ApplicationListTable';
+import { DetailRow } from '@/components/shared/DetailComponents';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDataObject, deleteDataObject } from '@/services/api/data-objects.api';
 import { hasPermission } from '@/store/auth';
@@ -34,7 +34,6 @@ export default function DataObjectDetailPage(): JSX.Element {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
 
-  // Read navigation state alert (post-create or post-update)
   useEffect(() => {
     if (location.state?.alert) {
       setAlert(location.state.alert);
@@ -70,11 +69,34 @@ export default function DataObjectDetailPage(): JSX.Element {
     },
   });
 
-  if (isLoading) return <PageContainer><LoadingSkeleton rows={5} /></PageContainer>;
-  if (!data) return <PageContainer><EmptyState title={t('data-objects.alert.errors.notFound')} /></PageContainer>;
+  if (isLoading) {
+    return (
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('data-objects.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('data-objects.detail.breadcrumb.list'), onClick: () => navigate('/data-objects') },
+          { label: '...' },
+        ]} />
+        <LoadingSkeleton rows={5} columns={2} />
+      </PageContainer>
+    );
+  }
+
+  if (!data) {
+    return (
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('data-objects.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('data-objects.detail.breadcrumb.list'), onClick: () => navigate('/data-objects') },
+          { label: '...' },
+        ]} />
+        <EmptyState title={t('data-objects.alert.errors.notFound')} />
+      </PageContainer>
+    );
+  }
 
   return (
-    <PageContainer maxWidth="md">
+    <PageContainer maxWidth="xl">
       <ArkAlert open={!!alert} severity={alert?.severity ?? 'success'} message={alert?.message ?? ''} autoDismiss={5000} onClose={() => setAlert(null)} />
 
       <AppBreadcrumbs items={[
@@ -83,86 +105,116 @@ export default function DataObjectDetailPage(): JSX.Element {
         { label: data.name },
       ]} />
 
-      <PageHeader
-        title={data.name}
-        action={canWrite ? { label: t('data-objects.detail.editButton'), onClick: () => navigate(`/data-objects/${id}/edit`), icon: <EditIcon /> } : undefined}
-      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+        <Avatar sx={{ bgcolor: 'success.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {data.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">{data.name}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {data.type ?? t('data-objects.detail.noValue')}
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1} sx={{ mr: 2 }}>
+          {data.isSourceOfTruth ? (
+            <Chip size="small" color="success" label={t('data-objects.list.columns.isSourceOfTruthTrue')} />
+          ) : (
+            <Chip size="small" variant="outlined" label={t('data-objects.list.columns.isSourceOfTruthFalse')} />
+          )}
+        </Stack>
+        {canWrite && (
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={() => navigate(`/data-objects/${id}/edit`)}
+          >
+            {t('data-objects.detail.editButton')}
+          </Button>
+        )}
+      </Box>
 
       <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
-        {/* Tabs */}
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
           <Tab label={t('data-objects.detail.tabInfo')} />
           <Tab label={`${t('data-objects.detail.tabApplications')} (${data._count?.appDataObjectMaps ?? 0})`} />
         </Tabs>
 
-        {activeTab === 0 ? (
-          <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.typeLabel')}</Typography>
-              <Typography>{data.type ?? t('data-objects.detail.noValue')}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>{t('data-objects.detail.isSourceOfTruthLabel')}</Typography>
-              {data.isSourceOfTruth ? (
-                <Chip size="small" variant="filled" color="success" label={t('data-objects.list.columns.isSourceOfTruthTrue')} />
-              ) : (
-                <Chip size="small" variant="outlined" color="default" label={t('data-objects.list.columns.isSourceOfTruthFalse')} />
-              )}
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.descriptionLabel')}</Typography>
-              <Typography>{data.description ?? t('data-objects.detail.noValue')}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.commentLabel')}</Typography>
-              <Typography>{data.comment ?? t('data-objects.detail.noValue')}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>{t('data-objects.detail.tagsLabel')}</Typography>
-              {data.tags?.length ? (
-                <TagChipList tags={data.tags} deduplicate={true} />
-              ) : (
-                <Typography variant="body2" color="text.secondary">{t('data-objects.detail.noValue')}</Typography>
-              )}
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.createdAtLabel')}</Typography>
-              <Typography>{formatDate(data.createdAt)}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">{t('data-objects.detail.updatedAtLabel')}</Typography>
-              <Typography>{formatDate(data.updatedAt)}</Typography>
+        {activeTab === 0 && (
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <Box sx={{ flex: '2 1 400px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.general')}
+                  </Typography>
+                  <DetailRow label={t('data-objects.detail.typeLabel')}>
+                    <Typography variant="body1">{data.type ?? t('data-objects.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('data-objects.detail.isSourceOfTruthLabel')}>
+                    {data.isSourceOfTruth ? (
+                      <Chip size="small" color="success" label={t('data-objects.list.columns.isSourceOfTruthTrue')} />
+                    ) : (
+                      <Chip size="small" variant="outlined" label={t('data-objects.list.columns.isSourceOfTruthFalse')} />
+                    )}
+                  </DetailRow>
+                  <DetailRow label={t('data-objects.detail.descriptionLabel')}>
+                    <Typography variant="body1">{data.description ?? t('data-objects.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('data-objects.detail.commentLabel')}>
+                    <Typography variant="body1">{data.comment ?? t('data-objects.detail.noValue')}</Typography>
+                  </DetailRow>
+                </Box>
+              </Box>
+
+              <Box sx={{ flex: '1 1 220px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.tags')}
+                  </Typography>
+                  {data.tags?.length ? (
+                    <TagChipList tags={data.tags} deduplicate={true} />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">{t('data-objects.detail.noValue')}</Typography>
+                  )}
+                </Box>
+
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.metadata')}
+                  </Typography>
+                  <DetailRow label={t('data-objects.detail.createdAtLabel')}>
+                    <Typography variant="body1">{formatDate(data.createdAt)}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('data-objects.detail.updatedAtLabel')}>
+                    <Typography variant="body1">{formatDate(data.updatedAt)}</Typography>
+                  </DetailRow>
+                </Box>
+              </Box>
             </Box>
           </Box>
-        ) : (
+        )}
+
+        {activeTab === 1 && (
           <Box sx={{ p: 2 }}>
             <ApplicationListTable dataObjectId={id!} />
           </Box>
         )}
       </Paper>
 
-      {/* Footer actions */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/data-objects')}>
           {t('data-objects.detail.buttonBack')}
         </Button>
-        <Button
-          variant="contained"
-          startIcon={<EditIcon />}
-          onClick={() => navigate(`/data-objects/${id}/edit`)}
-          disabled={!canWrite}
-        >
-          {t('data-objects.detail.editButton')}
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          startIcon={<DeleteIcon />}
-          onClick={() => { setDeleteOpen(true); setDeleteError(null); }}
-          disabled={!canWrite}
-        >
-          {t('data-objects.detail.buttonDelete')}
-        </Button>
+        {canWrite && (
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => { setDeleteOpen(true); setDeleteError(null); }}
+          >
+            {t('data-objects.detail.buttonDelete')}
+          </Button>
+        )}
       </Box>
 
       <ConfirmDialog

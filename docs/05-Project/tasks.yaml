@@ -423,21 +423,34 @@ tasks:
 
   - id: T-073
     nom: "Adapter le layout de Application Detail aux autres pages détail (Business Cap, Interface, Data Object, IT Component, Fournisseur)"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "a7b3c9"
-    handoff_ref: ~
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260428/SESSION-HANDOFF-front-t073.md"
+    date_resolution: "2026-04-28"
     sprint: S4
     theme: "F-999"
     type: impl
     feature: "F-999-FRONT-DETAIL-LAYOUT"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "a7b3c9"
+        nom: "refonte layout 2-col + Avatar + Tabs sur 5 pages détail + specs"
     notes: |
-      Appliquer le layout 2-col + tabs de ApplicationDetailPage (T-065)
-      aux pages détail : BusinessCapabilityDetail, InterfaceDetail,
+      ✅ Implémenté (session a7b3c9, 2026-04-28).
+      Pages refondues : BusinessCapabilityDetail, InterfaceDetail,
       DataObjectDetail, ITComponentDetail, ProviderDetail.
+      Pattern appliqué (référence ApplicationDetailPage T-065) :
+      - maxWidth="xl" sur toutes les pages
+      - Header inline : Avatar (couleur entité) + h2 + sous-titre + chips + Edit
+      - Tabs : Informations (2-col flex 2:1) + Applications (table)
+      - Footer : Retour à gauche + Delete à droite (si applicable)
+      - AppBreadcrumbs sur toutes les pages (PNS-11)
+      Composants partagés extraits : DetailComponents.tsx (DetailRow, ClickableRow, RelationCard)
+      i18n : +2 clés (businessCapabilities.detail.updatedAt, existantes réutilisées)
+      Specs mises à jour : FS-07 §4.6, FS-08 §4.3, FS-03 §4.3, FS-04 §4.3, FS-05 §4.3
+      Validation : tsc 0 erreur, npm run build OK.
 
   - id: T-074
     nom: "Réévaluer la gestion des tags (fonctionnel, interface, clé, valeur etc...)"

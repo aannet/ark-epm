@@ -423,6 +423,8 @@ zones:
 
 ### 4.3 `ITComponentDetailPage`
 
+> **v1.1 — Redesign T-073** : Layout 2 colonnes, header enrichi (Avatar + Edit inline), maxWidth xl, Delete en bas de page.
+
 ```yaml
 page: ITComponentDetailPage
 route: /it-components/:id
@@ -437,15 +439,11 @@ layout:
   shell: AppShell
   container: PageContainer
   container_props:
-    maxWidth: md
+    maxWidth: xl
 
 zones:
-  alert:
-    component: ArkAlert
-    condition: location.state.alert exists
-
   breadcrumb:
-    component: MUI Breadcrumbs
+    component: AppBreadcrumbs   # PNS-11
     items:
       - label: t('it-components.detail.breadcrumb.home')
         onClick: navigate('/')
@@ -453,78 +451,108 @@ zones:
         onClick: navigate('/it-components')
       - label: itComponent.name (current, non cliquable)
 
+  alerts:
+    - trigger: location.state?.alert
+      component: ArkAlert
+      position: sous header
+      auto_dismiss: 5000ms
+      on_mount: window.history.replaceState({}, '')
+
   header:
-    component: Box (flex, justifyContent: space-between, alignItems: flex-start)
-    content:
-      - Typography variant="h4": itComponent.name
-      - Badge: itComponent._count.applications (si > 0, couleur primary)
+    layout: flex row, alignItems: center, gap: 2
+    elements:
+      - component: MUI Avatar
+        props:
+          bgColor: warning.dark
+          size: 48px
+          content: itComponent.name.charAt(0).toUpperCase()
+      - component: Box (flex: 1)
+        elements:
+          - component: Typography variant=h2
+            value: itComponent.name
+          - component: Typography variant=body2 color=text.secondary
+            value: "${itComponent.technology} · ${itComponent.type}" (ou valeur unique si l'autre null)
+      - component: MUI Button variant=contained
+        condition: hasPermission('it-components:write')
+        label: t('it-components.detail.buttonEdit')
+        icon: EditIcon
+        onClick: navigate('/it-components/${itComponent.id}/edit')
 
-  body:
-    loading_state: LoadingSkeleton
-    component: MUI Tabs
-    items:
-      - label: t('it-components.detail.tabInfo')
-          content:
-            component: Box (display: flex, flexDirection: column, gap: 2, pt: 2)
-            fields:
-              - label: t('it-components.detail.technologyLabel')
-                value: itComponent.technology ?? t('it-components.detail.noValue')
-              - label: t('it-components.detail.typeLabel')
-                value: itComponent.type ?? t('it-components.detail.noValue')
-              - label: t('it-components.detail.descriptionLabel')
-                value: itComponent.description ?? t('it-components.detail.noValue')
-              - label: t('it-components.detail.commentLabel')
-                value: itComponent.comment ?? t('it-components.detail.noValue')
-              - label: t('it-components.detail.tagsLabel')
-                value: TagChipList (deduplicateByDepth)
-              - label: t('it-components.detail.createdAtLabel')
-                value: itComponent.createdAt (format date locale FR)
-              - label: t('it-components.detail.updatedAtLabel')
-                value: itComponent.updatedAt (format date locale FR)
+  tabs:
+    - label: t('it-components.detail.tabInfo')
+      index: 0
+    - label: t('it-components.detail.tabApplications') + " (${_count.applications})"
+      index: 1
 
-      - label: t('it-components.detail.tabApplications')
-          content:
-            component: ApplicationListTable
-            source: GET /api/v1/it-components/:id/applications
-            pagination: 20 items/page
-            loading_state: LoadingSkeleton
-            empty_state: EmptyState (t('it-components.detail.noApplications'))
-            columns:
-              - name (lien → /applications/:id)
-              - domain.name
-              - owner (firstName + lastName)
-              - criticality
-              - lifecycleStatus
+  body_tab_0:
+    layout: Box flex (gap:4, flexWrap:wrap, alignItems:flex-start)
+    column_main:
+      flex: "2 1 400px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.general')
+          fields:
+            - label: t('it-components.detail.technologyLabel')
+              value: itComponent.technology ?? t('it-components.detail.noValue')
+            - label: t('it-components.detail.typeLabel')
+              value: itComponent.type ?? t('it-components.detail.noValue')
+            - label: t('it-components.detail.descriptionLabel')
+              value: itComponent.description ?? t('it-components.detail.noValue')
+            - label: t('it-components.detail.commentLabel')
+              value: itComponent.comment ?? t('it-components.detail.noValue')
+    column_sidebar:
+      flex: "1 1 220px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.tags')
+          component: TagChipList (deduplicateByDepth)
+          value: itComponent.tags
+        - title: t('applications.detail.section.metadata')
+          fields:
+            - label: t('it-components.detail.createdAtLabel')
+              value: itComponent.createdAt (format date locale FR)
+            - label: t('it-components.detail.updatedAtLabel')
+              value: itComponent.updatedAt (format date locale FR)
+
+  body_tab_1:
+    layout: Box (p: 2)
+    component: ApplicationListTable (paginée 20/page)
+    source: GET /api/v1/it-components/:id/applications
+    empty_state: EmptyState (t('it-components.detail.noApplications'))
+    columns:
+      - name (lien → /applications/:id)
+      - domain.name
+      - owner (firstName + lastName)
+      - criticality
+      - lifecycleStatus
 
   footer:
-    component: Box (sx: { display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' })
+    layout: Box (sx: { display: 'flex', justifyContent: 'space-between', mt: 3 })
     buttons:
       - label: t('it-components.detail.buttonBack')
-          variant: outlined
-          onClick: navigate('/it-components')
-      - label: t('it-components.detail.buttonEdit')
-          variant: contained
-          disabled: !hasPermission('it-components:write')
-          onClick: navigate('/it-components/:id/edit')
+        variant: outlined
+        startIcon: ArrowBackIcon
+        align: left
+        onClick: navigate('/it-components')
       - label: t('it-components.detail.buttonDelete')
-          variant: contained
-          color: error
-          disabled: !hasPermission('it-components:write')
-          onClick: openConfirmDelete
+        condition: hasPermission('it-components:write')
+        variant: contained
+        color: error
+        startIcon: DeleteIcon
+        align: right
+        onClick: openConfirmDelete
 
   dialogs:
     - id: confirm-delete
-        component: ConfirmDialog
-        props:
-          title: t('it-components.delete.confirmTitle')
-          message: t('it-components.delete.confirmMessage', { name: itComponent.name })
-          confirmLabel: t('common.actions.delete')
-          severity: error
-        on_confirm: DELETE /api/v1/it-components/:id
-        on_success: navigate('/it-components', { state: { alert: success } })
-        on_409_DEPENDENCY_CONFLICT:
-          message: format409Message(t, applicationsCount)
-          confirmButton: disabled
+      component: ConfirmDialog
+      props:
+        title: t('it-components.delete.confirmTitle')
+        message: t('it-components.delete.confirmMessage', { name: itComponent.name })
+        confirmLabel: t('common.actions.delete')
+        severity: error
+      on_confirm: DELETE /api/v1/it-components/:id
+      on_success: navigate('/it-components', { state: { alert: success } })
+      on_409_DEPENDENCY_CONFLICT:
+        message: format409Message(t, applicationsCount)
+        confirmButton: disabled
 ```
 
 ---

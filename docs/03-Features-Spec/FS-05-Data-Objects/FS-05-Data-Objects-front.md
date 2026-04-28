@@ -378,6 +378,8 @@ zones:
 
 ### 4.3 `DataObjectDetailPage`
 
+> **v1.1 — Redesign T-073** : Layout 2 colonnes, header enrichi (Avatar + Edit inline), maxWidth xl, Delete en bas de page.
+
 ```yaml
 page: DataObjectDetailPage
 route: /data-objects/:id
@@ -392,92 +394,132 @@ layout:
   shell: AppShell
   container: PageContainer
   container_props:
-    maxWidth: md
+    maxWidth: xl
 
 zones:
   breadcrumb:
-    component: AppBreadcrumbs   # import depuis '@/components/shared' — PNS-11
+    component: AppBreadcrumbs   # PNS-11
     items:
-      - label: t('data-objects.detail.breadcrumb.home')  →  navigate('/')
-      - label: t('data-objects.detail.breadcrumb.list')  →  navigate('/data-objects')
-      - label: dataObject.name  (non cliquable — page courante)
+      - label: t('data-objects.detail.breadcrumb.home')
+        onClick: navigate('/')
+      - label: t('data-objects.detail.breadcrumb.list')
+        onClick: navigate('/data-objects')
+      - label: dataObject.name (non cliquable — page courante)
+
+  alerts:
+    - trigger: location.state?.alert
+      component: ArkAlert
+      position: sous header
+      auto_dismiss: 5000ms
+      on_mount: window.history.replaceState({}, '')
 
   header:
-    component: PageHeader
-    props:
-      title: dataObject.name
-      action:
+    layout: flex row, alignItems: center, gap: 2
+    elements:
+      - component: MUI Avatar
+        props:
+          bgColor: success.dark
+          size: 48px
+          content: dataObject.name.charAt(0).toUpperCase()
+      - component: Box (flex: 1)
+        elements:
+          - component: Typography variant=h2
+            value: dataObject.name
+          - component: Typography variant=body2 color=text.secondary
+            value: dataObject.type ?? t('data-objects.detail.noValue')
+      - component: Stack direction=row spacing=1
+        elements:
+          - component: Chip
+            condition: dataObject.isSourceOfTruth === true
+            value: t('data-objects.list.columns.isSourceOfTruthTrue')
+            color: success
+          - component: Chip
+            condition: dataObject.isSourceOfTruth === false
+            value: t('data-objects.list.columns.isSourceOfTruthFalse')
+            variant: outlined
+      - component: MUI Button variant=contained
         condition: hasPermission('data-objects:write')
         label: t('data-objects.detail.editButton')
-        onClick: navigate('/data-objects/${dataObject.id}/edit')
         icon: EditIcon
+        onClick: navigate('/data-objects/${dataObject.id}/edit')
 
-  body:
-    loading_state: LoadingSkeleton
-    component: MUI Tabs
-    items:
-      - label: t('data-objects.detail.tabInfo')
-          content:
-            component: Box (display: flex, flexDirection: column, gap: 2, pt: 2)
-            fields:
-              - label: t('data-objects.detail.typeLabel')
-                value: dataObject.type ?? t('data-objects.detail.noValue')
-              - label: t('data-objects.detail.isSourceOfTruthLabel')
-                value: Chip (color: success, label: 'Source officielle') si true, Chip (color: default, label: 'Non') si false
-              - label: t('data-objects.detail.descriptionLabel')
-                value: dataObject.description ?? t('data-objects.detail.noValue')
-              - label: t('data-objects.detail.commentLabel')
-                value: dataObject.comment ?? t('data-objects.detail.noValue')
-              - label: t('data-objects.detail.tagsLabel')
-                value: TagChipList (deduplicateByDepth)
-              - label: t('data-objects.detail.createdAtLabel')
-                value: dataObject.createdAt (format date locale FR)
-              - label: t('data-objects.detail.updatedAtLabel')
-                value: dataObject.updatedAt (format date locale FR)
+  tabs:
+    - label: t('data-objects.detail.tabInfo')
+      index: 0
+    - label: t('data-objects.detail.tabApplications') + " (${_count.appDataObjectMaps})"
+      index: 1
 
-      - label: t('data-objects.detail.tabApplications')
-          content:
-            component: ApplicationListTable
-            source: GET /api/v1/data-objects/:id/applications
-            pagination: 20 items/page
-            loading_state: LoadingSkeleton
-            empty_state: EmptyState (t('data-objects.detail.noApplications'))
-            columns:
-              - name (lien → /applications/:id)
-              - role (consumer / producer / owner)
-              - domain.name
-              - owner (firstName + lastName)
-              - criticality
+  body_tab_0:
+    layout: Box flex (gap:4, flexWrap:wrap, alignItems:flex-start)
+    column_main:
+      flex: "2 1 400px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.general')
+          fields:
+            - label: t('data-objects.detail.typeLabel')
+              value: dataObject.type ?? t('data-objects.detail.noValue')
+            - label: t('data-objects.detail.isSourceOfTruthLabel')
+              value: |
+                Chip (color: success, label: 'Source officielle') si true,
+                Chip (variant: outlined, label: 'Non') si false
+            - label: t('data-objects.detail.descriptionLabel')
+              value: dataObject.description ?? t('data-objects.detail.noValue')
+            - label: t('data-objects.detail.commentLabel')
+              value: dataObject.comment ?? t('data-objects.detail.noValue')
+    column_sidebar:
+      flex: "1 1 220px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.tags')
+          component: TagChipList (deduplicateByDepth)
+          value: dataObject.tags
+        - title: t('applications.detail.section.metadata')
+          fields:
+            - label: t('data-objects.detail.createdAtLabel')
+              value: dataObject.createdAt (format date locale FR)
+            - label: t('data-objects.detail.updatedAtLabel')
+              value: dataObject.updatedAt (format date locale FR)
+
+  body_tab_1:
+    layout: Box (p: 2)
+    component: ApplicationListTable (paginée 20/page)
+    source: GET /api/v1/data-objects/:id/applications
+    empty_state: EmptyState (t('data-objects.detail.noApplications'))
+    columns:
+      - name (lien → /applications/:id)
+      - role (consumer / producer / owner)
+      - domain.name
+      - owner (firstName + lastName)
+      - criticality
 
   footer:
-    component: Box (sx: { display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' })
+    layout: Box (sx: { display: 'flex', justifyContent: 'space-between', mt: 3 })
     buttons:
       - label: t('data-objects.detail.buttonBack')
-          variant: outlined
-          onClick: navigate('/data-objects')
-      - label: t('data-objects.detail.buttonEdit')
-          variant: contained
-          disabled: !hasPermission('data-objects:write')
-          onClick: navigate('/data-objects/:id/edit')
+        variant: outlined
+        startIcon: ArrowBackIcon
+        align: left
+        onClick: navigate('/data-objects')
       - label: t('data-objects.detail.buttonDelete')
-          variant: contained
-          color: error
-          disabled: !hasPermission('data-objects:write')
-          onClick: openConfirmDelete
+        condition: hasPermission('data-objects:write')
+        variant: contained
+        color: error
+        startIcon: DeleteIcon
+        align: right
+        onClick: openConfirmDelete
 
   dialogs:
     - id: confirm-delete
-        component: ConfirmDialog
-        props:
-          title: t('data-objects.delete.confirmTitle')
-          message: t('data-objects.delete.confirmMessage', { name: dataObject.name })
-          confirmLabel: t('common.actions.delete')
-          severity: error
-        on_confirm: DELETE /api/v1/data-objects/:id
-        on_success: navigate('/data-objects', { state: { alert: success } })
-        on_409_DEPENDENCY_CONFLICT:
-          message: format409Message(t, applicationsCount)
-          confirmButton: disabled
+      component: ConfirmDialog
+      props:
+        title: t('data-objects.delete.confirmTitle')
+        message: t('data-objects.delete.confirmMessage', { name: dataObject.name })
+        confirmLabel: t('common.actions.delete')
+        severity: error
+      on_confirm: DELETE /api/v1/data-objects/:id
+      on_success: navigate('/data-objects', { state: { alert: success } })
+      on_409_DEPENDENCY_CONFLICT:
+        message: format409Message(t, applicationsCount)
+        confirmButton: disabled
 ```
 
 ---

@@ -721,6 +721,8 @@ zones:
 
 ### 4.6 `BusinessCapabilityDetailPage`
 
+> **v1.1 — Redesign T-073** : Layout 2 colonnes, header enrichi (Avatar + chips inline), 2 tabs (Informations / Applications).
+
 ```yaml
 page: BusinessCapabilityDetailPage
 route: /business-capabilities/:id
@@ -735,7 +737,7 @@ layout:
   shell: AppShell
   container: PageContainer
   container_props:
-    maxWidth: md
+    maxWidth: xl
 
 zones:
   breadcrumb:
@@ -747,50 +749,110 @@ zones:
         onClick: navigate('/business-capabilities')
       - label: entity.name
 
+  alerts:
+    - trigger: location.state?.alert
+      component: ArkAlert
+      position: sous header
+      auto_dismiss: 5000ms
+      on_mount: window.history.replaceState({}, '')
+
   header:
-    component: PageHeader
-    props:
-      title: entity.name
-      subtitle: |
-        Niveau {entity.level} · {entity.domain?.name ?? 'Sans domaine'}
-      action:
+    layout: flex row, alignItems: center, gap: 2
+    elements:
+      - component: MUI Avatar
+        props:
+          bgColor: secondary.dark
+          size: 48px
+          content: entity.name.charAt(0).toUpperCase()
+      - component: Box (flex: 1)
+        elements:
+          - component: Typography variant=h2
+            value: entity.name
+          - component: Typography variant=body2 color=text.secondary
+            value: t('businessCapabilities.detail.subtitle', { level, domain })
+      - component: Stack direction=row spacing=1
+        elements:
+          - component: CriticalityChip
+            condition: entity.criticality !== null
+            value: entity.criticality
+          - component: TechnicalFitChip
+            condition: entity.technicalFit !== null
+            value: entity.technicalFit
+      - component: MUI Button variant=contained
         condition: hasPermission('business-capabilities:write')
         label: t('businessCapabilities.detail.editButton')
-        onClick: navigate('/business-capabilities/${entity.id}/edit')
         icon: EditIcon
+        onClick: navigate('/business-capabilities/${entity.id}/edit')
 
-  body:
-    loading_state: LoadingSkeleton
-    fields:
-      - label: t('businessCapabilities.list.columns.name')
-        value: entity.name
-      - label: t('businessCapabilities.form.description')
-        value: entity.description ?? t('businessCapabilities.detail.noValue')
-      - label: t('businessCapabilities.form.comment')
-        value: entity.comment ?? t('businessCapabilities.detail.noValue')
-      - label: t('businessCapabilities.form.domain')
-        value: entity.domain?.name ?? '—'
-      - label: t('businessCapabilities.form.parent')
-        value: |
-          {entity.parent ? (
-            <Link onClick={() => navigate(`/business-capabilities/${entity.parent.id}`)}>
-              {entity.parent.name}
-            </Link>
-          ) : 'Capacité racine'}
-      - label: t('businessCapabilities.form.criticality')
-        value: entity.criticality ? <CriticalityChip level={entity.criticality} /> : '—'
-      - label: t('businessCapabilities.form.technicalFit')
-        value: entity.technicalFit ? <TechnicalFitChip level={entity.technicalFit} /> : '—'
-      - label: t('businessCapabilities.detail.tags')
-        value: <TagChipList tags={entity.tags} entityType="business-capability" />
-      - label: t('businessCapabilities.list.columns.createdAt')
-        value: entity.createdAt formaté date locale FR
+  tabs:
+    - label: t('businessCapabilities.drawer.tabs.info')
+      index: 0
+    - label: t('businessCapabilities.drawer.tabs.applications') + " (${_count.applicationMappings})"
+      index: 1
+      source: GET /api/v1/business-capabilities/:id/applications
+
+  body_tab_0:
+    layout: Box flex (gap:4, flexWrap:wrap, alignItems:flex-start)
+    column_main:
+      flex: "2 1 400px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.general')
+          fields:
+            - label: t('businessCapabilities.form.description')
+              value: entity.description ?? t('businessCapabilities.detail.noValue')
+            - label: t('businessCapabilities.form.comment')
+              value: entity.comment ?? t('businessCapabilities.detail.noValue')
+        - title: t('applications.detail.section.relations')
+          fields:
+            - label: t('businessCapabilities.form.domain')
+              component: ClickableRow (chevron >)
+              value: entity.domain?.name ?? t('businessCapabilities.detail.noValue')
+              onClick: navigate('/domains/${entity.domain.id}')
+            - label: t('businessCapabilities.form.parent')
+              component: ClickableRow (chevron >)
+              value: entity.parent?.name ?? t('businessCapabilities.detail.rootCapability')
+              onClick: navigate('/business-capabilities/${entity.parent.id}')
+            - layout: Stack direction=row spacing=4
+              fields:
+                - label: t('businessCapabilities.form.criticality')
+                  component: CriticalityChip
+                  value: entity.criticality
+                  fallback: t('businessCapabilities.detail.noValue')
+                - label: t('businessCapabilities.form.technicalFit')
+                  component: TechnicalFitChip
+                  value: entity.technicalFit
+                  fallback: t('businessCapabilities.detail.noValue')
+    column_sidebar:
+      flex: "1 1 220px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.tags')
+          component: TagChipList (deduplicate, maxVisible:20)
+          value: entity.tags
+        - title: t('applications.detail.section.metadata')
+          fields:
+            - label: t('businessCapabilities.list.columns.createdAt')
+              value: entity.createdAt formaté date locale FR
+            - label: t('businessCapabilities.detail.updatedAt')
+              value: entity.updatedAt formaté date locale FR
+
+  body_tab_1:
+    layout: Box (p: 2)
+    component: ApplicationListTable (paginée 20/page)
+    source: GET /api/v1/business-capabilities/:id/applications
+    empty_state: EmptyState (t('businessCapabilities.form.noApplications'))
+    columns:
+      - name (lien → /applications/:id)
+      - domain.name
+      - owner (firstName + lastName)
+      - criticality
+      - lifecycleStatus
 
   footer:
-    - component: MUI Button
-      props:
+    component: Box (sx: { display: 'flex', justifyContent: 'flex-start', mt: 3 })
+    buttons:
+      - label: t('businessCapabilities.detail.backButton')
         variant: outlined
-        label: t('businessCapabilities.detail.backButton')
+        startIcon: ArrowBackIcon
         onClick: navigate('/business-capabilities')
 ```
 

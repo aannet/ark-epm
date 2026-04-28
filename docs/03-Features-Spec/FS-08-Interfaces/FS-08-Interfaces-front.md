@@ -530,6 +530,8 @@ zones:
 
 ### 4.3 `InterfaceDetailPage`
 
+> **v1.1 — Redesign T-073** : Layout 2 colonnes, header enrichi (Avatar + chips inline), 1 tab Informations. Source/target en RelationCards.
+
 ```yaml
 page: InterfaceDetailPage
 route: /interfaces/:id
@@ -544,7 +546,7 @@ layout:
   shell: AppShell
   container: PageContainer
   container_props:
-    maxWidth: md
+    maxWidth: xl
 
 zones:
   breadcrumb:
@@ -557,79 +559,105 @@ zones:
       - label: |
           {interface.name ?? `${interface.sourceApp.name} → ${interface.targetApp.name}`}
 
+  alerts:
+    - trigger: location.state?.alert
+      component: ArkAlert
+      position: sous header
+      auto_dismiss: 5000ms
+      on_mount: window.history.replaceState({}, '')
+
   header:
-    component: PageHeader
-    props:
-      title: |
-        {interface.name ?? `${interface.sourceApp.name} → ${interface.targetApp.name}`}
-      subtitle: |
-        {`${interface.sourceApp.name}${interface.middlewareApp ? ` → ${interface.middlewareApp.name}` : ''} → ${interface.targetApp.name}`}
-      action:
+    layout: flex row, alignItems: center, gap: 2
+    elements:
+      - component: MUI Avatar
+        props:
+          bgColor: info.dark
+          size: 48px
+          content: interface.sourceApp.name.charAt(0).toUpperCase()
+      - component: Box (flex: 1)
+        elements:
+          - component: Typography variant=h2
+            value: interface.name ?? `${interface.sourceApp.name} → ${interface.targetApp.name}`
+          - component: Typography variant=body2 color=text.secondary
+            value: `${interface.sourceApp.name}${interface.middlewareApp ? ' → ' + interface.middlewareApp.name : ''} → ${interface.targetApp.name}`
+      - component: Stack direction=row spacing=1
+        elements:
+          - component: Chip
+            value: t(`interfaces.type.${interface.type}`)
+          - component: CriticalityChip
+            condition: interface.criticality !== null
+            value: interface.criticality
+      - component: MUI Button variant=contained
         condition: hasPermission('interfaces:write')
         label: t('interfaces.detail.editButton')
-        onClick: navigate('/interfaces/${interface.id}/edit')
         icon: EditIcon
+        onClick: navigate('/interfaces/${interface.id}/edit')
 
-  body:
-    loading_state: LoadingSkeleton
-    component: Paper (elevation=0, border, p: 3)
-    fields:
-      - label: t('interfaces.drawer.type')
-        value: |
-          <StatusChip label={t(`interfaces.type.${interface.type}`)} size="small" />
+  tabs:
+    - label: t('interfaces.drawer.type')
+      index: 0
+      note: Interface n'a qu'un seul onglet — pas de sous-onglet Applications (la page est la relation)
 
-      - label: t('interfaces.drawer.criticality')
-        value: |
-          {interface.criticality ? <CriticalityChip level={interface.criticality} /> : '—'}
-
-      - label: t('interfaces.drawer.frequency')
-        value: |
-          {interface.frequency ? t(`interfaces.frequency.${interface.frequency}`) : '—'}
-
-      - label: t('interfaces.form.sourceAppLabel')
-        value: |
-          <Link onClick={() => navigate(`/applications/${interface.sourceAppId}`)}>
-            {interface.sourceApp.name}
-          </Link>
-
-      - label: t('interfaces.form.middlewareAppLabel')
-        value: |
-          {interface.middlewareApp ? (
-            <Link onClick={() => navigate(`/applications/${interface.middlewareApp.id}`)}>
-              {interface.middlewareApp.name}
-            </Link>
-          ) : t('interfaces.detail.noValue')}
-
-      - label: t('interfaces.form.targetAppLabel')
-        value: |
-          <Link onClick={() => navigate(`/applications/${interface.targetAppId}`)}>
-            {interface.targetApp.name}
-          </Link>
-
-      - label: t('interfaces.drawer.technicalContact')
-        value: interface.technicalContact ?? t('interfaces.detail.noValue')
-
-      - label: t('interfaces.drawer.errorRate')
-        value: |
-          {interface.errorRate !== null ? `${interface.errorRate} %` : t('interfaces.detail.noValue')}
-
-      - label: t('interfaces.form.descriptionLabel')
-        value: interface.description ?? t('interfaces.detail.noValue')
-
-      - label: t('interfaces.form.commentLabel')
-        value: interface.comment ?? t('interfaces.detail.noValue')
-
-      - label: t('interfaces.drawer.tags')
-        value: <TagChipList tags={interface.tags} entityType="interfaces" />
-
-      - label: t('interfaces.detail.createdAt')
-        value: interface.createdAt (format date locale FR)
-
-      - label: t('interfaces.detail.updatedAt')
-        value: interface.updatedAt (format date locale FR)
+  body_tab_0:
+    layout: Box flex (gap:4, flexWrap:wrap, alignItems:flex-start)
+    column_main:
+      flex: "2 1 400px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.general')
+          fields:
+            - label: t('interfaces.form.sourceAppLabel')
+              component: RelationCard (chevron >)
+              value: interface.sourceApp.name
+              onClick: navigate('/applications/${interface.sourceAppId}')
+            - label: t('interfaces.form.middlewareAppLabel')
+              condition: interface.middlewareApp !== null
+              component: RelationCard (chevron >)
+              value: interface.middlewareApp.name
+              onClick: navigate('/applications/${interface.middlewareApp.id}')
+            - label: t('interfaces.form.targetAppLabel')
+              component: RelationCard (chevron >)
+              value: interface.targetApp.name
+              onClick: navigate('/applications/${interface.targetAppId}')
+            - layout: Stack direction=row spacing=4
+              fields:
+                - label: t('interfaces.drawer.type')
+                  component: Chip
+                  value: t(`interfaces.type.${interface.type}`)
+                - label: t('interfaces.drawer.frequency')
+                  value: interface.frequency ? t(`interfaces.frequency.${interface.frequency}`) : t('interfaces.detail.noValue')
+                - label: t('interfaces.drawer.criticality')
+                  component: CriticalityChip
+                  value: interface.criticality
+                  fallback: t('interfaces.detail.noValue')
+    column_sidebar:
+      flex: "1 1 220px" minWidth:0
+      sections:
+        - title: t('applications.detail.section.tags')
+          component: TagChipList
+          value: interface.tags
+        - title: t('applications.detail.section.metadata')
+          fields:
+            - label: t('interfaces.drawer.technicalContact')
+              value: interface.technicalContact ?? t('interfaces.detail.noValue')
+            - label: t('interfaces.drawer.errorRate')
+              value: interface.errorRate !== null ? `${interface.errorRate} %` : t('interfaces.detail.noValue')
+            - label: t('interfaces.form.descriptionLabel')
+              value: interface.description ?? t('interfaces.detail.noValue')
+            - label: t('interfaces.form.commentLabel')
+              value: interface.comment ?? t('interfaces.detail.noValue')
+            - label: t('interfaces.detail.createdAt')
+              value: interface.createdAt formaté date locale FR
+            - label: t('interfaces.detail.updatedAt')
+              value: interface.updatedAt formaté date locale FR
 
   footer:
-    component: Box (sx: { display: 'flex', gap: 2, mt: 3 })
+    component: Box (sx: { display: 'flex', justifyContent: 'flex-start', mt: 3 })
+    buttons:
+      - label: t('interfaces.detail.backButton')
+        variant: outlined
+        startIcon: ArrowBackIcon
+        onClick: navigate('/interfaces')
+```
     buttons:
       - component: Button
         props:

@@ -4,18 +4,19 @@ import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, Link, Tabs, Tab, Button,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, TablePagination, CircularProgress
+  Paper, TablePagination, CircularProgress, Avatar,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import EmptyState from '@/components/shared/EmptyState';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { TagChipList } from '@/components/tags';
+import { DetailRow } from '@/components/shared/DetailComponents';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getITComponent, deleteITComponent, getITComponentApplications } from '@/services/api/it-components.api';
 import { hasPermission } from '@/store/auth';
@@ -52,13 +53,34 @@ export default function ITComponentDetailPage(): JSX.Element {
     },
   });
 
-  if (isLoading) return <PageContainer><LoadingSkeleton rows={5} /></PageContainer>;
+  if (isLoading) {
+    return (
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('it-components.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('it-components.detail.breadcrumb.list'), onClick: () => navigate('/it-components') },
+          { label: '...' },
+        ]} />
+        <LoadingSkeleton rows={5} columns={2} />
+      </PageContainer>
+    );
+  }
+
   if (error || !data) {
-    return <PageContainer><EmptyState title={t('errors.notFound.title')} description={t('it-components.alert.errors.notFound')} /></PageContainer>;
+    return (
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('it-components.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('it-components.detail.breadcrumb.list'), onClick: () => navigate('/it-components') },
+          { label: '...' },
+        ]} />
+        <EmptyState title={t('errors.notFound.title')} description={t('it-components.alert.errors.notFound')} />
+      </PageContainer>
+    );
   }
 
   return (
-    <PageContainer maxWidth="md">
+    <PageContainer maxWidth="xl">
       <ArkAlert open={!!alert} severity={alert?.severity || 'success'} message={alert?.message || ''} autoDismiss={5000} onClose={() => setAlert(null)} />
 
       <AppBreadcrumbs items={[
@@ -67,10 +89,26 @@ export default function ITComponentDetailPage(): JSX.Element {
         { label: data.name },
       ]} />
 
-      <PageHeader
-        title={data.name}
-        action={canWrite ? { label: t('it-components.detail.buttonEdit'), onClick: () => navigate(`/it-components/${id}/edit`), icon: <EditIcon /> } : undefined}
-      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+        <Avatar sx={{ bgcolor: 'warning.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {data.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">{data.name}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {data.technology && data.type ? `${data.technology} · ${data.type}` : (data.technology || data.type || t('it-components.detail.noValue'))}
+          </Typography>
+        </Box>
+        {canWrite && (
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={() => navigate(`/it-components/${id}/edit`)}
+          >
+            {t('it-components.detail.buttonEdit')}
+          </Button>
+        )}
+      </Box>
 
       <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
@@ -78,17 +116,58 @@ export default function ITComponentDetailPage(): JSX.Element {
           <Tab label={`${t('it-components.detail.tabApplications')} (${data._count.applications})`} />
         </Tabs>
 
-        {activeTab === 0 ? (
-          <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.technologyLabel')}</Typography><Typography>{data.technology || t('it-components.detail.noValue')}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.typeLabel')}</Typography><Typography>{data.type || t('it-components.detail.noValue')}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.descriptionLabel')}</Typography><Typography>{data.description || t('it-components.detail.noValue')}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.commentLabel')}</Typography><Typography>{data.comment || t('it-components.detail.noValue')}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.tagsLabel')}</Typography><Typography variant="caption">{data.tags?.length ? `${data.tags.length} tag(s)` : '—'}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.createdAtLabel')}</Typography><Typography>{formatDateTime(data.createdAt)}</Typography></Box>
-            <Box><Typography variant="subtitle2" color="text.secondary">{t('it-components.detail.updatedAtLabel')}</Typography><Typography>{formatDateTime(data.updatedAt)}</Typography></Box>
+        {activeTab === 0 && (
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <Box sx={{ flex: '2 1 400px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.general')}
+                  </Typography>
+                  <DetailRow label={t('it-components.detail.technologyLabel')}>
+                    <Typography variant="body1">{data.technology || t('it-components.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('it-components.detail.typeLabel')}>
+                    <Typography variant="body1">{data.type || t('it-components.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('it-components.detail.descriptionLabel')}>
+                    <Typography variant="body1">{data.description || t('it-components.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('it-components.detail.commentLabel')}>
+                    <Typography variant="body1">{data.comment || t('it-components.detail.noValue')}</Typography>
+                  </DetailRow>
+                </Box>
+              </Box>
+
+              <Box sx={{ flex: '1 1 220px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.tags')}
+                  </Typography>
+                  {data.tags?.length ? (
+                    <TagChipList tags={(data.tags).map((t: any) => ({ ...t.tagValue, dimensionColor: t.tagValue.dimensionColor ?? undefined }))} deduplicate={true} />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">—</Typography>
+                  )}
+                </Box>
+
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.metadata')}
+                  </Typography>
+                  <DetailRow label={t('it-components.detail.createdAtLabel')}>
+                    <Typography variant="body1">{formatDateTime(data.createdAt)}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('it-components.detail.updatedAtLabel')}>
+                    <Typography variant="body1">{formatDateTime(data.updatedAt)}</Typography>
+                  </DetailRow>
+                </Box>
+              </Box>
+            </Box>
           </Box>
-        ) : (
+        )}
+
+        {activeTab === 1 && (
           <Box sx={{ p: 2 }}>
             {isLoadingApps ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress size={24} /></Box>
@@ -109,10 +188,11 @@ export default function ITComponentDetailPage(): JSX.Element {
         )}
       </Paper>
 
-      <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/it-components')}>{t('it-components.detail.buttonBack')}</Button>
-        <Button variant="contained" startIcon={<EditIcon />} onClick={() => navigate(`/it-components/${id}/edit`)} disabled={!canWrite}>{t('it-components.detail.buttonEdit')}</Button>
-        <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => { setDeleteOpen(true); setDeleteError(null); }} disabled={!canWrite}>{t('it-components.detail.buttonDelete')}</Button>
+        {canWrite && (
+          <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => { setDeleteOpen(true); setDeleteError(null); }}>{t('it-components.detail.buttonDelete')}</Button>
+        )}
       </Box>
 
       <ConfirmDialog

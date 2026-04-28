@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Typography, Stack, Button, Link, Paper, Chip } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Tabs,
+  Tab,
+  Avatar,
+  Stack,
+  Chip,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ArkAlert from '@/components/shared/ArkAlert';
-// AGENT-DECISION: front — CriticalityChip importé depuis business-capabilities/ en attendant migration vers shared/ (post-MVP)
 import CriticalityChip from '@/components/business-capabilities/CriticalityChip';
 import { TagChipList } from '@/components/tags';
+import { DetailRow, RelationCard } from '@/components/shared/DetailComponents';
 import { useInterface } from '@/api/interfaces';
 import { hasPermission } from '@/store/auth';
 import { formatInterfaceTitle } from '@/utils/interfaces.utils';
@@ -27,12 +38,12 @@ export default function InterfaceDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const canWrite = hasPermission('interfaces:write');
+  const [activeTab, setActiveTab] = useState(0);
 
   const [alert, setAlert] = useState<AlertState | null>(null);
 
   const { data: iface, isLoading, error } = useInterface(id || '');
 
-  // Handle alert from navigation state
   useEffect(() => {
     if (location.state?.alert) {
       setAlert(location.state.alert);
@@ -40,7 +51,6 @@ export default function InterfaceDetailPage(): JSX.Element {
     }
   }, [location.state]);
 
-  // Redirect on 404
   useEffect(() => {
     if (error) {
       navigate('/interfaces');
@@ -48,26 +58,31 @@ export default function InterfaceDetailPage(): JSX.Element {
   }, [error, navigate]);
 
   const title = iface ? formatInterfaceTitle(iface) : '...';
-
-  const breadcrumbItems = [
-    { label: t('interfaces.detail.breadcrumb.home'), onClick: () => navigate('/') },
-    { label: t('interfaces.detail.breadcrumb.list'), onClick: () => navigate('/interfaces') },
-    { label: title },
-  ];
+  const subtitle = iface
+    ? `${iface.sourceApp.name}${iface.middlewareApp ? ` → ${iface.middlewareApp.name}` : ''} → ${iface.targetApp.name}`
+    : '';
 
   if (isLoading) {
     return (
-      <PageContainer maxWidth="md">
-        <AppBreadcrumbs items={breadcrumbItems} />
-        <LoadingSkeleton rows={6} columns={1} />
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('interfaces.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('interfaces.detail.breadcrumb.list'), onClick: () => navigate('/interfaces') },
+          { label: '...' },
+        ]} />
+        <LoadingSkeleton rows={6} columns={2} />
       </PageContainer>
     );
   }
 
   if (!iface) {
     return (
-      <PageContainer maxWidth="md">
-        <AppBreadcrumbs items={breadcrumbItems} />
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('interfaces.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('interfaces.detail.breadcrumb.list'), onClick: () => navigate('/interfaces') },
+          { label: '...' },
+        ]} />
         <EmptyState
           title={t('errors.notFound.title')}
           description={t('errors.notFound.description')}
@@ -77,8 +92,12 @@ export default function InterfaceDetailPage(): JSX.Element {
   }
 
   return (
-    <PageContainer maxWidth="md">
-      <AppBreadcrumbs items={breadcrumbItems} />
+    <PageContainer maxWidth="xl">
+      <AppBreadcrumbs items={[
+        { label: t('interfaces.detail.breadcrumb.home'), onClick: () => navigate('/') },
+        { label: t('interfaces.detail.breadcrumb.list'), onClick: () => navigate('/interfaces') },
+        { label: title },
+      ]} />
 
       <ArkAlert
         open={!!alert}
@@ -88,173 +107,149 @@ export default function InterfaceDetailPage(): JSX.Element {
         onClose={() => setAlert(null)}
       />
 
-      <PageHeader
-        title={title}
-        subtitle={`${iface.sourceApp.name}${iface.middlewareApp ? ` → ${iface.middlewareApp.name}` : ''} → ${iface.targetApp.name}`}
-        action={
-          canWrite
-            ? {
-                label: t('interfaces.detail.editButton'),
-                onClick: () => navigate(`/interfaces/${id}/edit`),
-                icon: <EditIcon />,
-              }
-            : undefined
-        }
-      />
-
-      <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', p: 3 }}>
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.drawer.type')}
-            </Typography>
-            <Chip
-              label={t(`interfaces.type.${iface.type}`)}
-              size="small"
-            />
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.drawer.criticality')}
-            </Typography>
-            {iface.criticality ? (
-              <CriticalityChip level={iface.criticality} />
-            ) : (
-              <Typography variant="body1">—</Typography>
-            )}
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.drawer.frequency')}
-            </Typography>
-            <Typography variant="body1">
-              {iface.frequency ? t(`interfaces.frequency.${iface.frequency}`) : '—'}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.form.sourceAppLabel')}
-            </Typography>
-            <Link
-              component="button"
-              underline="hover"
-              onClick={() => navigate(`/applications/${iface.sourceAppId}`)}
-            >
-              {iface.sourceApp.name}
-            </Link>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.form.middlewareAppLabel')}
-            </Typography>
-            {iface.middlewareApp ? (
-              <Link
-                component="button"
-                underline="hover"
-                onClick={() => navigate(`/applications/${iface.middlewareApp!.id}`)}
-              >
-                {iface.middlewareApp!.name}
-              </Link>
-            ) : (
-              <Typography variant="body1">{t('interfaces.detail.noValue')}</Typography>
-            )}
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.form.targetAppLabel')}
-            </Typography>
-            <Link
-              component="button"
-              underline="hover"
-              onClick={() => navigate(`/applications/${iface.targetAppId}`)}
-            >
-              {iface.targetApp.name}
-            </Link>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.drawer.technicalContact')}
-            </Typography>
-            <Typography variant="body1">
-              {iface.technicalContact ?? t('interfaces.detail.noValue')}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.drawer.errorRate')}
-            </Typography>
-            <Typography variant="body1">
-              {iface.errorRate !== null ? `${iface.errorRate} %` : t('interfaces.detail.noValue')}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.form.descriptionLabel')}
-            </Typography>
-            <Typography variant="body1">
-              {iface.description ?? t('interfaces.detail.noValue')}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.form.commentLabel')}
-            </Typography>
-            <Typography variant="body1">
-              {iface.comment ?? t('interfaces.detail.noValue')}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.drawer.tags')}
-            </Typography>
-            <TagChipList tags={iface.tags} />
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.detail.createdAt')}
-            </Typography>
-            <Typography variant="body1">
-              {new Date(iface.createdAt).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {t('interfaces.detail.updatedAt')}
-            </Typography>
-            <Typography variant="body1">
-              {new Date(iface.updatedAt).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Typography>
-          </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+        <Avatar sx={{ bgcolor: 'info.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {iface.sourceApp.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">{title}</Typography>
+          <Typography variant="body2" color="text.secondary">{subtitle}</Typography>
+        </Box>
+        <Stack direction="row" spacing={1} sx={{ mr: 2 }}>
+          <Chip label={t(`interfaces.type.${iface.type}`)} size="small" />
+          {iface.criticality && (
+            <CriticalityChip level={iface.criticality} />
+          )}
         </Stack>
+        {canWrite && (
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={() => navigate(`/interfaces/${id}/edit`)}
+          >
+            {t('interfaces.detail.editButton')}
+          </Button>
+        )}
+      </Box>
+
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 2 }}
+        >
+          <Tab label={t('interfaces.drawer.type')} />
+        </Tabs>
+
+        {activeTab === 0 && (
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <Box sx={{ flex: '2 1 400px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.general')}
+                  </Typography>
+                  <DetailRow label={t('interfaces.form.sourceAppLabel')}>
+                    <RelationCard
+                      name={iface.sourceApp.name}
+                      onClick={() => navigate(`/applications/${iface.sourceAppId}`)}
+                    />
+                  </DetailRow>
+
+                  {iface.middlewareApp && (
+                    <DetailRow label={t('interfaces.form.middlewareAppLabel')}>
+                      <RelationCard
+                        name={iface.middlewareApp!.name}
+                        onClick={() => navigate(`/applications/${iface.middlewareApp!.id}`)}
+                      />
+                    </DetailRow>
+                  )}
+
+                  <DetailRow label={t('interfaces.form.targetAppLabel')}>
+                    <RelationCard
+                      name={iface.targetApp.name}
+                      onClick={() => navigate(`/applications/${iface.targetAppId}`)}
+                    />
+                  </DetailRow>
+
+                  <Stack direction="row" spacing={4}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {t('interfaces.drawer.type')}
+                      </Typography>
+                      <Box sx={{ mt: 0.5 }}>
+                        <Chip label={t(`interfaces.type.${iface.type}`)} size="small" />
+                      </Box>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {t('interfaces.drawer.frequency')}
+                      </Typography>
+                      <Box sx={{ mt: 0.5 }}>
+                        <Typography variant="body1">
+                          {iface.frequency ? t(`interfaces.frequency.${iface.frequency}`) : t('interfaces.detail.noValue')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {t('interfaces.drawer.criticality')}
+                      </Typography>
+                      <Box sx={{ mt: 0.5 }}>
+                        {iface.criticality ? (
+                          <CriticalityChip level={iface.criticality} />
+                        ) : (
+                          <Typography variant="body1">{t('interfaces.detail.noValue')}</Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Box>
+
+              <Box sx={{ flex: '1 1 220px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.tags')}
+                  </Typography>
+                  <TagChipList tags={iface.tags} />
+                </Box>
+
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.metadata')}
+                  </Typography>
+                  <DetailRow label={t('interfaces.drawer.technicalContact')}>
+                    <Typography variant="body1">{iface.technicalContact ?? t('interfaces.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('interfaces.drawer.errorRate')}>
+                    <Typography variant="body1">
+                      {iface.errorRate !== null ? `${iface.errorRate} %` : t('interfaces.detail.noValue')}
+                    </Typography>
+                  </DetailRow>
+                  <DetailRow label={t('interfaces.form.descriptionLabel')}>
+                    <Typography variant="body1">{iface.description ?? t('interfaces.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('interfaces.form.commentLabel')}>
+                    <Typography variant="body1">{iface.comment ?? t('interfaces.detail.noValue')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('interfaces.detail.createdAt')}>
+                    <Typography variant="body1">{new Date(iface.createdAt).toLocaleDateString('fr-FR')}</Typography>
+                  </DetailRow>
+                  <DetailRow label={t('interfaces.detail.updatedAt')}>
+                    <Typography variant="body1">{new Date(iface.updatedAt).toLocaleDateString('fr-FR')}</Typography>
+                  </DetailRow>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Paper>
 
-      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-start' }}>
         <Button
           variant="outlined"
+          startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/interfaces')}
         >
           {t('interfaces.detail.backButton')}

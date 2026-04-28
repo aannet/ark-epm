@@ -1,10 +1,12 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
-  Button,
-  Paper,
-  Stack,
-  Tab,
+  Typography,
   Tabs,
+  Tab,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -12,18 +14,16 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Typography,
-  Breadcrumbs,
-  Link,
+  Paper,
   CircularProgress,
+  Avatar,
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { PageContainer } from '@/components/layout';
+import PageContainer from '@/components/layout/PageContainer';
+import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import { ConfirmDialog, ArkAlert } from '@/components/shared';
 import { TagChipList } from '@/components/tags';
+import { DetailRow } from '@/components/shared/DetailComponents';
 import { useProvider, useProviderApplications, useDeleteProvider } from '@/api/providers';
 import { hasPermission } from '@/store/auth';
 import ExpiryDateBadge from '@/components/providers/ExpiryDateBadge';
@@ -47,21 +47,15 @@ export default function ProviderDetailPage() {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
 
-  // Fetch provider
   const { data: provider, isLoading, error } = useProvider(id || '');
-
-  // Fetch applications (lazy load when tab is active)
   const { data: appsData, isLoading: appsLoading } = useProviderApplications(
     id || '',
     { page: appPage, limit: appRowsPerPage },
-    {
-      enabled: !!id && tabIndex === 1,
-    },
+    { enabled: !!id && tabIndex === 1 },
   );
 
   const deleteProvider = useDeleteProvider();
 
-  // Handle 404 redirect
   useEffect(() => {
     if (error && (error as any).response?.status === 404) {
       navigate('/providers');
@@ -81,53 +75,32 @@ export default function ProviderDetailPage() {
     setAppPage(1);
   };
 
-  const handleEditClick = () => {
-    if (id) {
-      navigate(`/providers/${id}/edit`);
-    }
-  };
-
-  const handleDeleteClick = () => {
-    setDeleteDialog(true);
-  };
-
   const handleDeleteConfirm = async () => {
     if (!id) return;
-
     try {
       await deleteProvider.mutateAsync(id);
       navigate('/providers', {
-        state: {
-          alert: {
-            severity: 'success',
-            message: t('providers.alert.deleteSuccess'),
-          },
-        },
+        state: { alert: { severity: 'success', message: t('providers.alert.deleteSuccess') } },
       });
     } catch (err: any) {
       if (err.response?.status === 409 && err.response?.data?.code === 'DEPENDENCY_CONFLICT') {
         const appCount = err.response?.data?.details?.applicationsCount ?? 0;
-        setAlert({
-          severity: 'error',
-          message: format409Message(t, appCount),
-        });
+        setAlert({ severity: 'error', message: format409Message(t, appCount) });
       } else {
-        setAlert({
-          severity: 'error',
-          message: t('providers.alert.errors.serverError'),
-        });
+        setAlert({ severity: 'error', message: t('providers.alert.errors.serverError') });
       }
     }
     setDeleteDialog(false);
   };
 
-  const handleBackClick = () => {
-    navigate('/providers');
-  };
-
   if (isLoading) {
     return (
-      <PageContainer>
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('providers.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('providers.detail.breadcrumb.list'), onClick: () => navigate('/providers') },
+          { label: '...' },
+        ]} />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
           <CircularProgress />
         </Box>
@@ -137,189 +110,129 @@ export default function ProviderDetailPage() {
 
   if (!provider) {
     return (
-      <PageContainer>
-        <Typography variant="h6" color="error">
-          {t('providers.alert.errors.notFound')}
-        </Typography>
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={[
+          { label: t('providers.detail.breadcrumb.home'), onClick: () => navigate('/') },
+          { label: t('providers.detail.breadcrumb.list'), onClick: () => navigate('/providers') },
+          { label: '...' },
+        ]} />
+        <Typography variant="h6" color="error">{t('providers.alert.errors.notFound')}</Typography>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link
-          component="button"
-          onClick={() => navigate('/')}
-          variant="body2"
-          sx={{ cursor: 'pointer' }}
-        >
-          {t('providers.detail.breadcrumb.home')}
-        </Link>
-        <Link
-          component="button"
-          onClick={handleBackClick}
-          variant="body2"
-          sx={{ cursor: 'pointer' }}
-        >
-          {t('providers.detail.breadcrumb.list')}
-        </Link>
-        <Typography variant="body2">{provider.name}</Typography>
-      </Breadcrumbs>
+    <PageContainer maxWidth="xl">
+      <AppBreadcrumbs items={[
+        { label: t('providers.detail.breadcrumb.home'), onClick: () => navigate('/') },
+        { label: t('providers.detail.breadcrumb.list'), onClick: () => navigate('/providers') },
+        { label: provider.name },
+      ]} />
 
-      {/* Title & Action Buttons */}
-      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 600 }}>
-            {provider.name}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBackClick}
-          >
-            {t('providers.detail.buttonBack')}
-          </Button>
-          {canWrite && (
-            <>
-              <Button
-                variant="contained"
-                startIcon={<EditIcon />}
-                onClick={handleEditClick}
-              >
-                {t('providers.detail.buttonEdit')}
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={handleDeleteClick}
-              >
-                {t('providers.detail.buttonDelete')}
-              </Button>
-            </>
+      <ArkAlert
+        severity={alert?.severity ?? 'success'}
+        message={alert?.message ?? ''}
+        open={!!alert}
+        onClose={() => setAlert(null)}
+      />
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+        <Avatar sx={{ bgcolor: 'error.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {provider.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">{provider.name}</Typography>
+          {provider.contractType && (
+            <Typography variant="body2" color="text.secondary">{provider.contractType}</Typography>
           )}
         </Box>
-      </Stack>
+        {canWrite && (
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={() => navigate(`/providers/${id}/edit`)}
+          >
+            {t('providers.detail.buttonEdit')}
+          </Button>
+        )}
+      </Box>
 
-      {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs value={tabIndex} onChange={handleTabChange} variant="fullWidth">
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Tabs value={tabIndex} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
           <Tab label={t('providers.detail.tabInfo')} />
           <Tab label={t('providers.detail.tabApplications')} />
         </Tabs>
 
-        {/* Tab 0: General Info */}
         {tabIndex === 0 && (
-          <Box sx={{ p: 3 }}>
-            {provider.description && (
-              <>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {t('providers.detail.descriptionLabel')}
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  {provider.description}
-                </Typography>
-              </>
-            )}
-
-            {provider.comment && (
-              <>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {t('providers.detail.commentLabel')}
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  {provider.comment}
-                </Typography>
-              </>
-            )}
-
-            {provider.contractType && (
-              <>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {t('providers.detail.contractTypeLabel')}
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  {provider.contractType}
-                </Typography>
-              </>
-            )}
-
-            {provider.expiryDate && (
-              <>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {t('providers.detail.expiryDateLabel')}
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <ExpiryDateBadge date={provider.expiryDate} />
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <Box sx={{ flex: '2 1 400px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.general')}
+                  </Typography>
+                  {provider.description && (
+                    <DetailRow label={t('providers.detail.descriptionLabel')}>
+                      <Typography variant="body1">{provider.description}</Typography>
+                    </DetailRow>
+                  )}
+                  {provider.comment && (
+                    <DetailRow label={t('providers.detail.commentLabel')}>
+                      <Typography variant="body1">{provider.comment}</Typography>
+                    </DetailRow>
+                  )}
+                  {provider.contractType && (
+                    <DetailRow label={t('providers.detail.contractTypeLabel')}>
+                      <Typography variant="body1">{provider.contractType}</Typography>
+                    </DetailRow>
+                  )}
+                  {provider.expiryDate && (
+                    <DetailRow label={t('providers.detail.expiryDateLabel')}>
+                      <ExpiryDateBadge date={provider.expiryDate} />
+                    </DetailRow>
+                  )}
                 </Box>
-              </>
-            )}
+              </Box>
 
-            {provider.tags && provider.tags.length > 0 && (
-              <>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                  {t('providers.detail.tagsLabel')}
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <TagChipList
-                    tags={provider.tags}
-                    maxVisible={999}
-                    deduplicate={true}
-                    showMoreButton={false}
-                    size="small"
-                  />
+              <Box sx={{ flex: '1 1 220px', minWidth: 0 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.tags')}
+                  </Typography>
+                  {provider.tags && provider.tags.length > 0 ? (
+                    <TagChipList tags={provider.tags} maxVisible={999} deduplicate={true} showMoreButton={false} size="small" />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">—</Typography>
+                  )}
                 </Box>
-              </>
-            )}
 
-            {/* Metadata */}
-            <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" spacing={4}>
                 <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                    {t('providers.detail.createdAtLabel')}
+                  <Typography variant="h6" gutterBottom>
+                    {t('applications.detail.section.metadata')}
                   </Typography>
-                  <Typography variant="body2">
-                    {new Date(provider.createdAt).toLocaleDateString('fr-FR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </Typography>
+                  <DetailRow label={t('providers.detail.createdAtLabel')}>
+                    <Typography variant="body1">{new Date(provider.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</Typography>
+                  </DetailRow>
+                  {provider.updatedAt && (
+                    <DetailRow label={t('providers.detail.updatedAtLabel')}>
+                      <Typography variant="body1">{new Date(provider.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</Typography>
+                    </DetailRow>
+                  )}
                 </Box>
-                {provider.updatedAt && (
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {t('providers.detail.updatedAtLabel')}
-                    </Typography>
-                    <Typography variant="body2">
-                      {new Date(provider.updatedAt).toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </Typography>
-                  </Box>
-                )}
-              </Stack>
+              </Box>
             </Box>
           </Box>
         )}
 
-        {/* Tab 1: Applications */}
         {tabIndex === 1 && (
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 2 }}>
             {appsLoading && !appsData ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
                 <CircularProgress />
               </Box>
             ) : appsData?.data && appsData.data.length > 0 ? (
               <>
-                <TableContainer>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
                   <Table>
                     <TableHead>
                       <TableRow sx={{ backgroundColor: '#F1F5F9' }}>
@@ -333,38 +246,16 @@ export default function ProviderDetailPage() {
                     <TableBody>
                       {appsData.data.map((app) => (
                         <TableRow key={app.id}>
-                          <TableCell>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {app.name}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {app.domain?.name || '—'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {app.owner
-                                ? `${app.owner.firstName} ${app.owner.lastName}`
-                                : '—'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {app.criticality || '—'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <ProviderRoleBadge role={app.providerRole} size="small" />
-                          </TableCell>
+                          <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{app.name}</Typography></TableCell>
+                          <TableCell><Typography variant="body2">{app.domain?.name || '—'}</Typography></TableCell>
+                          <TableCell><Typography variant="body2">{app.owner ? `${app.owner.firstName} ${app.owner.lastName}` : '—'}</Typography></TableCell>
+                          <TableCell><Typography variant="body2">{app.criticality || '—'}</Typography></TableCell>
+                          <TableCell><ProviderRoleBadge role={app.providerRole} size="small" /></TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
-
-                {/* Pagination */}
                 <TablePagination
                   rowsPerPageOptions={[10, 20, 50]}
                   component="div"
@@ -376,15 +267,23 @@ export default function ProviderDetailPage() {
                 />
               </>
             ) : (
-              <Typography variant="body2" color="text.secondary">
-                {t('common.noData')}
-              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('common.noData')}</Typography>
             )}
           </Box>
         )}
       </Paper>
 
-      {/* Delete Confirmation Dialog */}
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'space-between' }}>
+        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/providers')}>
+          {t('providers.detail.buttonBack')}
+        </Button>
+        {canWrite && (
+          <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setDeleteDialog(true)}>
+            {t('providers.detail.buttonDelete')}
+          </Button>
+        )}
+      </Box>
+
       {deleteDialog && (
         <ConfirmDialog
           open={true}
@@ -396,16 +295,6 @@ export default function ProviderDetailPage() {
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteDialog(false)}
           isLoading={deleteProvider.isPending}
-        />
-      )}
-
-      {/* Error Alert */}
-      {alert && (
-        <ArkAlert
-          severity={alert.severity}
-          message={alert.message}
-          open={true}
-          onClose={() => setAlert(null)}
         />
       )}
     </PageContainer>
