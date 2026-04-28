@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Box, Card, Typography, Chip, Tooltip, Grid } from '@mui/material';
+import { Box, Card, Typography, Chip, Tooltip } from '@mui/material';
 import { BusinessCapabilityTreeNode } from '@/types/businessCapability';
 import { sumApplications } from '@/utils/businessCapability.utils';
 import CriticalityChip from './CriticalityChip';
@@ -53,7 +53,15 @@ export default function BusinessCapabilityMatrix({
     );
 
     return (
-      <Grid size={{ xs: 12, sm: depth === 0 ? 6 : 12, md: 6 }} key={node.id}>
+      <Box
+        key={node.id}
+        sx={{
+          width: depth === 0
+            ? { xs: '100%', md: 'calc(50% - 8px)' }
+            : { xs: '100%', md: 'calc(50% - 4px)' },
+          minWidth: 0,
+        }}
+      >
         <Tooltip title={tooltipContent} arrow placement="top">
           <Card
             onClick={() => onNodeClick(node.id)}
@@ -94,19 +102,19 @@ export default function BusinessCapabilityMatrix({
 
             {/* Nested children */}
             {node.children.length > 0 && (
-              <Grid container spacing={1} sx={{ mt: 'auto' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 'auto' }}>
                 {node.children.map((child) => renderTile(child, depth + 1))}
-              </Grid>
+              </Box>
             )}
           </Card>
         </Tooltip>
-      </Grid>
+      </Box>
     );
   };
 
   return (
-    <Grid container spacing={2}>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
       {tree.map((node) => renderTile(node, 0))}
-    </Grid>
+    </Box>
   );
 }

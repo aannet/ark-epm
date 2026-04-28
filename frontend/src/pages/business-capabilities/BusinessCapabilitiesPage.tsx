@@ -25,7 +25,7 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material';
-import { Grid } from '@mui/material';
+
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import AddIcon from '@mui/icons-material/Add';
@@ -294,32 +294,32 @@ export default function BusinessCapabilitiesPage(): JSX.Element {
 
       {/* KPI Band — visible uniquement si des données existent */}
       {!isEmpty && (
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid size={{ xs: 12, sm: 4 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ flex: '1 1 160px', minWidth: 0 }}>
             <KpiCard
               label={t('businessCapabilities.kpi.maxDepth')}
               value={kpiMaxDepth}
               unit={t('businessCapabilities.kpi.levelUnit')}
               icon={<AccountTreeIcon />}
             />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          </Box>
+          <Box sx={{ flex: '1 1 160px', minWidth: 0 }}>
             <KpiCard
               label={t('businessCapabilities.kpi.totalApps')}
               value={kpiTotalApps}
               unit={t('businessCapabilities.kpi.appsUnit')}
               icon={<AppRegistrationIcon />}
             />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          </Box>
+          <Box sx={{ flex: '1 1 160px', minWidth: 0 }}>
             <KpiCard
               label={t('businessCapabilities.kpi.totalBcs')}
               value={kpiTotalBcs}
               unit={t('businessCapabilities.kpi.bcsUnit')}
               icon={<ViewListIcon />}
             />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       )}
 
       {/* Filters */}

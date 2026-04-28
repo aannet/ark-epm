@@ -16,7 +16,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { Grid } from '@mui/material';
+
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
@@ -65,16 +65,18 @@ function ClickableRow({
         cursor: onClick ? 'pointer' : 'default',
         '&:hover': onClick ? { backgroundColor: 'action.hover' } : {},
         transition: 'background-color 0.15s',
+        minWidth: 0,
+        overflow: 'hidden',
       }}
       onClick={onClick}
     >
-      <Box>
+      <Box sx={{ minWidth: 0, overflow: 'hidden', flex: 1 }}>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {label}
         </Typography>
         <Box sx={{ mt: 0.25 }}>{children}</Box>
       </Box>
-      {onClick && <ArrowForwardIcon color="action" sx={{ fontSize: 20 }} />}
+      {onClick && <ArrowForwardIcon color="action" sx={{ fontSize: 20, flexShrink: 0, ml: 1 }} />}
     </Card>
   );
 }
@@ -100,16 +102,18 @@ function RelationCard({
         cursor: onClick ? 'pointer' : 'default',
         '&:hover': onClick ? { backgroundColor: 'action.hover' } : {},
         transition: 'background-color 0.15s',
+        minWidth: 0,
+        overflow: 'hidden',
       }}
       onClick={onClick}
     >
-      <Box>
-        <Typography variant="body2" sx={{ fontWeight: 500 }}>{name}</Typography>
+      <Box sx={{ minWidth: 0, overflow: 'hidden', flex: 1 }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</Typography>
         {sublabel && (
-          <Typography variant="caption" color="text.secondary">{sublabel}</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{sublabel}</Typography>
         )}
       </Box>
-      {onClick && <ArrowForwardIcon color="action" sx={{ fontSize: 20 }} />}
+      {onClick && <ArrowForwardIcon color="action" sx={{ fontSize: 20, flexShrink: 0, ml: 1 }} />}
     </Card>
   );
 }
@@ -203,8 +207,8 @@ export default function ApplicationDetailPage(): JSX.Element {
 
         {activeTab === 0 && (
           <Box sx={{ p: 4 }}>
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, md: 8 }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <Box sx={{ flex: '2 1 400px', minWidth: 0 }}>
                 <Box sx={{ mb: 4 }}>
                   <Typography variant="h6" gutterBottom>
                     {t('applications.detail.section.general')}
@@ -275,7 +279,7 @@ export default function ApplicationDetailPage(): JSX.Element {
                               label={bc.name}
                               size="small"
                               onClick={() => navigate(`/business-capabilities/${bc.id}`)}
-                              sx={{ cursor: 'pointer' }}
+                              sx={{ cursor: 'pointer', maxWidth: '100%' }}
                             />
                           ))}
                         </Box>
@@ -320,9 +324,9 @@ export default function ApplicationDetailPage(): JSX.Element {
                     )}
                   </Stack>
                 </Box>
-              </Grid>
+              </Box>
 
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Box sx={{ flex: '1 1 220px', minWidth: 0 }}>
                 <Box sx={{ mb: 4 }}>
                   <Typography variant="h6" gutterBottom>
                     {t('applications.detail.section.tags')}
@@ -359,8 +363,8 @@ export default function ApplicationDetailPage(): JSX.Element {
                     </Typography>
                   </DetailRow>
                 </Box>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Box>
         )}
 
