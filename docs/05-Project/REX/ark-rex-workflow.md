@@ -27,7 +27,7 @@ Le projet utilise **5 fichiers AGENTS.md** organisés en 2 niveaux :
 AGENTS.md (racine, 229 lignes)          ← Gouvernance globale, RACI, conventions
 ├── docs/AGENTS.md (175 lignes)          ← Agent spec : workflow specs, checklist
 ├── backend/AGENTS.md (427 lignes)       ← Agent back : NestJS, Prisma, DTOs, auth
-├── frontend/AGENTS.md (339 lignes)      ← Agent front : React, MUI v5, i18n, hooks
+├── frontend/AGENTS.md (339 lignes)      ← Agent front : React, MUI v9, i18n, hooks
 └── e2e/AGENTS.md (214 lignes)           ← Agent qa : Jest, Playwright, Cypress
 ```
 

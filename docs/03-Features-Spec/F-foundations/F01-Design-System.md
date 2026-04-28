@@ -487,7 +487,7 @@ Pas de tests automatisés à ce stade — F-01 est une fondation visuelle. Les v
 
 ## 8. Contraintes Techniques
 
-- **MUI v5 exclusivement** — pas de Tailwind, pas de styled-components, pas de CSS modules
+- **MUI v9 exclusivement** — pas de Tailwind, pas de styled-components, pas de CSS modules
 - **`sx` prop pour tous les styles custom** — jamais de fichiers `.css` pour les composants React
 - **Tokens via theme uniquement** — `color: 'primary.main'`, jamais `color: '#1A237E'`
 - **React Router v6** — `<Outlet />` dans `AppShell`, `useLocation()` dans `Sidebar`

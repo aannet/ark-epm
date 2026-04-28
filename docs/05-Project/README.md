@@ -70,7 +70,7 @@ docs/05-Project/
 | `/ark-close-session` | OC + CL | Met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff dans `docs/05-Project/` | Fin de chaque session |
 | `/ark-task-add` | OC + CL | Ajout rapide d'une tâche avec détection de doublon et Q&A guidé (3 alternatives par champ) | Pense-bête, tâche découverte en cours de session |
 | `/ark-back` | CL | Active le mode agent `back` — NestJS, controllers, services, DTOs | Session backend |
-| `/ark-front` | CL | Active le mode agent `front` — React, MUI v5, hooks, i18n | Session frontend |
+| `/ark-front` | CL | Active le mode agent `front` — React, MUI v9, hooks, i18n | Session frontend |
 | `/ark-data` | CL | Active le mode agent `data` — Prisma schema, migrations, seeds | Session data |
 | `/ark-qa` | CL | Active le mode agent `qa` — Jest, Playwright, Cypress | Session tests |
 
@@ -85,7 +85,7 @@ docs/05-Project/
 | Architecture | `arch` | Stack, dépendances, contrat API, docker-compose | **Oui** |
 | Spec / Documentation | `spec` | Feature Specs, glossaire, roadmap, release notes | **Oui** |
 | Backend | `back` | NestJS modules, controllers, services, DTOs, auth/RBAC | Non — archive dans `docs/05-Project/` |
-| Frontend | `front` | React/MUI v5, pages, hooks, API client, i18n | Non — archive dans `docs/05-Project/` |
+| Frontend | `front` | React/MUI v9, pages, hooks, API client, i18n | Non — archive dans `docs/05-Project/` |
 | Data | `data` | schema.prisma, migrations, seeds, triggers PostgreSQL | Non — archive dans `docs/05-Project/` |
 | QA | `qa` | Tests Jest, Playwright API + e2e, Cypress frontend | Non — archive dans `docs/05-Project/` |
 

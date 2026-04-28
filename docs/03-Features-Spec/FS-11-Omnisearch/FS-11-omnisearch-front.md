@@ -479,9 +479,9 @@ interface SearchMeta {
 ```
 Contexte projet ARK — Session Frontend FS-11-FRONT :
 
-Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next + React Query
+Stack : React 18 + Vite + TypeScript strict + MUI v9 + react-i18next + React Query
 Règles MUI obligatoires :
-- MUI v5 UNIQUEMENT — pas de Tailwind, pas de styled-components
+- MUI v9 UNIQUEMENT — pas de Tailwind, pas de styled-components
 - Styling : sx prop uniquement — jamais de styled()
 - Inputs : variant="outlined" systématiquement sur tous les TextField
 - Pas de MUI X DataGrid

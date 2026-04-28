@@ -35,8 +35,8 @@ Gardien des décisions techniques structurantes. Arbitre en cas de chevauchement
 > Guide opérationnel : `backend/AGENTS.md`
 
 ### `front` — Frontend
-**Périmètre** : composants React/MUI v5, pages, hooks, API client layer, i18n (`fr.json`), theme.  
-**Règles clés** : MUI v5 exclusif ; toutes strings via `t('key')` ; data fetching via React Query ; après changement UI → mentionner `Ctrl+F5`.  
+**Périmètre** : composants React/MUI v9, pages, hooks, API client layer, i18n (`fr.json`), theme.  
+**Règles clés** : MUI v9 exclusif ; toutes strings via `t('key')` ; data fetching via React Query ; après changement UI → mentionner `Ctrl+F5`.  
 **Ne fait PAS** : schema Prisma, services NestJS, décisions architecture.  
 > Guide opérationnel : `frontend/AGENTS.md`
 
@@ -84,7 +84,7 @@ Gardien des décisions techniques structurantes. Arbitre en cas de chevauchement
 | Couche | Technologies |
 |--------|-------------|
 | Backend | NestJS + Prisma ORM + PostgreSQL 16 |
-| Frontend | React + Vite + TypeScript + ReactFlow + MUI v5 |
+| Frontend | React + Vite + TypeScript + ReactFlow + MUI v9 |
 | Tests | Jest (unit) + Playwright (API + e2e) + Cypress (frontend) |
 | Infra | Docker Compose |
 

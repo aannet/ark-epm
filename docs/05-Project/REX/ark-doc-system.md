@@ -43,7 +43,7 @@ style: |
 | `arch` | Architecture | Stack, OpenAPI, Docker, ReactFlow | `AGENTS.md` racine |
 | `back` | Backend NestJS | Controllers, services, DTOs, RBAC | `backend/AGENTS.md` |
 | `data` | Données / Prisma | `schema.prisma`, migrations, seeds, triggers | `backend/AGENTS.md` |
-| `front` | Frontend React | Composants MUI v5, pages, hooks, i18n | `frontend/AGENTS.md` |
+| `front` | Frontend React | Composants MUI v9, pages, hooks, i18n | `frontend/AGENTS.md` |
 | `qa` | Tests | Jest, Playwright, Cypress — **lecture seule** sur le code | `e2e/AGENTS.md` |
 | `spec` | Documentation | Feature Specs, glossaire, roadmap | `docs/AGENTS.md` |
 
@@ -66,7 +66,7 @@ AGENTS.md  (racine)
 │   Checklist "nouvelle entité" · troubleshooting P2011 · Docker
 │
 ├── frontend/AGENTS.md      ← agent front
-│   Architecture src/ · MUI v5 · i18n fr.json · React Query
+│   Architecture src/ · MUI v9 · i18n fr.json · React Query
 │   Zones de clic tableau · design tokens
 │
 ├── e2e/AGENTS.md           ← agent qa

@@ -624,7 +624,7 @@ interface DimensionTagInputProps {
               └──────────────────────────────────┘
 ```
 
-#### Implémentation MUI v5
+#### Implémentation MUI v9
 
 ```tsx
 import { alpha } from '@mui/material/styles';
@@ -1216,7 +1216,7 @@ frontend/src/
 - Pattern NestJS : suivre `DomainsModule` (FS-02) comme référence de structure
 - Toute écriture en base passe par `$executeRaw SET LOCAL ark.current_user_id`
 - Index `text_pattern_ops` sur `tag_values.path` — obligatoire pour les LIKE prefix, à inclure dans la migration Prisma via `@@index` avec `ops: raw("text_pattern_ops")`
-- **MUI v5 exclusivement** — `sx` prop uniquement, pas de `styled-components`, pas de CSS modules
+- **MUI v9 exclusivement** — `sx` prop uniquement, pas de `styled-components`, pas de CSS modules
 - **`Chip` MUI** pour tous les tags sélectionnés — couleur via `tag.dimensionColor` directement (backgroundColor plein, pas alpha)
 - **`Tooltip` MUI** wrappant chaque `Chip` — path complet au survol **uniquement pour DimensionTagInput**
 - **`TagChipList`** — chips avec `cursor: 'default'`, sans `onDelete`, sans `onClick`, **sans Tooltip** — lecture seule stricte avec path visible directement
@@ -1225,7 +1225,7 @@ frontend/src/
 - **`TagChipList` liste** — `maxVisible` default 3, badge "+X" via `Chip` gris cliquable (`backgroundColor: '#9e9e9e'`) qui ouvre le drawer
 - **`TagChipList` drawer** — regroupement par `dimensionId`, nom dimension en `Typography variant="subtitle2"` uppercase, chips avec `textOverflow: 'ellipsis'`
 - **`TagValueResponse`** doit inclure `dimensionColor` — le backend le peuple depuis `tag_dimensions.color` au moment du join. Sans ce champ, `TagChipList` ne peut pas colorer les chips sans appel supplémentaire.
-- **`Autocomplete` MUI v5** avec `multiple`, `freeSolo`, `filterOptions` pour l'option `__isNew__`
+- **`Autocomplete` MUI v9** avec `multiple`, `freeSolo`, `filterOptions` pour l'option `__isNew__`
 - **`CircularProgress`** size=16 dans `endAdornment` pendant le chargement autocomplete — pas de spinner externe
 - Debounce 300ms sur les appels autocomplete — utiliser `useMemo` + `useCallback`, pas de librairie externe
 - Clé `__isNew__` dans les options freeSolo pour distinguer "Créer X" des valeurs existantes
@@ -1270,13 +1270,13 @@ frontend/src/
 
 ```
 Contexte projet ARK :
-- Stack : NestJS strict + Prisma + PostgreSQL 16 + React 18 + TypeScript strict + MUI v5
+- Stack : NestJS strict + Prisma + PostgreSQL 16 + React 18 + TypeScript strict + MUI v9
 - Toute écriture en base : await prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`
 - Structure modules : src/<domaine>/<domaine>.module.ts / .service.ts / .controller.ts
 - PrismaModule global — ne pas réimporter
 - JwtAuthGuard global — @Public() uniquement sur routes explicitement publiques
 - Pattern de référence : module Domains (FS-02)
-- MUI v5 — sx prop uniquement, pas de styled-components, variant="outlined" sur les inputs
+- MUI v9 — sx prop uniquement, pas de styled-components, variant="outlined" sur les inputs
 - MUI Chip avec alpha(color, 0.12) pour fond coloré — import alpha depuis @mui/material/styles
 - MUI Autocomplete avec multiple + freeSolo + filterOptions(__isNew__) — voir spec §6
 - MUI Tooltip wrappant chaque Chip — path complet en title
@@ -1318,7 +1318,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] `DimensionTagInput` exporté depuis `src/components/tags/index.ts`
 - [ ] `TagChipList` exporté depuis `src/components/tags/index.ts`
 - [ ] `TagValueResponse` inclut `dimensionColor` — vérifier que le backend peuple le champ depuis le join `tag_dimensions`
-- [ ] Vérifier que `alpha` est importé depuis `@mui/material/styles` (MUI v5) et non depuis `@mui/system`
+- [ ] Vérifier que `alpha` est importé depuis `@mui/material/styles` (MUI v9) et non depuis `@mui/system`
 - [ ] Spec relue — aucune règle implicite non documentée
 
 ---

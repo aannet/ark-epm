@@ -2,7 +2,7 @@
 
 _Version 0.1 — Mars 2026_
 
-> **Changelog v0.1 :** Création — split du template unifié v0.3 en deux templates distincts (back / front). Issu de la décision architecture de session OpenCode du Sprint FS-02. Ce template couvre la partie frontend (React + MUI v5 + i18n + Cypress). La partie backend est couverte par `_template-back.md`.
+> **Changelog v0.1 :** Création — split du template unifié v0.3 en deux templates distincts (back / front). Issu de la décision architecture de session OpenCode du Sprint FS-02. Ce template couvre la partie frontend (React + MUI v9 + i18n + Cypress). La partie backend est couverte par `_template-back.md`.
 
 > **Usage :** Ce template est le format standard des Feature-Specs **frontend** ARK. Chaque spec est un document autonome, versionné, directement injectable dans OpenCode sans reformatage.
 > - Nommer le fichier : `FS-<numéro>-<slug>-front.md` (ex: `FS-03-providers-front.md`)
@@ -591,9 +591,9 @@ interface [Domaine]Response {
 ```
 Contexte projet ARK — Session Frontend FS-XX-FRONT :
 
-Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next
+Stack : React 18 + Vite + TypeScript strict + MUI v9 + react-i18next
 Règles MUI obligatoires :
-- MUI v5 UNIQUEMENT — pas de Tailwind, pas de styled-components
+- MUI v9 UNIQUEMENT — pas de Tailwind, pas de styled-components
 - Styling : sx prop uniquement — jamais de styled()
 - Inputs : variant="outlined" systématiquement sur tous les TextField
 - Pas de MUI X DataGrid — utiliser MUI Table + TableSortLabel

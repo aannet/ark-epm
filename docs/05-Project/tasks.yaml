@@ -216,11 +216,11 @@ tasks:
 
   - id: T-064
     nom: "Mettre à jour vers Material UI and MUI X v9"
-    statut: in_progress
+    statut: done
     assigned_agent: front
     session_active: ~
     handoff_ref: "docs/05-Project/20260428/SESSION-HANDOFF-front-t064.md"
-    date_resolution: ~
+    date_resolution: "2026-04-28"
     sprint: S4
     theme: "F-999"
     type: debt
@@ -233,6 +233,9 @@ tasks:
       - tool: OC
         id: "b2d4e6"
         nom: "fix régression fond bleu drawers + fix débordement ApplicationDetailPage (incomplet)"
+      - tool: OC
+        id: "a4c9e3"
+        nom: "audit impacts + vérification T-071 clôt la régression visuelle restante"
 
   - id: T-065
     nom: "Retravailler design de la vue détail d'une Application"
@@ -383,5 +386,119 @@ tasks:
       ApplicationDetailPage.tsx : Grid 8/4 → Box flex 2:1, overflow fix RelationCard/ClickableRow/Chip.
       BusinessCapabilitiesPage.tsx : KPI band Grid 3×sm:4 → Box flex 1:1:1 (bug stacking gauche corrigé).
       BusinessCapabilityMatrix.tsx : root Grid container + nested Grid container (récursif) → Box flexWrap.
+        Breakpoint depth=0 : sm → md (sm donnait ~148px/carte avec sidebar 240px — trop étroit).
       Import Grid supprimé des 3 fichiers. tsc exit:0, Vite build ✅.
+
+  - id: T-072
+    nom: "Docs — Mise à jour documentation post-migration MUI v9 (19 fichiers)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-04-28"
+    sprint: S4
+    theme: "F-999"
+    type: doc
+    feature: "F-999-FRONT-MUI"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "a4c9e3"
+        nom: "audit impacts MUI v9 + mise à jour 19 fichiers docs/specs/AGENTS"
+    notes: |
+      ✅ Terminé (session a4c9e3, 2026-04-28). Follow-up doc de T-064 + T-071.
+      Fichiers mis à jour (MUI v5 → v9 + patterns Grid→Box) :
+      - AGENTS.md (racine) : MUI v5 → v9 ×3
+      - frontend/AGENTS.md : MUI v5 → v9 ×2 + anti-patterns 6 (Grid imbriqué) & 7 (props renommées)
+      - docs/03-Features-Spec/_templates/_template_front.md : MUI v5 → v9 ×3
+      - docs/03-Features-Spec/F-foundations/F01-Design-System.md : MUI v5 → v9
+      - docs/03-Features-Spec/F-foundations/F03-Dimension-Tag-Foundation.md : MUI v5 → v9 ×5
+      - docs/03-Features-Spec/FS-02/03/04/05/06/07/08/11 front specs : MUI v5 → v9
+      - docs/03-Features-Spec/FS-06 : Grid YAML → Box flex ×3
+      - docs/03-Features-Spec/FS-07 : Grid code → Box flex + note @mui/x-tree-view supprimé
+      - docs/03-Features-Spec/P2/FS21 + FS-07-P2 : MUI v5 → v9
+      - docs/04-Tech/ARK-Architecture-Setup.md : install cmd complété (@mui/icons-material, x-date-pickers, # MUI v9)
+      - docs/05-Project/README.md + REX/ark-doc-system.md+html + REX/ark-rex-workflow.md : MUI v5 → v9
+      Zéro résiduel MUI v5 dans les fichiers opérationnels (SESSION-HANDOFF archives + tasks.yaml notes exclus).
+
+  - id: T-073
+    nom: "Adapter le layout de Application Detail aux autres pages détail (Business Cap, Interface, Data Object, IT Component, Fournisseur)"
+    statut: in_progress
+    assigned_agent: front
+    session_active: "a7b3c9"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-999"
+    type: impl
+    feature: "F-999-FRONT-DETAIL-LAYOUT"
+    priorité: medium
+    sessions: []
+    notes: |
+      Appliquer le layout 2-col + tabs de ApplicationDetailPage (T-065)
+      aux pages détail : BusinessCapabilityDetail, InterfaceDetail,
+      DataObjectDetail, ITComponentDetail, ProviderDetail.
+
+  - id: T-074
+    nom: "Réévaluer la gestion des tags (fonctionnel, interface, clé, valeur etc...)"
+    statut: open
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-03"
+    type: review
+    feature: "F-03-TAGS"
+    priorité: medium
+    sessions: []
+    notes: |
+      Commencer impérativement par ré-étudier les spécifications PRD des tags
+      (docs/03-Features-Spec/F-foundations/F03-Dimension-Tag-Foundation.md +
+      docs/01-Product/ARK-Product-Brief.md) avant toute vérification de l'implémentation.
+      Périmètre : types de tags (fonctionnel, interface, clé, valeur…), modèle Prisma,
+      usages actuels dans les entités (Applications, IT Components, Data Objects, Interfaces…).
+      Objectif : identifier les écarts spec/impl et proposer une réévaluation cohérente.
+
+  - id: T-075
+    nom: "Frontend — Moderniser l'affichage des pages NEW/EDIT pour Applications"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    priorité: medium
+    sessions: []
+    notes: |
+      Appliquer le pattern de design modernisé (post-T-064 MUI v9) aux pages
+      ApplicationNewPage et ApplicationEditPage.
+      Cohérence visuelle avec ApplicationDetailPage (T-065) et les patterns MUI v9 (T-064).
+
+  - id: T-076
+    nom: "Frontend — Évaluer et moderniser les pages NEW/EDIT des autres entités (Business Cap, Interfaces, Data Object, IT Components, Fournisseurs)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-999"
+    type: review
+    feature: "F-999-FRONT-FORMS"
+    priorité: medium
+    sessions: []
+    notes: |
+      Suite T-075 : après modernisation des formulaires Applications,
+      évaluer l'état des pages NEW/EDIT sur les autres entités :
+      - BusinessCapabilityNew/Edit
+      - InterfaceNew/Edit
+      - DataObjectNew/Edit
+      - ITComponentNew/Edit
+      - ProviderNew/Edit (Fournisseurs)
+      Identifier les écarts par rapport au pattern MUI v9 et planifier les corrections.
+      Dépend de : T-075 done (pattern de référence établi).
 

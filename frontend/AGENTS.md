@@ -86,7 +86,7 @@ export function EntityForm({ entity, onSubmit, isLoading }: EntityFormProps) {
 
 ### R\u00e8gles fondamentales
 
-- **MUI v5 exclusif** \u2014 aucun Tailwind, aucun CSS-in-JS custom (styled-components, emotion brut)
+- **MUI v9 exclusif** \u2014 aucun Tailwind, aucun CSS-in-JS custom (styled-components, emotion brut)
 - Theme source de v\u00e9rit\u00e9 : `src/theme/index.ts`
 - Utiliser les composants MUI natifs (`Box`, `Stack`, `Typography`, `Button`, `TextField`, `Chip`, etc.)
 - Pour le spacing, utiliser `sx={{ p: 2, mb: 3 }}` (multiples de 8px)
@@ -141,7 +141,7 @@ Avant d'implémenter un composant UI :
 - ✅ Indigo Blueprint (#1A237E) pour la sidebar
 - ✅ Azure Action (#007FFF) pour les actions primaires
 - ✅ Spacing en multiples de 8px
-- ✅ MUI v5 — jamais de Tailwind
+- ✅ MUI v9 — jamais de Tailwind
 - ✅ Composants MUI natifs (pas de custom CSS)
 
 ---
@@ -303,6 +303,8 @@ if (!data?.data?.length) return <EmptyState title={t('common.emptyState.title')}
 3. **Chips** : toujours utiliser des labels i18n, jamais des constantes en dur
 4. **Cache navigateur** : apr\u00e8s tout changement CSS/React, mentionner "V\u00e9rifiez (Ctrl+F5)"
 5. **Cache TS Server** : erreurs d'import fant\u00f4mes \u2192 `Ctrl+Shift+P` \u2192 "TypeScript: Restart TS Server"
+6. **Grid imbriqu\u00e9 (MUI v9)** : ne jamais imbriquer `<Grid container>` \u2014 provoque des marges n\u00e9gatives et d\u00e9bordements. Remplacer par `<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: N }}>` avec `flex` + `minWidth: 0` sur les enfants
+7. **Props renomm\u00e9es MUI v9** : `PaperProps` \u2192 `slotProps.paper` ; `InputProps` \u2192 `slotProps.input` ; `inputProps` \u2192 `slotProps.htmlInput` ; `TablePagination.component` supprim\u00e9
 
 ---
 

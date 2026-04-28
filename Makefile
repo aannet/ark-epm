@@ -378,12 +378,13 @@ test-dast-baseline:
 	exit $$ZAP_EXIT
 
 # ----------------------------------------------------------------------------------
-# MegaLinter — Multi-language static analysis
+# MegaLinter — Code quality analysis
 MEGALINTER_IMAGE   ?= oxsecurity/megalinter:v8
 MEGALINTER_REPORTS ?= $(PWD)/reports/megalinter
 
-test-megalinter:
-	@echo "🔍 Running MegaLinter (multi-language static analysis)..."
+# Code quality: ESLint (backend/src) + duplication (backend/src + frontend/src)
+megalinter-quality:
+	@echo "🔍 Running MegaLinter — code quality (ESLint + duplication)..."
 	@mkdir -p $(MEGALINTER_REPORTS)
 	@docker run --rm \
 		-v $(PWD):/tmp/lint:ro \
@@ -391,22 +392,38 @@ test-megalinter:
 		-e REPORT_OUTPUT_FOLDER=/reports/$(TIMESTAMP) \
 		-e DISABLE_ERRORS=false \
 		$(MEGALINTER_IMAGE)
-	@echo "Report: $(MEGALINTER_REPORTS)/$(TIMESTAMP)/megalinter-report.html"
 
-# Open MegaLinter report in browser
-open-megalinter-report:
-	@REPORT=$$(ls -t $(MEGALINTER_REPORTS)/*/megalinter-report.html 2>/dev/null | head -1); \
-	if [ -z "$$REPORT" ]; then \
+# Config/docs lint: YAML, JSON, ENV — separate concern from code quality
+megalinter-config:
+	@echo "🔍 Running MegaLinter — config & docs lint (YAML, JSON, ENV)..."
+	@mkdir -p $(MEGALINTER_REPORTS)
+	@docker run --rm \
+		-v $(PWD):/tmp/lint:ro \
+		-v $(MEGALINTER_REPORTS):/reports \
+		-e REPORT_OUTPUT_FOLDER=/reports/$(TIMESTAMP) \
+		-e DISABLE_ERRORS=false \
+		-e MEGALINTER_CONFIG=.mega-linter-config.yml \
+		$(MEGALINTER_IMAGE)
+
+megalinter: megalinter-quality
+
+# Show SUMMARY of latest run in console
+megalinter-report:
+	@DIR=$$(ls -dt $(MEGALINTER_REPORTS)/*/ 2>/dev/null | head -1); \
+	if [ -z "$$DIR" ]; then \
 		echo "❌ No MegaLinter report found in $(MEGALINTER_REPORTS)."; \
-		echo "   Run 'make test-megalinter' first."; \
+		echo "   Run 'make megalinter' first."; \
 		exit 1; \
 	fi; \
-	if command -v xdg-open >/dev/null 2>&1; then \
-		xdg-open "$$REPORT" || echo "📄 Report: $$REPORT (xdg-open failed, no browser available)"; \
-	elif command -v open >/dev/null 2>&1; then \
-		open "$$REPORT" || echo "📄 Report: $$REPORT (open failed, no browser available)"; \
+	echo "📁 Report: $$DIR"; \
+	echo ""; \
+	grep -A 15 "SUMMARY" "$$DIR/megalinter.log" 2>/dev/null || true; \
+	echo ""; \
+	if [ -f "$$DIR/megalinter-report.html" ]; then \
+		echo "📄 HTML: $${DIR}megalinter-report.html"; \
+		xdg-open "$${DIR}megalinter-report.html" 2>/dev/null || true; \
 	else \
-		echo "📄 Report: $$REPORT"; \
+		echo "📋 Full log: $${DIR}megalinter.log"; \
 	fi
 
 # Open ZAP report in browser

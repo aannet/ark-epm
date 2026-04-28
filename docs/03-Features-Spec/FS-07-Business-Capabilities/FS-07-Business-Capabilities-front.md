@@ -433,6 +433,7 @@ zones:
 ### ~~4.2 `BusinessCapabilitiesPage` — Vue Arbre MUI TreeView~~ _(supprimée — T-033)_
 
 > ~~Vue retirée le 2026-04-11. La liste arborescente avec expand/collapse (§4.1) couvre le même besoin.~~
+> **Note T-064** : `@mui/x-tree-view` supprimé des dépendances (paquet inutilisé dans le code). Cette section reste archivée pour historique uniquement.
 
 ```yaml
 # SUPPRIMÉ — T-033
@@ -520,8 +521,8 @@ zones:
       onNodeClick: openDrawer(nodeId)
     
     matrix_tile:
-      layout: Grid imbriqué (L0 → L1 → L2)
-      grid_breakpoints: xs=12, sm=6 (depth=0) ou 12 (depth>0), md=6 (tous depths — max 2 L0 par rangée)
+      layout: Box flex imbriqué (L0 → L1 → L2) — MUI v9, pas de Grid
+      flex_breakpoints: width calc(50% - 8px) sm+ (depth=0), calc(50% - 4px) md+ (depth>0) — max 2 L0 par rangée
       # T-034: fond neutre (blanc/paper), CriticalityChip remplace background_color
       # T-035: md=6 unifié → 2 colonnes L0 max en desktop (précédemment md=4 → 3 colonnes)
       content: |
@@ -533,9 +534,9 @@ zones:
             <Chip label={`${sumApplications(node)} apps`} size="small" />
           </Box>
           {node.children.length > 0 && (
-            <Grid container spacing={1} sx={{ mt: 1 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
               {node.children.map(child => <MatrixTile node={child} />)}
-            </Grid>
+            </Box>
           )}
         </Card>
       tooltip:
@@ -1413,9 +1414,9 @@ export function AppBreadcrumbs({ items }: AppBreadcrumbsProps) {
 ```
 Contexte projet ARK — Session Frontend FS-07-FRONT :
 
-Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next
+Stack : React 18 + Vite + TypeScript strict + MUI v9 + react-i18next
 Règles MUI obligatoires :
-- MUI v5 UNIQUEMENT — pas de Tailwind, pas de styled-components
+- MUI v9 UNIQUEMENT — pas de Tailwind, pas de styled-components
 - Styling : sx prop uniquement — jamais de styled()
 - Inputs : variant="outlined" systématiquement sur tous les TextField
 - Pas de MUI X DataGrid — utiliser MUI Table + TableSortLabel

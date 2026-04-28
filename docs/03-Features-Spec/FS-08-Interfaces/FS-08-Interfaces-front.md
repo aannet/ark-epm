@@ -1256,9 +1256,9 @@ interface InterfaceFilters {
 ```
 Contexte projet ARK — Session Frontend FS-08-FRONT :
 
-Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next
+Stack : React 18 + Vite + TypeScript strict + MUI v9 + react-i18next
 Règles MUI obligatoires :
-- MUI v5 UNIQUEMENT — pas de Tailwind, pas de styled-components
+- MUI v9 UNIQUEMENT — pas de Tailwind, pas de styled-components
 - Styling : sx prop uniquement — jamais de styled()
 - Inputs : variant="outlined" systématiquement sur tous les TextField
 - Pas de MUI X DataGrid — utiliser MUI Table + TableSortLabel

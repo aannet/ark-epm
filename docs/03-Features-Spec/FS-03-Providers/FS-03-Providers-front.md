@@ -1124,7 +1124,7 @@ describe('Providers — PNS-02 (Drawer + Detail + Edit)', () => {
 ```
 Contexte projet ARK — Session Frontend FS-03-FRONT :
 
-Stack : React 18 strict mode + Vite + TypeScript strict + MUI v5 + react-query
+Stack : React 18 strict mode + Vite + TypeScript strict + MUI v9 + react-query
 Structure : /frontend/src/(pages|components|services|utils)
 
 CONTEXTE N:N PROVIDERS (v1.1) :

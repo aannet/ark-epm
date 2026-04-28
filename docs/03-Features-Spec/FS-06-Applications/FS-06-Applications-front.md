@@ -475,9 +475,9 @@ zones:
       note: LifecycleStepper + assessment futur
 
   body_tab_0:
-    layout: Grid container spacing=4
+    layout: Box flex (gap:4, flexWrap:wrap, alignItems:flex-start)
     column_main:
-      grid: xs=12 md=8
+      flex: "2 1 400px" minWidth:0
       sections:
         - title: t('applications.detail.section.general')
           fields:
@@ -508,23 +508,23 @@ zones:
               items: application.businessCapabilities.map(bc => Chip label=bc.name onClick=navigate('/business-capabilities/${bc.id}'))
             - label: t('applications.form.providersLabel')
               condition: application.providers.length > 0
-              component: Grid container spacing=1.5
+              component: Box flex (gap:1.5, flexWrap:wrap)
               items: |
                 application.providers.map(p => RelationCard
                   name=p.name
                   sublabel=p.role (traduit via applications.roles.*)
                   onClick=navigate('/providers/${p.id}')
                 )
-              grid_cols: xs=12 sm=6
+              flex_cols: flex "1 1 calc(50% - 6px)" minWidth:0
             - label: t('applications.form.itComponentsLabel')
               condition: application.itComponents.length > 0
-              component: Grid container spacing=1.5
+              component: Box flex (gap:1.5, flexWrap:wrap)
               items: |
                 application.itComponents.map(ic => RelationCard
                   name=ic.name
                   onClick=navigate('/it-components/${ic.id}')
                 )
-              grid_cols: xs=12 sm=6
+              flex_cols: flex "1 1 calc(50% - 6px)" minWidth:0
 
     column_sidebar:
       grid: xs=12 md=4
@@ -1159,9 +1159,9 @@ import { DimensionTagInput } from '@/components/tags';
 ```
 Contexte projet ARK — Session Frontend FS-06-FRONT :
 
-Stack : React 18 + Vite + TypeScript strict + MUI v5 + react-i18next
+Stack : React 18 + Vite + TypeScript strict + MUI v9 + react-i18next
 Règles MUI obligatoires :
-- MUI v5 UNIQUEMENT — pas de Tailwind, pas de styled-components
+- MUI v9 UNIQUEMENT — pas de Tailwind, pas de styled-components
 - Styling : sx prop uniquement — jamais de styled()
 - Inputs : variant="outlined" systématiquement
 - Pas de MUI X DataGrid — MUI Table + TableSortLabel

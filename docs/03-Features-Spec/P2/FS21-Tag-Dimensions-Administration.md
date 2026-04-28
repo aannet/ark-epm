@@ -628,13 +628,13 @@ test/
 
 ```
 Contexte projet ARK :
-- Stack : NestJS strict + Prisma + PostgreSQL 16 + React 18 + TypeScript strict + MUI v5
+- Stack : NestJS strict + Prisma + PostgreSQL 16 + React 18 + TypeScript strict + MUI v9
 - Toute écriture en base : await prisma.$executeRaw`SET LOCAL ark.current_user_id = ${userId}`
 - Structure modules : src/tags/ — TagsModule déjà existant (F-03)
 - PrismaModule global — ne pas réimporter
 - JwtAuthGuard global
 - Pattern de référence : TagsModule (F-03), DomainsModule (FS-02)
-- MUI v5 — sx prop uniquement, pas de styled-components
+- MUI v9 — sx prop uniquement, pas de styled-components
 - i18n : toutes les strings via t('key') — clés tagAdmin.* à ajouter dans fr.json
 - Permission requise : tags:admin sur toutes les routes de cette feature
 

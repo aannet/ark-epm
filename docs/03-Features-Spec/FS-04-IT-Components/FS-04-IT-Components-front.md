@@ -1465,7 +1465,7 @@ describe('IT Components — PNS-02 (Drawer + Detail + Form)', () => {
 ```
 Contexte projet ARK — Session Frontend FS-04-FRONT :
 
-Stack : React 18 strict mode + Vite + TypeScript strict + MUI v5 + react-query
+Stack : React 18 strict mode + Vite + TypeScript strict + MUI v9 + react-query
 Structure : /frontend/src/(pages|components|services|utils|types)
 
 Conventions obligatoires :

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ARK — Task Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -590,6 +591,65 @@
     .grid-sprint-header td {
       padding: 6px 12px;
     }
+
+    /* ══════════════════════════════════════════
+       STATS TAB STYLES
+    ══════════════════════════════════════════ */
+
+    .stats-kpi-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.6rem;
+      flex: 1;
+      min-width: 130px;
+    }
+    .kpi-card .kpi-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: var(--font-mono);
+    }
+    .kpi-card .kpi-value.kpi-green  { color: #22c55e; }
+    .kpi-card .kpi-value.kpi-orange { color: #f97316; }
+    .kpi-card .kpi-value.kpi-red    { color: #e94560; }
+    .kpi-card .kpi-value.kpi-cl     { color: #fbbf24; }
+    .kpi-card .kpi-value.kpi-oc     { color: #e94560; }
+    .kpi-card-cl { border-color: rgba(251,191,36,0.3); }
+    .kpi-card-oc { border-color: rgba(233,69,96,0.3); }
+    .kpi-card .kpi-label {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      height: 300px;
+      position: relative;
+    }
+    .chart-card-full {
+      grid-column: 1 / -1;
+      height: 260px;
+    }
   </style>
 </head>
 <body>
@@ -600,6 +660,8 @@
     <div><strong id="cnt-total">—</strong> Total</div>
     <div><strong id="cnt-open">—</strong> Open</div>
     <div><strong id="cnt-done">—</strong> Done</div>
+    <div><strong id="cnt-blocked">—</strong> Bloqués</div>
+    <div><strong id="cnt-rate">—</strong> Complétés</div>
   </div>
   <a href="../../../e2e/reports/html/index.html"
      target="_blank"
@@ -613,6 +675,7 @@
 <div class="tabs">
   <button class="tab-btn active" data-tab="tasks">Tasks</button>
   <button class="tab-btn" data-tab="roadmap">Roadmap</button>
+  <button class="tab-btn" data-tab="stats">Stats ✦</button>
 </div>
 
 <!-- ── View: Tasks ── -->
@@ -659,6 +722,47 @@
   </div>
 </div>
 
+<!-- ── View: Stats ── -->
+<div id="view-stats" style="display:none">
+  <div class="stats-kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-value" id="stats-total">—</div>
+      <div class="kpi-label">Total tickets</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value kpi-green" id="stats-done">—</div>
+      <div class="kpi-label">Done</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value kpi-orange" id="stats-open">—</div>
+      <div class="kpi-label">Open / In Progress</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value kpi-red" id="stats-blocked">—</div>
+      <div class="kpi-label">Bloqués</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" id="stats-rate">—</div>
+      <div class="kpi-label">Taux de complétion</div>
+    </div>
+    <div class="kpi-card kpi-card-cl">
+      <div class="kpi-value kpi-cl" id="stats-sessions-cl">—</div>
+      <div class="kpi-label">Sessions Claude</div>
+    </div>
+    <div class="kpi-card kpi-card-oc">
+      <div class="kpi-value kpi-oc" id="stats-sessions-oc">—</div>
+      <div class="kpi-label">Sessions OpenCode</div>
+    </div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><canvas id="chart-status"></canvas></div>
+    <div class="chart-card"><canvas id="chart-agents"></canvas></div>
+    <div class="chart-card"><canvas id="chart-sprints"></canvas></div>
+    <div class="chart-card"><canvas id="chart-priority"></canvas></div>
+    <div class="chart-card chart-card-full"><canvas id="chart-sessions"></canvas></div>
+  </div>
+</div>
+
 <!-- ── View: Roadmap ── -->
 <div id="view-roadmap" style="display:none">
   <div class="roadmap-toolbar">
@@ -676,11 +780,13 @@
   'use strict';
 
   // ── State ──────────────────────────────────────────────────────────────────
-  let allTasks      = [];
-  let filtered      = [];
-  let roadmapData   = [];   // sprints[]
-  let currentTab    = 'tasks';
-  let currentRmView = 'kanban';
+  let allTasks        = [];
+  let filtered        = [];
+  let roadmapData     = [];   // sprints[]
+  let currentTab      = 'tasks';
+  let currentRmView   = 'kanban';
+  let chartsInitialized = false;
+  let chartInstances  = {};
 
   const TYPE_COLORS = {
     spec: 'spec', decision: 'decision', review: 'review', debt: 'debt',
@@ -692,6 +798,8 @@
   const cntTotal      = document.getElementById('cnt-total');
   const cntOpen       = document.getElementById('cnt-open');
   const cntDone       = document.getElementById('cnt-done');
+  const cntBlocked    = document.getElementById('cnt-blocked');
+  const cntRate       = document.getElementById('cnt-rate');
   const fStatut       = document.getElementById('f-statut');
   const fSprint       = document.getElementById('f-sprint');
   const fType         = document.getElementById('f-type');
@@ -702,6 +810,7 @@
   const btnReset      = document.getElementById('btn-reset');
   const viewTasks     = document.getElementById('view-tasks');
   const viewRoadmap   = document.getElementById('view-roadmap');
+  const viewStats     = document.getElementById('view-stats');
   const kanbanView    = document.getElementById('kanban-view');
   const gridView      = document.getElementById('grid-view');
 
@@ -710,9 +819,11 @@
     btn.addEventListener('click', () => {
       currentTab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
-      viewTasks.style.display   = currentTab === 'tasks'    ? '' : 'none';
-      viewRoadmap.style.display = currentTab === 'roadmap'  ? '' : 'none';
+      viewTasks.style.display   = currentTab === 'tasks'   ? '' : 'none';
+      viewRoadmap.style.display = currentTab === 'roadmap' ? '' : 'none';
+      viewStats.style.display   = currentTab === 'stats'   ? '' : 'none';
       if (currentTab === 'roadmap') renderRoadmapView();
+      if (currentTab === 'stats')   renderStats();
     });
   });
 
@@ -1002,9 +1113,14 @@
 
   // ── Counters ───────────────────────────────────────────────────────────────
   function updateCounters(tasks) {
-    cntTotal.textContent = tasks.length;
-    cntOpen.textContent  = tasks.filter(t => t.statut === 'open' || t.statut === 'in_progress').length;
-    cntDone.textContent  = tasks.filter(t => t.statut === 'done').length;
+    const total   = tasks.length;
+    const done    = tasks.filter(t => t.statut === 'done').length;
+    const blocked = tasks.filter(t => t.statut === 'blocked').length;
+    cntTotal.textContent   = total;
+    cntOpen.textContent    = tasks.filter(t => t.statut === 'open' || t.statut === 'in_progress').length;
+    cntDone.textContent    = done;
+    cntBlocked.textContent = blocked;
+    cntRate.textContent    = total ? Math.round(done / total * 100) + '%' : '—';
   }
 
   // ── Filter logic ───────────────────────────────────────────────────────────
@@ -1033,6 +1149,148 @@
 
     mainContent.innerHTML = renderTable(filtered);
     updateCounters(filtered);
+  }
+
+  // ── Stats renderer ────────────────────────────────────────────────────────
+  function renderStats() {
+    if (chartsInitialized) return;
+    chartsInitialized = true;
+
+    const tasks   = allTasks;
+    const total   = tasks.length;
+    const done    = tasks.filter(t => t.statut === 'done').length;
+    const open    = tasks.filter(t => t.statut === 'open' || t.statut === 'in_progress').length;
+    const blocked = tasks.filter(t => t.statut === 'blocked').length;
+    const rate    = total ? Math.round(done / total * 100) : 0;
+
+    // Sessions par outil
+    let clCount = 0, ocCount = 0;
+    tasks.forEach(t => (t.sessions || []).forEach(s => {
+      if (s.tool === 'CL') clCount++;
+      else if (s.tool === 'OC') ocCount++;
+    }));
+
+    document.getElementById('stats-total').textContent       = total;
+    document.getElementById('stats-done').textContent        = done;
+    document.getElementById('stats-open').textContent        = open;
+    document.getElementById('stats-blocked').textContent     = blocked;
+    document.getElementById('stats-rate').textContent        = rate + '%';
+    document.getElementById('stats-sessions-cl').textContent = clCount;
+    document.getElementById('stats-sessions-oc').textContent = ocCount;
+
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#ccc', boxWidth: 12 } } }
+    };
+
+    // Chart 1 — Donut statuts
+    const statusCounts = { open: 0, in_progress: 0, done: 0, blocked: 0 };
+    tasks.forEach(t => { if (t.statut in statusCounts) statusCounts[t.statut]++; });
+    chartInstances.status = new Chart(document.getElementById('chart-status'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Open', 'In Progress', 'Done', 'Bloqué'],
+        datasets: [{ data: Object.values(statusCounts),
+          backgroundColor: ['#4a9eff', '#f39c12', '#2ecc71', '#e94560'],
+          borderWidth: 0 }]
+      },
+      options: { ...chartDefaults,
+        plugins: { ...chartDefaults.plugins,
+          title: { display: true, text: 'Répartition par statut', color: '#ccc', font: { size: 13 } } } }
+    });
+
+    // Chart 2 — Barres par agent (stacked)
+    const agents     = [...new Set(tasks.map(t => t.assigned_agent).filter(Boolean))].sort();
+    chartInstances.agents = new Chart(document.getElementById('chart-agents'), {
+      type: 'bar',
+      data: {
+        labels: agents,
+        datasets: [
+          { label: 'Done',    data: agents.map(a => tasks.filter(t => t.assigned_agent === a && t.statut === 'done').length),    backgroundColor: '#2ecc71' },
+          { label: 'Open',    data: agents.map(a => tasks.filter(t => t.assigned_agent === a && (t.statut === 'open' || t.statut === 'in_progress')).length), backgroundColor: '#4a9eff' },
+          { label: 'Bloqué', data: agents.map(a => tasks.filter(t => t.assigned_agent === a && t.statut === 'blocked').length),  backgroundColor: '#e94560' }
+        ]
+      },
+      options: { ...chartDefaults,
+        scales: {
+          x: { stacked: true, ticks: { color: '#ccc' }, grid: { color: '#2a2a4a' } },
+          y: { stacked: true, ticks: { color: '#ccc', stepSize: 1 }, grid: { color: '#2a2a4a' } }
+        },
+        plugins: { ...chartDefaults.plugins,
+          title: { display: true, text: 'Tickets par agent', color: '#ccc', font: { size: 13 } } } }
+    });
+
+    // Chart 3 — Barres par sprint
+    const sprints = [...new Set(tasks.map(t => t.sprint).filter(Boolean))].sort();
+    chartInstances.sprints = new Chart(document.getElementById('chart-sprints'), {
+      type: 'bar',
+      data: {
+        labels: sprints,
+        datasets: [
+          { label: 'Done',         data: sprints.map(s => tasks.filter(t => t.sprint === s && t.statut === 'done').length),    backgroundColor: '#2ecc71' },
+          { label: 'Open/Bloqué', data: sprints.map(s => tasks.filter(t => t.sprint === s && t.statut !== 'done').length), backgroundColor: '#4a9eff' }
+        ]
+      },
+      options: { ...chartDefaults,
+        scales: {
+          x: { stacked: true, ticks: { color: '#ccc' }, grid: { color: '#2a2a4a' } },
+          y: { stacked: true, ticks: { color: '#ccc', stepSize: 1 }, grid: { color: '#2a2a4a' } }
+        },
+        plugins: { ...chartDefaults.plugins,
+          title: { display: true, text: 'Tickets par sprint', color: '#ccc', font: { size: 13 } } } }
+    });
+
+    // Chart 4 — Barres par priorité
+    const prios = ['high', 'medium', 'low'];
+    chartInstances.priority = new Chart(document.getElementById('chart-priority'), {
+      type: 'bar',
+      data: {
+        labels: ['High', 'Medium', 'Low'],
+        datasets: [
+          { label: 'Done',   data: prios.map(p => tasks.filter(t => t['priorité'] === p && t.statut === 'done').length),    backgroundColor: '#2ecc71' },
+          { label: 'Open',   data: prios.map(p => tasks.filter(t => t['priorité'] === p && (t.statut === 'open' || t.statut === 'in_progress')).length), backgroundColor: '#f39c12' },
+          { label: 'Bloqué', data: prios.map(p => tasks.filter(t => t['priorité'] === p && t.statut === 'blocked').length), backgroundColor: '#e94560' }
+        ]
+      },
+      options: { ...chartDefaults,
+        scales: {
+          x: { stacked: true, ticks: { color: '#ccc' }, grid: { color: '#2a2a4a' } },
+          y: { stacked: true, ticks: { color: '#ccc', stepSize: 1 }, grid: { color: '#2a2a4a' } }
+        },
+        plugins: { ...chartDefaults.plugins,
+          title: { display: true, text: 'Tickets par priorité', color: '#ccc', font: { size: 13 } } } }
+    });
+
+    // Chart 5 — Sessions Claude vs OpenCode (barres horizontales par tâche ayant des sessions)
+    const sessionTools = ['CL', 'OC'];
+    const toolLabels   = { CL: 'Claude (CL)', OC: 'OpenCode (OC)' };
+    const toolColors   = { CL: '#fbbf24', OC: '#e94560' };
+
+    // Compter les sessions par outil par tâche, pour construire un dataset par outil
+    const tasksWithSessions = tasks.filter(t => t.sessions && t.sessions.length > 0);
+    const sessionTaskLabels = tasksWithSessions.map(t => t.id);
+    chartInstances.sessions = new Chart(document.getElementById('chart-sessions'), {
+      type: 'bar',
+      data: {
+        labels: sessionTaskLabels.length ? sessionTaskLabels : ['(aucune session)'],
+        datasets: sessionTools.map(tool => ({
+          label: toolLabels[tool],
+          data: sessionTaskLabels.length
+            ? tasksWithSessions.map(t => (t.sessions || []).filter(s => s.tool === tool).length)
+            : [0],
+          backgroundColor: toolColors[tool]
+        }))
+      },
+      options: { ...chartDefaults,
+        indexAxis: 'y',
+        scales: {
+          x: { stacked: true, ticks: { color: '#ccc', stepSize: 1 }, grid: { color: '#2a2a4a' } },
+          y: { stacked: true, ticks: { color: '#ccc', font: { family: 'Courier New' } }, grid: { color: '#2a2a4a' } }
+        },
+        plugins: { ...chartDefaults.plugins,
+          title: { display: true, text: `Sessions par ticket — Claude (${clCount}) vs OpenCode (${ocCount})`, color: '#ccc', font: { size: 13 } } } }
+    });
   }
 
   // ── Init ───────────────────────────────────────────────────────────────────
@@ -1065,7 +1323,7 @@
         <code>npx serve .</code>
         <p style="margin-top:12px">puis ouvrir <strong>http://localhost:&lt;port&gt;/docs/05-Project/tasks-dashboard/</strong></p>
       </div>`;
-    cntTotal.textContent = cntOpen.textContent = cntDone.textContent = '—';
+    cntTotal.textContent = cntOpen.textContent = cntDone.textContent = cntBlocked.textContent = cntRate.textContent = '—';
   }
 
   function showFetchError(err) {
@@ -1075,7 +1333,7 @@
         <h2>Impossible de charger tasks.yaml</h2>
         <p>${escapeHtml(String(err))}</p>
       </div>`;
-    cntTotal.textContent = cntOpen.textContent = cntDone.textContent = '—';
+    cntTotal.textContent = cntOpen.textContent = cntDone.textContent = cntBlocked.textContent = cntRate.textContent = '—';
   }
 
   // ── Bootstrap — charge tasks + roadmap + archive en parallèle ──────────────

@@ -180,8 +180,8 @@ npm install reactflow
 # Requêtes API
 npm install axios
 
-# Composants UI
-npm install @mui/material @emotion/react @emotion/styled
+# Composants UI (MUI v9)
+npm install @mui/material @mui/icons-material @mui/x-date-pickers @emotion/react @emotion/styled
 
 # Upload et parsing Excel (import des inventaires existants — Brief §3.1)
 npm install xlsx

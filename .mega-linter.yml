@@ -1,6 +1,6 @@
-# Configuration file for MegaLinter
-# See all available variables at https://megalinter.io/latest/config-file/
-# and all linters at https://megalinter.io/latest/supported-linters/
+# MegaLinter — Code quality evaluation for ARK-EPM
+# Objective: evaluate quality of code produced in backend/src and frontend/src
+# See all available variables: https://megalinter.io/latest/config-file/
 
 # General settings
 APPLY_FIXES: none
@@ -10,26 +10,25 @@ SHOW_ELAPSED_TIME: true
 FLAVOR_SUGGESTIONS: false
 VALIDATE_ALL_CODEBASE: true
 
-# Report settings (overridden by Makefile via env var REPORT_OUTPUT_FOLDER)
-REPORT_OUTPUT_FOLDER: megalinter-reports
-REPORTERS:
-  - HTML
-  - JSON
+# --- Quality linters (primary objective) ---
+# ENABLE_LINTERS = whitelist by linter name (vs ENABLE = whitelist by descriptor family)
+ENABLE_LINTERS:
+  - TYPESCRIPT_ES       # ESLint: bugs, anti-patterns, type-safety (backend/src)
+  - COPYPASTE_JSCPD     # Duplicate code detection (backend/src + frontend/src)
+  - DOCKERFILE_HADOLINT # Dockerfile best practices
 
-# Activate only the linters relevant to ARK-EPM stack
-ENABLE:
-  - TYPESCRIPT_ES
-  - MARKDOWN_MARKDOWNLINT
-  - JSON_JSONLINT
-  - JSON_PRETTIER
-  - YAML_YAMLLINT
-  - YAML_PRETTIER
-  - DOCKERFILE_HADOLINT
-  - SQL_SQLFLUFF
-  - ENV_DOTENV_LINTER
+# TYPESCRIPT_ES: project uses ESLint v9 flat config (eslint.config.mjs in backend/)
+# TYPESCRIPT_ES_CONFIG_FILE bypasses MegaLinter's activation check for legacy .eslintrc files
+TYPESCRIPT_ES_CONFIG_FILE: backend/eslint.config.mjs
+TYPESCRIPT_ES_DIRECTORY: backend
+# TODO: frontend/src TypeScript requires adding ESLint packages to frontend/package.json
 
-# Files exclusions — monolithic regex string in single quotes
-# In YAML single quotes, backslash is literal (no escaping)
+# COPYPASTE_JSCPD: restrict to application source code only
+# Reports are informational — duplication findings do not block the run
+COPYPASTE_JSCPD_FILTER_REGEX_INCLUDE: "(backend/src/|frontend/src/)"
+COPYPASTE_JSCPD_DISABLE_ERRORS: true
+
+# Files exclusions
 FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|prisma/migrations/|.*\.generated\.ts|backend/scripts/get-token\.sh|e2e/reports/|coverage/|\.next/|out/|frontend/cypress/|test-results/|playwright-report/)'
 
 # Additional settings
