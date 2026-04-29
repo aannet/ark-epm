@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import BusinessCapabilityForm from '@/components/business-capabilities/BusinessCapabilityForm';
 import { useCreateBusinessCapability } from '@/api/businessCapabilities';
@@ -57,21 +57,33 @@ export default function BusinessCapabilityNewPage(): JSX.Element {
   ];
 
   return (
-    <PageContainer maxWidth="sm">
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs items={breadcrumbItems} />
-      <PageHeader title={t('businessCapabilities.form.createTitle')} />
 
-      <BusinessCapabilityForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={createMutation.isPending}
-        error={error}
-        availableDimensions={dimensions.map((d) => ({
-          id: d.id,
-          name: d.name,
-          color: d.color || '#1976d2',
-        }))}
-      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'secondary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {t('businessCapabilities.form.createTitle').charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {t('businessCapabilities.form.createTitle')}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        <BusinessCapabilityForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={createMutation.isPending}
+          error={error}
+          availableDimensions={dimensions.map((d) => ({
+            id: d.id,
+            name: d.name,
+            color: d.color || '#1976d2',
+          }))}
+        />
+      </Paper>
     </PageContainer>
   );
 }

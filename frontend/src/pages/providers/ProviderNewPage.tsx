@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import { PageContainer } from '@/components/layout';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import ArkAlert from '@/components/shared/ArkAlert';
 import { ProviderForm } from '@/components/providers';
@@ -71,14 +71,7 @@ export default function ProviderNewPage() {
   }));
 
   return (
-    <PageContainer>
-      <ArkAlert
-        open={!!alert}
-        severity="error"
-        message={alert?.message ?? ''}
-        onClose={() => setAlert(null)}
-      />
-
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs
         items={[
           { label: t('providers.form.breadcrumb.home'), onClick: () => navigate('/') },
@@ -87,15 +80,37 @@ export default function ProviderNewPage() {
         ]}
       />
 
-      <PageHeader title={t('providers.form.createTitle')} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'error.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {t('providers.form.createTitle').charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {t('providers.form.createTitle')}
+          </Typography>
+        </Box>
+      </Box>
 
-      <ProviderForm
-        onSubmit={handleSubmit}
-        onCancel={() => navigate('/providers')}
-        isLoading={createProvider.isPending}
-        error={error}
-        availableDimensions={availableDimensions}
-      />
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        {alert && (
+          <Box sx={{ mb: 3 }}>
+            <ArkAlert
+              open={!!alert}
+              severity="error"
+              message={alert.message}
+              onClose={() => setAlert(null)}
+            />
+          </Box>
+        )}
+
+        <ProviderForm
+          onSubmit={handleSubmit}
+          onCancel={() => navigate('/providers')}
+          isLoading={createProvider.isPending}
+          error={error}
+          availableDimensions={availableDimensions}
+        />
+      </Paper>
     </PageContainer>
   );
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
@@ -88,7 +88,7 @@ export default function ITComponentFormPage({ mode }: ITComponentFormPageProps):
 
   if (isLoading) {
     return (
-      <PageContainer>
+      <PageContainer maxWidth="xl">
         <LoadingSkeleton rows={5} columns={1} />
       </PageContainer>
     );
@@ -108,35 +108,54 @@ export default function ITComponentFormPage({ mode }: ITComponentFormPageProps):
           { label: t('common.actions.edit') },
         ];
 
-  return (
-    <PageContainer maxWidth="sm">
-      <ArkAlert
-        open={!!serverAlert}
-        severity="error"
-        message={serverAlert?.message ?? ''}
-        autoDismiss={5000}
-        onClose={() => setServerAlert(null)}
-      />
+  const pageTitle = mode === 'create' ? t('it-components.form.createTitle') : t('it-components.form.editTitle');
 
+  return (
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs items={breadcrumbItems} />
 
-      <PageHeader
-        title={mode === 'create' ? t('it-components.form.createTitle') : t('it-components.form.editTitle')}
-      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'warning.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {pageTitle.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {pageTitle}
+          </Typography>
+          {mode === 'edit' && existing && (
+            <Typography variant="body2" color="text.secondary">
+              {existing.name}
+            </Typography>
+          )}
+        </Box>
+      </Box>
 
-      <ITComponentForm
-        initialValues={existing ? {
-          name: existing.name,
-          technology: existing.technology ?? undefined,
-          type: existing.type ?? undefined,
-          description: existing.description ?? undefined,
-          comment: existing.comment ?? undefined,
-        } : undefined}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={isSubmitting}
-        error={error}
-      />
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        {serverAlert && (
+          <Box sx={{ mb: 3 }}>
+            <ArkAlert
+              open={!!serverAlert}
+              severity="error"
+              message={serverAlert.message}
+              onClose={() => setServerAlert(null)}
+            />
+          </Box>
+        )}
+
+        <ITComponentForm
+          initialValues={existing ? {
+            name: existing.name,
+            technology: existing.technology ?? undefined,
+            type: existing.type ?? undefined,
+            description: existing.description ?? undefined,
+            comment: existing.comment ?? undefined,
+          } : undefined}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={isSubmitting}
+          error={error}
+        />
+      </Paper>
     </PageContainer>
   );
 }

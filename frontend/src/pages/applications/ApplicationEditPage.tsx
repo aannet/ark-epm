@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@mui/material';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
@@ -90,10 +89,32 @@ export default function ApplicationEditPage(): JSX.Element {
     navigate(`/applications/${id}`);
   };
 
+  const editTitle = t('applications.form.editTitle');
+
   if (isLoadingApp || isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities) {
     return (
-      <PageContainer>
-        <PageHeader title={t('applications.form.editTitle')} />
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs
+          items={[
+            { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
+            { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
+            { label: '...' },
+            { label: t('common.actions.edit') },
+          ]}
+        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Avatar sx={{ bgcolor: 'primary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+            {editTitle.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h2" component="h1">
+              {editTitle}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              ...
+            </Typography>
+          </Box>
+        </Box>
         <LoadingSkeleton rows={8} columns={1} />
       </PageContainer>
     );
@@ -101,21 +122,43 @@ export default function ApplicationEditPage(): JSX.Element {
 
   if (!application) {
     return (
-      <PageContainer>
-        <PageHeader title={t('applications.form.editTitle')} />
-        <ArkAlert
-          open={true}
-          severity="error"
-          message={t('applications.alert.errors.notFound')}
-          autoDismiss={undefined}
-          onClose={() => navigate('/applications')}
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs
+          items={[
+            { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
+            { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
+            { label: '...' },
+            { label: t('common.actions.edit') },
+          ]}
         />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Avatar sx={{ bgcolor: 'primary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+            {editTitle.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h2" component="h1">
+              {editTitle}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              ...
+            </Typography>
+          </Box>
+        </Box>
+        <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+          <ArkAlert
+            open={true}
+            severity="error"
+            message={t('applications.alert.errors.notFound')}
+            autoDismiss={undefined}
+            onClose={() => navigate('/applications')}
+          />
+        </Paper>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer maxWidth="sm">
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs
         items={[
           { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
@@ -125,51 +168,65 @@ export default function ApplicationEditPage(): JSX.Element {
         ]}
       />
 
-      <PageHeader title={t('applications.form.editTitle')} />
-
-      {submitError && (
-        <Box sx={{ mb: 3 }}>
-          <ArkAlert
-            open={true}
-            severity="error"
-            message={submitError}
-          autoDismiss={undefined}
-            onClose={() => setSubmitError(null)}
-          />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'primary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {application.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {editTitle}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {application.name}
+          </Typography>
         </Box>
-      )}
+      </Box>
 
-      <ApplicationForm
-         entityId={id}
-         initialValues={{
-           name: application.name,
-           description: application.description || '',
-           comment: application.comment || '',
-           domainId: application.domain?.id || null,
-           providers: application.providers || [],
-           itComponents: application.itComponents || [],
-           capabilityIds: (application.businessCapabilities || []).map(bc => bc.id),
-           ownerId: application.owner?.id || null,
-           criticality: application.criticality,
-           lifecycleStatus: application.lifecycleStatus,
-           tags: application.tags,
-         }}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={updateApplication.isPending}
-        error={submitError}
-        fieldError={fieldError}
-         availableOptions={{
-           domains: domainOptions,
-           providers: providerOptions,
-           itComponents: itComponentOptions,
-           businessCapabilities: capabilityOptions,
-           users: MOCK_USERS,
-           criticalities: CRITICALITIES,
-           lifecycleStatuses: LIFECYCLE_STATUSES,
-         }}
-        availableDimensions={availableDimensions}
-      />
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        {submitError && (
+          <Box sx={{ mb: 3 }}>
+            <ArkAlert
+              open={true}
+              severity="error"
+              message={submitError}
+              autoDismiss={undefined}
+              onClose={() => setSubmitError(null)}
+            />
+          </Box>
+        )}
+
+        <ApplicationForm
+          entityId={id}
+          initialValues={{
+            name: application.name,
+            description: application.description || '',
+            comment: application.comment || '',
+            domainId: application.domain?.id || null,
+            providers: application.providers || [],
+            itComponents: application.itComponents || [],
+            capabilityIds: (application.businessCapabilities || []).map(bc => bc.id),
+            ownerId: application.owner?.id || null,
+            criticality: application.criticality,
+            lifecycleStatus: application.lifecycleStatus,
+            tags: application.tags,
+          }}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={updateApplication.isPending}
+          error={null}
+          fieldError={fieldError}
+          availableOptions={{
+            domains: domainOptions,
+            providers: providerOptions,
+            itComponents: itComponentOptions,
+            businessCapabilities: capabilityOptions,
+            users: MOCK_USERS,
+            criticalities: CRITICALITIES,
+            lifecycleStatuses: LIFECYCLE_STATUSES,
+          }}
+          availableDimensions={availableDimensions}
+        />
+      </Paper>
     </PageContainer>
   );
 }

@@ -236,17 +236,20 @@ tasks:
 
   - id: T-075
     nom: "Frontend — Moderniser l'affichage des pages NEW/EDIT pour Applications"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: a7f3c2
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-04-29
     sprint: S4
     theme: "FS-06"
     type: impl
     feature: "FS-06-FRONT"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "a7f3c2"
+        nom: "modernisation ApplicationNewPage + ApplicationEditPage + ApplicationForm — pattern MUI v9 post-T-064"
     notes: |
       Appliquer le pattern de design modernisé (post-T-064 MUI v9) aux pages
       ApplicationNewPage et ApplicationEditPage.
@@ -254,17 +257,20 @@ tasks:
 
   - id: T-076
     nom: "Frontend — Évaluer et moderniser les pages NEW/EDIT des autres entités (Business Cap, Interfaces, Data Object, IT Components, Fournisseurs)"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260429/SESSION-HANDOFF-front-t076.md"
+    date_resolution: 2026-04-29
     sprint: S4
     theme: "F-999"
     type: review
     feature: "F-999-FRONT-FORMS"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "k2e6a4"
+        nom: "modernisation 8 wrappers NEW/EDIT — pattern MUI v9 post-T-075"
     notes: |
       Suite T-075 : après modernisation des formulaires Applications,
       évaluer l'état des pages NEW/EDIT sur les autres entités :

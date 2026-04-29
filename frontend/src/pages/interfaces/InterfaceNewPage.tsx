@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import InterfaceForm from '@/components/interfaces/InterfaceForm';
 import { useCreateInterface } from '@/api/interfaces';
@@ -50,16 +50,28 @@ export default function InterfaceNewPage(): JSX.Element {
   ];
 
   return (
-    <PageContainer maxWidth="sm">
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs items={breadcrumbItems} />
-      <PageHeader title={t('interfaces.form.createTitle')} />
 
-      <InterfaceForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={createMutation.isPending}
-        error={error}
-      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'info.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {t('interfaces.form.createTitle').charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {t('interfaces.form.createTitle')}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        <InterfaceForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={createMutation.isPending}
+          error={error}
+        />
+      </Paper>
     </PageContainer>
   );
 }

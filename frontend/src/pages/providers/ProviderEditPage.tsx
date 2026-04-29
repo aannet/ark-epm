@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import { PageContainer } from '@/components/layout';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import ArkAlert from '@/components/shared/ArkAlert';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
@@ -83,7 +83,7 @@ export default function ProviderEditPage() {
 
   if (isLoading) {
     return (
-      <PageContainer>
+      <PageContainer maxWidth="xl">
         <LoadingSkeleton rows={5} columns={1} />
       </PageContainer>
     );
@@ -92,14 +92,7 @@ export default function ProviderEditPage() {
   if (!provider) return null;
 
   return (
-    <PageContainer>
-      <ArkAlert
-        open={!!alert}
-        severity="error"
-        message={alert?.message ?? ''}
-        onClose={() => setAlert(null)}
-      />
-
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs
         items={[
           { label: t('providers.form.breadcrumb.home'), onClick: () => navigate('/') },
@@ -109,24 +102,49 @@ export default function ProviderEditPage() {
         ]}
       />
 
-      <PageHeader title={t('providers.form.editTitle')} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'error.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {provider.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {t('providers.form.editTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {provider.name}
+          </Typography>
+        </Box>
+      </Box>
 
-      <ProviderForm
-        initialValues={{
-          name: provider.name,
-          description: provider.description || '',
-          comment: provider.comment || '',
-          contractType: provider.contractType || '',
-          expiryDate: provider.expiryDate,
-          tags: provider.tags,
-        }}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate(`/providers/${id}`)}
-        isLoading={updateProvider.isPending}
-        error={error}
-        availableDimensions={availableDimensions}
-        entityId={id}
-      />
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        {alert && (
+          <Box sx={{ mb: 3 }}>
+            <ArkAlert
+              open={!!alert}
+              severity="error"
+              message={alert.message}
+              onClose={() => setAlert(null)}
+            />
+          </Box>
+        )}
+
+        <ProviderForm
+          initialValues={{
+            name: provider.name,
+            description: provider.description || '',
+            comment: provider.comment || '',
+            contractType: provider.contractType || '',
+            expiryDate: provider.expiryDate,
+            tags: provider.tags,
+          }}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate(`/providers/${id}`)}
+          isLoading={updateProvider.isPending}
+          error={error}
+          availableDimensions={availableDimensions}
+          entityId={id}
+        />
+      </Paper>
     </PageContainer>
   );
 }

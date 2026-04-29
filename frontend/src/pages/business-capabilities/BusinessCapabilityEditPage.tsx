@@ -16,9 +16,10 @@ import {
   TableHead,
   TableRow,
   Link,
+  Avatar,
+  Paper,
 } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
@@ -150,7 +151,7 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
 
   if (isLoading) {
     return (
-      <PageContainer maxWidth="md">
+      <PageContainer maxWidth="xl">
         <LoadingSkeleton rows={6} columns={1} />
       </PageContainer>
     );
@@ -158,7 +159,7 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
 
   if (!capability) {
     return (
-      <PageContainer maxWidth="md">
+      <PageContainer maxWidth="xl">
         <EmptyState
           title={t('errors.notFound.title')}
           description={t('errors.notFound.description')}
@@ -175,145 +176,160 @@ export default function BusinessCapabilityEditPage(): JSX.Element {
   ];
 
   return (
-    <PageContainer maxWidth="md">
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs items={breadcrumbItems} />
-      <PageHeader title={t('businessCapabilities.form.editTitle')} />
 
-      <Tabs
-        value={activeTab}
-        onChange={(_e, newValue) => setActiveTab(newValue)}
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
-      >
-        <Tab label={t('businessCapabilities.form.tabs.general')} />
-        <Tab label={t('businessCapabilities.form.tabs.relations')} />
-        <Tab label={t('businessCapabilities.form.tabs.audit')} />
-      </Tabs>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'secondary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {capability.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {t('businessCapabilities.form.editTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {capability.name}
+          </Typography>
+        </Box>
+      </Box>
 
-      {/* Tab: General */}
-      <TabPanel value={activeTab} index={0}>
-        <BusinessCapabilityForm
-          initialValues={{
-            name: capability.name,
-            description: capability.description || '',
-            comment: capability.comment || '',
-            parentId: capability.parentId,
-            domainId: capability.domainId,
-            criticality: capability.criticality,
-            technicalFit: capability.technicalFit,
-            tags: capability.tags,
-          }}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isLoading={updateMutation.isPending}
-          error={error}
-          availableDimensions={dimensions.map((d) => ({
-            id: d.id,
-            name: d.name,
-            color: d.color || '#1976d2',
-          }))}
-          entityId={id}
-          excludeParentId={id}
-        />
-      </TabPanel>
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_e, newValue) => setActiveTab(newValue)}
+          sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
+        >
+          <Tab label={t('businessCapabilities.form.tabs.general')} />
+          <Tab label={t('businessCapabilities.form.tabs.relations')} />
+          <Tab label={t('businessCapabilities.form.tabs.audit')} />
+        </Tabs>
 
-      {/* Tab: Relations */}
-      <TabPanel value={activeTab} index={1}>
-        <Stack spacing={4}>
-          {/* Hierarchy Section */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              {t('businessCapabilities.form.sections.hierarchy')}
-            </Typography>
-            <Autocomplete
-              options={selectableParents}
-              getOptionLabel={(option) => `${option.name} (L${option.level})`}
-              value={selectableParents.find((p) => p.id === selectedParentId) || null}
-              onChange={(_e, newValue) => handleParentChange(newValue?.id || null)}
-              disabled={updateMutation.isPending}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={t('businessCapabilities.form.parent')}
-                  placeholder={t('businessCapabilities.form.parentPlaceholder')}
-                  error={circularReferenceError}
-                  variant="outlined"
-                />
-              )}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-            />
-            {circularReferenceError && (
-              <FormHelperText error>
-                {t('businessCapabilities.form.circularReference')}
-              </FormHelperText>
-            )}
-          </Box>
+        {/* Tab: General */}
+        <TabPanel value={activeTab} index={0}>
+          <BusinessCapabilityForm
+            initialValues={{
+              name: capability.name,
+              description: capability.description || '',
+              comment: capability.comment || '',
+              parentId: capability.parentId,
+              domainId: capability.domainId,
+              criticality: capability.criticality,
+              technicalFit: capability.technicalFit,
+              tags: capability.tags,
+            }}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isLoading={updateMutation.isPending}
+            error={error}
+            availableDimensions={dimensions.map((d) => ({
+              id: d.id,
+              name: d.name,
+              color: d.color || '#1976d2',
+            }))}
+            entityId={id}
+            excludeParentId={id}
+          />
+        </TabPanel>
 
-          {/* Applications Section */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              {t('businessCapabilities.form.sections.applications')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {t('businessCapabilities.form.relatedApplicationsCount', {
-                count: capability._count.applicationMappings,
-              })}
-            </Typography>
-
-            {applications.length > 0 ? (
-              <>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('applications.list.columns.name')}</TableCell>
-                      <TableCell>{t('applications.list.columns.domain')}</TableCell>
-                      <TableCell>{t('applications.list.columns.owner')}</TableCell>
-                      <TableCell>{t('applications.list.columns.criticality')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {applications.map((app) => (
-                      <TableRow key={app.id}>
-                        <TableCell>
-                          <Link
-                            component="button"
-                            variant="body2"
-                            onClick={() => navigate(`/applications/${app.id}`)}
-                            sx={{ cursor: 'pointer', textAlign: 'left' }}
-                          >
-                            {app.name}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{app.domain?.name || t('businessCapabilities.detail.noValue')}</TableCell>
-                        <TableCell>
-                          {app.owner
-                            ? `${app.owner.firstName} ${app.owner.lastName}`
-                            : t('businessCapabilities.detail.noValue')}
-                        </TableCell>
-                        <TableCell>{app.criticality || t('businessCapabilities.detail.noValue')}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  {t('businessCapabilities.form.applicationsRelationHint')}
-                </Typography>
-              </>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {t('businessCapabilities.form.noApplications')}
+        {/* Tab: Relations */}
+        <TabPanel value={activeTab} index={1}>
+          <Stack spacing={4}>
+            {/* Hierarchy Section */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {t('businessCapabilities.form.sections.hierarchy')}
               </Typography>
-            )}
-          </Box>
-        </Stack>
-      </TabPanel>
+              <Autocomplete
+                options={selectableParents}
+                getOptionLabel={(option) => `${option.name} (L${option.level})`}
+                value={selectableParents.find((p) => p.id === selectedParentId) || null}
+                onChange={(_e, newValue) => handleParentChange(newValue?.id || null)}
+                disabled={updateMutation.isPending}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={t('businessCapabilities.form.parent')}
+                    placeholder={t('businessCapabilities.form.parentPlaceholder')}
+                    error={circularReferenceError}
+                    variant="outlined"
+                  />
+                )}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+              />
+              {circularReferenceError && (
+                <FormHelperText error>
+                  {t('businessCapabilities.form.circularReference')}
+                </FormHelperText>
+              )}
+            </Box>
 
-      {/* Tab: Audit */}
-      <TabPanel value={activeTab} index={2}>
-        <EmptyState
-          title={t('businessCapabilities.form.audit.placeholder.title')}
-          description={t('businessCapabilities.form.audit.placeholder.description')}
-        />
-      </TabPanel>
+            {/* Applications Section */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {t('businessCapabilities.form.sections.applications')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t('businessCapabilities.form.relatedApplicationsCount', {
+                  count: capability._count.applicationMappings,
+                })}
+              </Typography>
+
+              {applications.length > 0 ? (
+                <>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('applications.list.columns.name')}</TableCell>
+                        <TableCell>{t('applications.list.columns.domain')}</TableCell>
+                        <TableCell>{t('applications.list.columns.owner')}</TableCell>
+                        <TableCell>{t('applications.list.columns.criticality')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {applications.map((app) => (
+                        <TableRow key={app.id}>
+                          <TableCell>
+                            <Link
+                              component="button"
+                              variant="body2"
+                              onClick={() => navigate(`/applications/${app.id}`)}
+                              sx={{ cursor: 'pointer', textAlign: 'left' }}
+                            >
+                              {app.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{app.domain?.name || t('businessCapabilities.detail.noValue')}</TableCell>
+                          <TableCell>
+                            {app.owner
+                              ? `${app.owner.firstName} ${app.owner.lastName}`
+                              : t('businessCapabilities.detail.noValue')}
+                          </TableCell>
+                          <TableCell>{app.criticality || t('businessCapabilities.detail.noValue')}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    {t('businessCapabilities.form.applicationsRelationHint')}
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {t('businessCapabilities.form.noApplications')}
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+        </TabPanel>
+
+        {/* Tab: Audit */}
+        <TabPanel value={activeTab} index={2}>
+          <EmptyState
+            title={t('businessCapabilities.form.audit.placeholder.title')}
+            description={t('businessCapabilities.form.audit.placeholder.description')}
+          />
+        </TabPanel>
+      </Paper>
     </PageContainer>
   );
 }

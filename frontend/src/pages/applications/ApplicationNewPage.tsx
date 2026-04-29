@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@mui/material';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ArkAlert from '@/components/shared/ArkAlert';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
@@ -84,69 +83,91 @@ export default function ApplicationNewPage(): JSX.Element {
     navigate('/applications');
   };
 
+  const createTitle = t('applications.form.createTitle');
+  const breadcrumbItems = [
+    { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
+    { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
+    { label: t('applications.form.breadcrumb.new') },
+  ];
+
   if (isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities) {
     return (
-      <PageContainer>
-        <PageHeader title={t('applications.form.createTitle')} />
+      <PageContainer maxWidth="xl">
+        <AppBreadcrumbs items={breadcrumbItems} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Avatar sx={{ bgcolor: 'primary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+            {createTitle.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h2" component="h1">
+              {createTitle}
+            </Typography>
+          </Box>
+        </Box>
         <LoadingSkeleton rows={8} columns={1} />
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer maxWidth="sm">
-      <AppBreadcrumbs
-        items={[
-          { label: t('applications.form.breadcrumb.home'), onClick: () => navigate('/') },
-          { label: t('applications.form.breadcrumb.list'), onClick: () => navigate('/applications') },
-          { label: t('applications.form.breadcrumb.new') },
-        ]}
-      />
+    <PageContainer maxWidth="xl">
+      <AppBreadcrumbs items={breadcrumbItems} />
 
-      <PageHeader title={t('applications.form.createTitle')} />
-
-      {submitError && (
-        <Box sx={{ mb: 3 }}>
-          <ArkAlert
-            open={true}
-            severity="error"
-            message={submitError}
-            autoDismiss={undefined}
-            onClose={() => setSubmitError(null)}
-          />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'primary.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {createTitle.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {createTitle}
+          </Typography>
         </Box>
-      )}
+      </Box>
 
-      <ApplicationForm
-         initialValues={{
-           name: '',
-           description: '',
-           comment: '',
-           domainId: null,
-           providers: [],
-           itComponents: [],
-           capabilityIds: [],
-           ownerId: null,
-           criticality: null,
-           lifecycleStatus: null,
-           tags: [],
-         }}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={createApplication.isPending}
-        error={submitError}
-        fieldError={fieldError}
-         availableOptions={{
-           domains: domainOptions,
-           providers: providerOptions,
-           itComponents: itComponentOptions,
-           businessCapabilities: capabilityOptions,
-           users: MOCK_USERS,
-           criticalities: CRITICALITIES,
-           lifecycleStatuses: LIFECYCLE_STATUSES,
-         }}
-        availableDimensions={availableDimensions}
-      />
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        {submitError && (
+          <Box sx={{ mb: 3 }}>
+            <ArkAlert
+              open={true}
+              severity="error"
+              message={submitError}
+              autoDismiss={undefined}
+              onClose={() => setSubmitError(null)}
+            />
+          </Box>
+        )}
+
+        <ApplicationForm
+          initialValues={{
+            name: '',
+            description: '',
+            comment: '',
+            domainId: null,
+            providers: [],
+            itComponents: [],
+            capabilityIds: [],
+            ownerId: null,
+            criticality: null,
+            lifecycleStatus: null,
+            tags: [],
+          }}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={createApplication.isPending}
+          error={null}
+          fieldError={fieldError}
+          availableOptions={{
+            domains: domainOptions,
+            providers: providerOptions,
+            itComponents: itComponentOptions,
+            businessCapabilities: capabilityOptions,
+            users: MOCK_USERS,
+            criticalities: CRITICALITIES,
+            lifecycleStatuses: LIFECYCLE_STATUSES,
+          }}
+          availableDimensions={availableDimensions}
+        />
+      </Paper>
     </PageContainer>
   );
 }

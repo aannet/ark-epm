@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Box, Avatar, Paper, Typography } from '@mui/material';
 import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/shared/PageHeader';
 import AppBreadcrumbs from '@/components/shared/AppBreadcrumbs';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
@@ -66,9 +66,8 @@ export default function InterfaceEditPage(): JSX.Element {
 
   if (isLoading) {
     return (
-      <PageContainer maxWidth="sm">
+      <PageContainer maxWidth="xl">
         <AppBreadcrumbs items={breadcrumbItems} />
-        <PageHeader title={t('interfaces.form.editTitle')} />
         <LoadingSkeleton rows={6} columns={1} />
       </PageContainer>
     );
@@ -76,7 +75,7 @@ export default function InterfaceEditPage(): JSX.Element {
 
   if (!iface) {
     return (
-      <PageContainer maxWidth="sm">
+      <PageContainer maxWidth="xl">
         <AppBreadcrumbs items={breadcrumbItems} />
         <EmptyState
           title={t('errors.notFound.title')}
@@ -102,17 +101,32 @@ export default function InterfaceEditPage(): JSX.Element {
   };
 
   return (
-    <PageContainer maxWidth="sm">
+    <PageContainer maxWidth="xl">
       <AppBreadcrumbs items={breadcrumbItems} />
-      <PageHeader title={t('interfaces.form.editTitle')} />
 
-      <InterfaceForm
-        initialValues={initialValues}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={updateMutation.isPending}
-        error={error}
-      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Avatar sx={{ bgcolor: 'info.dark', width: 48, height: 48, fontSize: '1.25rem' }}>
+          {title.charAt(0).toUpperCase()}
+        </Avatar>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h2" component="h1">
+            {t('interfaces.form.editTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {title}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', p: 4 }}>
+        <InterfaceForm
+          initialValues={initialValues}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={updateMutation.isPending}
+          error={error}
+        />
+      </Paper>
     </PageContainer>
   );
 }
