@@ -19,13 +19,14 @@ ENABLE_LINTERS:
 
 # TYPESCRIPT_ES: project uses ESLint v9 flat config (eslint.config.mjs in backend/)
 # TYPESCRIPT_ES_CONFIG_FILE bypasses MegaLinter's activation check for legacy .eslintrc files
-TYPESCRIPT_ES_CONFIG_FILE: backend/eslint.config.mjs
+TYPESCRIPT_ES_CONFIG_FILE: backend/.eslintrc.cjs
 TYPESCRIPT_ES_DIRECTORY: backend
+# Note: .eslintrc.cjs = legacy config for MegaLinter (ESLint v8)
+# Local dev uses eslint.config.mjs (ESLint v9 flat config) — not affected
 # TODO: frontend/src TypeScript requires adding ESLint packages to frontend/package.json
 
-# COPYPASTE_JSCPD: restrict to application source code only
-# Reports are informational — duplication findings do not block the run
-COPYPASTE_JSCPD_FILTER_REGEX_INCLUDE: "(backend/src/|frontend/src/)"
+# COPYPASTE_JSCPD: runs in project mode — scoping via .jscpd.json (ignore patterns)
+# Findings are informational — duplication does not block the run
 COPYPASTE_JSCPD_DISABLE_ERRORS: true
 
 # Files exclusions

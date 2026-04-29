@@ -371,6 +371,31 @@ tasks:
       Dépend de : T-067 done (format d'horodatage validé).
       Non bloquant : peut démarrer dès maintenant.
 
+  - id: T-079
+    nom: "Back — Sécurité : ajouter @RequirePermissions sur les endpoints write de tags"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-03"
+    type: bug
+    feature: "F-03-TAGS"
+    priorité: high
+    sessions: []
+    notes: |
+      Vulnérabilité de sécurité confirmée (revue 2026-04-29, confiance 9/10).
+      Le PermissionsGuard retourne true si @RequirePermissions est absent.
+      Tout utilisateur authentifié (rôle read-only inclus) peut :
+        - POST /tags/resolve → créer des valeurs de tag
+        - PUT /tags/entity/:type/:id → remplacer les tags d'une entité
+        - PUT /tags/entity/:type/:id/batch → écraser tous les tags d'une entité
+      Fix : ajouter @RequirePermissions('tags:write') sur les 3 méthodes write.
+      Défense : ajouter @RequirePermissions('tags:read') sur autocomplete + getEntityTags.
+      Fichier : backend/src/tags/tags.controller.ts
+      Référence spec : F-999 Item 25.
+
   - id: T-078
     nom: "QA — Tests Playwright pour les endpoints /users, /roles, /permissions"
     statut: open

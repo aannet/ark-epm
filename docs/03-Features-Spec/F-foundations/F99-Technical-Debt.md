@@ -1,6 +1,8 @@
 # ARK — Feature Spec F-999 : Technical Debt & Conventions Transverses
 
-_Version 0.8 — Avril 2026_
+_Version 0.9 — Avril 2026_
+
+> **Changelog v0.9 :** Ajout Item 25 — Escalade de privilèges : endpoints write Tags sans décorateur `@RequirePermissions`. Identifié par revue de sécurité automatisée (2026-04-29). Vulnérabilité confirmée, priorité haute.
 
 > **Changelog v0.8 :** Ajout Item 24 — Contrôle dépendances Interfaces avant suppression d'Application. Amendment FS-06-BACK requis après FS-08-BACK `done` : `ApplicationsService.remove()` doit vérifier `_count.sourceInterfaces + _count.targetInterfaces` et lever `DEPENDENCY_CONFLICT` si > 0. Identifié lors de la rédaction FS-08-BACK (Sprint 4).
 >
@@ -996,6 +998,71 @@ if (interfaceCount > 0) {
 
 ---
 
+### Item 25 — Escalade de privilèges : endpoints write Tags sans autorisation *(P1 — Sécurité)*
+
+| | |
+|---|---|
+| **Statut** | 🔴 À corriger — Vulnérabilité de sécurité confirmée |
+| **Priorité** | Haute — tout utilisateur authentifié peut modifier les tags de toutes les entités |
+| **Gate de validation** | Appel `PUT /tags/entity/application/{uuid}` sans permission `tags:write` → `403 FORBIDDEN` |
+
+**Contexte :**
+Une revue de sécurité automatisée (2026-04-29) a identifié que trois endpoints write du module Tags ne portent aucun décorateur `@RequirePermissions`. Le `PermissionsGuard` global (enregistré dans `app.module.ts`) autorise sans condition toute requête pour laquelle le décorateur est absent :
+
+```typescript
+// permissions.guard.ts
+if (!requiredPermissions || requiredPermissions.length === 0) {
+  return true; // ← autorise sans vérification de permission
+}
+```
+
+Un utilisateur authentifié avec un rôle lecture seule peut donc appeler :
+- `POST /tags/resolve` — crée des valeurs de tag arbitraires dans la hiérarchie
+- `PUT /tags/entity/:type/:id` — remplace les tags d'une entité pour une dimension
+- `PUT /tags/entity/:type/:id/batch` — écrase **tous** les tags d'une entité
+
+Seuls `createDimension` et `updateDimension` portent correctement `@RequirePermissions('tags:write')`.
+
+**Décision :**
+Ajouter `@RequirePermissions('tags:write')` sur les trois endpoints write, et `@RequirePermissions('tags:read')` sur les endpoints de lecture pour cohérence défensive :
+
+```typescript
+// backend/src/tags/tags.controller.ts
+
+@Post('tags/resolve')
+@RequirePermissions('tags:write')     // ← manquant
+async resolveTag(...) { ... }
+
+@Put('tags/entity/:entityType/:entityId')
+@RequirePermissions('tags:write')     // ← manquant
+async putEntityTags(...) { ... }
+
+@Put('tags/entity/:entityType/:entityId/batch')
+@RequirePermissions('tags:write')     // ← manquant
+async batchEntityTags(...) { ... }
+
+// Lecture — défense en profondeur
+@Get('tags/autocomplete')
+@RequirePermissions('tags:read')      // ← recommandé
+async autocomplete(...) { ... }
+
+@Get('tags/entity/:entityType/:entityId')
+@RequirePermissions('tags:read')      // ← recommandé
+async getEntityTags(...) { ... }
+```
+
+**Fichiers concernés :**
+- `backend/src/tags/tags.controller.ts` — ajouter les décorateurs sur 5 méthodes (3 bloquants + 2 défensifs)
+
+**Tâche associée :** T-079
+
+**Gate de validation :**
+- ✅ Utilisateur sans permission `tags:write` reçoit `403 FORBIDDEN` sur les 3 endpoints write
+- ✅ Utilisateur sans permission `tags:read` reçoit `403 FORBIDDEN` sur les 2 endpoints de lecture
+- ✅ Aucun autre endpoint write sans `@RequirePermissions` dans le codebase (audit exhaustif)
+
+---
+
 ### Item 16 — Customisation des couleurs provider roles *(P2)*
 
 | | |
@@ -1115,6 +1182,9 @@ Request ID :
 - [ ] **Item 22** — Retirer dépendances Cypress de `package.json`
 - [ ] **Item 23** — Supprimer fallback JWT hardcodé dans `jwt.strategy.ts`
 - [ ] **Item 23** — Ajouter validation schema Joi pour `JWT_SECRET` dans `ConfigModule`
+- [ ] **Item 25** — Ajouter `@RequirePermissions('tags:write')` sur `resolveTag`, `putEntityTags`, `batchEntityTags`
+- [ ] **Item 25** — Ajouter `@RequirePermissions('tags:read')` sur `autocomplete`, `getEntityTags` (défensif)
+- [ ] **Item 25** — Valider `403 FORBIDDEN` pour utilisateur sans `tags:write` sur les 3 endpoints write
 ---
 
 ## 5. Journal des décisions
@@ -1137,6 +1207,7 @@ Request ID :
 
 | 2026-04-05 | Item 22 | Migration tests FS-05-FRONT Cypress → Playwright — 37 tests à migrer | OpenCode/Front |
 | 2026-04-05 | Item 23 | Secret JWT fallback hardcodé détecté (revue sécurité) — `getOrThrow` + validation Joi obligatoires | Spec/Sécurité |
+| 2026-04-29 | Item 25 | Escalade de privilèges tags : 3 endpoints write sans `@RequirePermissions` — revue sécurité automatisée | Claude/Arch |
 
 ---
 

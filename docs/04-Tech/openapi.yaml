@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
   title: Ark EPM API
-  version: 1.4.0
-  description: Enterprise Project Management API - Dimension Tags Support
+  version: 1.6.0
+  description: Enterprise Project Management API - contrat aligné sur l'implémentation backend
 servers:
   - url: http://localhost:3000/api/v1
     description: Development server
@@ -106,18 +106,45 @@ paths:
 
   /domains:
     get:
-      summary: Liste de tous les domaines
+      summary: Liste paginée des domaines
       tags: [Domains]
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, description, createdAt], default: name }
+        - name: sortOrder
+          in: query
+          schema: { type: string, enum: [asc, desc], default: asc }
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle sur le nom
       responses:
         '200':
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DomainResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DomainResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
         '401':
           description: Non authentifié
 
@@ -314,6 +341,15 @@ paths:
       tags: [BusinessCapabilities]
       security:
         - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Recherche textuelle — retourne les nœuds matchants + descendants + ancêtres
+        - name: domainId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filtrer par domaine — retourne les nœuds matchants + descendants + ancêtres
       responses:
         '200':
           description: Arbre hiérarchique complet en structure nested
@@ -1621,12 +1657,17 @@ paths:
         '404':
           description: Data object introuvable
 
-  /tags/dimensions:
+  /tag-dimensions:
     get:
       summary: Liste toutes les dimensions de tags
       tags: [Tags]
       security:
         - bearerAuth: []
+      parameters:
+        - name: entityType
+          in: query
+          schema: { type: string }
+          description: Filtrer les dimensions applicables à un type d'entité
       responses:
         '200':
           content:
@@ -1655,6 +1696,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagDimension'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (tags:write)
         '409':
           description: Dimension déjà existante
           content:
@@ -1662,25 +1707,55 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /tags/dimensions/{dimensionId}/autocomplete:
+  /tag-dimensions/{id}:
+    patch:
+      summary: Modifier une dimension de tag (description, color, icon)
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTagDimensionDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagDimension'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (tags:write)
+        '404':
+          description: Dimension introuvable
+
+  /tags/autocomplete:
     get:
       summary: Recherche autocomplétion des valeurs de tag
       tags: [Tags]
       security:
         - bearerAuth: []
       parameters:
-        - name: dimensionId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: query
+        - name: dimension
           in: query
           required: true
-          schema:
-            type: string
-          description: Terme de recherche (min 2 caractères)
+          schema: { type: string }
+          description: ID ou nom de la dimension cible
+        - name: query
+          in: query
+          schema: { type: string }
+          description: Terme de recherche
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
       responses:
         '200':
           content:
@@ -1691,54 +1766,37 @@ paths:
                   $ref: '#/components/schemas/TagValueResponse'
         '401':
           description: Non authentifié
-        '404':
-          description: Dimension introuvable
 
-  /tags/dimensions/{dimensionId}/resolve:
+  /tags/resolve:
     post:
       summary: Résoudre/créer une valeur de tag (création avec hiérarchie automatique)
       tags: [Tags]
       security:
         - bearerAuth: []
-      parameters:
-        - name: dimensionId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                path:
-                  type: string
-                  description: 'Chemin hiérarchique (ex: europe/france/paris)'
-                label:
-                  type: string
-                  description: 'Label affiché (ex: Paris)'
-              required: [path, label]
+              $ref: '#/components/schemas/ResolveTagDto'
       responses:
         '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagValueResponse'
-        '401':
-          description: Non authentifié
-        '404':
-          description: Dimension introuvable
         '400':
           description: Chemin invalide
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Dimension introuvable
 
-  /tags/entities/{entityType}/{entityId}:
+  /tags/entity/{entityType}/{entityId}:
     get:
       summary: Récupérer les tags d'une entité
       tags: [Tags]
@@ -1754,9 +1812,7 @@ paths:
         - name: entityId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          schema: { type: string, format: uuid }
       responses:
         '200':
           content:
@@ -1766,20 +1822,16 @@ paths:
                 items:
                   type: object
                   properties:
-                    entityType:
-                      type: string
-                    entityId:
-                      type: string
+                    entityType: { type: string }
+                    entityId: { type: string }
                     tagValue:
                       $ref: '#/components/schemas/TagValueResponse'
-                    taggedAt:
-                      type: string
-                      format: date-time
+                    taggedAt: { type: string, format: date-time }
         '401':
           description: Non authentifié
 
     put:
-      summary: Remplacer tous les tags d'une entité pour une dimension
+      summary: Remplacer les tags d'une entité pour une dimension donnée
       tags: [Tags]
       security:
         - bearerAuth: []
@@ -1787,30 +1839,17 @@ paths:
         - name: entityType
           in: path
           required: true
-          schema:
-            type: string
+          schema: { type: string }
         - name: entityId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          schema: { type: string, format: uuid }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                dimensionId:
-                  type: string
-                  format: uuid
-                tagValueIds:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-              required: [dimensionId, tagValueIds]
+              $ref: '#/components/schemas/PutEntityTagsDto'
       responses:
         '200':
           content:
@@ -1820,19 +1859,49 @@ paths:
                 items:
                   type: object
                   properties:
-                    entityType:
-                      type: string
-                    entityId:
-                      type: string
+                    entityType: { type: string }
+                    entityId: { type: string }
                     tagValue:
                       $ref: '#/components/schemas/TagValueResponse'
-                    taggedAt:
-                      type: string
-                      format: date-time
+                    taggedAt: { type: string, format: date-time }
         '401':
           description: Non authentifié
         '404':
           description: Dimension ou valeur de tag introuvable
+
+  /tags/entity/{entityType}/{entityId}/batch:
+    put:
+      summary: Remplacer tous les tags d'une entité (toutes dimensions — liste complète de tagValueIds)
+      tags: [Tags]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema: { type: string }
+        - name: entityId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchEntityTagsDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagValueResponse'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Entité introuvable
 
   /search:
     get:
@@ -1919,6 +1988,346 @@ paths:
                     example: "Le terme de recherche doit contenir au moins 2 caractères"
         '401':
           description: Non authentifié
+
+  /users:
+    get:
+      summary: Liste de tous les utilisateurs
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (users:read)
+
+    post:
+      summary: Créer un utilisateur
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Validation échouée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (users:write)
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{id}:
+    get:
+      summary: Détail d'un utilisateur
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (users:read)
+        '404':
+          description: Utilisateur introuvable
+
+    patch:
+      summary: Modifier un utilisateur
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (users:write)
+        '404':
+          description: Utilisateur introuvable
+
+    delete:
+      summary: Désactiver un utilisateur (soft delete — isActive = false)
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Utilisateur désactivé
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (users:write)
+        '404':
+          description: Utilisateur introuvable
+
+  /roles:
+    get:
+      summary: Liste de tous les rôles
+      tags: [Roles]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleListItem'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (roles:read)
+
+    post:
+      summary: Créer un rôle
+      tags: [Roles]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (roles:write)
+        '409':
+          description: Nom de rôle déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /roles/{id}:
+    get:
+      summary: Détail d'un rôle avec ses permissions
+      tags: [Roles]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (roles:read)
+        '404':
+          description: Rôle introuvable
+
+    patch:
+      summary: Modifier un rôle
+      tags: [Roles]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleDto'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (roles:write)
+        '404':
+          description: Rôle introuvable
+        '409':
+          description: Nom de rôle déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Supprimer un rôle (échoue si des utilisateurs sont assignés)
+      tags: [Roles]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Rôle supprimé
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (roles:write)
+        '404':
+          description: Rôle introuvable
+        '409':
+          description: Rôle assigné à des utilisateurs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /roles/{id}/permissions:
+    put:
+      summary: Remplacer les permissions d'un rôle
+      tags: [Roles]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [permissionIds]
+              properties:
+                permissionIds:
+                  type: array
+                  items: { type: string, format: uuid }
+                  description: Liste complète des IDs de permissions (remplace les permissions existantes)
+      responses:
+        '200':
+          description: Rôle mis à jour avec ses nouvelles permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (roles:write)
+        '404':
+          description: Rôle introuvable
+
+  /permissions:
+    get:
+      summary: Liste de toutes les permissions
+      tags: [Permissions]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (permissions:read)
+
+    post:
+      summary: Créer une permission
+      tags: [Permissions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePermissionDto'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Format invalide (attendu — resource:action)
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (permissions:write)
+        '409':
+          description: Nom de permission déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
@@ -2165,59 +2574,6 @@ components:
           nullable: true
           maxLength: 100
 
-      ApplicationListItem:
-        type: object
-        properties:
-          id: { type: string, format: uuid }
-          name: { type: string }
-          description: { type: string, nullable: true }
-          domain:
-            type: object
-            nullable: true
-            properties:
-              id: { type: string, format: uuid }
-              name: { type: string }
-          providers:
-            type: array
-            description: Liste des providers associés avec leurs rôles
-            items:
-              type: object
-              properties:
-                id: { type: string, format: uuid }
-                name: { type: string }
-                role: { type: string, nullable: true }
-          itComponents:
-            type: array
-            description: Liste des composants IT liés à cette application
-            items:
-              type: object
-              properties:
-                id: { type: string, format: uuid }
-                name: { type: string }
-          businessCapabilities:
-            type: array
-            description: Liste des business capabilities liées à cette application
-            items:
-              type: object
-              properties:
-                id: { type: string, format: uuid }
-                name: { type: string }
-          owner:
-            type: object
-            nullable: true
-            properties:
-              id: { type: string, format: uuid }
-              firstName: { type: string }
-              lastName: { type: string }
-              email: { type: string }
-          criticality: { type: string, nullable: true }
-          lifecycleStatus: { type: string, nullable: true }
-          createdAt: { type: string, format: date-time }
-          tags:
-            type: array
-            items:
-              $ref: '#/components/schemas/TagValueResponse'
-
     ApplicationResponse:
       type: object
       properties:
@@ -2240,30 +2596,30 @@ components:
               id: { type: string, format: uuid }
               name: { type: string }
               role: { type: string, nullable: true }
-          itComponents:
-            type: array
-            description: Liste des composants IT liés à cette application
-            items:
-              type: object
-              properties:
-                id: { type: string, format: uuid }
-                name: { type: string }
-          businessCapabilities:
-            type: array
-            description: Liste des business capabilities liées à cette application
-            items:
-              type: object
-              properties:
-                id: { type: string, format: uuid }
-                name: { type: string }
-          owner:
+        itComponents:
+          type: array
+          description: Liste des composants IT liés à cette application
+          items:
             type: object
-            nullable: true
             properties:
               id: { type: string, format: uuid }
-              firstName: { type: string }
-              lastName: { type: string }
-              email: { type: string }
+              name: { type: string }
+        businessCapabilities:
+          type: array
+          description: Liste des business capabilities liées à cette application
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+        owner:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            firstName: { type: string }
+            lastName: { type: string }
+            email: { type: string }
         criticality: { type: string, nullable: true, enum: [low, medium, high, mission-critical] }
         lifecycleStatus: { type: string, nullable: true }
         createdAt: { type: string, format: date-time }
@@ -2301,26 +2657,26 @@ components:
             properties:
               id: { type: string, format: uuid }
               role: { type: string, nullable: true }
-          itComponents:
-            type: array
-            nullable: true
-            description: Liste des composants IT liés à cette application
-            items:
-              type: object
-              required: [id]
-              properties:
-                id: { type: string, format: uuid }
-          capabilityIds:
-            type: array
-            nullable: true
-            description: Liste des IDs de business capabilities liées à l'application
-            items:
-              type: string
-              format: uuid
-          ownerId:
+        itComponents:
+          type: array
+          nullable: true
+          description: Liste des composants IT liés à cette application
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string, format: uuid }
+        capabilityIds:
+          type: array
+          nullable: true
+          description: Liste des IDs de business capabilities liées à l'application
+          items:
             type: string
             format: uuid
-            nullable: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
         criticality:
           type: string
           nullable: true
@@ -2356,26 +2712,26 @@ components:
             properties:
               id: { type: string, format: uuid }
               role: { type: string, nullable: true }
-          itComponents:
-            type: array
-            nullable: true
-            description: Liste des composants IT liés à cette application (remplace la liste précédente)
-            items:
-              type: object
-              required: [id]
-              properties:
-                id: { type: string, format: uuid }
-          capabilityIds:
-            type: array
-            nullable: true
-            description: Liste des IDs de business capabilities liées à l'application (remplace la liste précédente)
-            items:
-              type: string
-              format: uuid
-          ownerId:
+        itComponents:
+          type: array
+          nullable: true
+          description: Liste des composants IT liés à cette application (remplace la liste précédente)
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string, format: uuid }
+        capabilityIds:
+          type: array
+          nullable: true
+          description: Liste des IDs de business capabilities liées à l'application (remplace la liste précédente)
+          items:
             type: string
             format: uuid
-            nullable: true
+        ownerId:
+          type: string
+          format: uuid
+          nullable: true
         criticality:
           type: string
           nullable: true
@@ -3047,6 +3403,163 @@ components:
         tagPaths:
           type: array
           items: { type: string }
+
+    CreateUserDto:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@ark.io"
+        password:
+          type: string
+          minLength: 8
+          example: "SecurePass123!"
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        roleId:
+          type: string
+          format: uuid
+          nullable: true
+
+    UpdateUserDto:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        roleId:
+          type: string
+          format: uuid
+          nullable: true
+        isActive:
+          type: boolean
+
+    RoleListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Admin"
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateRoleDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: "Viewer"
+        description:
+          type: string
+          nullable: true
+
+    UpdateRoleDto:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    PermissionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Format resource:action
+          example: "applications:read"
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    UpdateTagDimensionDto:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+          description: 'Couleur hexadécimale (ex: #2196F3)'
+        icon:
+          type: string
+          nullable: true
+          maxLength: 50
+
+    ResolveTagDto:
+      type: object
+      required: [dimensionId, path]
+      properties:
+        dimensionId:
+          type: string
+          format: uuid
+          description: ID de la dimension cible
+        path:
+          type: string
+          description: 'Chemin hiérarchique (ex: europe/france/paris)'
+        label:
+          type: string
+          nullable: true
+          description: 'Label affiché — utilise le dernier segment du path si absent'
+
+    PutEntityTagsDto:
+      type: object
+      required: [dimensionId, tagValueIds]
+      properties:
+        dimensionId:
+          type: string
+          format: uuid
+          description: Dimension concernée (les tags existants de cette dimension sont remplacés)
+        tagValueIds:
+          type: array
+          items: { type: string, format: uuid }
+
+    BatchEntityTagsDto:
+      type: object
+      required: [tagValueIds]
+      properties:
+        tagValueIds:
+          type: array
+          items: { type: string, format: uuid }
+          description: Liste complète des tagValueIds (toutes dimensions) — remplace l'intégralité des tags de l'entité
+
+    CreatePermissionDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: Format resource:action (ex. applications:read)
+          pattern: '^[a-z]+:[a-z]+$'
+          example: "applications:read"
+        description:
+          type: string
+          nullable: true
 
   securitySchemes:
     bearerAuth:
