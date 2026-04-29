@@ -312,4 +312,29 @@ tasks:
       - Ajouter @RequirePermissions('search:read') sur SearchController
       - Éventuellement : filtrer les résultats selon les domaines accessibles au rôle
 
+  - id: T-081
+    nom: "Back — Corriger no-control-regex dans tags.service.ts (détecté MegaLinter)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-04-29
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "F-03-TAGS"
+    priorité: high
+    sessions:
+      - tool: CL
+        id: "a3f7c9"
+        nom: "détecté par ESLint (MegaLinter) lors de la session qualité"
+      - tool: OC
+        id: "553729"
+        nom: "fix no-control-regex + 65 no-unused-vars + dead code — commit 553729f"
+    notes: |
+      ESLint rule no-control-regex — backend/src/tags/tags.service.ts:15
+      Regex /[\\"'\x00-\x1F<>]/ remplacée par hasInvalidPathChars() via charCodeAt().
+      65 warnings no-unused-vars corrigés sur 36 fichiers (backend, e2e, frontend).
+      Appel mort getAncestorPaths() retiré de resolveOrCreate() (méthode conservée — API publique F-03).
+
 
