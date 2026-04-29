@@ -10,6 +10,15 @@ Ce projet utilise un système de gouvernance multi-agents défini dans @AGENTS.m
 
 Sans skill actif, @AGENTS.md fournit les règles et conventions de référence.
 
+## Golden Rules
+
+| ID | Règle |
+|----|-------|
+| GR1 | **Think before coding** — ne pas supposer. Ne pas cacher la confusion. Remonter les trade-offs. |
+| GR2 | **Simplicity first** — minimum de code qui résout le problème. Rien de spéculatif. |
+| GR3 | **Surgical changes** — toucher uniquement ce qui est nécessaire. Ne nettoyer que sa propre pollution. |
+| GR4 | **Goal-driven execution** — définir les critères de succès. Boucler jusqu'à vérification. |
+
 <!-- rtk-instructions v2 -->
 # RTK (Rust Token Killer) - Token-Optimized Commands
 
