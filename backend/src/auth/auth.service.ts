@@ -29,7 +29,7 @@ export class AuthService {
       return null;
     }
 
-    const { passwordHash, ...result } = user;
+    const { passwordHash: _passwordHash, ...result } = user;
     return result;
   }
 
@@ -72,7 +72,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const { passwordHash, ...result } = user;
+    const { passwordHash: _passwordHash, ...result } = user;
     return result;
   }
 }

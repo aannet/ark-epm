@@ -41,7 +41,7 @@ test.describe('Business Capabilities CRUD API', () => {
   });
 
   test('POST /business-capabilities should create a root capability (level=0)', async ({
-    auth,
+    _auth,
     testData,
   }) => {
     const name = `Root BC ${Date.now()}`;
@@ -63,7 +63,7 @@ test.describe('Business Capabilities CRUD API', () => {
   });
 
   test('POST /business-capabilities should create a child capability with auto level', async ({
-    auth,
+    _auth,
     testData,
   }) => {
     const root = await testData.createBusinessCapability({

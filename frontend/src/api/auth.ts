@@ -24,7 +24,7 @@ export const refreshToken = async (): Promise<ApiResult<RefreshResponse>> => {
       success: true,
       data: response.data,
     };
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: 'Failed to refresh token',

@@ -7,7 +7,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Data Objects RBAC Manual Tests (FS-05)', () => {
   let app: INestApplication<App>;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
   let adminToken: string;
 
   beforeAll(async () => {
@@ -25,7 +25,7 @@ describe('Data Objects RBAC Manual Tests (FS-05)', () => {
     );
     await app.init();
 
-    prisma = moduleFixture.get(PrismaService);
+    _prisma = moduleFixture.get(PrismaService);
 
     // Get token for admin user
     const loginRes = await request(app.getHttpServer())

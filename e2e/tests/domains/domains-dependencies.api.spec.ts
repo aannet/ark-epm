@@ -1,5 +1,5 @@
-import { test, expect, TestDataFactory } from '../../fixtures/index';
-import { expectError, expectSuccess, DomainResponse } from '../../utils/api-helpers';
+import { test, expect } from '../../fixtures/index';
+import { expectError } from '../../utils/api-helpers';
 
 test.describe('Domains Dependencies API', () => {
   test('DELETE /domains/:id should return 409 when applications are linked', async ({ auth, testData }) => {

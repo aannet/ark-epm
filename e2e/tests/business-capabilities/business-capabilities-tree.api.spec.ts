@@ -14,7 +14,7 @@ interface TreeNode {
 test.describe('Business Capabilities Tree API', () => {
   test('GET /business-capabilities/tree should return nested tree structure', async ({
     auth,
-    testData,
+    _testData,
   }) => {
     const response = await auth.request.get('business-capabilities/tree');
     const result = await expectSuccess<{ data: TreeNode[] }>(response, 200);

@@ -171,7 +171,7 @@ test.describe('US-03 — Navigation clavier', () => {
 
     // Extraire l'ID du premier résultat
     const href = await firstItem.getAttribute('href');
-    const expectedUrl = href || '/applications'; // fallback
+    const _expectedUrl = href || '/applications'; // fallback
 
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/applications\/[a-f0-9-]+$/);

@@ -316,7 +316,7 @@ describe('IT Components — PNS-02 (Drawer + Detail + Form)', () => {
       cy.get('table tbody tr').first().within(() => {
         cy.get('a').first().click();
       });
-      const currentUrl = cy.url();
+      cy.url();
       cy.contains('button', 'Modifier').click();
       cy.contains('button', 'Annuler').click();
       cy.url().should('include', '/it-components/');

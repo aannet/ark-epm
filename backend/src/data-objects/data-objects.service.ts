@@ -10,9 +10,6 @@ import { CreateDataObjectDto } from './dto/create-data-object.dto';
 import { UpdateDataObjectDto } from './dto/update-data-object.dto';
 import { QueryDataObjectsDto } from './dto/query-data-objects.dto';
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 @Injectable()
 export class DataObjectsService {
   private readonly logger = new Logger(DataObjectsService.name);

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateDomainDto {

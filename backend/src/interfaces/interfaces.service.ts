@@ -61,7 +61,7 @@ export class InterfacesService {
 
     await this.prisma.setCurrentUser(userId);
 
-    const { tagPaths, ...data } = dto;
+    const { tagPaths: _tagPaths, ...data } = dto;
 
     return this.prisma.interface.create({
       data: {
@@ -173,7 +173,7 @@ export class InterfacesService {
 
     await this.prisma.setCurrentUser(userId);
 
-    const { tagPaths, ...data } = dto;
+    const { tagPaths: _tagPaths, ...data } = dto;
 
     return this.prisma.interface.update({
       where: { id },

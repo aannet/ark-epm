@@ -12,7 +12,7 @@ jest.mock('crypto', () => ({
 
 describe('InterfacesService', () => {
   let service: InterfacesService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockInterface = {
     id: 'mock-uuid-12345',
@@ -67,7 +67,7 @@ describe('InterfacesService', () => {
     }).compile();
 
     service = module.get<InterfacesService>(InterfacesService);
-    prisma = module.get<PrismaService>(PrismaService);
+    _prisma = module.get<PrismaService>(PrismaService);
 
     // Reset all mocks before each test
     jest.clearAllMocks();

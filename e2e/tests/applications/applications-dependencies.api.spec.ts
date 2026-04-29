@@ -1,8 +1,7 @@
-import { test, expect, TestDataFactory } from '../../fixtures/index';
+import { test, expect } from '../../fixtures/index';
 import { 
   expectSuccess, 
   expectError,
-  ApplicationResponse,
   DependenciesResponse 
 } from '../../utils/api-helpers';
 

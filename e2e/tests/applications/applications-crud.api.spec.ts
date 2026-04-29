@@ -18,7 +18,7 @@ test.describe('Applications CRUD API', () => {
     expectPaginationMeta(result.meta, {});
   });
 
-  test('POST /applications should create an application', async ({ auth, testData }) => {
+  test('POST /applications should create an application', async ({ _auth, testData }) => {
     const domain = await testData.createDomain({
       name: `Test Domain ${Date.now()}`,
     });
@@ -142,7 +142,7 @@ test.describe('Applications CRUD API', () => {
     expect(body.code).toBe('APPLICATION_NOT_FOUND');
   });
 
-  test('POST /applications should create application with IT components', async ({ auth, testData }) => {
+  test('POST /applications should create application with IT components', async ({ _auth, testData }) => {
     const domain = await testData.createDomain({
       name: `Domain for IT Component test ${Date.now()}`,
     });
@@ -218,7 +218,7 @@ test.describe('Applications CRUD API', () => {
     expect(detail.itComponents?.[0].id).toBe(ic.id);
   });
 
-  test('POST /applications should create application with business capabilities', async ({ auth, testData }) => {
+  test('POST /applications should create application with business capabilities', async ({ _auth, testData }) => {
     const domain = await testData.createDomain({
       name: `Domain for BC create ${Date.now()}`,
     });

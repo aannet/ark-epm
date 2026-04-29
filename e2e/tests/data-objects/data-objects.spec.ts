@@ -339,11 +339,11 @@ test.describe('Suppression d\'objet de données', () => {
   // NOTE: Test DEPENDENCY_CONFLICT — nécessite un lien application↔data-object via API.
   // Skippé jusqu'à implémentation du champ `dataObjects` dans le DTO Applications.
   // Ref: F-999 Item 22, FS-05-BACK (appDataObjectMap)
-  test.skip('affiche erreur si objet lié à des applications (409)', async ({ page }) => {
+  test.skip('affiche erreur si objet lié à des applications (409)', async ({ _page }) => {
     // TODO: Créer un DO, lier une application, vérifier le message 409 dans le dialog
   });
 
-  test.skip('désactive le bouton Confirmer sur DEPENDENCY_CONFLICT', async ({ page }) => {
+  test.skip('désactive le bouton Confirmer sur DEPENDENCY_CONFLICT', async ({ _page }) => {
     // TODO: Même prérequis que ci-dessus
   });
 });

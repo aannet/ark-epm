@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface CreatePermissionDto {

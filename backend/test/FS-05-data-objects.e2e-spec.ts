@@ -10,7 +10,6 @@ describe('DataObjects API (FS-05)', () => {
   let prisma: PrismaService;
   let authToken: string;
   let testDataObjectId: string;
-  let testApplicationId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -132,7 +131,7 @@ describe('DataObjects API (FS-05)', () => {
 
       expect(res.status).toBe(201);
 
-      const auditEntry = await prisma.auditTrail.findFirst({
+      const _auditEntry = await prisma.auditTrail.findFirst({
         where: {
           entityType: 'data_objects',
           entityId: res.body.id,
@@ -300,7 +299,7 @@ describe('DataObjects API (FS-05)', () => {
     // TEST 15: PATCH duplicate name returns 409 with code CONFLICT
     it('should return 409 for duplicate name on update', async () => {
       // Create two objects
-      const res1 = await request(app.getHttpServer())
+      const _res1 = await request(app.getHttpServer())
         .post('/data-objects')
         .set('Authorization', `Bearer ${authToken}`)
         .send({ name: 'Unique1' });

@@ -261,7 +261,7 @@ async function main() {
         skipped++;
         continue;
       }
-      const provider = providers.length > 0
+      const _provider = providers.length > 0
         ? providers[Math.floor(Math.random() * providers.length)]
         : null;
       const owner = users.length > 0

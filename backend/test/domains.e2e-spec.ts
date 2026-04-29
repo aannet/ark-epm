@@ -8,7 +8,7 @@ const request = supertest.default;
 
 describe('DomainsController (e2e)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
   let token: string;
 
   beforeAll(async () => {
@@ -26,7 +26,7 @@ describe('DomainsController (e2e)', () => {
     );
     await app.init();
 
-    prisma = app.get<PrismaService>(PrismaService);
+    _prisma = app.get<PrismaService>(PrismaService);
 
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
@@ -203,7 +203,7 @@ describe('DomainsController (e2e)', () => {
     });
 
     it('should return 400 when name is missing', async () => {
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/domains')
         .set('Authorization', `Bearer ${token}`)
         .send({ description: 'Test description' })
@@ -211,7 +211,7 @@ describe('DomainsController (e2e)', () => {
     });
 
     it('should return 400 when name is whitespace only', async () => {
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/domains')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: '   ' })

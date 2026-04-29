@@ -3,9 +3,6 @@
  * Use these factories to create consistent mocks across test files
  */
 
-import { PrismaService } from '../src/prisma/prisma.service';
-import { TagsService } from '../src/tags/tags.service';
-
 /**
  * Creates a mock PrismaService with all commonly used methods
  */

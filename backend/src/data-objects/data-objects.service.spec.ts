@@ -4,12 +4,10 @@ import { DataObjectsService } from './data-objects.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TagsService } from '../tags/tags.service';
 import { CreateDataObjectDto } from './dto/create-data-object.dto';
-import { UpdateDataObjectDto } from './dto/update-data-object.dto';
-
 describe('DataObjectsService', () => {
   let service: DataObjectsService;
-  let prismaService: PrismaService;
-  let tagsService: TagsService;
+  let _prismaService: PrismaService;
+  let _tagsService: TagsService;
 
   const mockDataObject = {
     id: '550e8400-e29b-41d4-a716-446655440000',
@@ -61,8 +59,8 @@ describe('DataObjectsService', () => {
     }).compile();
 
     service = module.get<DataObjectsService>(DataObjectsService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    tagsService = module.get<TagsService>(TagsService);
+    _prismaService = module.get<PrismaService>(PrismaService);
+    _tagsService = module.get<TagsService>(TagsService);
   });
 
   afterEach(() => {

@@ -5,20 +5,11 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 const request = supertest.default;
-import * as bcrypt from 'bcrypt';
-
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let adminToken: string;
-  let adminUserId: string;
-
-  const testUser = {
-    email: 'test@ark.io',
-    password: 'testpass123',
-    firstName: 'Test',
-    lastName: 'User',
-  };
+  let _adminUserId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,7 +23,7 @@ describe('AuthController (e2e)', () => {
     prisma = app.get<PrismaService>(PrismaService);
 
     const admin = await prisma.user.findUnique({ where: { email: 'admin@ark.io' } });
-    adminUserId = admin!.id;
+    _adminUserId = admin!.id;
   });
 
   afterAll(async () => {
@@ -62,7 +53,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should return 401 for unknown email', async () => {
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'unknown@ark.io', password: 'password' })
         .expect(401);
@@ -89,7 +80,7 @@ describe('AuthController (e2e)', () => {
 
   describe('/auth/logout (POST)', () => {
     it('should return 204', async () => {
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/auth/logout')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(204);

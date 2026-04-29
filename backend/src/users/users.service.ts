@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
@@ -43,7 +43,7 @@ export class UsersService {
         include: { role: true },
       });
 
-      const { passwordHash: _, ...result } = user;
+      const { passwordHash: _passwordHash, ...result } = user;
       return result;
     } catch (error) {
       throw new InternalServerErrorException(`Failed to create user: ${error.message}`);
@@ -55,7 +55,7 @@ export class UsersService {
       include: { role: { include: { rolePermissions: { include: { permission: true } } } } },
     });
 
-    return users.map(({ passwordHash, ...user }) => user);
+    return users.map(({ passwordHash: _passwordHash, ...user }) => user);
   }
 
   async findOne(id: string): Promise<any> {
@@ -68,7 +68,7 @@ export class UsersService {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    const { passwordHash, ...result } = user;
+    const { passwordHash: _passwordHash, ...result } = user;
     return result;
   }
 
@@ -92,7 +92,7 @@ export class UsersService {
         include: { role: true },
       });
 
-      const { passwordHash, ...result } = updated;
+      const { passwordHash: _passwordHash, ...result } = updated;
       return result;
     } catch (error) {
       throw new InternalServerErrorException(`Failed to update user: ${error.message}`);

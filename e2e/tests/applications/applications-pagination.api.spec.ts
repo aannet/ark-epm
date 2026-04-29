@@ -1,4 +1,4 @@
-import { test, expect, TestDataFactory } from '../../fixtures/index';
+import { test, expect } from '../../fixtures/index';
 import { 
   expectSuccess, 
   ApplicationResponse,

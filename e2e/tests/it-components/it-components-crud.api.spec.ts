@@ -14,7 +14,7 @@ test.describe('IT Components CRUD API', () => {
     expect(body.meta).toHaveProperty('totalPages');
   });
 
-  test('POST /it-components - should create IT component', async ({ authenticatedRequest, testData }) => {
+  test('POST /it-components - should create IT component', async ({ _authenticatedRequest, testData }) => {
     const itComponent = await testData.createItComponent({
       name: `Test IT Component ${Date.now()}`,
       description: 'Created by e2e test',
@@ -94,8 +94,8 @@ test.describe('IT Components CRUD API', () => {
       name: `IC with Apps ${Date.now()}`,
     });
 
-    // Create application linked to IT component
-    const application = await testData.createApplication({
+    // Create application linked to IT component (referenced to establish dependency)
+    const _application = await testData.createApplication({
       name: `App linked to IC ${Date.now()}`,
       domainId: domain.id,
       itComponents: [{ id: itComponent.id }],

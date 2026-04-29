@@ -12,7 +12,24 @@ import { ResolveTagDto } from './dto/resolve-tag.dto';
 import { PutEntityTagsDto } from './dto/put-entity-tags.dto';
 import { BatchEntityTagsDto } from './dto/batch-entity-tags.dto';
 
-const INVALID_PATH_CHARS = /[\\"'\x00-\x1F<>]/;
+// Checks for: backslash (92), double-quote (34), single-quote (39),
+// ASCII control chars 0–31, less-than (60), greater-than (62)
+function hasInvalidPathChars(str: string): boolean {
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (
+      code <= 31 ||       // ASCII control characters \x00–\x1F
+      code === 34 ||      // "
+      code === 39 ||      // '
+      code === 60 ||      // <
+      code === 62 ||      // >
+      code === 92         // \
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 const MAX_PATH_LENGTH = 500;
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -282,7 +299,6 @@ export class TagsService {
       };
     }
 
-    const ancestorPaths = this.getAncestorPaths(normalizedPath);
     const segments = normalizedPath.split('/');
     const label = dto.label || this.labelFromPath(segments[segments.length - 1]);
 
@@ -622,7 +638,7 @@ export class TagsService {
       });
     }
 
-    if (INVALID_PATH_CHARS.test(normalized)) {
+    if (hasInvalidPathChars(normalized)) {
       throw new BadRequestException({
         code: 'INVALID_TAG_PATH',
         message: 'Path contains invalid characters',

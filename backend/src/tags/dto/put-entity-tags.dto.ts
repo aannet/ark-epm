@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsArray, IsArray as IsArrayOfUUIDs, ValidateIf } from 'class-validator';
+import { IsUUID, IsArray as IsArrayOfUUIDs } from 'class-validator';
 
 export class PutEntityTagsDto {
   @IsUUID()

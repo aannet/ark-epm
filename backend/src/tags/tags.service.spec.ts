@@ -5,7 +5,7 @@ import { NotFoundException, BadRequestException, ConflictException } from '@nest
 
 describe('TagsService', () => {
   let service: TagsService;
-  let prismaService: PrismaService;
+  let _prismaService: PrismaService;
 
   const mockPrismaService = {
     tagDimension: {
@@ -40,7 +40,7 @@ describe('TagsService', () => {
     }).compile();
 
     service = module.get<TagsService>(TagsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    _prismaService = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });

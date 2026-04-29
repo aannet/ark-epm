@@ -3,8 +3,6 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as supertest from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
-
 const request = supertest.default;
 
 describe('UsersController (e2e)', () => {

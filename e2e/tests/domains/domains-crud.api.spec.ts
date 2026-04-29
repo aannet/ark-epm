@@ -1,4 +1,4 @@
-import { test, expect, TestDataFactory } from '../../fixtures/index';
+import { test, expect } from '../../fixtures/index';
 import { expectSuccess, DomainResponse, TagValueResponse } from '../../utils/api-helpers';
 
 test.describe('Domains CRUD API', () => {
@@ -18,7 +18,7 @@ test.describe('Domains CRUD API', () => {
     }
   });
 
-  test('POST /domains should create a domain', async ({ auth, testData }) => {
+  test('POST /domains should create a domain', async ({ _auth, testData }) => {
     const uniqueName = `Test Domain ${Date.now()}`;
     const domain = await testData.createDomain({
       name: uniqueName,

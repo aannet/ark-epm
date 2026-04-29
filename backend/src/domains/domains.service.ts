@@ -66,7 +66,7 @@ export class DomainsService {
     };
   }
 
-  async findOne(id: string, userId?: string) {
+  async findOne(id: string, _userId?: string) {
     this.logger.log({ method: 'findOne', id });
     const domain = await this.prisma.domain.findUnique({
       where: { id },

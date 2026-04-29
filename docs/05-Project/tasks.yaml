@@ -236,9 +236,9 @@ tasks:
 
   - id: T-075
     nom: "Frontend — Moderniser l'affichage des pages NEW/EDIT pour Applications"
-    statut: open
+    statut: in_progress
     assigned_agent: front
-    session_active: ~
+    session_active: a7f3c2
     handoff_ref: ~
     date_resolution: ~
     sprint: S4
