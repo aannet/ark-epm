@@ -435,14 +435,27 @@ tasks:
       - tool: OC
         id: "d4e5f6"
         nom: "Implémentation MegaLinter — config, Makefile, NFR"
+      - tool: CL
+        id: "a3f7c9"
+        nom: "refonte config qualité: JSCPD, ESLint v8 compat, targets megalinter-*, analyse findings"
     notes: |
-      ✅ Implémenté (session d4e5f6, 2026-04-23).
-      Configuration : .mega-linter.yml avec 7 linters actifs (TYPESCRIPT_ES, MARKDOWN, JSON, YAML, DOCKERFILE, SQL, ENV).
-      Exclusions : node_modules, dist, build, reports, migrations, generated, cypress, etc.
-      Makefile : targets test-megalinter et open-megalinter-report (cohérent T-067).
-      Rapports : horodatés dans reports/megalinter/YYYYMMDD-HHMMSS/ (HTML + JSON).
-      NFR : NFR-MAINT-006 ajouté dans ARK-NFR.md (section Maintenabilité).
-        Première exécution : 0 erreur (all files linted without errors).
+      ✅ Implémenté (session d4e5f6, 2026-04-23). Refondu (session a3f7c9, 2026-04-29).
+
+      Config initiale (d4e5f6) : 7 linters, 0 fichiers analysés (bug ENABLE vs ENABLE_LINTERS).
+
+      Refonte (a3f7c9) — objectif qualité code backend/src + frontend/src :
+      - ENABLE → ENABLE_LINTERS (correction bug activation)
+      - Linters retenus : TYPESCRIPT_ES + COPYPASTE_JSCPD + DOCKERFILE_HADOLINT
+      - TYPESCRIPT_ES : ESLint v8 (megalinter:v8) incompatible flat config ESLint v9
+        → backend/.eslintrc.cjs créé (legacy, compatible ESLint v8), eslint.config.mjs préservé pour dev local
+      - COPYPASTE_JSCPD : détection duplication backend/src + frontend/src (.jscpd.json)
+      - .mega-linter-config.yml : cible séparée YAML/JSON/ENV (make megalinter-config)
+      - Makefile targets : megalinter-quality / megalinter-config / megalinter / megalinter-report
+
+      Résultats premier run complet (2026-04-29) :
+      - TYPESCRIPT_ES : 202 fichiers analysés, 1 bug réel (T-081), ~65 warnings no-unused-vars
+      - COPYPASTE_JSCPD : doublons ProviderEditPage/ProviderNewPage confirmés
+      - DOCKERFILE_HADOLINT : 1 finding (e2e/Dockerfile npm sans version pinée)
 
   - id: T-071
     nom: "Frontend — Audit + fix Grids imbriqués sur toutes les pages (follow-up T-064)"
@@ -608,6 +621,27 @@ tasks:
     feature: "F-999-FRONT-ICONS"
     priorité: medium
     sessions: []
+
+  - id: T-081
+    nom: "Back — Corriger no-control-regex dans tags.service.ts (détecté MegaLinter)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "F-03-TAGS"
+    priorité: high
+    sessions:
+      - tool: CL
+        id: "a3f7c9"
+        nom: "détecté par ESLint (MegaLinter) lors de la session qualité"
+    notes: |
+      ESLint rule no-control-regex — backend/src/tags/tags.service.ts:15
+      Regex contenant des caractères de contrôle (\x00, \x1f) — potentiellement dangereux.
+      Commande : make megalinter-quality → ERROR-TYPESCRIPT_ES.log pour détail.
 
   - id: T-080
     nom: "RBAC — Permissions fines sur la recherche et filtrages par domaine/rôle"
