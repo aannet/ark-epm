@@ -271,6 +271,9 @@ tasks:
       - tool: OC
         id: "k2e6a4"
         nom: "modernisation 8 wrappers NEW/EDIT — pattern MUI v9 post-T-075"
+      - tool: OC
+        id: "k2e6a4"
+        nom: "review fixes + commit T-075/T-076"
     notes: |
       Suite T-075 : après modernisation des formulaires Applications,
       évaluer l'état des pages NEW/EDIT sur les autres entités :
@@ -341,6 +344,22 @@ tasks:
       ESLint rule no-control-regex — backend/src/tags/tags.service.ts:15
       Regex /[\\"'\x00-\x1F<>]/ remplacée par hasInvalidPathChars() via charCodeAt().
       65 warnings no-unused-vars corrigés sur 36 fichiers (backend, e2e, frontend).
-      Appel mort getAncestorPaths() retiré de resolveOrCreate() (méthode conservée — API publique F-03).
+       Appel mort getAncestorPaths() retiré de resolveOrCreate() (méthode conservée — API publique F-03).
 
-
+  - id: T-082
+    nom: "Interface list — nom manquant + filtre libre sur le nom"
+    statut: in_progress
+    assigned_agent: front
+    session_active: "a9b3f1"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-08"
+    type: bug
+    feature: "FS-08-FRONT"
+    priorité: medium
+    sessions: []
+    notes: |
+      La liste des Interfaces (InterfaceList) n'affiche pas le nom de l'interface.
+      Le nom doit être le premier champ affiché.
+      Ajouter un filtre de recherche libre sur le nom.
