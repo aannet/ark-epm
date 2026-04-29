@@ -17,6 +17,7 @@ export function useInterfaces(filters: InterfaceFilters = {}) {
       if (filters.limit) params.append('limit', filters.limit.toString());
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
       if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+      if (filters.search) params.append('search', filters.search);
       if (filters.sourceAppId) params.append('sourceAppId', filters.sourceAppId);
       if (filters.middlewareAppId) params.append('middlewareAppId', filters.middlewareAppId);
       if (filters.targetAppId) params.append('targetAppId', filters.targetAppId);

@@ -69,6 +69,7 @@ export interface InterfaceFormValues {
 }
 
 export interface InterfaceFilters {
+  search?: string;
   sourceAppId?: string;
   middlewareAppId?: string;
   targetAppId?: string;

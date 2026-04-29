@@ -821,6 +821,7 @@
         "subtitle": "Flux de données entre applications",
         "addButton": "Nouvelle interface",
         "columns": {
+          "name": "Nom",
           "source": "Application source",
           "middleware": "Composant de médiation",
           "target": "Application cible",
@@ -830,6 +831,7 @@
           "actions": "Actions"
         },
         "filters": {
+          "nameSearch": "Rechercher par nom...",
           "sourceApp": "Application source",
           "middlewareApp": "Composant de médiation",
           "targetApp": "Application cible",

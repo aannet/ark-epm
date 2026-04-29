@@ -5,9 +5,10 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TablePagination, Paper, Link as MuiLink, TableSortLabel,
   Box, Autocomplete, FormControl, InputLabel, Select, MenuItem,
-  Typography, TextField, Chip,
+  Typography, TextField, Chip, InputAdornment,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
@@ -20,10 +21,11 @@ import InterfaceDrawer from '@/components/interfaces/InterfaceDrawer';
 import CriticalityChip from '@/components/business-capabilities/CriticalityChip';
 import { useInterfaces, useDeleteInterface } from '@/api/interfaces';
 import { useApplications } from '@/api/applications';
+import { useDebounce } from '@/hooks/useDebounce';
 import { hasPermission } from '@/store/auth';
 import { InterfaceListItem, InterfaceType, CriticalityLevel } from '@/types/interface';
 
-type SortField = 'sourceApp' | 'targetApp' | 'type' | 'criticality' | 'frequency' | 'createdAt';
+type SortField = 'name' | 'sourceApp' | 'targetApp' | 'type' | 'criticality' | 'frequency' | 'createdAt';
 
 const INTERFACE_TYPE_OPTIONS: InterfaceType[] = [
   'REST', 'SOAP', 'FTP', 'SFTP', 'DATABASE',
@@ -50,6 +52,8 @@ export default function InterfaceListPage(): JSX.Element {
   const [filterTargetAppId, setFilterTargetAppId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<InterfaceType | ''>('');
   const [filterCriticality, setFilterCriticality] = useState<CriticalityLevel | ''>('');
+  const [filterSearch, setFilterSearch] = useState('');
+  const debouncedFilterSearch = useDebounce(filterSearch, 300);
 
   // Drawer
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -65,6 +69,7 @@ export default function InterfaceListPage(): JSX.Element {
     limit: rowsPerPage,
     sortBy: sortField,
     sortOrder,
+    search: debouncedFilterSearch || undefined,
     sourceAppId: filterSourceAppId || undefined,
     middlewareAppId: filterMiddlewareAppId || undefined,
     targetAppId: filterTargetAppId || undefined,
@@ -124,6 +129,7 @@ export default function InterfaceListPage(): JSX.Element {
     setFilterTargetAppId(null);
     setFilterType('');
     setFilterCriticality('');
+    setFilterSearch('');
     setPage(0);
   };
 
@@ -179,6 +185,26 @@ export default function InterfaceListPage(): JSX.Element {
 
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <TextField
+          placeholder={t('interfaces.list.filters.nameSearch')}
+          value={filterSearch}
+          onChange={(e) => {
+            setFilterSearch(e.target.value);
+            setPage(0);
+          }}
+          size="small"
+          sx={{ minWidth: 240 }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+
         <Autocomplete
           options={applications}
           getOptionLabel={(option) => option.name}
@@ -296,6 +322,15 @@ export default function InterfaceListPage(): JSX.Element {
                 <TableRow>
                   <TableCell>
                     <TableSortLabel
+                      active={sortField === 'name'}
+                      direction={sortField === 'name' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('name')}
+                    >
+                      {t('interfaces.list.columns.name')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel
                       active={sortField === 'sourceApp'}
                       direction={sortField === 'sourceApp' ? sortOrder : 'asc'}
                       onClick={() => handleSort('sourceApp')}
@@ -353,6 +388,22 @@ export default function InterfaceListPage(): JSX.Element {
                     sx={{ cursor: 'pointer' }}
                     onClick={() => handleRowClick(iface.id)}
                   >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {iface.name ? (
+                        <MuiLink
+                          component="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/interfaces/${iface.id}`);
+                          }}
+                          underline="hover"
+                        >
+                          {iface.name}
+                        </MuiLink>
+                      ) : (
+                        <Typography variant="body2" color="text.disabled">—</Typography>
+                      )}
+                    </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <MuiLink
                         component="button"
