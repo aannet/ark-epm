@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
   Req,
 } from '@nestjs/common';
 import { ItComponentsService } from './it-components.service';
@@ -43,14 +44,14 @@ export class ItComponentsController {
 
   @Get(':id')
   @RequirePermissions('it-components:read')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.itComponentsService.findOne(id);
   }
 
   @Get(':id/applications')
   @RequirePermissions('it-components:read')
   getApplications(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: QueryItComponentApplicationsDto,
   ) {
     return this.itComponentsService.getApplications(id, query);
@@ -59,7 +60,7 @@ export class ItComponentsController {
   @Patch(':id')
   @RequirePermissions('it-components:write')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateItComponentDto,
     @Req() req: AuthenticatedRequest,
   ) {
@@ -70,7 +71,7 @@ export class ItComponentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermissions('it-components:write')
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
   ) {
     await this.itComponentsService.remove(id, req.user.id);

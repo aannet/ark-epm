@@ -255,22 +255,54 @@ tasks:
 
   - id: T-066
     nom: "openapi.yaml à mettre à jour sur tous les endpoints"
-    statut: in_progress
+    statut: done
     assigned_agent: arch
-    session_active: "c7d4e2"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: "2026-04-29"
     sprint: S4
     theme: "F-999"
     type: debt
     feature: "F-999-API-CONTRACT"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "c7d4e2"
+        nom: "audit complet + fix indentation + ajout /users /roles /permissions (v1.5.0)"
+      - tool: CL
+        id: "c7d4e2"
+        nom: "corrections divergences majeurs : tags réécrits, /domains paginé, DELETE roles 200 (v1.6.0)"
     notes: |
-      NFR-GOV-001 : le contrat openapi.yaml doit refléter tous les endpoints implémentés.
-      RESTANT identifié dans T-047 : params search/domainId sur GET /business-capabilities/tree
-      non documentés. Étendre l'audit à l'ensemble des routes /api/v1/.
-      Référence : docs/04-Tech/openapi.yaml | docs/04-Tech/ARK-NFR.md (NFR-GOV-001).
+      ✅ Implémenté (session c7d4e2, 2026-04-29) — openapi.yaml v1.6.0.
+
+      Round 1 (v1.5.0) :
+      1. /business-capabilities/tree : ajout params search + domainId (T-047 RESTANT levé).
+      2. Bugs indentation YAML :
+         - Suppression doublon ApplicationListItem mal niché dans UpdateITComponentDto.
+         - Correction ApplicationResponse, CreateApplicationDto, UpdateApplicationDto :
+           itComponents / businessCapabilities / owner / capabilityIds / ownerId
+           ramenés au bon niveau (propriétés de l'objet, pas sous providers).
+      3. Modules RBAC entiers ajoutés :
+         - /users (GET, POST, GET/:id, PATCH/:id, DELETE/:id soft-delete)
+         - /roles (GET, POST, GET/:id, PATCH/:id, DELETE/:id, PUT/:id/permissions)
+         - /permissions (GET, POST)
+         Schémas : CreateUserDto, UpdateUserDto, RoleListItem, CreateRoleDto,
+         UpdateRoleDto, PermissionResponse, CreatePermissionDto.
+
+      Round 2 (v1.6.0) — corrections divergences backend/openapi :
+      4. GET /domains : array brut → { data, meta } paginé + 5 query params
+         (page, limit, search, sortBy[name|description|createdAt], sortOrder).
+      5. Section tags entièrement réécrite :
+         - /tags/dimensions → /tag-dimensions (chemin réel)
+         - GET /tag-dimensions : ajout param entityType
+         - PATCH /tag-dimensions/{id} ajouté (UpdateTagDimensionDto)
+         - /tags/dimensions/{id}/autocomplete → GET /tags/autocomplete?dimension=&query=&limit=
+         - /tags/dimensions/{id}/resolve → POST /tags/resolve (body ResolveTagDto)
+         - /tags/entities/{type}/{id} → /tags/entity/{type}/{id} (singulier)
+         - PUT /tags/entity/{type}/{id}/batch ajouté (BatchEntityTagsDto)
+         Schémas : UpdateTagDimensionDto, ResolveTagDto, PutEntityTagsDto, BatchEntityTagsDto.
+      6. DELETE /roles/:id : 204 → 200 (pas de @HttpCode backend).
+      Tests Playwright pour /users /roles /permissions → T-078.
 
   - id: T-067
     nom: "Horodater tous les rapports de tests dans /reports"
@@ -338,6 +370,29 @@ tasks:
       - Optionnel : Makefile target 'test-e2e-report' pour ouvrir le rapport le plus récent
       Dépend de : T-067 done (format d'horodatage validé).
       Non bloquant : peut démarrer dès maintenant.
+
+  - id: T-078
+    nom: "QA — Tests Playwright pour les endpoints /users, /roles, /permissions"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: test
+    feature: "QA-RBAC"
+    priorité: medium
+    sessions: []
+    notes: |
+      Suite T-066 : les endpoints /users, /roles, /permissions sont désormais documentés
+      dans openapi.yaml v1.6.0. Ils n'ont pas de couverture Playwright.
+      Scope :
+      - e2e/tests/users/ (CRUD + soft delete isActive=false)
+      - e2e/tests/roles/ (CRUD + PUT /roles/:id/permissions)
+      - e2e/tests/permissions/ (GET list + POST)
+      Pattern à suivre : e2e/tests/domains-crud.api.spec.ts (structure auth + cleanup).
+      Gate RBAC : tester avec un token admin (permission users:read/write, roles:read/write).
 
   - id: T-070
     nom: "QA — Implémenter MegaLinter dans la suite des outils de qualité"
@@ -513,5 +568,42 @@ tasks:
       - ITComponentNew/Edit
       - ProviderNew/Edit (Fournisseurs)
       Identifier les écarts par rapport au pattern MUI v9 et planifier les corrections.
-      Dépend de : T-075 done (pattern de référence établi).
+        Dépend de : T-075 done (pattern de référence établi).
+
+  - id: T-077
+    nom: "Frontend — Remplacer les Avatars de certaines entités par des icônes officielles"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "F-999"
+    type: impl
+    feature: "F-999-FRONT-ICONS"
+    priorité: medium
+    sessions: []
+
+  - id: T-079
+    nom: "RBAC — Permissions fines sur la recherche et filtrages par domaine/rôle"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "FS-01"
+    type: impl
+    feature: "FS-01-BACK"
+    priorité: low
+    sessions: []
+    notes: |
+      Contexte : SearchController est actuellement protégé par JWT uniquement
+      (pas de permission spécifique). Une permission search:read (ou des filtres
+      par domaine, par rôle utilisateur) sera à créer quand le modèle RBAC évoluera.
+      Scope minimum :
+      - Créer permission search:read + seeder
+      - Ajouter @RequirePermissions('search:read') sur SearchController
+      - Éventuellement : filtrer les résultats selon les domaines accessibles au rôle
+
 

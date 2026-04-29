@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
   Req,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
@@ -42,20 +43,20 @@ export class ApplicationsController {
 
   @Get(':id')
   @RequirePermissions('applications:read')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.applicationsService.findOne(id);
   }
 
   @Get(':id/dependencies')
   @RequirePermissions('applications:read')
-  getDependencies(@Param('id') id: string) {
+  getDependencies(@Param('id', ParseUUIDPipe) id: string) {
     return this.applicationsService.getDependencies(id);
   }
 
   @Get(':id/it-components')
   @RequirePermissions('applications:read')
   getApplicationItComponents(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: QueryApplicationsDto,
   ) {
     return this.applicationsService.getApplicationItComponents(id, query);
@@ -64,7 +65,7 @@ export class ApplicationsController {
   @Patch(':id')
   @RequirePermissions('applications:write')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateApplicationDto,
     @Req() req: AuthenticatedRequest,
   ) {
@@ -75,7 +76,7 @@ export class ApplicationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermissions('applications:write')
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
   ) {
     await this.applicationsService.remove(id, req.user.id);

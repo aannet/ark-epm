@@ -9,6 +9,7 @@ import {
   Query,
   Req,
   HttpCode,
+  HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { DataObjectsService } from './data-objects.service';
@@ -61,7 +62,7 @@ export class DataObjectsController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermissions('data-objects:write')
   remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthenticatedRequest) {
     return this.dataObjectsService.remove(id, req.user.id);

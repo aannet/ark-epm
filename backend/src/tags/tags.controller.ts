@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { TagsService } from './tags.service';
 import { CreateTagDimensionDto } from './dto/create-tag-dimension.dto';
@@ -46,7 +47,7 @@ export class TagsController {
   @Patch('tag-dimensions/:id')
   @RequirePermissions('tags:write')
   async updateDimension(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTagDimensionDto,
     @Req() req: AuthenticatedRequest,
   ) {
