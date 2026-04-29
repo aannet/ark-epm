@@ -609,7 +609,7 @@ tasks:
     priorité: medium
     sessions: []
 
-  - id: T-079
+  - id: T-080
     nom: "RBAC — Permissions fines sur la recherche et filtrages par domaine/rôle"
     statut: open
     assigned_agent: back
