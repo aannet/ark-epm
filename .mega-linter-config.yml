@@ -1,0 +1,21 @@
+# MegaLinter — Config & docs lint (secondary target)
+# Run with: make test-config-lint
+# Separate from code quality to avoid noise in quality reports
+
+APPLY_FIXES: none
+DISABLE_ERRORS: false
+PRINT_ALPACA: false
+SHOW_ELAPSED_TIME: true
+FLAVOR_SUGGESTIONS: false
+VALIDATE_ALL_CODEBASE: true
+
+ENABLE_LINTERS:
+  - YAML_YAMLLINT
+  - YAML_PRETTIER
+  - JSON_JSONLINT
+  - JSON_PRETTIER
+  - ENV_DOTENV_LINTER
+
+FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|frontend/cypress/|test-results/|playwright-report/|e2e/reports/)'
+
+FILEIO_REPORTER: false

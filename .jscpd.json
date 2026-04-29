@@ -1,0 +1,20 @@
+{
+  "threshold": 10,
+  "minLines": 6,
+  "minTokens": 50,
+  "reporters": ["console"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "reports/**",
+    "docs/**",
+    "e2e/**",
+    "backend/prisma/**",
+    "backend/test/**",
+    "backend/scripts/**",
+    "**/*.spec.ts",
+    "**/*.e2e-spec.ts",
+    "**/*.test.ts"
+  ]
+}
