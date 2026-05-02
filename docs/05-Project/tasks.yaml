@@ -37,11 +37,11 @@ tasks:
       Cypress inutilisable sur cet env (dépendances libnspr4/X11 manquantes).
       Après migration : supprimer frontend/cypress/ et retirer dépendances Cypress de package.json.
 
-  - id: T-012
+   - id: T-012
     nom: "Débloquer sélecteur Owner — API Users mock (F-999 Item 12b)"
-    statut: blocked
+    statut: in_progress
     assigned_agent: back
-    session_active: ~
+    session_active: "dac536"
     date_resolution: ~
     sprint: S3
     theme: "F-999"
@@ -390,3 +390,20 @@ tasks:
       Fix : ajouter middlewareInterfaces au _count.select.
       Cleanup : retirer le try/catch P2003 dead code (pre-check suffit).
       Tests : 21/21 PASS (FS-06 e2e).
+
+  - id: T-084
+    nom: "Data — Remettre à jour schema.sql et générer un diagramme Mermaid propre"
+    statut: done
+    assigned_agent: data
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-02
+    sprint: S4
+    theme: "QA"
+    type: doc
+    feature: "DATA-SCHEMA"
+    priorité: medium
+    sessions:
+      - tool: CL
+        id: "a8f3c1"
+        nom: "schema.sql v1.0 + docs/04-Tech/README.md avec diagramme Mermaid"
