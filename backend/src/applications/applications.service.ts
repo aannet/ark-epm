@@ -171,6 +171,7 @@ export class ApplicationsService {
             capabilities: true,
             dataObjects: true,
             itComponents: true,
+            middlewareInterfaces: true,
             sourceInterfaces: true,
             targetInterfaces: true,
           },
@@ -190,6 +191,7 @@ export class ApplicationsService {
       capabilities: app._count.capabilities,
       dataObjects: app._count.dataObjects,
       itComponents: app._count.itComponents,
+      middlewareInterfaces: app._count.middlewareInterfaces,
       sourceInterfaces: app._count.sourceInterfaces,
       targetInterfaces: app._count.targetInterfaces,
     };
