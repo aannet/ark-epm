@@ -366,20 +366,27 @@ tasks:
 
   - id: T-083
     nom: "Back — Suppression application impossible (DELETE /applications/:id → 500)"
-    statut: in_progress
+    statut: done
     assigned_agent: back
-    session_active: "a4c2d1"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-05-02
     sprint: S4
     theme: "FS-06"
     type: bug
     feature: "FS-06-BACK"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "a4c2d1"
+        nom: "fix middlewareInterfaces dependency check + remove dead P2003 catch"
     notes: |
       Impossible de supprimer une application même sans liaisons.
       Exemple : applications.ts:124
         DELETE http://localhost:5173/api/v1/applications/1dab9ce7-bc55-4f34-8a61-129ee6be8e4a
         500 (Internal Server Error)
-      Piste : vérifier cascade Prisma / contrainte FK résiduelle côté backend.
+      
+      Cause : getDependencies() oubliait de compter middlewareInterfaces.
+      Fix : ajouter middlewareInterfaces au _count.select.
+      Cleanup : retirer le try/catch P2003 dead code (pre-check suffit).
+      Tests : 21/21 PASS (FS-06 e2e).
