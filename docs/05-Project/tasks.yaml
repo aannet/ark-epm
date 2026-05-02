@@ -363,3 +363,23 @@ tasks:
       La liste des Interfaces (InterfaceList) n'affiche pas le nom de l'interface.
       Le nom doit être le premier champ affiché.
       Ajouter un filtre de recherche libre sur le nom.
+
+  - id: T-083
+    nom: "Back — Suppression application impossible (DELETE /applications/:id → 500)"
+    statut: in_progress
+    assigned_agent: back
+    session_active: "a4c2d1"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-06"
+    type: bug
+    feature: "FS-06-BACK"
+    priorité: high
+    sessions: []
+    notes: |
+      Impossible de supprimer une application même sans liaisons.
+      Exemple : applications.ts:124
+        DELETE http://localhost:5173/api/v1/applications/1dab9ce7-bc55-4f34-8a61-129ee6be8e4a
+        500 (Internal Server Error)
+      Piste : vérifier cascade Prisma / contrainte FK résiduelle côté backend.
