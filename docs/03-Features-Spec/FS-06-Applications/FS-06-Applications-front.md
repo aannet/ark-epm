@@ -8,6 +8,8 @@ _Version 1.2 — Mars 2026_
 >
 > **Changelog v1.2 :** Implémentation complète de la relation bidirectionnelle **IT Components ↔ Applications**. Ajout : colonne `itComponents` avec chip compteur en vue liste, IT Component names clickables en détail/drawer/liste, synchronisation OpenAPI spec. Pattern N:N symétrique sans rôles (simplifiée vs Providers).
 
+> **Changelog v1.3 :** Déblocage du sélecteur Owner avec `useUsers()` + API `GET /api/v1/users?isActive=true` (FS-06-FRONT). En édition, l'owner courant est conservé quand inactif.
+
 ---
 
 ## En-tête
@@ -622,10 +624,10 @@ zones:
       availableOptions:
         domains: [] # Chargés via GET /api/v1/domains
         providers: [] # Chargés via GET /api/v1/providers
-        users: [] # Chargés via GET /api/v1/users (filtered)
+        users: [] # Chargés via GET /api/v1/users?isActive=true
         criticalities: ['low', 'medium', 'high', 'mission-critical']
         lifecycleStatuses: ['draft', 'in_progress', 'production', 'deprecated', 'retired']
-      availableDimensions: ['Geography', 'Brand', 'LegalEntity']
+        availableDimensions: ['Geography', 'Brand', 'LegalEntity']
 
   on_submit_success:
     - POST /api/v1/applications → get applicationId
@@ -700,7 +702,7 @@ zones:
       availableOptions:
         domains: [] # Chargés via GET /api/v1/domains
         providers: [] # Chargés via GET /api/v1/providers
-        users: [] # Chargés via GET /api/v1/users
+        users: [] # Chargés via GET /api/v1/users?isActive=true ; inclut owner courant en édition même inactif
         criticalities: ['low', 'medium', 'high', 'mission-critical']
         lifecycleStatuses: ['draft', 'in_progress', 'production', 'deprecated', 'retired']
       availableDimensions: ['Geography', 'Brand', 'LegalEntity']
@@ -729,14 +731,18 @@ zones:
 
 ```
 frontend/src/
-├── pages/
-│   └── applications/
-│       ├── ApplicationsListPage.tsx
-│       ├── ApplicationNewPage.tsx
-│       ├── ApplicationDetailPage.tsx
-│       └── ApplicationEditPage.tsx
-├── components/
-│   ├── applications/
+  ├── pages/
+  │   └── applications/
+  │       ├── ApplicationsListPage.tsx
+  │       ├── ApplicationNewPage.tsx
+  │       ├── ApplicationDetailPage.tsx
+  │       └── ApplicationEditPage.tsx
+  ├── api/
+  │   ├── applications.ts
+  │   ├── domains.ts
+  │   ├── users.ts      # Hook API Owner (réutilisé par le formulaire Application)
+  ├── components/
+  │   ├── applications/
 │   │   ├── ApplicationForm.tsx
 │   │   ├── ApplicationDrawer.tsx      # PNS-02 Side Drawer read-only
 │   │   ├── ApplicationFilters.tsx     # Zone de filtres

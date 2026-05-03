@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  ParseUUIDPipe,
+  Query,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import type { CreateUserDto, UpdateUserDto } from './users.service';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
+import { QueryUsersDto } from './dto/query-users.dto';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -12,8 +25,8 @@ export class UsersController {
 
   @Get()
   @RequirePermissions('users:read')
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: QueryUsersDto) {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')

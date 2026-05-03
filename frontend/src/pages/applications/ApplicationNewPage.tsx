@@ -12,15 +12,13 @@ import { useDomains } from '@/api/domains';
 import { useProviders } from '@/api/providers';
 import { useITComponents } from '@/api/it-components';
 import { useBusinessCapabilities } from '@/api/businessCapabilities';
+import { useUsers } from '@/api/users';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
 
 const CRITICALITIES = ['low', 'medium', 'high', 'mission-critical'];
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
-
-// Mock data for users - replace with API calls when ready
-const MOCK_USERS: { id: string; firstName: string; lastName: string }[] = [];
 
 export default function ApplicationNewPage(): JSX.Element {
   const { t } = useTranslation();
@@ -35,12 +33,18 @@ export default function ApplicationNewPage(): JSX.Element {
   const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
   const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
   const { data: capabilitiesData, isLoading: isLoadingCapabilities } = useBusinessCapabilities({ limit: 200 });
+  const { data: usersData, isLoading: isLoadingUsers } = useUsers({ isActive: true });
 
   // Map API responses to select options format
   const domainOptions = (domains?.data || []).map(d => ({ id: d.id, name: d.name }));
   const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
   const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
   const capabilityOptions = (capabilitiesData?.data || []).map(bc => ({ id: bc.id, name: bc.name }));
+  const userOptions = (usersData || []).map((user) => ({
+    id: user.id,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+  }));
 
   const handleSubmit = useCallback(
     async (values: ApplicationFormValues) => {
@@ -90,7 +94,7 @@ export default function ApplicationNewPage(): JSX.Element {
     { label: t('applications.form.breadcrumb.new') },
   ];
 
-  if (isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities) {
+  if (isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities || isLoadingUsers) {
     return (
       <PageContainer maxWidth="xl">
         <AppBreadcrumbs items={breadcrumbItems} />
@@ -161,7 +165,7 @@ export default function ApplicationNewPage(): JSX.Element {
             providers: providerOptions,
             itComponents: itComponentOptions,
             businessCapabilities: capabilityOptions,
-            users: MOCK_USERS,
+            users: userOptions,
             criticalities: CRITICALITIES,
             lifecycleStatuses: LIFECYCLE_STATUSES,
           }}

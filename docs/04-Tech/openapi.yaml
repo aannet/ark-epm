@@ -1993,6 +1993,13 @@ paths:
     get:
       summary: Liste de tous les utilisateurs
       tags: [Users]
+      parameters:
+        - name: isActive
+          in: query
+          required: false
+          description: Filtrer les utilisateurs actifs/inactifs
+          schema:
+            type: boolean
       security:
         - bearerAuth: []
       responses:

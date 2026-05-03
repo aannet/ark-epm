@@ -12,15 +12,13 @@ import { useDomains } from '@/api/domains';
 import { useProviders } from '@/api/providers';
 import { useITComponents } from '@/api/it-components';
 import { useBusinessCapabilities } from '@/api/businessCapabilities';
+import { useUsers } from '@/api/users';
 import { useTagDimensions } from '@/hooks/useTagDimensions';
 import { ApplicationFormValues } from '@/types/application';
 import { tagsApi } from '@/api/tags';
 
 const CRITICALITIES = ['low', 'medium', 'high', 'mission-critical'];
 const LIFECYCLE_STATUSES = ['draft', 'in_progress', 'production', 'deprecated', 'retired'];
-
-// Mock data for users (until APIs are ready)
-const MOCK_USERS: { id: string; firstName: string; lastName: string }[] = [];
 
 export default function ApplicationEditPage(): JSX.Element {
   const { t } = useTranslation();
@@ -39,12 +37,30 @@ export default function ApplicationEditPage(): JSX.Element {
   const { data: providersData, isLoading: isLoadingProviders } = useProviders({ limit: 200 });
   const { data: itComponentsData, isLoading: isLoadingItComponents } = useITComponents({ limit: 200 });
   const { data: capabilitiesData, isLoading: isLoadingCapabilities } = useBusinessCapabilities({ limit: 200 });
+  const { data: usersData, isLoading: isLoadingUsers } = useUsers({ isActive: true });
 
   // Map API responses to select options format
   const domainOptions = (domains?.data || []).map(d => ({ id: d.id, name: d.name }));
   const providerOptions = (providersData?.data || []).map(p => ({ id: p.id, name: p.name }));
   const itComponentOptions = (itComponentsData?.data || []).map(ic => ({ id: ic.id, name: ic.name }));
   const capabilityOptions = (capabilitiesData?.data || []).map(bc => ({ id: bc.id, name: bc.name }));
+  const userOptions = (usersData || []).map((user) => ({
+    id: user.id,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+  }));
+  const userOptionsWithOwner = application?.owner
+    ? [
+        ...userOptions,
+        {
+          id: application.owner.id,
+          firstName: application.owner.firstName || '',
+          lastName: application.owner.lastName || '',
+        },
+      ].filter((option, index, values) =>
+        values.findIndex((item) => item.id === option.id) === index,
+      )
+    : userOptions;
 
   useEffect(() => {
     if (error && (error as any)?.response?.status === 404) {
@@ -91,7 +107,7 @@ export default function ApplicationEditPage(): JSX.Element {
 
   const editTitle = t('applications.form.editTitle');
 
-  if (isLoadingApp || isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities) {
+  if (isLoadingApp || isLoadingDomains || isLoadingProviders || isLoadingItComponents || isLoadingCapabilities || isLoadingUsers) {
     return (
       <PageContainer maxWidth="xl">
         <AppBreadcrumbs
@@ -220,7 +236,7 @@ export default function ApplicationEditPage(): JSX.Element {
             providers: providerOptions,
             itComponents: itComponentOptions,
             businessCapabilities: capabilityOptions,
-            users: MOCK_USERS,
+            users: userOptionsWithOwner,
             criticalities: CRITICALITIES,
             lifecycleStatuses: LIFECYCLE_STATUSES,
           }}

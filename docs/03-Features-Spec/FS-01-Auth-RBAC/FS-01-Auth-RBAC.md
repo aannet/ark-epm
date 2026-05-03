@@ -6,6 +6,8 @@ _Version 0.5 — Février 2026_
 
 > **Changelog v0.6 :** OpenCode implémente l'ensemble des tâches (1.2 à 1.7), y compris le backend Auth avec bcrypt + JWT.
 
+> **Changelog v0.7 :** Documente `/users` avec filtre optionnel `isActive` et précise le contrat API utilisé par `useUsers()` (T-012).
+
 > **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`. Fichiers cibles précisés. Section 9 mise à jour.
 
 > **Changelog v0.3 :** Routes React (`/login`, `/users`, `/roles`), structure fichiers frontend, comportements UX `UsersListPage`/`RolesListPage`, `hasPermission()` dans `store/auth.ts`, checklist section 10 complétée.
@@ -210,6 +212,12 @@ paths:
     get:
       summary: Liste des utilisateurs
       tags: [Users]
+      parameters:
+        - name: isActive
+          in: query
+          required: false
+          description: Filtrer les utilisateurs actifs (`true`) ou inactifs (`false`)
+          schema: { type: boolean }
       security:
         - bearerAuth: []
       responses:

@@ -42,6 +42,61 @@ describe('UsersController (e2e)', () => {
       expect(Array.isArray(response.body)).toBe(true);
     });
 
+    it('should filter users by isActive=true', async () => {
+      const activeEmail = `active-${Date.now()}@ark.io`;
+      const inactiveEmail = `inactive-${Date.now()}@ark.io`;
+
+      const createActiveResponse = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: activeEmail,
+          password: 'password123',
+          firstName: 'Active',
+          lastName: 'User',
+        })
+        .expect(201);
+
+      const createInactiveResponse = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: inactiveEmail,
+          password: 'password123',
+          firstName: 'Inactive',
+          lastName: 'User',
+        })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .delete(`/users/${createInactiveResponse.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(204);
+
+      const activeResponse = await request(app.getHttpServer())
+        .get('/users?isActive=true')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(Array.isArray(activeResponse.body)).toBe(true);
+      expect(activeResponse.body.every((user: { isActive: boolean }) => user.isActive === true)).toBe(true);
+      expect(activeResponse.body.some((user: { id: string }) => user.id === createActiveResponse.body.id)).toBe(true);
+
+      const inactiveResponse = await request(app.getHttpServer())
+        .get('/users?isActive=false')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(Array.isArray(inactiveResponse.body)).toBe(true);
+      expect(inactiveResponse.body.every((user: { isActive: boolean }) => user.isActive === false)).toBe(true);
+      expect(inactiveResponse.body.some((user: { id: string }) => user.id === createInactiveResponse.body.id)).toBe(true);
+
+      await request(app.getHttpServer())
+        .delete(`/users/${createActiveResponse.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(204);
+    });
+
     it('should return 401 without token', async () => {
       await request(app.getHttpServer())
         .get('/users')

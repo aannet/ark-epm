@@ -50,8 +50,12 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(query?: { isActive?: boolean }): Promise<any[]> {
+    // AGENT-DECISION: back — add optional isActive filter to unblock owner selector backend requirement (T-012).
+    const where = query?.isActive === undefined ? undefined : { isActive: query.isActive };
+
     const users = await this.prisma.user.findMany({
+      where,
       include: { role: { include: { rolePermissions: { include: { permission: true } } } } },
     });
 
