@@ -15,9 +15,11 @@ tasks:
         id: "a1b2c3"
         nom: "rituel ouverture - gate bloqué : spec vide"
     notes: |
-      GATE BLOQUÉ : Spec FS-09-Dependency-Graph.md est vide (0 lignes).
-      Prérequis : FS-09-BACK spec + impl done, FS-09-FRONT spec stable.
-      Action requise : Agent `spec` doit rédiger la spec FS-09 avant implémentation.
+      Gate "spec vide" levée : FS-09-BACK + FS-09-FRONT rédigées (draft, 2026-05-03).
+      Gates restantes :
+        - FS-09-BACK impl done (agent back, module backend/src/graph/)
+        - FS-09-FRONT spec stable (après FS-09-BACK done)
+      Référence : T-085 (spec done), T-086 (gate BC recursive, open).
 
   - id: T-009
     nom: "Migration tests Cypress → Playwright — Data Objects (F-999 Item 22)"
@@ -37,24 +39,30 @@ tasks:
       Cypress inutilisable sur cet env (dépendances libnspr4/X11 manquantes).
       Après migration : supprimer frontend/cypress/ et retirer dépendances Cypress de package.json.
 
-   - id: T-012
+  - id: T-012
     nom: "Débloquer sélecteur Owner — API Users mock (F-999 Item 12b)"
-    statut: in_progress
+    statut: done
     assigned_agent: back
-    session_active: "dac536"
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "20260502/SESSION-HANDOFF-back-t012.md"
+    date_resolution: 2026-05-03
     sprint: S3
     theme: "F-999"
     type: bug
     feature: "FS-06-FRONT"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "dac536"
+        nom: "implémentation filtre users isActive"
     notes: |
-      F-999 Item 12b — MOCK_USERS = [] toujours hardcodé dans ApplicationNewPage/EditPage.
-      Sélecteur owner vide dans formulaire Application.
-      Déblocage : endpoint GET /api/v1/users?isActive=true nécessaire.
-      Migration : créer hook useUsers() dans frontend/src/api/users.ts (pattern useProviders).
-      Gate : endpoint users disponible (FS-01 ou module dédié).
+       2026-05-03 — F-999 Item 12b résolu côté back+front :
+       - GET /api/v1/users?isActive=true implémenté côté back.
+       - Nouveau hook `useUsers()` créé dans `frontend/src/api/users.ts`.
+       - `MOCK_USERS` supprimé au profit de l'appel API dans
+         `ApplicationNewPage.tsx` et `ApplicationEditPage.tsx`.
+       - Fallback ajouté en édition : conservation du owner courant même si inactif.
+       - Gate validée : sélecteur Owner peuplé sur création/édition.
 
   - id: T-049
     nom: "Spec — Mettre au clair la liaison entre Application et Data Objects"
@@ -407,3 +415,46 @@ tasks:
       - tool: CL
         id: "a8f3c1"
         nom: "schema.sql v1.0 + docs/04-Tech/README.md avec diagramme Mermaid"
+
+  - id: T-085
+    nom: "Spec — FS-09 Dependency Graph (back + front)"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260503/SESSION-HANDOFF-spec-t085.md"
+    date_resolution: 2026-05-03
+    sprint: S4
+    theme: "FS-09"
+    type: spec
+    feature: "FS-09-BACK"
+    priorité: high
+    sessions:
+      - tool: CL
+        id: "f3a9c2"
+        nom: "spec FS-09-BACK + FS-09-FRONT rédigées (draft) — interview conception + 4 fichiers"
+    notes: |
+      Rédiger FS-09-BACK et FS-09-FRONT pour débloquer T-003.
+      User stories : FS-09-Dependency-Graph-userstories.md (rédigées, P1/P2 split fait).
+      API : GET /api/v1/graph?focalType=&focalId=&depth=&layers= (D7).
+      Permission : applications:read. PNS-02 drawer existant. Dagre layout P1.
+      US P2 : US-08, US-09, US-11, US-12. D12 GroupNode Domain = P2.
+      Gate US-04 : T-086 (BC recursive WITH RECURSIVE) créée.
+
+  - id: T-086
+    nom: "Back — Gate FS-09 US-04 : traversal récursif BC (WITH RECURSIVE)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-09"
+    type: impl
+    feature: "FS-09-BACK"
+    priorité: medium
+    sessions: []
+    notes: |
+      Prérequis US-04 (focal=business_capability avec expansion récursive BC enfants).
+      Requête WITH RECURSIVE sur business_capabilities + join app_capability_map.
+      Bloque l'implémentation focalType=bc complète dans GraphService (gate G-10 de FS-09-BACK).
+      Sans cette tâche : focalType=bc retourne uniquement la BC focale + apps directes (partiel).
