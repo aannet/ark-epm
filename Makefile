@@ -8,13 +8,26 @@ POSTGRES_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.
 TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 
 dev:
-	cd frontend && npm run dev
+	@echo "Starting containerized backend + frontend..."
+	@docker compose up -d backend frontend || docker-compose up -d backend frontend
+	@docker compose ps backend frontend || docker-compose ps backend frontend
 
 dev-clean:
-	@fuser -k 5173/tcp 2>/dev/null || true
-	@fuser -k 5174/tcp 2>/dev/null || true
-	@echo "Starting clean dev server on port 5173..."
-	cd frontend && npm run dev
+	@echo "Refreshing frontend container (rebuild + fresh volumes)..."
+	@docker compose up -d --build --force-recreate --renew-anon-volumes --no-deps frontend || docker-compose up -d --build --force-recreate --renew-anon-volumes --no-deps frontend
+	@echo "Waiting for frontend readiness on http://localhost:5173 ..."
+	@for i in $$(seq 1 30); do \
+		curl -fsS http://localhost:5173 >/dev/null 2>&1 && break; \
+		sleep 1; \
+		if [ $$i -eq 30 ]; then echo "Frontend did not become ready in time"; exit 1; fi; \
+	done
+	@curl -I http://localhost:5173
+
+dev-local:
+	@fuser -k 5173/tcp >/dev/null 2>&1 || true
+	@fuser -k 5174/tcp >/dev/null 2>&1 || true
+	@echo "Starting local Vite dev server on port 5173..."
+	cd frontend && npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
 
 build:
 	cd frontend && npm run build

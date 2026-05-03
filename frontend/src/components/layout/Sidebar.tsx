@@ -9,6 +9,7 @@ import Dns from '@mui/icons-material/Dns';
 import Business from '@mui/icons-material/Business';
 import Folder from '@mui/icons-material/Folder';
 import Logout from '@mui/icons-material/Logout';
+import Hub from '@mui/icons-material/Hub';
 
 interface SidebarProps {
   onLogout?: () => void;
@@ -28,6 +29,7 @@ export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
     { label: t('nav.itComponents'), icon: <Dns />, path: '/it-components' },
     { label: t('nav.providers'), icon: <Business />, path: '/providers' },
     { label: t('nav.domains'), icon: <Folder />, path: '/domains' },
+    { label: t('nav.graph'), icon: <Hub />, path: '/graph' },
   ];
 
   const isActive = (path: string): boolean => pathname.startsWith(path);

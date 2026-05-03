@@ -49,6 +49,7 @@ import InterfaceListPage from '@/pages/interfaces/InterfaceListPage';
 import InterfaceNewPage from '@/pages/interfaces/InterfaceNewPage';
 import InterfaceDetailPage from '@/pages/interfaces/InterfaceDetailPage';
 import InterfaceEditPage from '@/pages/interfaces/InterfaceEditPage';
+import GraphPage from '@/pages/graph/GraphPage';
 
 function App(): JSX.Element {
   useEffect(() => {
@@ -125,15 +126,18 @@ function App(): JSX.Element {
                <Route path=":id/edit" element={<BusinessCapabilityEditPage />} />
              </Route>
 
-             {/* Interfaces routes */}
-             <Route path="interfaces" element={<Outlet />}>
-               <Route index element={<InterfaceListPage />} />
-               <Route path="new" element={<InterfaceNewPage />} />
-               <Route path=":id" element={<InterfaceDetailPage />} />
-               <Route path=":id/edit" element={<InterfaceEditPage />} />
-             </Route>
-          </Route>
-        </Route>
+              {/* Interfaces routes */}
+              <Route path="interfaces" element={<Outlet />}>
+                <Route index element={<InterfaceListPage />} />
+                <Route path="new" element={<InterfaceNewPage />} />
+                <Route path=":id" element={<InterfaceDetailPage />} />
+                <Route path=":id/edit" element={<InterfaceEditPage />} />
+              </Route>
+
+              {/* Graph route */}
+              <Route path="graph" element={<GraphPage />} />
+           </Route>
+         </Route>
 
         <Route element={<PrivateRoute permission="users:write" />}>
           <Route path="/users" element={<div />} />

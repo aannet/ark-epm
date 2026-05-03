@@ -6,7 +6,8 @@
     "dataObjects": "Objets de données",
     "itComponents": "Composants IT",
     "providers": "Fournisseurs",
-    "domains": "Domaines"
+    "domains": "Domaines",
+    "graph": "Graphe"
   },
 
   "common": {
@@ -937,6 +938,59 @@
         "created": "Interface créée avec succès",
         "updated": "Interface mise à jour avec succès",
         "deleted": "Interface supprimée avec succès"
+      }
+    },
+
+    "graph": {
+      "page": {
+        "title": "Graphe de dépendances"
+      },
+      "entityTypes": {
+        "application": "Application",
+        "business_capability": "Capacité métier",
+        "domain": "Domaine",
+        "provider": "Fournisseur",
+        "it_component": "Composant IT",
+        "data_object": "Objet de données"
+      },
+      "autocomplete": {
+        "placeholder": "Rechercher une application, un domaine, une capacité..."
+      },
+      "toolbar": {
+        "layers": "Couches",
+        "depth": "Profondeur",
+        "fitView": "Ajuster la vue",
+        "criticality": "Criticité",
+        "domain": "Domaine",
+        "all": "Tous"
+      },
+      "layers": {
+        "applications": "Applications",
+        "interfaces": "Interfaces",
+        "business_capabilities": "Capacités métier",
+        "providers": "Fournisseurs",
+        "it_components": "Composants IT",
+        "data_objects": "Objets de données"
+      },
+      "emptyState": {
+        "noFocal": {
+          "title": "Choisissez un point de départ",
+          "description": "Recherchez une application, un domaine, une capacité métier."
+        },
+        "noRelations": "Aucune relation visible avec les couches actives."
+      },
+      "warning": {
+        "tooManyNodes": "Ce graphe contient {{count}} nœuds — essayez de désactiver des couches ou de réduire la profondeur."
+      },
+      "edges": {
+        "viaMiddleware": "[via middleware]"
+      },
+      "nodes": {
+        "unnamed": "Sans nom"
+      },
+      "alert": {
+        "notFound": "Entité introuvable",
+        "loadError": "Impossible de charger le graphe pour le moment."
       }
     }
 }
