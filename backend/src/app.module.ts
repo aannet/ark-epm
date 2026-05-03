@@ -26,6 +26,7 @@ import { DataObjectsModule } from './data-objects/data-objects.module';
 import { BusinessCapabilitiesModule } from './business-capabilities/business-capabilities.module';
 import { InterfacesModule } from './interfaces/interfaces.module';
 import { SearchModule } from './search/search.module';
+import { GraphModule } from './graph/graph.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { SearchModule } from './search/search.module';
     BusinessCapabilitiesModule,
     InterfacesModule,
     SearchModule,
+    GraphModule,
   ],
   controllers: [AppController],
   providers: [

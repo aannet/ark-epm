@@ -2336,8 +2336,133 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /graph:
+    get:
+      summary: Graphe de dépendances (entité focale)
+      description: >
+        Retourne un graphe nodes+edges pour ReactFlow. Traversal BFS depuis l'entité focale
+        jusqu'à depth 1-3. Les layers contrôlent quels types de nœuds sont inclus.
+        Endpoint en lecture seule — pas d'audit trail.
+      tags: [Graph]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: focalType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [application, business_capability, domain, provider, it_component, data_object]
+          description: Type de l'entité focale
+        - name: focalId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID de l'entité focale
+        - name: depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3
+            default: 1
+          description: Profondeur du BFS (1 = voisins directs)
+        - name: layers
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "applications,interfaces,business_capabilities"
+          description: >
+            CSV des couches à inclure.
+            Valeurs : applications, interfaces, business_capabilities, providers,
+            it_components, data_objects. Défaut : "applications,interfaces"
+      responses:
+        '200':
+          description: Données du graphe pour ReactFlow
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphResponse'
+        '400':
+          description: Paramètres invalides
+        '401':
+          description: Token JWT manquant ou invalide
+        '403':
+          description: Permission applications:read manquante
+        '404':
+          description: Entité focale introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
+
+    GraphResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+
+    GraphNode:
+      type: object
+      required: [id, type, isFocal, label]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [application, bc, provider, it_component, data_object]
+        isFocal:
+          type: boolean
+        label:
+          type: string
+        meta:
+          type: object
+          nullable: true
+          properties:
+            criticality:      { type: string, nullable: true }
+            lifecycleStatus:  { type: string, nullable: true }
+            domainId:         { type: string, format: uuid, nullable: true }
+            domainName:       { type: string, nullable: true }
+            level:            { type: integer, nullable: true, description: "Niveau hiérarchie BC" }
+
+    GraphEdge:
+      type: object
+      required: [id, sourceId, targetId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sourceId:
+          type: string
+          format: uuid
+        targetId:
+          type: string
+          format: uuid
+        label:
+          type: string
+          nullable: true
+        meta:
+          type: object
+          nullable: true
+          properties:
+            type:            { type: string, description: "InterfaceType enum" }
+            frequency:       { type: string, nullable: true }
+            criticality:     { type: string, nullable: true }
+            middlewareAppId: { type: string, format: uuid, nullable: true }
 
     BusinessCapabilityListItem:
       type: object

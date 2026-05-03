@@ -458,3 +458,23 @@ tasks:
       Requête WITH RECURSIVE sur business_capabilities + join app_capability_map.
       Bloque l'implémentation focalType=bc complète dans GraphService (gate G-10 de FS-09-BACK).
       Sans cette tâche : focalType=bc retourne uniquement la BC focale + apps directes (partiel).
+
+  - id: T-087
+    nom: "Back — Implémenter FS-09 Dependency Graph (backend/src/graph/)"
+    statut: in_progress
+    assigned_agent: back
+    session_active: "fs09bk"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "FS-09"
+    type: impl
+    feature: "FS-09-BACK"
+    priorité: high
+    sessions: []
+    notes: |
+      Créer module backend/src/graph/ avec GET /api/v1/graph endpoint.
+      BFS traversal focalType x6, depth 1-3, layers CSV.
+      Permission : applications:read (réutilisation).
+      Gates G-01 à G-09 à valider. G-10 (BC récursif) bloquée par T-086.
+      Spec : docs/03-Features-Spec/FS-09-Dependency-Graph/FS-09-Dependency-Graph-back.md
