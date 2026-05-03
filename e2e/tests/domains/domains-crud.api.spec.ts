@@ -1,20 +1,20 @@
 import { test, expect } from '../../fixtures/index';
-import { expectSuccess, DomainResponse, TagValueResponse } from '../../utils/api-helpers';
+import { expectSuccess, DomainResponse, TagValueResponse, PaginatedResponse } from '../../utils/api-helpers';
 
 test.describe('Domains CRUD API', () => {
   test('GET /domains should return array of domains', async ({ auth }) => {
     const response = await auth.request.get('domains');
-    const domains = await expectSuccess<DomainResponse[]>(response, 200);
+    const result = await expectSuccess<PaginatedResponse<DomainResponse>>(response, 200);
 
-    expect(Array.isArray(domains)).toBe(true);
+    expect(Array.isArray(result.data)).toBe(true);
   });
 
   test('GET /domains should return empty array when no domains exist', async ({ auth }) => {
     const response = await auth.request.get('domains');
-    const domains = await expectSuccess<DomainResponse[]>(response, 200);
+    const result = await expectSuccess<PaginatedResponse<DomainResponse>>(response, 200);
 
-    if (domains.length === 0) {
-      expect(domains).toEqual([]);
+    if (result.data.length === 0) {
+      expect(result.data).toEqual([]);
     }
   });
 

@@ -7,8 +7,20 @@ async function loginAs(page: Page, email: string, password: string) {
   await page.goto('/login');
   await page.getByLabel('Adresse e-mail').fill(email);
   await page.getByLabel('Mot de passe').fill(password);
+
+  const loginResponse = page.waitForResponse(
+    (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
+    { timeout: 10000 },
+  );
+
   await page.getByRole('button', { name: 'Se connecter' }).click();
-  await page.waitForTimeout(1200);
+  const response = await loginResponse;
+
+  if (!response.ok()) {
+    return false;
+  }
+
+  await expect(page).not.toHaveURL(/\/login(\?.*)?$/, { timeout: 10000 });
   return !page.url().includes('/login');
 }
 

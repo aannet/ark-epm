@@ -12,9 +12,11 @@ test.describe('ARK-EPM Basic E2E Tests', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 
-  test('health check - backend accessible', async ({ request }) => {
-    // Test de disponibilité du backend
-    const response = await request.get('http://backend:3000/health');
+test('health check - backend accessible', async ({ request }) => {
+  const backendHealthUrl = `${(process.env.API_BASE_URL ?? 'http://backend:3000').replace(/\/+$/, '')}/health`;
+
+  // Test de disponibilité du backend
+  const response = await request.get(backendHealthUrl);
     
     // Note: Ajoutez un endpoint /health dans votre backend si inexistant
     // ou modifiez cette URL vers un endpoint existant

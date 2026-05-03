@@ -8,23 +8,29 @@ const API_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 const API_VERSION = process.env.API_VERSION || '/api/v1';
 
 async function loginAs(page: Page, email: string, password: string) {
-  const res = await page.request.post(`${API_URL}${API_VERSION}/auth/login`, {
-    data: { email, password },
-  });
-  const { accessToken, user } = await res.json();
+  await page.goto('/login');
+  await page.getByLabel('Adresse e-mail').fill(email);
+  await page.getByLabel('Mot de passe').fill(password);
 
-  await page.goto('/');
-  await page.evaluate(
-    ({ token, userData }) => {
-      (window as any).__ARK_TOKEN__ = token;
-      (window as any).__ARK_USER__ = userData;
-    },
-    { token: accessToken, userData: user },
+  const loginResponse = page.waitForResponse(
+    (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
+    { timeout: 10000 },
   );
+
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+  const response = await loginResponse;
+
+  if (!response.ok()) {
+    return false;
+  }
+
+  await expect(page).not.toHaveURL(/\/login(\?.*)?$/, { timeout: 10000 });
+  return !page.url().includes('/login');
 }
 
 async function login(page: Page) {
-  await loginAs(page, 'admin@ark.io', 'admin123456');
+  const ok = await loginAs(page, 'admin@ark.io', 'admin123456');
+  expect(ok).toBeTruthy();
 }
 
 // ──────────────────────────────────────────
@@ -33,11 +39,19 @@ async function login(page: Page) {
 test.describe('US-01 — Accès rapide recherche', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
   });
 
   test('raccourci Ctrl+K ouvre la popover de recherche', async ({ page }) => {
-    await page.keyboard.press('Control+k');
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'k',
+          code: 'KeyK',
+          ctrlKey: true,
+          bubbles: true,
+        }),
+      );
+    });
     await expect(page.getByPlaceholder(/Rechercher une application/i)).toBeVisible();
   });
 
@@ -60,7 +74,6 @@ test.describe('US-01 — Accès rapide recherche', () => {
 test.describe('US-06 — Auto-focus à l\'ouverture', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
   });
 
   test('le champ de recherche est focalisé à l\'ouverture initiale', async ({ page }) => {
@@ -104,7 +117,6 @@ test.describe('US-06 — Auto-focus à l\'ouverture', () => {
 test.describe('US-02 — Recherche temps réel', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
     await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
   });
 
@@ -140,7 +152,7 @@ test.describe('US-02 — Recherche temps réel', () => {
 test.describe('US-03 — Navigation clavier', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
+    await expect(page).toHaveURL(/\/applications/);
     await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
     await page.getByPlaceholder(/Rechercher une application/i).fill('CRM');
     await page.waitForTimeout(400);
@@ -194,7 +206,7 @@ test.describe('US-03 — Navigation clavier', () => {
 test.describe('US-04 — Groupes par type', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
+    await expect(page).toHaveURL(/\/applications/);
     await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
   });
 
@@ -253,7 +265,7 @@ test.describe('US-04 — Groupes par type', () => {
 test.describe('US-05 — Navigation vers détail', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
+    await expect(page).toHaveURL(/\/applications/);
     await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
   });
 
@@ -299,14 +311,21 @@ test.describe('US-05 — Navigation vers détail', () => {
 test.describe('Parcours d\'erreur', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/applications');
+    await expect(page).toHaveURL(/\/applications/);
     await page.getByRole('button', { name: /Ouvrir la recherche/i }).click();
   });
 
   test('token expiré pendant la recherche → redirect vers /login', async ({ page }) => {
-    // Simuler une session expirée en supprimant le token
-    await page.evaluate(() => {
-      (window as any).__ARK_TOKEN__ = null;
+    await page.route('**/api/v1/search*', async (route) => {
+      await route.fulfill({
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          statusCode: 401,
+          message: 'Invalid or expired token',
+          code: 'UNAUTHORIZED',
+        }),
+      });
     });
 
     await page.getByPlaceholder(/Rechercher une application/i).fill('Test');
@@ -314,5 +333,7 @@ test.describe('Parcours d\'erreur', () => {
 
     // La requête devrait échouer et rediriger
     await expect(page).toHaveURL(/\/login/);
+
+    await page.unroute('**/api/v1/search*');
   });
 });

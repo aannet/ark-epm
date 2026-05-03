@@ -69,7 +69,7 @@ test.describe('IT Components CRUD API', () => {
     expect(body.name).toBe(created.name); // Should not change
   });
 
-  test('DELETE /it-components/:id - should delete IT component without dependencies', async ({ authenticatedRequest }) => {
+  test('DELETE /it-components/:id - should delete IT component without dependencies', async ({ authenticatedRequest, testData }) => {
     const created = await testData.createItComponent({
       name: `Delete Test ${Date.now()}`,
     });

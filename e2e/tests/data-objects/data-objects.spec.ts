@@ -9,23 +9,29 @@ const API_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 const API_VERSION = process.env.API_VERSION || '/api/v1';
 
 async function loginAs(page: Page, email: string, password: string) {
-  const res = await page.request.post(`${API_URL}${API_VERSION}/auth/login`, {
-    data: { email, password },
-  });
-  const { accessToken, user } = await res.json();
+  await page.goto('/login');
+  await page.getByLabel('Adresse e-mail').fill(email);
+  await page.getByLabel('Mot de passe').fill(password);
 
-  await page.goto('/');
-  await page.evaluate(
-    ({ token, userData }) => {
-      (window as any).__ARK_TOKEN__ = token;
-      (window as any).__ARK_USER__ = userData;
-    },
-    { token: accessToken, userData: user },
+  const loginResponse = page.waitForResponse(
+    (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
+    { timeout: 10000 },
   );
+
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+  const response = await loginResponse;
+
+  if (!response.ok()) {
+    return false;
+  }
+
+  await expect(page).not.toHaveURL(/\/login(\?.*)?$/, { timeout: 10000 });
+  return !page.url().includes('/login');
 }
 
 async function login(page: Page) {
-  await loginAs(page, 'admin@ark.io', 'admin123456');
+  const ok = await loginAs(page, 'admin@ark.io', 'admin123456');
+  expect(ok).toBeTruthy();
 }
 
 async function loginAsReadOnly(page: Page) {
@@ -339,11 +345,11 @@ test.describe('Suppression d\'objet de données', () => {
   // NOTE: Test DEPENDENCY_CONFLICT — nécessite un lien application↔data-object via API.
   // Skippé jusqu'à implémentation du champ `dataObjects` dans le DTO Applications.
   // Ref: F-999 Item 22, FS-05-BACK (appDataObjectMap)
-  test.skip('affiche erreur si objet lié à des applications (409)', async ({ _page }) => {
+  test.skip('affiche erreur si objet lié à des applications (409)', async ({ page }) => {
     // TODO: Créer un DO, lier une application, vérifier le message 409 dans le dialog
   });
 
-  test.skip('désactive le bouton Confirmer sur DEPENDENCY_CONFLICT', async ({ _page }) => {
+  test.skip('désactive le bouton Confirmer sur DEPENDENCY_CONFLICT', async ({ page }) => {
     // TODO: Même prérequis que ci-dessus
   });
 });

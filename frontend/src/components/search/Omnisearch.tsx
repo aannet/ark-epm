@@ -134,14 +134,14 @@ export function Omnisearch(): JSX.Element {
   // Handle Ctrl+K / Cmd+K shortcut
   useEffect(() => {
     const handleShortcut = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.code === 'KeyK')) {
         e.preventDefault();
         setOpen(true);
       }
     };
 
-    window.addEventListener('keydown', handleShortcut);
-    return () => window.removeEventListener('keydown', handleShortcut);
+    window.addEventListener('keydown', handleShortcut, true);
+    return () => window.removeEventListener('keydown', handleShortcut, true);
   }, [setOpen]);
 
   const showMinCharsMessage = !isLoading && query.length > 0 && query.length < 2;
