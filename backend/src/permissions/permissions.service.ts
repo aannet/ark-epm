@@ -11,7 +11,7 @@ export class PermissionsService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreatePermissionDto, currentUserId: string): Promise<any> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const existing = await this.prisma.permission.findUnique({ where: { name: data.name } });
     if (existing) {

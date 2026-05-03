@@ -22,7 +22,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreateUserDto, currentUserId: string): Promise<any> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
@@ -77,7 +77,7 @@ export class UsersService {
   }
 
   async update(id: string, data: UpdateUserDto, currentUserId: string): Promise<any> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
@@ -104,7 +104,7 @@ export class UsersService {
   }
 
   async remove(id: string, currentUserId: string): Promise<void> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {

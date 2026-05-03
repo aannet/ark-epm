@@ -16,7 +16,7 @@ export class RolesService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreateRoleDto, currentUserId: string): Promise<any> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const existing = await this.prisma.role.findUnique({ where: { name: data.name } });
     if (existing) {
@@ -58,7 +58,7 @@ export class RolesService {
   }
 
   async update(id: string, data: UpdateRoleDto, currentUserId: string): Promise<any> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const role = await this.prisma.role.findUnique({ where: { id } });
     if (!role) {
@@ -80,7 +80,7 @@ export class RolesService {
   }
 
   async remove(id: string, currentUserId: string): Promise<void> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const role = await this.prisma.role.findUnique({ where: { id } });
     if (!role) {
@@ -96,7 +96,7 @@ export class RolesService {
   }
 
   async updatePermissions(id: string, permissionIds: string[], currentUserId: string): Promise<any> {
-    await this.prisma.$executeRaw`SET LOCAL ark.current_user_id = ${currentUserId}`;
+    await this.prisma.setCurrentUser(currentUserId);
 
     const role = await this.prisma.role.findUnique({ where: { id } });
     if (!role) {

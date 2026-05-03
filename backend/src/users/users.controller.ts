@@ -4,6 +4,8 @@ import {
   Post,
   Patch,
   Delete,
+  HttpCode,
+  HttpStatus,
   Body,
   Param,
   UseGuards,
@@ -49,6 +51,7 @@ export class UsersController {
 
   @Delete(':id')
   @RequirePermissions('users:write')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
     return this.usersService.remove(id, req.user.userId);
   }
