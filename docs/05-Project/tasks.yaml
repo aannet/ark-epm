@@ -1,7 +1,7 @@
 tasks:
   - id: T-003
     nom: "Implémenter FS-09 Dependency Graph — frontend ReactFlow"
-    statut: blocked
+    statut: open
     assigned_agent: front
     session_active: ~
     date_resolution: ~
@@ -15,11 +15,12 @@ tasks:
         id: "a1b2c3"
         nom: "rituel ouverture - gate bloqué : spec vide"
     notes: |
-      Gate "spec vide" levée : FS-09-BACK + FS-09-FRONT rédigées (draft, 2026-05-03).
-      Gates restantes :
-        - FS-09-BACK impl done (agent back, module backend/src/graph/)
-        - FS-09-FRONT spec stable (après FS-09-BACK done)
-      Référence : T-085 (spec done), T-086 (gate BC recursive, open).
+      Gates levées (2026-05-03) :
+        - FS-09-BACK impl done : T-087 done (module backend/src/graph/, G-01 à G-09 validées)
+        - FS-09-FRONT spec stable : T-085 done (draft, suffisant pour démarrer)
+      Gate résiduelle : T-086 (BC recursive WITH RECURSIVE) — US-04 partiel acceptable pour P1.
+      Handoff back : docs/05-Project/20260503/SESSION-HANDOFF-back-t087.md
+      Spec front : docs/03-Features-Spec/FS-09-Dependency-Graph/FS-09-Dependency-Graph-front.md
 
   - id: T-009
     nom: "Migration tests Cypress → Playwright — Data Objects (F-999 Item 22)"
@@ -461,20 +462,23 @@ tasks:
 
   - id: T-087
     nom: "Back — Implémenter FS-09 Dependency Graph (backend/src/graph/)"
-    statut: in_progress
+    statut: done
     assigned_agent: back
-    session_active: "fs09bk"
-    handoff_ref: ~
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260503/SESSION-HANDOFF-back-t087.md"
+    date_resolution: 2026-05-03
     sprint: S4
     theme: "FS-09"
     type: impl
     feature: "FS-09-BACK"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "fs09bk"
+        nom: "implémentation complète module graph/ — BFS x6 focalTypes, 8/8 e2e PASS, G-01 à G-09 validées"
     notes: |
       Créer module backend/src/graph/ avec GET /api/v1/graph endpoint.
       BFS traversal focalType x6, depth 1-3, layers CSV.
       Permission : applications:read (réutilisation).
-      Gates G-01 à G-09 à valider. G-10 (BC récursif) bloquée par T-086.
+      Gates G-01 à G-09 validées. G-10 (BC récursif) bloquée par T-086.
       Spec : docs/03-Features-Spec/FS-09-Dependency-Graph/FS-09-Dependency-Graph-back.md
