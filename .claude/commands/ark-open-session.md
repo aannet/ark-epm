@@ -29,13 +29,17 @@ Dans tasks.yaml, filtre les tâches qui te concernent :
 - Ignorer : `statut: blocked` (gate non levée)
 - Ignorer : `statut: done`
 
+**P2 — contrôle de traçabilité** : si la tâche cible un ID `FS-09-P2` ou `F-999-*`, vérifie `docs/05-Project/roadmap-crosswalk.md` avant de la verrouiller.
+
 **Trie les tâches restantes par priorité décroissante** (`high` → `medium` → `low`).
 La tâche la plus prioritaire est proposée par défaut.
 
 ### Étape 2 — Vérifier les gates
 
 Certaines tâches ont des prérequis explicites dans leurs `notes`. Vérifie qu'ils sont levés.
-En cas de doute : lire la spec correspondante dans `docs/03-Features-Spec/`.
+En cas de doute :
+- lire la spec correspondante dans `docs/03-Features-Spec/`.
+- lire `docs/05-Project/roadmap-crosswalk.md` si c'est une tâche P2.
 
 ### Étape 3 — Choisir et verrouiller la tâche
 

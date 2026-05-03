@@ -898,6 +898,36 @@ test.describe('Data Objects Feature', () => {
 
 ---
 
+### Item 27 — Exécution hybride des tests e2e (Jest + Playwright)
+
+| | |
+|---|---|
+| **Statut** | 🟡 En attente — Normaliser le mode d'exécution Jest e2e backend |
+| **Priorité** | Moyenne — Fiabilité des validations locales/CI |
+
+**Contexte :**
+Le Makefile montre une stratégie hybride déjà opérationnelle :
+- **Backend e2e** via **Jest/Supertest** (`make test-backend-e2e`)
+- **API + UI e2e** via **Playwright** (`make test-api-*`, `make test-e2e`)
+
+Or, la commande `jest` peut être absente sur l'hôte si `backend/node_modules` n'y est pas installé, alors qu'elle est bien disponible dans le conteneur backend (`/app/node_modules/.bin/jest`). Cette divergence provoque des faux négatifs du type `jest: not found` lors des validations rapides.
+
+**Décision :**
+- Conserver la stratégie mixte (pas de retrait complet de Jest backend)
+- Documenter explicitement l'usage recommandé : Jest pour backend e2e en container Docker, Playwright pour API/UI via `make test-api-*` et `make test-e2e`
+- Ajouter une note de runbook dans ce registre de dette pour éviter la régression opérationnelle
+
+**Runbook recommandé :**
+- Backend e2e ciblé : `docker exec ark-epm-backend-1 sh -lc "cd /app && npm run test:e2e -- --runInBand test/users.e2e-spec.ts"`
+- API e2e : `make test-api-backend`
+- UI e2e : `make test-e2e`
+
+**Gate de validation :**
+- ✅ Le document de dette contient l'état réel de la stratégie test (mixte) et le mode d'exécution non ambigu
+- ✅ Plus aucun `jest: not found` non justifié en validation locale après adoption du runbook
+
+---
+
 ### Item 23 — Supprimer le secret JWT hardcodé en fallback *(P1 — Sécurité)*
 
 | | |
@@ -1180,6 +1210,7 @@ Request ID :
 - [ ] **Item 22** — Migrer 37 tests Cypress `data-objects.cy.ts` vers Playwright `e2e/tests/data-objects/data-objects.spec.ts`
 - [ ] **Item 22** — Supprimer `frontend/cypress/` après migration complète
 - [ ] **Item 22** — Retirer dépendances Cypress de `package.json`
+- [ ] **Item 27** — Stabiliser le runbook e2e : Jest backend (container) + Playwright API/UI
 - [ ] **Item 23** — Supprimer fallback JWT hardcodé dans `jwt.strategy.ts`
 - [ ] **Item 23** — Ajouter validation schema Joi pour `JWT_SECRET` dans `ConfigModule`
 - [ ] **Item 25** — Ajouter `@RequirePermissions('tags:write')` sur `resolveTag`, `putEntityTags`, `batchEntityTags`
@@ -1209,6 +1240,7 @@ Request ID :
 | 2026-04-05 | Item 23 | Secret JWT fallback hardcodé détecté (revue sécurité) — `getOrThrow` + validation Joi obligatoires | Spec/Sécurité |
 | 2026-04-29 | Item 25 | Escalade de privilèges tags : 3 endpoints write sans `@RequirePermissions` — revue sécurité automatisée | Claude/Arch |
 | 2026-05-03 | Item 12b | `MOCK_USERS` remplacés par `GET /api/v1/users?isActive=true` + `useUsers()` (FS-06 front + FS-01 back) | Alec |
+| 2026-05-03 | Item 27 | Stratégie test hybride confirmée : backend Jest e2e (container) + Playwright API/UI, et runbook d'exécution documenté | Alec |
 
 ---
 

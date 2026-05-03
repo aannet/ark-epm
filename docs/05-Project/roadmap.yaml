@@ -1,6 +1,7 @@
 # ARK-EPM — Roadmap source de vérité pour le Task Dashboard
 # Statuts : done | stable | in-progress | draft | ~  (~ = N/A)
 # Maintenu par l'agent spec/arch. Référence : docs/01-Product/ARK-Roadmap.md
+# Crosswalk opérationnel : docs/05-Project/roadmap-crosswalk.md
 
 sprints:
 
@@ -91,6 +92,10 @@ sprints:
   - id: "P2"
     nom: "Phase 2 — Post-MVP"
     features:
+      - id: "FS-09-P2"
+        nom: "Dependency Graph — Phase 2"
+        back: draft
+        front: draft
       - id: "FS-21"
         nom: "Tag Dimensions Administration"
         back: draft
@@ -109,5 +114,41 @@ sprints:
         front: draft
       - id: "FS-25"
         nom: "Dashboard Risques"
+        back: draft
+        front: draft
+      - id: "F-999-06"
+        nom: "Healthcheck endpoint"
+        back: draft
+        front: ~
+      - id: "F-999-07"
+        nom: "CORS production"
+        back: draft
+        front: ~
+      - id: "F-999-11"
+        nom: "Description Markdown Applications"
+        back: draft
+        front: draft
+      - id: "F-999-16"
+        nom: "Customisation couleurs Provider roles"
+        back: draft
+        front: draft
+      - id: "F-999-17"
+        nom: "Filtres dropdowns ProvidersListPage"
+        back: draft
+        front: draft
+      - id: "F-999-18"
+        nom: "Breadcrumbs Applications (Detail/New/Edit)"
+        back: ~
+        front: draft
+      - id: "F-999-19"
+        nom: "Breadcrumbs Domains (Detail/New/Edit)"
+        back: ~
+        front: draft
+      - id: "F-999-20"
+        nom: "Harmoniser breadcrumbs Providers"
+        back: ~
+        front: draft
+      - id: "F-999-21"
+        nom: "Composant partagé AppBreadcrumbs"
         back: draft
         front: draft

@@ -14,6 +14,12 @@ Deux systèmes coexistent et se complètent :
 | **Task Ledger** | `tasks.yaml` | Source de vérité des tâches — coordination entre agents parallèles | Tous les agents |
 | **Sprint Context** | `SESSION-HANDOFF.md` (racine) | Contexte riche de la feature critique du sprint | `spec` et `arch` uniquement |
 
+En P2, ajoutez la couche de pilotage suivante :
+
+- **`roadmap.yaml`** : périmètre fonctionnel par feature.
+- **`roadmap-crosswalk.md`** : traçabilité obligatoire `roadmap id ↔ spec ↔ tâches`.
+- **`tasks.yaml`** : exécution (qui, quoi, statut, priorités, verrous).
+
 **Principe clé** : en multi-session simultanée, les agents se coordonnent via `tasks.yaml` (verrous `session_active`, statuts), pas via `SESSION-HANDOFF.md`.
 
 ---
@@ -68,13 +74,25 @@ docs/05-Project/
 |---|---|---|---|
 | `/ark-open-session` | OC + CL | Lit tasks.yaml + SESSION-HANDOFF, filtre les tâches disponibles par agent, pose le verrou `session_active` | Début de chaque session |
 | `/ark-close-session` | OC + CL | Met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff dans `docs/05-Project/` | Fin de chaque session |
-| `/ark-task-add` | OC + CL | Ajout rapide d'une tâche avec détection de doublon et Q&A guidé (3 alternatives par champ) | Pense-bête, tâche découverte en cours de session |
+| `/ark-task-add` | OC + CL | Ajout rapide d'une tâche avec détection de doublon et Q&A guidé (3 alternatives par champ) | Pense-bête tâches découvertes en cours de session |
 | `/ark-back` | CL | Active le mode agent `back` — NestJS, controllers, services, DTOs | Session backend |
 | `/ark-front` | CL | Active le mode agent `front` — React, MUI v9, hooks, i18n | Session frontend |
 | `/ark-data` | CL | Active le mode agent `data` — Prisma schema, migrations, seeds | Session data |
 | `/ark-qa` | CL | Active le mode agent `qa` — Jest, Playwright, Cypress | Session tests |
 
 > Les agents nommés (`ark-back`, `ark-front`, `ark-data`, `ark-qa`) sont aussi disponibles dans OpenCode via `opencode.json`.
+
+⚠️ Rappel pratique : la commande est bien `ark-task-add` (et non `ark-add-task`).
+
+---
+
+## Règle de pilotage P2
+
+Pour les tâches FS-09-P2 et F-999-* :
+
+- Confirmer la présence de la ligne correspondante dans `roadmap-crosswalk.md` avant d'ouvrir la tâche.
+- S'assurer que la tâche mentionne dans ses `notes` l'ID roadmap source.
+- Si une tâche P2 est ajoutée sans mapping existant, ajouter d'abord la ligne croisée dans `roadmap-crosswalk.md` puis créer `tasks.yaml`.
 
 ---
 

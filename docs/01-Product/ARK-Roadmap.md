@@ -202,6 +202,8 @@ _Version 0.20 — Avril 2026_
 
 > FS-09-FRONT est la spec frontend la plus risquée. Le **POC React Flow** (tâche 0.8) doit être concluant avant de rédiger FS-09-FRONT.
 
+> **Note P2 :** les évolutions de seconde phase de FS-09 (US-08, US-09, US-11, US-12 et D12 — *Navigation historique*, *Algo de layout*, *Export Mermaid*, *Deep linking complet*, *Domain GroupNode*) sont détaillées dans `docs/05-Project/roadmap.yaml`.
+
 ---
 
 ### Sprint 5 — Import & Finalisation MVP
@@ -214,6 +216,8 @@ _Version 0.20 — Avril 2026_
 ---
 
 ## Features P2 — Différées
+
+> **Note d'exhaustivité :** la granularité P2 back/front et la dette technique (F-999) sont maintenues dans `docs/05-Project/roadmap.yaml` (source de vérité du dashboard).
 
 | ID | Feature | Dépend de | Priorité | Note |
 |---|---|---|---|---|

@@ -2,6 +2,8 @@
 description: Ajouter rapidement une tâche dans tasks.yaml (détection doublon + Q&A guidé)
 ---
 
+⚠️ Nom de commande réel : `/ark-task-add` (ne pas utiliser `ark-add-task`).
+
 Tu es un planner ARK-EPM. Ajoute une nouvelle tâche dans tasks.yaml via le rituel suivant.
 
 ## État actuel de tasks.yaml
@@ -19,10 +21,12 @@ Les arguments inline entre crochets pré-remplissent les champs correspondants :
 - `[back|front|data|qa|spec|arch]` → `assigned_agent`
 - `[bug|impl|spec|debt|doc|poc|test|decision|review]` → `type`
   - `[FS-XX|F-NNN|QA]` → `theme`
-  - `[S1|S2|S3|S4]` → `sprint`
+  - `[S1|S2|S3|S4|S5|P2]` → `sprint`
   - `[high|medium|low]` → `priorité` (défaut : `medium`)
 
 Exemple : `/ark-task-add Corriger le tri [back] [bug] [high]` → `assigned_agent: back`, `type: bug`, `priorité: high` pré-remplis.
+
+⚠️ Si la description mentionne `FS-09-P2` ou `F-999-*`, vérifie d'abord `docs/05-Project/roadmap-crosswalk.md` et utilise l'ID roadmap existant pour le `feature` de la tâche.
 
 ---
 
@@ -86,7 +90,7 @@ Pour chaque champ, réponds avec le numéro ou tape librement.
     [2] medium (Recommandé)
     [3] low
 
- 7. notes (optionnel — Entrée pour passer)
+  7. notes (optionnel — Entrée pour passer)
     [texte libre ou vide]
 ```
 

@@ -1,9 +1,9 @@
 tasks:
   - id: T-003
     nom: "Implémenter FS-09 Dependency Graph — frontend ReactFlow"
-    statut: open
+    statut: in_progress
     assigned_agent: front
-    session_active: ~
+    session_active: "adcda9"
     date_resolution: ~
     sprint: S2
     theme: "FS-09"
@@ -482,3 +482,200 @@ tasks:
       Permission : applications:read (réutilisation).
       Gates G-01 à G-09 validées. G-10 (BC récursif) bloquée par T-086.
       Spec : docs/03-Features-Spec/FS-09-Dependency-Graph/FS-09-Dependency-Graph-back.md
+
+  - id: T-088
+    nom: "FS-09-P2 — Finaliser les User Stories P2 du graphe de dépendances"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "FS-09"
+    type: impl
+    feature: "FS-09-P2"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (FS-09-P2).
+      Couvre les User Stories P2 identifiées dans `FS-09-Dependency-Graph-userstories.md` :
+      - US-08 — Navigation historique (← →)
+      - US-09 — Changement d'algorithme de layout (ELK / Force-directed)
+      - US-11 — Export Mermaid depuis l'état visible
+      - US-12 — Deep linking complet + gestion focalId invalide
+      - D12 — Domain GroupNode conteneur
+      Dépend de `T-087` (module graph backend) et `T-085` (spec front/back).
+
+  - id: T-089
+    nom: "F-999-06 — Ajouter endpoint healthcheck"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-06"
+    priorité: low
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-06).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 6.
+      Implémentation attendue côté backend : `GET /api/v1/health` non authentifié, réponse `status: ok, db: ok`.
+      Vérification préconisée : `GET /api/v1/health` → 200.
+
+  - id: T-090
+    nom: "F-999-07 — Appliquer politique CORS P2"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-07"
+    priorité: low
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-07).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 7.
+      Déployer une configuration CORS avec `CORS_ORIGIN` pour production on-premise.
+      En dev local, comportement permissif (`*`) conservé.
+
+  - id: T-091
+    nom: "F-999-11 — Description Markdown des Applications"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-11"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-11).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 11.
+      Remplacer le champ description des Applications par rendu/édition Markdown simplifié.
+      Cible P2 : conformité PNS-09 et réciprocité FS-06 front v1.1.
+
+  - id: T-092
+    nom: "F-999-16 — Customisation visuelle des rôles Provider"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-16"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-16).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 16.
+      Implémenter la personnalisation visuelle des rôles providers (palette dédiée, lisibilité, contraste).
+
+  - id: T-093
+    nom: "F-999-17 — Compléter les filtres dropdowns de ProvidersListPage"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-17"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-17).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 17.
+      Couvre les 2 filtres manquants : `contractType` et `expiryDate`.
+      Le backend doit exposer les query params dans `QueryProvidersDto` + service.
+      Le frontend doit activer les dropdowns et le filtrage via API.
+
+  - id: T-094
+    nom: "F-999-18 — Ajouter breadcrumbs sur pages Applications"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-18"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-18).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 18.
+      Ajouter la navigation PNS-11 sur :
+      - ApplicationDetailPage
+      - ApplicationNewPage
+      - ApplicationEditPage
+
+  - id: T-095
+    nom: "F-999-19 — Ajouter breadcrumbs sur pages Domains"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-19"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-19).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 19.
+      Ajouter la navigation PNS-11 sur :
+      - DomainDetailPage
+      - DomainNewPage
+      - DomainEditPage
+
+  - id: T-096
+    nom: "F-999-20 — Harmoniser breadcrumbs Providers"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-20"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-20).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 20.
+      Finaliser l'harmonisation des breadcrumbs Providers (Accueil + namespace i18n + spacing).
+
+  - id: T-097
+    nom: "F-999-21 — Créer composant partagé AppBreadcrumbs"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: P2
+    theme: "F-999"
+    type: impl
+    feature: "F-999-21"
+    priorité: medium
+    sessions: []
+    notes: |
+      ID roadmap ciblé : docs/05-Project/roadmap.yaml (F-999-21).
+      Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 21.
+      Créer `AppBreadcrumbs` dans `frontend/src/components/shared/` et refactorer les usages inline quand possible.
+      Ajouter à `frontend/src/components/shared/index.ts`.
