@@ -357,17 +357,20 @@ tasks:
 
   - id: T-082
     nom: "Interface list — nom manquant + filtre libre sur le nom"
-    statut: in_progress
+    statut: done
     assigned_agent: front
-    session_active: "a9b3f1"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-05-03
     sprint: S4
     theme: "FS-08"
     type: bug
     feature: "FS-08-FRONT"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "0db803"
+        nom: "clôture T-082 + test e2e minimal liste interfaces"
     notes: |
       La liste des Interfaces (InterfaceList) n'affiche pas le nom de l'interface.
       Le nom doit être le premier champ affiché.
