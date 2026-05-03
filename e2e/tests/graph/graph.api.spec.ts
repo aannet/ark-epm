@@ -108,6 +108,33 @@ test.describe('Graph API', () => {
     expect(body.edges).toHaveLength(0);
   });
 
+  test('GET /graph layers=interfaces does not return edges to hidden nodes', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({ name: `Graph HiddenEdges Dom ${Date.now()}` });
+    const appA = await testData.createApplication({ name: `Graph HiddenEdges A ${Date.now()}`, domainId: domain.id });
+    const appB = await testData.createApplication({ name: `Graph HiddenEdges B ${Date.now()}`, domainId: domain.id });
+    await testData.createInterface({ sourceAppId: appA.id, targetAppId: appB.id, type: 'REST' });
+
+    const res = await auth.request.get(
+      `graph?focalType=application&focalId=${appA.id}&layers=interfaces`,
+    );
+    const body = await expectSuccess<{
+      nodes: { id: string; isFocal: boolean; type: string }[];
+      edges: { sourceId: string; targetId: string }[];
+    }>(res, 200);
+
+    const focalNode = body.nodes.find((n) => n.id === appA.id);
+    expect(focalNode).toBeDefined();
+    expect(focalNode?.isFocal).toBe(true);
+    expect(focalNode?.type).toBe('application');
+
+    const nodeIds = new Set(body.nodes.map((n) => n.id));
+    for (const edge of body.edges) {
+      expect(nodeIds.has(edge.sourceId)).toBe(true);
+      expect(nodeIds.has(edge.targetId)).toBe(true);
+    }
+    expect(body.edges).toHaveLength(0);
+  });
+
   test('GET /graph focalType=provider returns linked app nodes', async ({ auth, testData }) => {
     const domain = await testData.createDomain({ name: `Graph Prov Dom ${Date.now()}` });
     const provider = await testData.createProvider({ name: `Graph Provider ${Date.now()}` });

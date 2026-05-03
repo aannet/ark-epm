@@ -61,8 +61,14 @@ export class GraphService {
       }
     }
 
+    const visibleAppIds = new Set(
+      Array.from(mergeMap.values())
+        .filter((node) => node.type === 'application')
+        .map((node) => node.id),
+    );
+
     const edges = layers.includes(GraphLayer.INTERFACES)
-      ? await this.fetchEdges(visitedAppIds)
+      ? await this.fetchEdges(visibleAppIds)
       : [];
 
     return { nodes: Array.from(mergeMap.values()), edges };
