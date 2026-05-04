@@ -779,7 +779,56 @@ tasks:
          - Créer T-101..T-105 pour items P2 (sélection parmi 25 items)
          - Estimer effort, prioriser par ROI
 
-      Livrables :
-      - Tableau récapitulatif (conformité %)
-      - Liste tâches nouvelles (T-101..T-105)
-      - Rapport détails arch/tech debt pour review sprint S5
+       Livrables :
+       - Tableau récapitulatif (conformité %)
+       - Liste tâches nouvelles (T-101..T-105)
+       - Rapport détails arch/tech debt pour review sprint S5
+
+  - id: T-101
+    nom: "Back — Harmoniser validation injection sur tous les DTOs (suite T-099)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: debt
+    feature: "QA-DAST"
+    priorité: high
+    sessions: []
+    notes: |
+      Suite T-099 (data-objects validation hardening) : appliquer les mêmes contrôles
+      à toutes les entités EA. Référence pattern : CreateDataObjectDto post-T-099.
+
+      Audit préalable (2026-05-04) identifie ces gaps critiques/high :
+
+      CRITIQUE (aucune garde sur champs libres) :
+      - Interface : name, description, comment, technicalContact
+      - Application : description, comment, lifecycleStatus
+
+      HIGH (@Transform trim manquant, @MaxLength présent) :
+      - ItComponent : description, comment, technology, type
+
+      MEDIUM (@Matches manquant sur name, rest OK) :
+      - Domain, Provider, BusinessCapability, Application, TagDimension
+
+      Contrôles à appliquer sur ALL create + update DTOs :
+
+      Name fields (tous) :
+      + @Matches(/^[^;<>|`\\{}\[\]\x00-\x1F]*$/) — rejeter caractères injection
+      + @NotContains('://') — rejeter URL schemes
+      + @Transform trim si absent
+
+      Description/Comment/Text fields (tous libres) :
+      + @Transform(trim) si absent
+      + @MaxLength(2000) si absent
+      + Cohérence avec pattern data-objects
+
+      Tests requis :
+      - Chaque *.validation.api.spec.ts concerné : ajouter 1 test injection POST + PATCH
+      - Validation 400 sur payloads: ZAP;*, ZAP|*, http://, ]]>, `backtick`
+      - Sanity check: valid name avec espaces/tirets acceptée
+
+      Lié à F-999 Item 28 (tech debt).
+      Estimé 2-3 jours (6 DTOs × 2 files + tests + validation).

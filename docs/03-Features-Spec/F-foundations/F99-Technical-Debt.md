@@ -1172,6 +1172,69 @@ Request ID :
 
 ---
 
+### Item 28 — Validation injection uniforme sur tous les DTOs *(P1 — Sécurité)*
+
+| | |
+|---|---|
+| **Statut** | 🟡 En cours — T-101 assignée |
+| **Priorité** | P1 (sécurité — cohérence DAST) |
+| **Gate de validation** | T-101 done + tous les tests injection passent sur toutes entités |
+
+**Contexte :**
+Le scan OWASP ZAP (2026-05-04) a persisté des payloads de fuzzing dans `data_objects` (T-099). Fix appliqué sur `DataObjectDto` : ajout de `@Matches` pour rejeter les caractères injection, `@NotContains('://')` pour les URL, et `@Transform(trim)` sur champs libres.
+
+Audit des DTOs restants (2026-05-04) révèle que le même gap existe sur toutes les entités :
+- **Critique** : `InterfaceDto` (name, description, comment, technicalContact) — zéro garde
+- **Critique** : `ApplicationDto` (description, comment, lifecycleStatus) — pas de trim ni MaxLength
+- **High** : `ItComponentDto` (description, comment, technology, type) — pas de trim
+- **Medium** : Tous les autres (name sans @Matches injection filter)
+
+**Décision :**
+Appliquer uniformément sur tous les DTOs create + update le pattern établi dans T-099 :
+
+```typescript
+// Name fields (ALL entities)
+@Matches(/^[^;<>|`\\{}\[\]\x00-\x1F]*$/, {
+  message: 'Name contains forbidden characters (injection attempt)',
+})
+@NotContains('://', {
+  message: 'Name cannot contain URL schemes',
+})
+
+// Description/Comment/Text free-form fields
+@Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+@MaxLength(2000)
+```
+
+**Conséquences :**
+- Cohérence de la surface d'attaque : toute entité rejette les payloads ZAP
+- Alignement OWASP A03:2021 Injection
+- Impact tests : ajouter cas d'injection dans chaque `*.validation.api.spec.ts`
+
+**Scope (6 entités × 2 DTOs = 12 fichiers) :**
+- `applications` → CreateApplicationDto, UpdateApplicationDto (3 champs : description, comment, lifecycleStatus)
+- `domains` → CreateDomainDto, UpdateDomainDto (name only : @Matches)
+- `providers` → CreateProviderDto, UpdateProviderDto (name + contractType trim)
+- `it_components` → CreateItComponentDto, UpdateItComponentDto (description, comment, technology, type)
+- `business_capabilities` → CreateBusinessCapabilityDto, UpdateBusinessCapabilityDto (name only : @Matches)
+- `interfaces` → CreateInterfaceDto, UpdateInterfaceDto (ALL fields : name, description, comment, technicalContact)
+- `tags` → CreateTagDimensionDto, UpdateTagDimensionDto (name + description + color + icon)
+
+**Tests requis :**
+- Chaque `*.validation.api.spec.ts` : ajouter ≥1 test injection (POST + PATCH)
+- Payloads : `ZAP;cat /etc/passwd;`, `ZAP|type`, `http://evil.com`, `]]>`, `Data`whoami``
+- Réponse attendue : 400 Bad Request
+- Sanity check : valid name avec espaces/tirets accepté → 201/200
+
+**Gate de validation :**
+- [ ] Tous les DTOs respects le pattern T-099 (imports `Matches`, `NotContains`)
+- [ ] `npm run build` passe sans erreur
+- [ ] Tests injection ajoutés pour chaque entité critique+high
+- [ ] `make test-api-backend` : 0 régression, injection tests 100% pass
+- [ ] `make test-backend-e2e` : 0 régression
+
+---
+
 ## 4. Checklist d'implémentation P1
 
 - [x] **Item 1** — `HttpExceptionFilter` créé et enregistré dans `main.ts`
@@ -1216,6 +1279,11 @@ Request ID :
 - [ ] **Item 25** — Ajouter `@RequirePermissions('tags:write')` sur `resolveTag`, `putEntityTags`, `batchEntityTags`
 - [ ] **Item 25** — Ajouter `@RequirePermissions('tags:read')` sur `autocomplete`, `getEntityTags` (défensif)
 - [ ] **Item 25** — Valider `403 FORBIDDEN` pour utilisateur sans `tags:write` sur les 3 endpoints write
+- [ ] **Item 28** — @Matches + @NotContains('://') sur `name` de : Application, Domain, Provider, ItComponent, BusinessCapability, Interface, TagDimension
+- [ ] **Item 28** — @Transform trim + @MaxLength sur : Interface (4 champs), Application (description, comment, lifecycleStatus), ItComponent (4 champs), Provider (contractType), TagDimension (4 champs)
+- [ ] **Item 28** — Tests injection dans `*.validation.api.spec.ts` pour chaque entité concernée (400 sur ZAP;*, |, http://, ]]>, backtick)
+- [ ] **Item 28** — Validation : `make test-api-backend` et `make test-backend-e2e` 100% pass
+
 ---
 
 ## 5. Journal des décisions
@@ -1241,6 +1309,7 @@ Request ID :
 | 2026-04-29 | Item 25 | Escalade de privilèges tags : 3 endpoints write sans `@RequirePermissions` — revue sécurité automatisée | Claude/Arch |
 | 2026-05-03 | Item 12b | `MOCK_USERS` remplacés par `GET /api/v1/users?isActive=true` + `useUsers()` (FS-06 front + FS-01 back) | Alec |
 | 2026-05-03 | Item 27 | Stratégie test hybride confirmée : backend Jest e2e (container) + Playwright API/UI, et runbook d'exécution documenté | Alec |
+| 2026-05-04 | Item 28 | Audit DTOs post-ZAP T-099 : gap injection/trim sur 6 entités — T-101 créée pour harmoniser validation ALL DTOs | back |
 
 ---
 
