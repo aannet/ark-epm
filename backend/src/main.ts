@@ -17,7 +17,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  // AGENT-DECISION: back — T-099 ZAP injection fix
+  // Enable whitelist to silently strip unknown properties from request bodies
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);

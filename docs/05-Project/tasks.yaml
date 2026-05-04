@@ -706,9 +706,9 @@ tasks:
 
   - id: T-099
     nom: "Fix test ZAP — injections persistées en base Data Objects + cleanup"
-    statut: open
+    statut: in_progress
     assigned_agent: back
-    session_active: ~
+    session_active: "a5c2f1"
     handoff_ref: ~
     date_resolution: ~
     sprint: S4

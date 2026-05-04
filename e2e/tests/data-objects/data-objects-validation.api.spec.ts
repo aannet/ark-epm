@@ -64,4 +64,73 @@ test.describe('Data Objects Validation API', () => {
     const res = await authenticatedRequest.delete(`data-objects/${fakeId}`);
     expect(res.status()).toBe(404);
   });
+
+  // AGENT-DECISION: qa — T-099 ZAP injection validation tests
+  test('POST /data-objects - should reject command injection in name (semicolon)', async ({ authenticatedRequest }) => {
+    const res = await authenticatedRequest.post('data-objects', {
+      data: { name: 'ZAP;cat /etc/passwd;' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    // Validation error — status 400 is sufficient proof of rejection
+    expect(body.statusCode).toBe(400);
+  });
+
+  test('POST /data-objects - should reject shell pipe injection in name', async ({ authenticatedRequest }) => {
+    const res = await authenticatedRequest.post('data-objects', {
+      data: { name: 'ZAP|type %SYSTEMROOT%\\win.ini' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+  });
+
+  test('POST /data-objects - should reject URL scheme injection in name', async ({ authenticatedRequest }) => {
+    const res = await authenticatedRequest.post('data-objects', {
+      data: { name: 'http://www.google.com/search?q=ZAP' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+  });
+
+  test('POST /data-objects - should reject XML/SSTI markers in name', async ({ authenticatedRequest }) => {
+    const res = await authenticatedRequest.post('data-objects', {
+      data: { name: 'Valid Name ]]>' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+  });
+
+  test('POST /data-objects - should reject backtick injection in name', async ({ authenticatedRequest }) => {
+    const res = await authenticatedRequest.post('data-objects', {
+      data: { name: 'Data`whoami`' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+  });
+
+  test('POST /data-objects - should accept valid name with spaces and hyphens', async ({ authenticatedRequest }) => {
+    const res = await authenticatedRequest.post('data-objects', {
+      data: { name: 'Valid Data Object - Test Name' },
+    });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    expect(body.name).toBe('Valid Data Object - Test Name');
+    // Cleanup
+    await authenticatedRequest.delete(`data-objects/${body.id}`);
+  });
+
+  test('PATCH /data-objects/:id - should reject injection in name during update', async ({ authenticatedRequest, testData }) => {
+    const dataObject = await testData.createDataObject({ name: 'Original Name' });
+
+    const res = await authenticatedRequest.patch(`data-objects/${dataObject.id}`, {
+      data: { name: 'ZAP;cat /etc/passwd;' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+  });
 });
