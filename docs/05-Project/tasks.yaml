@@ -685,11 +685,11 @@ tasks:
 
   - id: T-098
     nom: "Arch — Ajouter eslint-plugin-sonarjs (cognitive-complexity) au pipeline MegaLinter"
-    statut: in_progress
+    statut: done
     assigned_agent: arch
-    session_active: "0c5f42"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-05-04
     sprint: S4
     theme: "QA"
     type: impl
@@ -729,6 +729,57 @@ tasks:
       - Validation renforcée sur CreateDataObjectDto (name, description)
       - Rejeter les payloads de type command injection, XSS, ou URLs malformées
 
-      Fix côté qa (secondaire) :
-      - Isoler l'env DAST (DB dédiée ou mode passif ZAP)
-      - Cleanup script post-scan pour retirer les entrées de test
+       Fix côté qa (secondaire) :
+       - Isoler l'env DAST (DB dédiée ou mode passif ZAP)
+       - Cleanup script post-scan pour retirer les entrées de test
+
+  - id: T-100
+    nom: "Audit global application — validation architecture + tech debt"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "QA"
+    type: review
+    feature: "QA-AUDIT"
+    priorité: medium
+    sessions: []
+    notes: |
+      Audit global ARK-EPM suite aux corrections S4 (T-098 ESLint, T-099 ZAP injection).
+      Vérifier l'état d'ensemble de l'application et identifier la dette technique à tracker.
+
+      Scope :
+      1. Backend — structure + patterns
+         - Conformité AGENTS.md (auth, RBAC, audit context, validation DTOs)
+         - Modules NestJS : conventions d'import, gestion erreurs, logging
+         - Services : utilisation PrismaService + setCurrentUser avant writes
+         - Endpoints : auth guards (@Public si nécessaire), permissions (@RequirePermissions)
+
+      2. Frontend — composants + état
+         - Conformité MUI v9 exclusif (pas Tailwind, pas styled-components custom)
+         - Components : hooks hooks patterns, React Query (useQuery/useMutation)
+         - i18n : toutes strings via t('key') (scanner hardcoded strings)
+         - Theme : vérifier DESIGN.md tokens appliqués
+
+      3. Base de données — schema + migrations
+         - Conformité Prisma : @@map snake_case, @default(dbgenerated()), @db.Uuid
+         - Audit trail : trigger fn_audit_trigger() sur toutes tables
+         - Indexes : sur foreign keys et colonnes WHERE/JOIN fréquentes
+
+      4. Tests — couverture + stabilité
+         - Playwright API : existence tests pour tous endpoints CRUD
+         - Jest unit : couverture services critiques (auth, validation, business logic)
+         - E2E UI : parcours critiques (login → create/edit/delete entités)
+         - Flakiness : identifier tests intermittents
+
+      5. Tech debt — F-999 items
+         - Relire docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md
+         - Créer T-101..T-105 pour items P2 (sélection parmi 25 items)
+         - Estimer effort, prioriser par ROI
+
+      Livrables :
+      - Tableau récapitulatif (conformité %)
+      - Liste tâches nouvelles (T-101..T-105)
+      - Rapport détails arch/tech debt pour review sprint S5
