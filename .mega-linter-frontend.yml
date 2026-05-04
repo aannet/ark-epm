@@ -1,0 +1,30 @@
+# MegaLinter — Frontend Code Quality (ESLint v8 + SonarJS + duplication)
+# Target: React + TypeScript source code in frontend/src
+# Config format: ESLint v8 legacy (compatible with MegaLinter v8 bundle)
+# AGENT-DECISION: arch — T-098
+
+# General settings
+APPLY_FIXES: none
+DISABLE_ERRORS: false
+PRINT_ALPACA: false
+SHOW_ELAPSED_TIME: true
+FLAVOR_SUGGESTIONS: false
+VALIDATE_ALL_CODEBASE: true
+
+# --- Quality linters ---
+ENABLE_LINTERS:
+  - TYPESCRIPT_ES       # ESLint: cognitive-complexity + react-hooks (frontend/src)
+  - COPYPASTE_JSCPD     # Duplicate code detection (frontend/src)
+
+# TYPESCRIPT_ES: project uses ESLint v8 legacy config (.eslintrc.cjs in frontend/)
+TYPESCRIPT_ES_CONFIG_FILE: frontend/.eslintrc.cjs
+TYPESCRIPT_ES_DIRECTORY: frontend
+
+# COPYPASTE_JSCPD: informational only — duplication does not block the run
+COPYPASTE_JSCPD_DISABLE_ERRORS: true
+
+# Files exclusions
+FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|\.next/|out/|frontend/cypress/)'
+
+# Additional settings
+FILEIO_REPORTER: false

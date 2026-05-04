@@ -28,12 +28,18 @@
   },
   "devDependencies": {
     "@cypress/react18": "^2.0.1",
+    "@eslint/eslintrc": "^3.0.0",
     "@types/node": "^20.0.0",
     "@types/dagre": "^0.7.52",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "cypress": "^15.11.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-sonarjs": "^4.0.2",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   }

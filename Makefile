@@ -392,10 +392,11 @@ test-dast-baseline:
 
 # ----------------------------------------------------------------------------------
 # MegaLinter — Code quality analysis
-MEGALINTER_IMAGE   ?= oxsecurity/megalinter:v8
-MEGALINTER_REPORTS ?= $(PWD)/reports/megalinter
+MEGALINTER_IMAGE          ?= oxsecurity/megalinter:v8
+MEGALINTER_REPORTS        ?= $(PWD)/reports/megalinter
+MEGALINTER_FRONTEND_REPORTS ?= $(PWD)/reports/megalinter-frontend
 
-# Code quality: ESLint (backend/src) + duplication (backend/src + frontend/src)
+# Code quality backend: ESLint (backend/src) + duplication (backend/src + frontend/src)
 megalinter-quality:
 	@echo "🔍 Running MegaLinter — code quality (ESLint + duplication)..."
 	@mkdir -p $(MEGALINTER_REPORTS)
@@ -418,9 +419,24 @@ megalinter-config:
 		-e MEGALINTER_CONFIG=.mega-linter-config.yml \
 		$(MEGALINTER_IMAGE)
 
+# Code quality frontend: ESLint (frontend/src) + duplication (frontend/src)
+megalinter-frontend:
+	@echo "🔍 Running MegaLinter — frontend quality (ESLint + duplication)..."
+	@mkdir -p $(MEGALINTER_FRONTEND_REPORTS)
+	@docker run --rm \
+		-v $(PWD):/tmp/lint:ro \
+		-v $(MEGALINTER_FRONTEND_REPORTS):/reports \
+		-e REPORT_OUTPUT_FOLDER=/reports/$(TIMESTAMP) \
+		-e MEGALINTER_CONFIG=.mega-linter-frontend.yml \
+		-e DISABLE_ERRORS=false \
+		$(MEGALINTER_IMAGE)
+
+# Run both backend and frontend quality checks in sequence
+megalinter-all: megalinter-quality megalinter-frontend
+
 megalinter: megalinter-quality
 
-# Show SUMMARY of latest run in console
+# Show SUMMARY of latest backend run in console
 megalinter-report:
 	@DIR=$$(ls -dt $(MEGALINTER_REPORTS)/*/ 2>/dev/null | head -1); \
 	if [ -z "$$DIR" ]; then \
@@ -429,6 +445,25 @@ megalinter-report:
 		exit 1; \
 	fi; \
 	echo "📁 Report: $$DIR"; \
+	echo ""; \
+	grep -A 15 "SUMMARY" "$$DIR/megalinter.log" 2>/dev/null || true; \
+	echo ""; \
+	if [ -f "$$DIR/megalinter-report.html" ]; then \
+		echo "📄 HTML: $${DIR}megalinter-report.html"; \
+		xdg-open "$${DIR}megalinter-report.html" 2>/dev/null || true; \
+	else \
+		echo "📋 Full log: $${DIR}megalinter.log"; \
+	fi
+
+# Show SUMMARY of latest frontend run in console
+megalinter-frontend-report:
+	@DIR=$$(ls -dt $(MEGALINTER_FRONTEND_REPORTS)/*/ 2>/dev/null | head -1); \
+	if [ -z "$$DIR" ]; then \
+		echo "❌ No MegaLinter frontend report found in $(MEGALINTER_FRONTEND_REPORTS)."; \
+		echo "   Run 'make megalinter-frontend' first."; \
+		exit 1; \
+	fi; \
+	echo "📁 Frontend Report: $$DIR"; \
 	echo ""; \
 	grep -A 15 "SUMMARY" "$$DIR/megalinter.log" 2>/dev/null || true; \
 	echo ""; \

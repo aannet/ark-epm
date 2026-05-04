@@ -682,3 +682,53 @@ tasks:
       Spécification source : `docs/03-Features-Spec/F-foundations/F99-Technical-Debt.md`, section Item 21.
       Créer `AppBreadcrumbs` dans `frontend/src/components/shared/` et refactorer les usages inline quand possible.
       Ajouter à `frontend/src/components/shared/index.ts`.
+
+  - id: T-098
+    nom: "Arch — Ajouter eslint-plugin-sonarjs (cognitive-complexity) au pipeline MegaLinter"
+    statut: in_progress
+    assigned_agent: arch
+    session_active: "0c5f42"
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-ESLINT"
+    priorité: medium
+    sessions: []
+    notes: |
+      Ajouter l'analyse de complexité cognitive au pipeline ESLint/MegaLinter.
+      Scope :
+      - Installer eslint-plugin-sonarjs (npm install --save-dev eslint-plugin-sonarjs)
+      - Activer la règle sonarjs/cognitive-complexity (warn à 15)
+      - Vérifier compatibilité avec la configuration MegaLinter existante (.eslintrc / eslint.config.*)
+      Référence : MegaLinter supporte nativement les plugins ESLint via la config locale.
+
+  - id: T-099
+    nom: "Fix test ZAP — injections persistées en base Data Objects + cleanup"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "QA-DAST"
+    priorité: high
+    sessions: []
+    notes: |
+      Le scan OWASP ZAP a persisté des payloads de fuzzing dans la table data_objects
+      (screenshot : docs/tmp/2026-05-04 215832_bugzap.png).
+      Exemples visibles : "ZAP;cat /etc/passwd;", "ZAP|type %SYSTEMROOT%\win.ini",
+      "http://www.google.com/search?q=ZAP", "]]>", etc.
+
+      Cause : POST /api/v1/data-objects sans validation stricte + scan ZAP écrit en DB partagée.
+
+      Fix côté back (prioritaire) :
+      - Validation renforcée sur CreateDataObjectDto (name, description)
+      - Rejeter les payloads de type command injection, XSS, ou URLs malformées
+
+      Fix côté qa (secondaire) :
+      - Isoler l'env DAST (DB dédiée ou mode passif ZAP)
+      - Cleanup script post-scan pour retirer les entrées de test

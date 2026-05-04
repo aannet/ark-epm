@@ -5,7 +5,7 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'sonarjs'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -20,5 +20,9 @@ module.exports = {
     // no-floating-promises and no-unsafe-argument require parserOptions.project (type-aware)
     // not enabled here to keep MegaLinter config simple and fast
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    // AGENT-DECISION: arch — T-098
+    // Cognitive complexity analysis: warn at 15 (default threshold).
+    // This rule detects control flow complexity that can make functions hard to understand and maintain.
+    'sonarjs/cognitive-complexity': ['warn', 15],
   },
 };
