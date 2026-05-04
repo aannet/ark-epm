@@ -52,6 +52,7 @@ e2e/reports/*
 reports/trivy/
 reports/semgrep/
 reports/megalinter/
+reports/zap/
 
 # --- Misc ---
 npm-debug.log*
