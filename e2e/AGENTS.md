@@ -164,7 +164,7 @@ make test-backend-unit         # Tests unitaires uniquement
 make test-backend-e2e          # Tests e2e backend (Jest + Supertest)
 
 # Tests API (Playwright)
-make test-api-backend          # Auto-d\u00e9tection local/Docker
+make test-api          # Auto-d\u00e9tection local/Docker
 make test-api-local            # Force mode local (npx)
 make test-api-docker           # Force mode Docker
 make test-api-domains          # Tests API Domains uniquement
