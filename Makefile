@@ -1,4 +1,24 @@
 # ARK-EPM Makefile
+# Comprehensive task automation for development, testing, and security scanning
+
+.PHONY: \
+	dev dev-clean dev-local \
+	build build-frontend backend-rebuild \
+	start-backend start-backend-dev \
+	prisma-studio \
+	docker-up docker-down docker-restart \
+	backend-logs \
+	db-shell db-push db-generate db-fix-audit-id db-reseed \
+	auth-token \
+	test-backend test-backend-unit test-backend-e2e \
+	test-e2e test-e2e-ci test-e2e-report test-e2e-build test-e2e-debug \
+	test-api test-api-local test-api-docker test-api-custom test-api-domains test-api-applications test-api-report \
+	validate-backend \
+	project-dashboard \
+	scan-trivy-backend scan-trivy-frontend scan-trivy-fs scan-trivy-all \
+	scan-semgrep-backend scan-semgrep-frontend scan-semgrep-all \
+	scan-zap scan-zap-baseline scan-zap-report \
+	scan-megalinter-quality scan-megalinter-config scan-megalinter-frontend scan-megalinter-all scan-megalinter scan-megalinter-report scan-megalinter-frontend-report
 
 # Auto-detect container names (Docker Compose v1 uses underscores, v2 uses dashes)
 BACKEND_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.backend.1' | head -1)
@@ -6,6 +26,13 @@ POSTGRES_CONTAINER = $(shell docker ps --format '{{.Names}}' | grep -E 'ark.epm.
 
 # Timestamp for report files (YYYYMMDD-HHMMSS)
 TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
+
+# Backend configuration
+BACKEND_PORT ?= 3001
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Development
+# ─────────────────────────────────────────────────────────────────────────────
 
 dev:
 	@echo "Starting containerized backend + frontend..."
@@ -29,6 +56,10 @@ dev-local:
 	@echo "Starting local Vite dev server on port 5173..."
 	cd frontend && npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Build
+# ─────────────────────────────────────────────────────────────────────────────
+
 build:
 	cd frontend && npm run build
 	cd backend && npm run build
@@ -36,17 +67,25 @@ build:
 build-frontend:
 	cd frontend && npm run build
 
-build-backend:
+backend-rebuild:
 	docker exec $(BACKEND_CONTAINER) sh -c "cd /app && rm -rf dist && npm run build"
+	docker restart $(BACKEND_CONTAINER)
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Backend (local development)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# [legacy] — local only, hors workflow Docker
 start-backend:
 	cd backend && npm start
 
+# [legacy] — local only, hors workflow Docker
 start-backend-dev:
 	cd backend && npm run start:dev
 
-prisma-studio:
-	cd backend && npm run prisma:studio
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker infrastructure
+# ─────────────────────────────────────────────────────────────────────────────
 
 docker-up:
 	docker-compose up -d
@@ -57,13 +96,15 @@ docker-down:
 docker-restart:
 	docker-compose down && docker-compose up -d
 
-# Backend utilities
-backend-rebuild:
-	docker exec $(BACKEND_CONTAINER) sh -c "cd /app && rm -rf dist && npm run build"
-	docker restart $(BACKEND_CONTAINER)
-
 backend-logs:
 	docker logs $(BACKEND_CONTAINER) -f
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Database & Prisma
+# ─────────────────────────────────────────────────────────────────────────────
+
+prisma-studio:
+	cd backend && npm run prisma:studio
 
 db-shell:
 	docker exec -it $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm
@@ -74,10 +115,12 @@ db-push:
 db-generate:
 	docker exec $(BACKEND_CONTAINER) npx prisma generate
 
-db-reset-id:
+# One-time fix for audit_trail.id DEFAULT constraint
+db-fix-audit-id:
 	docker exec $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm -c "ALTER TABLE audit_trail ALTER COLUMN id SET DEFAULT gen_random_uuid();"
 
-db-reset-reseed:
+# Reset and reseed business data (users/roles/permissions preserved)
+db-reseed:
 	@echo "⚠️  Resetting all business data (users/roles/permissions preserved)..."
 	docker exec $(POSTGRES_CONTAINER) psql -U arkepm -d arkepm -c \
 		"TRUNCATE TABLE entity_tags, app_capability_map, app_data_object_map, app_it_component_map, app_provider_map, interfaces, applications, business_capabilities, data_objects, it_components, providers, domains, tag_values, tag_dimensions, audit_trail CASCADE;"
@@ -85,11 +128,17 @@ db-reset-reseed:
 	docker exec $(BACKEND_CONTAINER) npx ts-node prisma/seed-all.ts
 	@echo "✅ Reseed completed."
 
-get-token:
+# ─────────────────────────────────────────────────────────────────────────────
+# Authentication
+# ─────────────────────────────────────────────────────────────────────────────
+
+auth-token:
 	@./backend/scripts/get-token.sh
 
-# ----------------------------------------------------------------------------------
-# Test utilities
+# ─────────────────────────────────────────────────────────────────────────────
+# Tests — Backend
+# ─────────────────────────────────────────────────────────────────────────────
+
 test-backend:
 	cd backend && npm test
 
@@ -99,7 +148,10 @@ test-backend-unit:
 test-backend-e2e:
 	cd backend && npm run test:e2e
 
-# E2E Tests (Playwright)
+# ─────────────────────────────────────────────────────────────────────────────
+# Tests — E2E UI (Playwright)
+# ─────────────────────────────────────────────────────────────────────────────
+
 test-e2e:
 	@echo "Running E2E tests against dev environment..."
 	docker-compose run --rm playwright
@@ -120,7 +172,10 @@ test-e2e-debug:
 	@echo "Running E2E tests with debug output..."
 	docker-compose run --rm playwright sh -c "npx wait-on http://frontend:5173 http://backend:3000 --timeout 60000 && npm run test:headed"
 
-# API Backend Tests (Playwright) - Strategy: Hybrid Local/Docker
+# ─────────────────────────────────────────────────────────────────────────────
+# Tests — API (Playwright)
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Variables configurable via environment or make arguments
 API_BASE_URL ?= http://localhost:3001
 API_VERSION ?= /api/v1
@@ -128,7 +183,7 @@ API_USER_EMAIL ?= admin@ark.io
 API_USER_PASSWORD ?= admin123456
 
 # Auto-detection: Uses local npx if Node available and backend responds, otherwise Docker
-test-api-backend:
+test-api:
 	@echo "🔍 Detecting backend on $(API_BASE_URL)..."
 	@curl -s $(API_BASE_URL)$(API_VERSION)/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || echo "⚠️  Backend not accessible"
 	@if command -v npx >/dev/null 2>&1 && curl -s $(API_BASE_URL)$(API_VERSION)/health > /dev/null 2>&1; then \
@@ -196,35 +251,43 @@ test-api-report:
 	@echo "Opening API test report..."
 	cd e2e && npx playwright show-report reports/html
 
-# Full validation pipeline
-validate-backend: build-backend
-	docker restart $(BACKEND_CONTAINER)
+# ─────────────────────────────────────────────────────────────────────────────
+# Validation
+# ─────────────────────────────────────────────────────────────────────────────
+
+validate-backend: backend-rebuild
 	@echo "Validating backend..."
 	@echo "Waiting for backend to be ready..."; \
 	for i in $$(seq 1 20); do \
-		curl -s http://localhost:3001/api/v1/health > /dev/null 2>&1 && break; \
+		curl -s http://localhost:$(BACKEND_PORT)/api/v1/health > /dev/null 2>&1 && break; \
 		sleep 2; \
 	done
 	@TOKEN=$$(./backend/scripts/get-token.sh) && \
-	curl -s http://localhost:3001/api/v1/applications -H "Authorization: Bearer $$TOKEN" > /dev/null && \
+	curl -s http://localhost:$(BACKEND_PORT)/api/v1/applications -H "Authorization: Bearer $$TOKEN" > /dev/null && \
 	echo "✅ Backend validation passed" || \
 	{ echo "❌ Backend validation failed"; \
-	  echo "  Hint: backend mapped to host port 3001 (docker-compose: 3001:3000)"; \
-	  echo "  Check: curl http://localhost:3001/api/v1/health"; \
-	  echo "  Check: nothing else occupies port 3000 or 3001 (npx serve, etc.)"; \
+	  echo "  Hint: backend mapped to host port $(BACKEND_PORT) (docker-compose: $(BACKEND_PORT):3000)"; \
+	  echo "  Check: curl http://localhost:$(BACKEND_PORT)/api/v1/health"; \
+	  echo "  Check: nothing else occupies port 3000 or $(BACKEND_PORT) (npx serve, etc.)"; \
 	  exit 1; }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Miscellaneous
+# ─────────────────────────────────────────────────────────────────────────────
 
 project-dashboard:
 	@echo "Dashboard disponible sur http://localhost:4000/docs/05-Project/tasks-dashboard/"
 	npx serve . --listen 4000
 
-# ----------------------------------------------------------------------------------
-# Security scanning with Trivy
+# ─────────────────────────────────────────────────────────────────────────────
+# Security Scanning — Trivy (Container & Filesystem)
+# ─────────────────────────────────────────────────────────────────────────────
+
 TRIVY_IMAGE   ?= aquasec/trivy:latest
 TRIVY_TPL      = $(PWD)/trivy/html.tpl
 TRIVY_REPORTS  = $(PWD)/reports/trivy
 
-scan-backend:
+scan-trivy-backend:
 	@mkdir -p $(TRIVY_REPORTS)
 	@echo "Scanning backend image with Trivy..."
 	@docker run --rm \
@@ -237,7 +300,7 @@ scan-backend:
 		ark-epm-backend:latest
 	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-backend.html"
 
-scan-frontend:
+scan-trivy-frontend:
 	@mkdir -p $(TRIVY_REPORTS)
 	@echo "Scanning frontend image with Trivy..."
 	@docker run --rm \
@@ -250,7 +313,7 @@ scan-frontend:
 		ark-epm-frontend:latest
 	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-frontend.html"
 
-scan-fs:
+scan-trivy-fs:
 	@mkdir -p $(TRIVY_REPORTS)
 	@echo "Scanning filesystem with Trivy..."
 	@docker run --rm \
@@ -263,16 +326,18 @@ scan-fs:
 		/workdir
 	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-fs.html"
 
-scan-all: scan-backend scan-frontend scan-fs
-	@echo "All reports: $(TRIVY_REPORTS)/"
+scan-trivy-all: scan-trivy-backend scan-trivy-frontend scan-trivy-fs
+	@echo "All Trivy reports: $(TRIVY_REPORTS)/"
 
-# ----------------------------------------------------------------------------------
-# SAST scanning with Semgrep
+# ─────────────────────────────────────────────────────────────────────────────
+# Security Scanning — Semgrep (SAST)
+# ─────────────────────────────────────────────────────────────────────────────
+
 SEMGREP_IMAGE   ?= semgrep/semgrep:latest
 SEMGREP_REPORTS  = $(PWD)/reports/semgrep
 SEMGREP_CONV     = $(PWD)/semgrep/json-to-html.py
 
-semgrep-backend:
+scan-semgrep-backend:
 	@mkdir -p $(SEMGREP_REPORTS)
 	@echo "Scanning backend with Semgrep (TypeScript + Node.js)..."
 	@docker run --rm \
@@ -289,7 +354,7 @@ semgrep-backend:
 		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check $(SEMGREP_REPORTS)/$(TIMESTAMP)-backend.json"
 	@echo "Report: $(SEMGREP_REPORTS)/$(TIMESTAMP)-backend.html"
 
-semgrep-frontend:
+scan-semgrep-frontend:
 	@mkdir -p $(SEMGREP_REPORTS)
 	@echo "Scanning frontend with Semgrep (TypeScript + React)..."
 	@docker run --rm \
@@ -306,11 +371,13 @@ semgrep-frontend:
 		@echo "⚠️  Semgrep scan completed, but no findings or conversion failed. Check $(SEMGREP_REPORTS)/$(TIMESTAMP)-frontend.json"
 	@echo "Report: $(SEMGREP_REPORTS)/$(TIMESTAMP)-frontend.html"
 
-semgrep-all: semgrep-backend semgrep-frontend
+scan-semgrep-all: scan-semgrep-backend scan-semgrep-frontend
 	@echo "All Semgrep reports: $(SEMGREP_REPORTS)/"
 
-# ----------------------------------------------------------------------------------
-# DAST scanning with ZAProxy (OWASP ZAP)
+# ─────────────────────────────────────────────────────────────────────────────
+# Security Scanning — ZAP (DAST)
+# ─────────────────────────────────────────────────────────────────────────────
+
 ZAP_IMAGE       ?= ghcr.io/zaproxy/zaproxy:latest
 ZAP_REPORTS     ?= $(PWD)/reports/zap
 ZAP_OPENAPI     ?= $(PWD)/docs/04-Tech/openapi.yaml
@@ -321,13 +388,13 @@ ZAP_TARGET      ?= http://backend:3000/api/v1
 # -r: generate HTML report
 # -J: generate JSON report
 # --hook: authentication hook (optional)
-test-dast:
+scan-zap:
 	@echo "🔍 Starting ZAProxy DAST scan..."
 	@echo "   Target: $(ZAP_TARGET)"
 	@echo "   OpenAPI: $(ZAP_OPENAPI)"
 	@mkdir -p $(ZAP_REPORTS)
 	@echo "🔍 Checking backend accessibility..."
-	@curl -s --fail http://localhost:3001/api/v1/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || { echo "❌ Backend not accessible at http://localhost:3001/api/v1. Is docker-compose up?"; exit 1; }
+	@curl -s --fail http://localhost:$(BACKEND_PORT)/api/v1/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || { echo "❌ Backend not accessible at http://localhost:$(BACKEND_PORT)/api/v1. Is docker-compose up?"; exit 1; }
 	@echo "🔍 Preparing OpenAPI spec for ZAP container..."
 	@sed 's|http://localhost:3000/api/v1|http://backend:3000/api/v1|g' $(ZAP_OPENAPI) > $(ZAP_REPORTS)/openapi-zap.yaml
 	@ZAP_TOKEN=$$(./backend/scripts/get-token.sh 2>/dev/null) || { echo "⚠️  Warning: get-token.sh failed, using fallback token"; ZAP_TOKEN="test-token"; }; \
@@ -361,12 +428,12 @@ test-dast:
 
 # Quick baseline scan (spider only, no active attacks)
 # Less thorough but safer for production-like environments
-test-dast-baseline:
+scan-zap-baseline:
 	@echo "🔍 Starting ZAProxy baseline scan (passive only)..."
 	@echo "   Target: $(ZAP_TARGET)"
 	@mkdir -p $(ZAP_REPORTS)
 	@echo "🔍 Checking backend accessibility..."
-	@curl -s --fail http://localhost:3001/api/v1/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || { echo "❌ Backend not accessible at http://localhost:3001/api/v1. Is docker-compose up?"; exit 1; }
+	@curl -s --fail http://localhost:$(BACKEND_PORT)/api/v1/health > /dev/null 2>&1 && echo "✅ Backend is accessible" || { echo "❌ Backend not accessible at http://localhost:$(BACKEND_PORT)/api/v1. Is docker-compose up?"; exit 1; }
 	@docker run --rm \
 		-v $(ZAP_REPORTS):/zap/wrk/reports \
 		--network ark-epm_default \
@@ -390,14 +457,32 @@ test-dast-baseline:
 	echo "   JSON: $(ZAP_REPORTS)/$(TIMESTAMP)-baseline-report.json"; \
 	exit $$ZAP_EXIT
 
-# ----------------------------------------------------------------------------------
-# MegaLinter — Code quality analysis
+# Open ZAP report in browser
+scan-zap-report:
+	@REPORT=$$(ls -t $(ZAP_REPORTS)/*.html 2>/dev/null | head -1); \
+	if [ -z "$$REPORT" ]; then \
+		echo "❌ No ZAP report found in $(ZAP_REPORTS)."; \
+		echo "   Run 'make scan-zap' or 'make scan-zap-baseline' first."; \
+		exit 1; \
+	fi; \
+	if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "$$REPORT" || echo "📄 Report: $$REPORT (xdg-open failed, no browser available)"; \
+	elif command -v open >/dev/null 2>&1; then \
+		open "$$REPORT" || echo "📄 Report: $$REPORT (open failed, no browser available)"; \
+	else \
+		echo "📄 Report: $$REPORT"; \
+	fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Security Scanning — MegaLinter (Code Quality)
+# ─────────────────────────────────────────────────────────────────────────────
+
 MEGALINTER_IMAGE          ?= oxsecurity/megalinter:v8
 MEGALINTER_REPORTS        ?= $(PWD)/reports/megalinter
 MEGALINTER_FRONTEND_REPORTS ?= $(PWD)/reports/megalinter-frontend
 
 # Code quality backend: ESLint (backend/src) + duplication (backend/src + frontend/src)
-megalinter-quality:
+scan-megalinter-quality:
 	@echo "🔍 Running MegaLinter — code quality (ESLint + duplication)..."
 	@mkdir -p $(MEGALINTER_REPORTS)
 	@docker run --rm \
@@ -408,7 +493,7 @@ megalinter-quality:
 		$(MEGALINTER_IMAGE)
 
 # Config/docs lint: YAML, JSON, ENV — separate concern from code quality
-megalinter-config:
+scan-megalinter-config:
 	@echo "🔍 Running MegaLinter — config & docs lint (YAML, JSON, ENV)..."
 	@mkdir -p $(MEGALINTER_REPORTS)
 	@docker run --rm \
@@ -420,7 +505,7 @@ megalinter-config:
 		$(MEGALINTER_IMAGE)
 
 # Code quality frontend: ESLint (frontend/src) + duplication (frontend/src)
-megalinter-frontend:
+scan-megalinter-frontend:
 	@echo "🔍 Running MegaLinter — frontend quality (ESLint + duplication)..."
 	@mkdir -p $(MEGALINTER_FRONTEND_REPORTS)
 	@docker run --rm \
@@ -432,16 +517,17 @@ megalinter-frontend:
 		$(MEGALINTER_IMAGE)
 
 # Run both backend and frontend quality checks in sequence
-megalinter-all: megalinter-quality megalinter-frontend
+scan-megalinter-all: scan-megalinter-quality scan-megalinter-frontend
 
-megalinter: megalinter-quality
+# Alias: runs quality check only (convenience shorthand)
+scan-megalinter: scan-megalinter-quality
 
 # Show SUMMARY of latest backend run in console
-megalinter-report:
+scan-megalinter-report:
 	@DIR=$$(ls -dt $(MEGALINTER_REPORTS)/*/ 2>/dev/null | head -1); \
 	if [ -z "$$DIR" ]; then \
 		echo "❌ No MegaLinter report found in $(MEGALINTER_REPORTS)."; \
-		echo "   Run 'make megalinter' first."; \
+		echo "   Run 'make scan-megalinter' first."; \
 		exit 1; \
 	fi; \
 	echo "📁 Report: $$DIR"; \
@@ -456,11 +542,11 @@ megalinter-report:
 	fi
 
 # Show SUMMARY of latest frontend run in console
-megalinter-frontend-report:
+scan-megalinter-frontend-report:
 	@DIR=$$(ls -dt $(MEGALINTER_FRONTEND_REPORTS)/*/ 2>/dev/null | head -1); \
 	if [ -z "$$DIR" ]; then \
 		echo "❌ No MegaLinter frontend report found in $(MEGALINTER_FRONTEND_REPORTS)."; \
-		echo "   Run 'make megalinter-frontend' first."; \
+		echo "   Run 'make scan-megalinter-frontend' first."; \
 		exit 1; \
 	fi; \
 	echo "📁 Frontend Report: $$DIR"; \
@@ -472,20 +558,4 @@ megalinter-frontend-report:
 		xdg-open "$${DIR}megalinter-report.html" 2>/dev/null || true; \
 	else \
 		echo "📋 Full log: $${DIR}megalinter.log"; \
-	fi
-
-# Open ZAP report in browser
-open-dast-report:
-	@REPORT=$$(ls -t $(ZAP_REPORTS)/*.html 2>/dev/null | head -1); \
-	if [ -z "$$REPORT" ]; then \
-		echo "❌ No ZAP report found in $(ZAP_REPORTS)."; \
-		echo "   Run 'make test-dast' or 'make test-dast-baseline' first."; \
-		exit 1; \
-	fi; \
-	if command -v xdg-open >/dev/null 2>&1; then \
-		xdg-open "$$REPORT" || echo "📄 Report: $$REPORT (xdg-open failed, no browser available)"; \
-	elif command -v open >/dev/null 2>&1; then \
-		open "$$REPORT" || echo "📄 Report: $$REPORT (open failed, no browser available)"; \
-	else \
-		echo "📄 Report: $$REPORT"; \
 	fi

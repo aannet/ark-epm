@@ -281,7 +281,7 @@ La progression est calculée par jointure `feature.id == task.theme` → tâches
 Le lien **Playwright Report ↗** dans le header pointe vers `e2e/reports/html/index.html`.
 
 ```bash
-make test-api-backend   # exécute les tests API et génère le rapport HTML
+make test-api   # exécute les tests API et génère le rapport HTML
 make test-api-report    # ouvre le rapport dans le navigateur (port dédié Playwright)
 ```
 

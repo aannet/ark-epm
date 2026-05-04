@@ -111,10 +111,10 @@ Gardien des décisions techniques structurantes. Arbitre en cas de chevauchement
 | Dev frontend | `make dev` |
 | Dev backend | `cd backend && npm run start:dev` |
 | Tests backend unit | `make test-backend-unit` |
-| Tests API | `make test-api-backend` |
+| Tests API | `make test-api` |
 | Tests e2e | `make test-e2e` |
 | Prisma studio | `make prisma-studio` |
-| Token auth | `make get-token` |
+| Token auth | `make auth-token` |
 | Validation backend | `make validate-backend` |
 
 ---

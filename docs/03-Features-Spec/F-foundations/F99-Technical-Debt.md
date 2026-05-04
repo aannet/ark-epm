@@ -919,7 +919,7 @@ Or, la commande `jest` peut être absente sur l'hôte si `backend/node_modules` 
 
 **Runbook recommandé :**
 - Backend e2e ciblé : `docker exec ark-epm-backend-1 sh -lc "cd /app && npm run test:e2e -- --runInBand test/users.e2e-spec.ts"`
-- API e2e : `make test-api-backend`
+- API e2e : `make test-api`
 - UI e2e : `make test-e2e`
 
 **Gate de validation :**
@@ -1230,7 +1230,7 @@ Appliquer uniformément sur tous les DTOs create + update le pattern établi dan
 - [ ] Tous les DTOs respects le pattern T-099 (imports `Matches`, `NotContains`)
 - [ ] `npm run build` passe sans erreur
 - [ ] Tests injection ajoutés pour chaque entité critique+high
-- [ ] `make test-api-backend` : 0 régression, injection tests 100% pass
+- [ ] `make test-api` : 0 régression, injection tests 100% pass
 - [ ] `make test-backend-e2e` : 0 régression
 
 ---
@@ -1282,7 +1282,7 @@ Appliquer uniformément sur tous les DTOs create + update le pattern établi dan
 - [ ] **Item 28** — @Matches + @NotContains('://') sur `name` de : Application, Domain, Provider, ItComponent, BusinessCapability, Interface, TagDimension
 - [ ] **Item 28** — @Transform trim + @MaxLength sur : Interface (4 champs), Application (description, comment, lifecycleStatus), ItComponent (4 champs), Provider (contractType), TagDimension (4 champs)
 - [ ] **Item 28** — Tests injection dans `*.validation.api.spec.ts` pour chaque entité concernée (400 sur ZAP;*, |, http://, ]]>, backtick)
-- [ ] **Item 28** — Validation : `make test-api-backend` et `make test-backend-e2e` 100% pass
+- [ ] **Item 28** — Validation : `make test-api` et `make test-backend-e2e` 100% pass
 
 ---
 

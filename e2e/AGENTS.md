@@ -11,7 +11,7 @@
 |--------|-------|-------|----------|----------|
 | **Unit\u00e9 backend** | Jest | Services, guards, pipes | `backend/src/**/*.spec.ts` | `make test-backend-unit` |
 | **Int\u00e9gration backend** | Jest + Supertest | Endpoints HTTP complets | `backend/test/*.e2e-spec.ts` | `make test-backend-e2e` |
-| **API Playwright** | Playwright | Endpoints REST isol\u00e9s | `e2e/tests/**/*.api.spec.ts` | `make test-api-backend` |
+| **API Playwright** | Playwright | Endpoints REST isol\u00e9s | `e2e/tests/**/*.api.spec.ts` | `make test-api` |
 | **E2E UI Playwright** | Playwright | Parcours utilisateur complets | `e2e/tests/**/*.spec.ts` | `make test-e2e` |
 | **Frontend Cypress** | Cypress | Composants + parcours UI | `frontend/cypress/e2e/*.cy.ts` | `cd frontend && npx cypress run` |
 

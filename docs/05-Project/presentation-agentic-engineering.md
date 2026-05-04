@@ -71,7 +71,7 @@ On va montrer que l'un ne va pas sans l'autre.
 ├─────────────────────────────────────────┤
 │  Infra             │  Docker Compose (3 services) │
 │  Sécurité          │  Semgrep + Trivy + ZAProxy   │
-│  Orchestration     │  Makefile (393 lignes)       │
+│  Orchestration     │  Makefile (561 lignes, 53 cibles) │
 └─────────────────────────────────────────┘
 ```
 
@@ -88,7 +88,7 @@ On va montrer que l'un ne va pas sans l'autre.
 | **API Contract-first** | OpenAPI 3.0, v1.4.0 | **71 endpoints** REST |
 | **Testing pyramid** | 5 couches | **310 cas de test** (171 e2e + 139 unit) |
 | **Internationalisation** | Full-stack, clés normées | **~800 clés** `domain.page.element` |
-| **Réinitialisabilité** | Seeds + `make db-reset-reseed` | < 10s |
+| **Réinitialisabilité** | Seeds + `make db-reseed` | < 10s |
 | **DevSecOps** | SAST + DAST + Scan images | Intégré dans Makefile |
 | **Documentation** | 5 zones numérotées | **34 219 lignes** Markdown (ratio doc/code **1,23**) |
 
@@ -107,7 +107,23 @@ $ make validate-backend
 # ✅ PASS en 12s
 ```
 
-Point d'entrée unique pour tout agent : le Makefile (393 lignes).
+Point d'entrée unique pour tout agent : le Makefile (53 commandes, 561 lignes).
+
+---
+
+## Le Makefile comme tableau de bord
+
+**53 commandes** · 561 lignes · pilotage de bout en bout.
+
+| Thème | Valeur / Objectif | Cmds |
+|-------|-------------------|------|
+| **Environnement & Infra** | Lancer, stopper, rafraîchir les conteneurs | 7 |
+| **Build & Validation** | Compiler, déployer, vérifier en un geste | 4 |
+| **Base de données** | Migrations, seeds, studio Prisma, shell SQL | 7 |
+| **Tests — 5 couches** | Unit · Intégration · API Playwright · E2E · CI | 15 |
+| **Sécurité & Qualité** | Trivy · Semgrep · ZAP · MegaLinter | 17 |
+
+> *"Du `make dev` au `make scan-zap` : tout l'écosystème est adressable depuis un seul fichier."*
 
 ---
 
@@ -495,7 +511,7 @@ C'est un projet **"par des agents IA"**.
 | Design system | `docs/02-Design/DESIGN.md` | 560 |
 | Template spec back | `docs/03-Features-Spec/_templates/_template_back.md` | 503 |
 | Template spec front | `docs/03-Features-Spec/_templates/_template_front.md` | 695 |
-| Makefile | `Makefile` | 393 |
+| Makefile | `Makefile` | 561 (53 commandes) |
 | Suivi des tâches | `docs/05-Project/tasks.yaml` | 284 |
 | REX Workflow multi-agent | `docs/05-Project/REX/ark-rex-workflow.md` | 517 |
 | Système documentaire | `docs/05-Project/REX/ark-doc-system.md` | 502 |

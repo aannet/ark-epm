@@ -40,11 +40,11 @@ Les tests API backend s'exécutent avec une **stratégie hybride** qui détecte 
 
 ```bash
 # Détection automatique (recommandé pour le développement)
-make test-api-backend
+make test-api
 
 # Mode local explicite (backend sur localhost:3000)
 make test-api-local
-# ou: API_BASE_URL=http://localhost:3000 make test-api-backend
+# ou: API_BASE_URL=http://localhost:3000 make test-api
 
 # Mode Docker explicite (backend dans container)
 make test-api-docker
@@ -66,7 +66,7 @@ API_USER_PASSWORD=admin123456         # Mot de passe
 
 ```bash
 # Ton cas: backend local lancé avec "make dev-clean"
-make test-api-backend
+make test-api
 # → Détecte localhost:3000, utilise npx directement
 
 # Backend local avec credentials personnalisés
