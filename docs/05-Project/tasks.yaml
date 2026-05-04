@@ -683,22 +683,22 @@ tasks:
       Créer `AppBreadcrumbs` dans `frontend/src/components/shared/` et refactorer les usages inline quand possible.
       Ajouter à `frontend/src/components/shared/index.ts`.
 
-   - id: T-098
-     nom: "Arch — Ajouter eslint-plugin-sonarjs (cognitive-complexity) au pipeline MegaLinter"
-     statut: done
-     assigned_agent: arch
-     session_active: ~
-     handoff_ref: "docs/05-Project/20260504/SESSION-HANDOFF-arch-t098.md"
-     date_resolution: 2026-05-04
-     sprint: S4
-     theme: "QA"
-     type: impl
-     feature: "QA-ESLINT"
-     priorité: medium
-     sessions:
-       - tool: OC
-         id: "0c5f42"
-         nom: "implémentation sonarjs backend + frontend, MegaLinter séparé, Makefile targets"
+  - id: T-098
+    nom: "Arch — Ajouter eslint-plugin-sonarjs (cognitive-complexity) au pipeline MegaLinter"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260504/SESSION-HANDOFF-arch-t098.md"
+    date_resolution: 2026-05-04
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-ESLINT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "0c5f42"
+        nom: "implémentation sonarjs backend + frontend, MegaLinter séparé, Makefile targets"
     notes: |
       Ajouter l'analyse de complexité cognitive au pipeline ESLint/MegaLinter.
       Scope :
@@ -707,22 +707,22 @@ tasks:
       - Vérifier compatibilité avec la configuration MegaLinter existante (.eslintrc / eslint.config.*)
       Référence : MegaLinter supporte nativement les plugins ESLint via la config locale.
 
-   - id: T-099
-     nom: "Fix test ZAP — injections persistées en base Data Objects + cleanup"
-     statut: done
-     assigned_agent: back
-     session_active: ~
-     handoff_ref: "docs/05-Project/20260504/SESSION-HANDOFF-back-t099.md"
-     date_resolution: 2026-05-04
-     sprint: S4
-     theme: "QA"
-     type: bug
-     feature: "QA-DAST"
-     priorité: high
-     sessions:
-       - tool: OC
-         id: "a5c2f1"
-         nom: "DTOs data-objects + whitelist:true + tests injection + SQL cleanup"
+  - id: T-099
+    nom: "Fix test ZAP — injections persistées en base Data Objects + cleanup"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260504/SESSION-HANDOFF-back-t099.md"
+    date_resolution: 2026-05-04
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "QA-DAST"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "a5c2f1"
+        nom: "DTOs data-objects + whitelist:true + tests injection + SQL cleanup"
     notes: |
       Le scan OWASP ZAP a persisté des payloads de fuzzing dans la table data_objects
       (screenshot : docs/tmp/2026-05-04 215832_bugzap.png).
@@ -739,22 +739,22 @@ tasks:
        - Isoler l'env DAST (DB dédiée ou mode passif ZAP)
        - Cleanup script post-scan pour retirer les entrées de test
 
-   - id: T-100
-     nom: "Audit global application — validation architecture + tech debt"
-     statut: open
-     assigned_agent: arch
-     session_active: ~
-     handoff_ref: ~
-     date_resolution: ~
-     sprint: S5
-     theme: "QA"
-     type: review
-     feature: "QA-AUDIT"
-     priorité: medium
-     sessions:
-       - tool: OC
-         id: "0c5f42"
-         nom: "création tâche + scope détaillé pour audit S5"
+  - id: T-100
+    nom: "Audit global application — validation architecture + tech debt"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "QA"
+    type: review
+    feature: "QA-AUDIT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "0c5f42"
+        nom: "création tâche + scope détaillé pour audit S5"
     notes: |
       Audit global ARK-EPM suite aux corrections S4 (T-098 ESLint, T-099 ZAP injection).
       Vérifier l'état d'ensemble de l'application et identifier la dette technique à tracker.
@@ -793,22 +793,22 @@ tasks:
        - Liste tâches nouvelles (T-101..T-105)
        - Rapport détails arch/tech debt pour review sprint S5
 
-   - id: T-101
-     nom: "Back — Harmoniser validation injection sur tous les DTOs (suite T-099)"
-     statut: open
-     assigned_agent: back
-     session_active: ~
-     handoff_ref: ~
-     date_resolution: ~
-     sprint: S4
-     theme: "QA"
-     type: debt
-     feature: "QA-DAST"
-     priorité: high
-     sessions:
-       - tool: OC
-         id: "a5c2f1"
-         nom: "audit DTOs + F-999 Item 28 + plan implementation 6 entités"
+  - id: T-101
+    nom: "Back — Harmoniser validation injection sur tous les DTOs (suite T-099)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S4
+    theme: "QA"
+    type: debt
+    feature: "QA-DAST"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "a5c2f1"
+        nom: "audit DTOs + F-999 Item 28 + plan implementation 6 entités"
     notes: |
       Suite T-099 (data-objects validation hardening) : appliquer les mêmes contrôles
       à toutes les entités EA. Référence pattern : CreateDataObjectDto post-T-099.
