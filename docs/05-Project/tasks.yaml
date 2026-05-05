@@ -815,6 +815,9 @@ tasks:
       - tool: OC
         id: "20adf5"
         nom: "revue code + fix @IsNotEmpty TagDimension + fix test cleanup interfaces + analyse ZAP threat"
+      - tool: OC
+        id: "c7f3a1"
+        nom: "commit résiduel T-101 — DTOs + tests validation (commit fad07bd)"
     notes: |
       Suite T-099 (data-objects validation hardening) : appliquer les mêmes contrôles
       à toutes les entités EA. Référence pattern : CreateDataObjectDto post-T-099.
