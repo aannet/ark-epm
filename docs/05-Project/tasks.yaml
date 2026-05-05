@@ -853,25 +853,28 @@ tasks:
 
   - id: T-102
     nom: "Spec — FS-12 Dashboard : rédiger FS-12-dashboard-back.md + FS-12-dashboard-front.md"
-    statut: open
+    statut: done
     assigned_agent: spec
     session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-spec-t102.md"
+    date_resolution: 2026-05-06
     sprint: S5
     theme: "FS-12"
     type: spec
     feature: "FS-12"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: CL
+        id: "f2a8c1"
+        nom: "spec FS-12-BACK + FS-12-FRONT rédigées (draft) — 2 fichiers, gates G-01..G-11, correction store/auth"
     notes: |
       Gate avant toute implémentation FS-12.
       Produire deux fichiers de spec opérationnelle :
       - FS-12-dashboard-back.md : HomeModule NestJS, GET /api/v1/home/summary (Promise.allSettled),
         migration Prisma user_domain_scope (D-01), amendment /auth/me domainIds[] (D-02),
         domain filtering ApplicationsService + BusinessCapabilitiesService (D-04, D-05).
-      - FS-12-dashboard-front.md : home page 4 zones (layout V0), AuthContext domainIds,
-        US-HOME-09 user admin multi-select domaines (D-06).
+      - FS-12-dashboard-front.md : home page 4 zones (layout V0), store/auth domainIds (correction :
+        le projet utilise un store in-memory, pas React Context), US-HOME-09 user admin multi-select.
       Référence : docs/03-Features-Spec/FS-12-Dashboard/FS-12-dashboard-userstories.md
       (9 US, 7 dépendances techniques, décisions architecturales actées).
 
