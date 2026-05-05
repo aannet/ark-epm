@@ -1,21 +1,23 @@
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Omnisearch } from '@/components/search';
 
-function getPageTitle(pathname: string): string {
-  if (pathname.startsWith('/applications')) return 'Applications';
-  if (pathname.startsWith('/business-capabilities')) return 'Capacités métier';
-  if (pathname.startsWith('/interfaces')) return 'Interfaces';
-  if (pathname.startsWith('/data-objects')) return 'Objets de données';
-  if (pathname.startsWith('/it-components')) return 'Composants IT';
-  if (pathname.startsWith('/providers')) return 'Fournisseurs';
-  if (pathname.startsWith('/domains')) return 'Domaines';
-  return '';
-}
-
 export default function TopBar(): JSX.Element {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
-  const title = getPageTitle(pathname);
+
+  let title = '';
+  if (pathname === '/') title = t('home.page.title');
+  if (pathname.startsWith('/applications')) title = t('nav.applications');
+  if (pathname.startsWith('/business-capabilities')) title = t('nav.businessCapabilities');
+  if (pathname.startsWith('/interfaces')) title = t('nav.interfaces');
+  if (pathname.startsWith('/data-objects')) title = t('nav.dataObjects');
+  if (pathname.startsWith('/it-components')) title = t('nav.itComponents');
+  if (pathname.startsWith('/providers')) title = t('nav.providers');
+  if (pathname.startsWith('/domains')) title = t('nav.domains');
+  if (pathname.startsWith('/users')) title = t('users.list.title');
+  if (pathname.startsWith('/graph')) title = t('graph.page.title');
 
   return (
     <Box

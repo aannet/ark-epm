@@ -1,4 +1,4 @@
-import { UserResponse } from '../types/auth';
+import { DomainRef, UserResponse } from '../types/auth';
 
 let _token: string | null = null;
 let _user: UserResponse | null = null;
@@ -14,6 +14,14 @@ export const getToken = (): string | null => {
 
 export const getUser = (): UserResponse | null => {
   return _user;
+};
+
+export const getDomainIds = (): string[] => {
+  return _user?.domainIds ?? [];
+};
+
+export const getDomains = (): DomainRef[] => {
+  return _user?.domains ?? [];
 };
 
 export const clearAuth = (): void => {

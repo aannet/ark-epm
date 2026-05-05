@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { AppShell } from '@/components/layout';
 import NotFoundPage from '@/pages/NotFoundPage';
 import DesignSystemPage from '@/pages/DesignSystemPage';
@@ -6,9 +6,13 @@ import LoginPage from '@/pages/LoginPage';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import ForbiddenPage from '@/pages/ForbiddenPage';
 import PrivateRoute from '@/components/PrivateRoute';
-import { initializeAuth, clearAuth } from '@/store/auth';
+import { clearAuth, initializeAuth } from '@/store/auth';
 import { logout } from '@/api/auth';
 import { useEffect } from 'react';
+import HomePage from '@/pages/home/HomePage';
+import UserListPage from '@/pages/users/UserListPage';
+import UserNewPage from '@/pages/users/UserNewPage';
+import UserEditPage from '@/pages/users/UserEditPage';
 
 // Domain pages
 import DomainsListPage from '@/pages/domains/DomainsListPage';
@@ -76,7 +80,7 @@ function App(): JSX.Element {
 
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<AppShell onLogout={handleLogout} />}>
-            <Route index element={<Navigate to="/applications" replace />} />
+            <Route index element={<HomePage />} />
             
             {/* Applications routes */}
             <Route path="applications" element={<Outlet />}>
@@ -134,14 +138,21 @@ function App(): JSX.Element {
                 <Route path=":id/edit" element={<InterfaceEditPage />} />
               </Route>
 
-              {/* Graph route */}
-              <Route path="graph" element={<GraphPage />} />
-           </Route>
-         </Route>
+               {/* Graph route */}
+               <Route path="graph" element={<GraphPage />} />
 
-        <Route element={<PrivateRoute permission="users:write" />}>
-          <Route path="/users" element={<div />} />
-        </Route>
+               {/* AGENT-DECISION: front — keep users list/edit under users:read and gate creation under users:write. */}
+               <Route path="users" element={<Outlet />}>
+                 <Route element={<PrivateRoute permission="users:read" />}>
+                   <Route index element={<UserListPage />} />
+                   <Route path=":id" element={<UserEditPage />} />
+                 </Route>
+                 <Route element={<PrivateRoute permission="users:write" />}>
+                   <Route path="new" element={<UserNewPage />} />
+                 </Route>
+               </Route>
+            </Route>
+          </Route>
 
         <Route element={<PrivateRoute permission="roles:write" />}>
           <Route path="/roles" element={<div />} />

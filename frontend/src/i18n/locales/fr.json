@@ -1,5 +1,6 @@
 {
   "nav": {
+    "home": "Accueil",
     "applications": "Applications",
     "businessCapabilities": "Capacités métier",
     "interfaces": "Interfaces",
@@ -938,6 +939,126 @@
         "created": "Interface créée avec succès",
         "updated": "Interface mise à jour avec succès",
         "deleted": "Interface supprimée avec succès"
+      }
+    },
+
+    "home": {
+      "page": {
+        "title": "Tableau de bord"
+      },
+      "welcome": {
+        "greeting": "Bonjour {{name}}",
+        "globalScope": "Tous les domaines",
+        "nDomains": "{{count}} domaines",
+        "defaultName": "Utilisateur"
+      },
+      "kpis": {
+        "apps": {
+          "label": "Applications"
+        },
+        "missionCritical": {
+          "label": "Mission Critical",
+          "subtext": "sur {{count}} apps renseignées"
+        },
+        "interfaces": {
+          "label": "Interfaces"
+        },
+        "coveredCapabilities": {
+          "label": "Capacités couvertes"
+        }
+      },
+      "errors": {
+        "unavailable": "Donnée temporairement indisponible"
+      },
+      "todo": {
+        "incomplete": {
+          "title": "Fiches incomplètes",
+          "empty": "Toutes les fiches sont complètes",
+          "missingOwner": "Responsable",
+          "missingCriticality": "Criticité",
+          "missingLifecycle": "Cycle de vie"
+        },
+        "contracts": {
+          "title": "Contrats expirant bientôt",
+          "empty": "Aucun contrat n'expire dans les 90 prochains jours",
+          "expiresSoon": "Expire dans {{days}} j",
+          "expiresInDays": "Expire dans {{days}} j",
+          "viewAll": "Voir tous les fournisseurs"
+        },
+        "noVisibleSections": "Aucune section actionnable n'est visible avec vos permissions."
+      },
+      "lifecycle": {
+        "title": "Distribution cycle de vie",
+        "empty": "Aucune application dans ce périmètre",
+        "appsLabel": "apps",
+        "statuses": {
+          "draft": "Brouillon",
+          "in_progress": "En cours",
+          "production": "Production",
+          "deprecated": "Déprécié",
+          "retired": "Retiré"
+        }
+      },
+      "quality": {
+        "title": "Qualité des données",
+        "score": "{{complete}} / {{total}} applications complètes ({{percent}}%)",
+        "tooltip": "Score calculé sur les applications de votre périmètre ayant un responsable, une criticité et un statut de cycle de vie renseignés"
+      },
+      "empty": {
+        "title": "Aucune application dans votre périmètre",
+        "description": "Commencez par importer ou créer des applications pour activer le tableau de bord.",
+        "ctaImport": "Importer des données",
+        "ctaCreate": "Créer une application"
+      }
+    },
+
+    "users": {
+      "list": {
+        "title": "Utilisateurs",
+        "subtitle": "Gestion des comptes utilisateurs",
+        "addButton": "Ajouter un utilisateur",
+        "columns": {
+          "name": "Nom",
+          "email": "Email",
+          "role": "Rôle",
+          "domains": "Domaines",
+          "status": "Statut",
+          "createdAt": "Créé le",
+          "actions": "Actions"
+        },
+        "emptyState": {
+          "title": "Aucun utilisateur",
+          "description": "Créez votre premier utilisateur.",
+          "cta": "Créer un utilisateur"
+        }
+      },
+      "form": {
+        "createTitle": "Nouvel utilisateur",
+        "editTitle": "Modifier l'utilisateur",
+        "emailLabel": "Email",
+        "firstNameLabel": "Prénom",
+        "lastNameLabel": "Nom",
+        "passwordLabel": "Mot de passe",
+        "passwordRequired": "Le mot de passe est obligatoire",
+        "roleLabel": "Rôle",
+        "rolePlaceholder": "Aucun rôle",
+        "domainsLabel": "Domaines assignés",
+        "domainsHelper": "Laisser vide pour un accès global à tous les domaines",
+        "isActiveLabel": "Compte actif",
+        "saveButton": "Enregistrer",
+        "cancelButton": "Annuler"
+      },
+      "delete": {
+        "confirmTitle": "Désactiver l'utilisateur",
+        "confirmMessage": "Êtes-vous sûr de vouloir désactiver l'utilisateur {{email}} ?"
+      },
+      "alert": {
+        "created": "Utilisateur créé avec succès",
+        "updated": "Utilisateur mis à jour avec succès",
+        "deactivated": "Utilisateur désactivé avec succès"
+      },
+      "scope": {
+        "global": "Tous les domaines"
       }
     },
 

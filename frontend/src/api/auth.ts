@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import apiClient from './client';
 import { LoginRequest, LoginResponse, UserResponse } from '../types/auth';
 
@@ -36,6 +37,15 @@ export const getMe = async (): Promise<UserResponse> => {
   const response = await apiClient.get<UserResponse>('/auth/me');
   return response.data;
 };
+
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: ['me'],
+    queryFn: getMe,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
 
 export const logout = async (): Promise<void> => {
   await apiClient.post('/auth/logout');

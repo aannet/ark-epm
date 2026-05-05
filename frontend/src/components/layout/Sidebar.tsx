@@ -10,6 +10,7 @@ import Business from '@mui/icons-material/Business';
 import Folder from '@mui/icons-material/Folder';
 import Logout from '@mui/icons-material/Logout';
 import Hub from '@mui/icons-material/Hub';
+import Home from '@mui/icons-material/Home';
 
 interface SidebarProps {
   onLogout?: () => void;
@@ -22,6 +23,7 @@ export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
   const { t } = useTranslation();
 
   const navItems = [
+    { label: t('nav.home'), icon: <Home />, path: '/' },
     { label: t('nav.applications'), icon: <Apps />, path: '/applications' },
     { label: t('nav.businessCapabilities'), icon: <AccountTree />, path: '/business-capabilities' },
     { label: t('nav.interfaces'), icon: <AltRoute />, path: '/interfaces' },
@@ -32,7 +34,13 @@ export default function Sidebar({ onLogout }: SidebarProps): JSX.Element {
     { label: t('nav.graph'), icon: <Hub />, path: '/graph' },
   ];
 
-  const isActive = (path: string): boolean => pathname.startsWith(path);
+  const isActive = (path: string): boolean => {
+    if (path === '/') {
+      return pathname === '/';
+    }
+
+    return pathname.startsWith(path);
+  };
   const white = theme.palette.primary.contrastText;
   const secondaryMain = theme.palette.secondary.main;
 
