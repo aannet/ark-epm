@@ -168,12 +168,142 @@ test.describe('Home Summary API — GET /home/summary', () => {
     expect(Array.isArray(body.domains)).toBe(true);
   });
 
+  // G-02 : GET /users/:id retourne domainIds et domains
+  test('GET /users/:id contient domainIds (tableau) et domains (tableau)', async ({ auth }) => {
+    const meRes = await auth.request.get('auth/me');
+    const me = await expectSuccess<{ id: string }>(meRes, 200);
+
+    const res = await auth.request.get(`users/${me.id}`);
+    const body = await expectSuccess<{
+      domainIds: string[];
+      domains: Array<{ id: string; name: string }>;
+    }>(res, 200);
+
+    expect(Array.isArray(body.domainIds)).toBe(true);
+    expect(Array.isArray(body.domains)).toBe(true);
+  });
+
+  // Scope domaine : 1 domaine assigné => données filtrées, [] => portée globale
+  test('GET /home/summary applique le scope domaine utilisateur', async ({ auth, testData }) => {
+    const meRes = await auth.request.get('auth/me');
+    const me = await expectSuccess<{ id: string }>(meRes, 200);
+
+    const scopedDomain = await testData.createDomain({
+      name: `Home Scope Assigned ${Date.now()}`,
+      description: 'Scope domain for T-104',
+    });
+    await testData.createApplication({
+      name: `Home Scope App ${Date.now()}`,
+      domainId: scopedDomain.id,
+      description: 'Application for domain scope test',
+    });
+
+    try {
+      const assignRes = await auth.request.patch(`users/${me.id}`, {
+        data: { domainIds: [scopedDomain.id] },
+      });
+      await expectSuccess(assignRes, 200);
+
+      const scopedSummaryRes = await auth.request.get('home/summary');
+      const scopedSummary = await expectSuccess<HomeSummaryResponse>(scopedSummaryRes, 200);
+
+      expect(scopedSummary.kpis).not.toBeNull();
+      expect(scopedSummary.kpis!.appsCount).toBe(1);
+
+      const resetRes = await auth.request.patch(`users/${me.id}`, {
+        data: { domainIds: [] },
+      });
+      await expectSuccess(resetRes, 200);
+
+      const globalSummaryRes = await auth.request.get('home/summary');
+      const globalSummary = await expectSuccess<HomeSummaryResponse>(globalSummaryRes, 200);
+
+      expect(globalSummary.kpis).not.toBeNull();
+      expect(globalSummary.kpis!.appsCount).toBeGreaterThanOrEqual(1);
+    } finally {
+      await auth.request.patch(`users/${me.id}`, { data: { domainIds: [] } });
+    }
+  });
+
+  // G-09 RBAC : 403 sans permission applications:read
+  test('GET /home/summary avec token sans applications:read → 403', async ({
+    auth,
+    apiBaseUrl,
+    apiVersion,
+  }) => {
+    const testId = Date.now();
+    let roleId: string | null = null;
+    let userId: string | null = null;
+    let loginContext: Awaited<ReturnType<typeof playwrightRequest.newContext>> | null = null;
+    let restrictedContext: Awaited<ReturnType<typeof playwrightRequest.newContext>> | null = null;
+
+    try {
+      const roleRes = await auth.request.post('roles', {
+        data: {
+          name: `T104 Home Restricted ${testId}`,
+          description: 'Role without applications:read for RBAC test',
+        },
+      });
+      expect(roleRes.status()).toBe(201);
+      const role = await roleRes.json();
+      roleId = role.id;
+
+      const email = `t104-home-restricted-${testId}@ark.local`;
+      const password = 'T104SecurePass!123';
+      const createUserRes = await auth.request.post('users', {
+        data: {
+          email,
+          password,
+          firstName: 'T104',
+          lastName: 'Restricted',
+          roleId,
+        },
+      });
+      expect(createUserRes.status()).toBe(201);
+      const createdUser = await createUserRes.json();
+      userId = createdUser.id;
+
+      const fullApiUrl = `${apiBaseUrl}${apiVersion}`.replace(/\/$/, '') + '/';
+
+      loginContext = await playwrightRequest.newContext({
+        baseURL: fullApiUrl,
+      });
+      const loginRes = await loginContext.post('auth/login', {
+        data: { email, password },
+      });
+      expect(loginRes.status()).toBe(200);
+      const { accessToken } = await loginRes.json();
+
+      restrictedContext = await playwrightRequest.newContext({
+        baseURL: fullApiUrl,
+        extraHTTPHeaders: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const res = await restrictedContext.get('home/summary');
+      expect(res.status()).toBe(403);
+    } finally {
+      await restrictedContext?.dispose();
+      await loginContext?.dispose();
+
+      if (userId) {
+        await auth.request.patch(`users/${userId}`, {
+          data: { roleId: null },
+        });
+        await auth.request.delete(`users/${userId}`);
+      }
+      if (roleId) {
+        await auth.request.delete(`roles/${roleId}`);
+      }
+    }
+  });
+
   // G-09 RBAC : 401 sans token
-  test('GET /home/summary sans token → 401', async () => {
-    const apiBase = process.env.API_BASE_URL || 'http://localhost:3000';
-    const apiVersion = process.env.API_VERSION || '/api/v1';
-    const unauthContext = await playwrightRequest.newContext({ baseURL: apiBase });
-    const res = await unauthContext.get(`${apiVersion}/home/summary`);
+  test('GET /home/summary sans token → 401', async ({ apiBaseUrl, apiVersion }) => {
+    const fullApiUrl = `${apiBaseUrl}${apiVersion}`.replace(/\/$/, '') + '/';
+    const unauthContext = await playwrightRequest.newContext({ baseURL: fullApiUrl });
+    const res = await unauthContext.get('home/summary');
     expect(res.status()).toBe(401);
     await unauthContext.dispose();
   });

@@ -909,9 +909,9 @@ tasks:
 
   - id: T-104
     nom: "QA-back — Tests API FS-12 Dashboard (HomeModule + scope domaine)"
-    statut: open
+    statut: in_progress
     assigned_agent: qa
-    session_active: ~
+    session_active: "0e5d84"
     handoff_ref: ~
     date_resolution: ~
     sprint: S5
@@ -973,3 +973,32 @@ tasks:
       - Thierry (CIO, 0 domaine) : portée globale, bandeau "Tous les domaines"
       - User lecture seule (pas applications:read) : section "À traiter" masquée
       - EmptyState : périmètre sans application → zones 2/3/4 remplacées par EmptyState
+
+  - id: T-107
+    nom: "QA — Review findings Cypress it-components (emplacement, noms fixes, assertion seed)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "QA"
+    type: review
+    feature: "QA-CYPRESS"
+    priorité: low
+    sessions: []
+    notes: |
+      3 findings remontés par code review (session T-104, 2026-05-06) sur
+      e2e/tests/04-it-components.cy.ts :
+
+      1. [Medium] Fichier Cypress dans e2e/tests/ au lieu de frontend/cypress/e2e/.
+         Risque : tests silencieusement exclus des runs CI/locaux.
+         Action : vérifier si le fichier est déclenché quelque part, déplacer si nécessaire.
+
+      2. [Medium] Noms de données de test fixes (ex: "Test Component Cypress", "ToDelete Cypress Component").
+         Risque : contrainte de doublon lors de reruns si cleanup échoue.
+         Action : préfixer avec Date.now() ou timestamp unique.
+
+      3. [Low] Assertion dépendante de l'ordre/seed ("first row has linked apps").
+         Risque : test fragile si tri ou seed change.
+         Action : créer les données de test explicitement plutôt que d'hypothéquer la seed.
