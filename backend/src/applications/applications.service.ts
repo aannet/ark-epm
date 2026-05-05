@@ -508,6 +508,13 @@ export class ApplicationsService {
     this.logger.log({ method: 'remove', result: id });
   }
 
+  // AGENT-DECISION: back — FS-12 D-04 : compte les applications filtrées par périmètre domaine
+  // Convention : domainIds vide = portée globale (pas de clause WHERE domain_id)
+  async countByDomains(domainIds: string[]): Promise<number> {
+    const domainFilter = domainIds.length > 0 ? { domainId: { in: domainIds } } : {};
+    return this.prisma.application.count({ where: domainFilter });
+  }
+
   private async validateForeignKeys(dto: CreateApplicationDto | UpdateApplicationDto) {
     if (dto.domainId) {
       const domain = await this.prisma.domain.findUnique({

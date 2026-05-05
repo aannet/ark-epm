@@ -2400,6 +2400,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # FS-12 — Dashboard BFF
+  /home/summary:
+    get:
+      summary: Résumé dashboard — BFF agrégé (FS-12)
+      tags: [Home]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: >
+            Toujours 200. Les champs sont null en cas d'erreur partielle sur un sous-call.
+            Le client affiche "—" pour les sections avec valeur null.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeSummaryResponse'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Permission insuffisante (applications:read requis)
+
 components:
   schemas:
 
@@ -3380,6 +3401,24 @@ components:
         createdAt:
           type: string
           format: date-time
+        # FS-12 D-02 : domaines assignés à l'utilisateur (tableau vide = portée globale)
+        domainIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: "UUIDs des domaines assignés. Tableau vide = portée globale."
+        domains:
+          type: array
+          description: "Objets domaines pour affichage (WelcomeBanner)."
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
 
     RoleResponse:
       type: object
@@ -3558,6 +3597,13 @@ components:
           type: string
           format: uuid
           nullable: true
+        # FS-12 D-06 : domaines assignés ([] = portée globale)
+        domainIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: "Optionnel. Tableau vide [] = portée globale."
 
     UpdateUserDto:
       type: object
@@ -3574,6 +3620,13 @@ components:
           nullable: true
         isActive:
           type: boolean
+        # FS-12 D-06 : diff transactionnel domaine si présent
+        domainIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: "Optionnel. Si présent, remplace intégralement les domaines assignés."
 
     RoleListItem:
       type: object
@@ -3692,6 +3745,82 @@ components:
         description:
           type: string
           nullable: true
+
+    # FS-12 — HomeSummaryResponse
+    HomeSummaryResponse:
+      type: object
+      properties:
+        kpis:
+          nullable: true
+          description: "null si erreur sur ce sous-call"
+          type: object
+          properties:
+            appsCount:
+              type: integer
+              nullable: true
+            missionCriticalPercent:
+              type: number
+              format: float
+              nullable: true
+              description: "null si aucune app avec criticité renseignée (dénominateur=0)"
+            missionCriticalDenominator:
+              type: integer
+              nullable: true
+            interfacesCount:
+              type: integer
+              nullable: true
+              description: "COUNT global, non filtré domaine (entité transverse)"
+            coveredCapabilitiesCount:
+              type: integer
+              nullable: true
+        incompleteApps:
+          nullable: true
+          type: array
+          description: "null si erreur. Max 5 items, triés created_at ASC."
+          items:
+            type: object
+            properties:
+              id:           { type: string, format: uuid }
+              name:         { type: string }
+              missingFields:
+                type: array
+                items:
+                  type: string
+                  enum: [owner, criticality, lifecycle]
+              createdAt:    { type: string, format: date-time }
+        expiringProviders:
+          nullable: true
+          type: array
+          description: "null si erreur. Max 5 items, triés expiry_date ASC."
+          items:
+            type: object
+            properties:
+              id:               { type: string, format: uuid }
+              name:             { type: string }
+              expiryDate:       { type: string, format: date }
+              daysUntilExpiry:  { type: integer }
+        lifecycleDistribution:
+          nullable: true
+          type: object
+          description: "null si erreur. Toujours les 5 statuts présents, valeur 0 si aucune app."
+          properties:
+            draft:       { type: integer }
+            in_progress: { type: integer }
+            production:  { type: integer }
+            deprecated:  { type: integer }
+            retired:     { type: integer }
+            total:       { type: integer }
+        dataQuality:
+          nullable: true
+          type: object
+          description: "null si erreur."
+          properties:
+            completeCount: { type: integer }
+            totalCount:    { type: integer }
+            scorePercent:
+              type: integer
+              nullable: true
+              description: "floor(completeCount/totalCount * 100). null si totalCount=0."
 
   securitySchemes:
     bearerAuth:

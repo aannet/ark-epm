@@ -880,17 +880,20 @@ tasks:
 
   - id: T-103
     nom: "Back — Implémenter FS-12 Dashboard backend (user_domain_scope + HomeModule BFF + amendments)"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-back-t103.md"
+    date_resolution: 2026-05-06
     sprint: S5
     theme: "FS-12"
     type: impl
     feature: "FS-12-BACK"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "c7f3a1"
+        nom: "implémentation FS-12-BACK : UserDomainScope + HomeModule + amendments — G-01..G-11 validées"
     notes: |
       Scope complet backend FS-12 (dépend T-102) :
       D-01 : migration Prisma — modèle UserDomainScope (@@map user_domain_scope, N:N User↔Domain, pas de champ role en P1).

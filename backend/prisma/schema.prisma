@@ -40,19 +40,20 @@ model RolePermission {
 }
 
 model User {
-  id                String         @id @default(uuid()) @db.Uuid
-  email             String         @unique @db.VarChar(255)
-  passwordHash      String         @map("password_hash") @db.VarChar(255)
-  firstName         String?        @map("first_name") @db.VarChar(100)
-  lastName          String?        @map("last_name") @db.VarChar(100)
-  roleId            String?        @map("role_id") @db.Uuid
-  isActive          Boolean?       @default(true) @map("is_active")
-  createdAt         DateTime?      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime?      @default(now()) @map("updated_at") @db.Timestamptz(6)
-  ownedApplications Application[]  @relation("ApplicationOwner")
-  auditTrail        AuditTrail[]   @relation("AuditChangedBy")
-  role              Role?          @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                String            @id @default(uuid()) @db.Uuid
+  email             String            @unique @db.VarChar(255)
+  passwordHash      String            @map("password_hash") @db.VarChar(255)
+  firstName         String?           @map("first_name") @db.VarChar(100)
+  lastName          String?           @map("last_name") @db.VarChar(100)
+  roleId            String?           @map("role_id") @db.Uuid
+  isActive          Boolean?          @default(true) @map("is_active")
+  createdAt         DateTime?         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  ownedApplications Application[]     @relation("ApplicationOwner")
+  auditTrail        AuditTrail[]      @relation("AuditChangedBy")
+  role              Role?             @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   refreshToken      RefreshToken?
+  domainScopes      UserDomainScope[] // AGENT-DECISION: back — FS-12 scope domaine utilisateur
 
   @@map("users")
 }
@@ -66,8 +67,22 @@ model Domain {
   updatedAt            DateTime?            @map("updated_at") @db.Timestamptz(6)
   applications         Application[]
   businessCapabilities BusinessCapability[]
+  userScopes           UserDomainScope[] // AGENT-DECISION: back — FS-12 scope domaine utilisateur
 
   @@map("domains")
+}
+
+model UserDomainScope {
+  userId     String   @map("user_id") @db.Uuid
+  domainId   String   @map("domain_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  @@id([userId, domainId])
+  @@index([userId], map: "idx_user_domain_scope_user")
+  @@map("user_domain_scope")
 }
 
 model BusinessCapability {

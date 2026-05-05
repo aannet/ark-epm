@@ -27,6 +27,7 @@ import { BusinessCapabilitiesModule } from './business-capabilities/business-cap
 import { InterfacesModule } from './interfaces/interfaces.module';
 import { SearchModule } from './search/search.module';
 import { GraphModule } from './graph/graph.module';
+import { HomeModule } from './home/home.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { GraphModule } from './graph/graph.module';
     InterfacesModule,
     SearchModule,
     GraphModule,
+    HomeModule,
   ],
   controllers: [AppController],
   providers: [

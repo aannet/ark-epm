@@ -65,14 +65,26 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { role: { include: { rolePermissions: { include: { permission: true } } } } },
+      include: {
+        role: { include: { rolePermissions: { include: { permission: true } } } },
+        // AGENT-DECISION: back — FS-12 D-02 : inclure les domaines assignés à l'utilisateur
+        domainScopes: {
+          include: {
+            domain: { select: { id: true, name: true } },
+          },
+        },
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException();
     }
 
-    const { passwordHash: _passwordHash, ...result } = user;
-    return result;
+    const { passwordHash: _passwordHash, domainScopes, ...rest } = user;
+    return {
+      ...rest,
+      domainIds: domainScopes.map((ds) => ds.domainId),
+      domains: domainScopes.map((ds) => ({ id: ds.domain.id, name: ds.domain.name })),
+    };
   }
 }

@@ -352,6 +352,18 @@ export class BusinessCapabilitiesService {
     };
   }
 
+  // AGENT-DECISION: back — FS-12 D-05 : count DISTINCT capabilities couvertes par au moins 1 app dans le périmètre
+  // Convention : domainIds vide = portée globale
+  async countCoveredByDomains(domainIds: string[]): Promise<number> {
+    const domainFilter = domainIds.length > 0 ? { domainId: { in: domainIds } } : {};
+    const mappings = await this.prisma.appCapabilityMap.findMany({
+      where: { application: domainFilter },
+      select: { capabilityId: true },
+      distinct: ['capabilityId'],
+    });
+    return mappings.length;
+  }
+
   async create(dto: CreateBusinessCapabilityDto, userId: string) {
     if (dto.domainId) await this.validateDomainExists(dto.domainId);
     if (dto.parentId) await this.validateParentExists(dto.parentId);
