@@ -795,11 +795,11 @@ tasks:
 
   - id: T-101
     nom: "Back — Harmoniser validation injection sur tous les DTOs (suite T-099)"
-    statut: open
+    statut: done
     assigned_agent: back
     session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-05-05
     sprint: S4
     theme: "QA"
     type: debt
@@ -809,6 +809,12 @@ tasks:
       - tool: OC
         id: "a5c2f1"
         nom: "audit DTOs + F-999 Item 28 + plan implementation 6 entités"
+      - tool: OC
+        id: "f3d9e1"
+        nom: "hardening 7 entités (13 DTOs) + 14 nouveaux tests injection — 139/140 PASS"
+      - tool: OC
+        id: "20adf5"
+        nom: "revue code + fix @IsNotEmpty TagDimension + fix test cleanup interfaces + analyse ZAP threat"
     notes: |
       Suite T-099 (data-objects validation hardening) : appliquer les mêmes contrôles
       à toutes les entités EA. Référence pattern : CreateDataObjectDto post-T-099.
@@ -844,3 +850,117 @@ tasks:
 
       Lié à F-999 Item 28 (tech debt).
       Estimé 2-3 jours (6 DTOs × 2 files + tests + validation).
+
+  - id: T-102
+    nom: "Spec — FS-12 Dashboard : rédiger FS-12-dashboard-back.md + FS-12-dashboard-front.md"
+    statut: open
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "FS-12"
+    type: spec
+    feature: "FS-12"
+    priorité: high
+    sessions: []
+    notes: |
+      Gate avant toute implémentation FS-12.
+      Produire deux fichiers de spec opérationnelle :
+      - FS-12-dashboard-back.md : HomeModule NestJS, GET /api/v1/home/summary (Promise.allSettled),
+        migration Prisma user_domain_scope (D-01), amendment /auth/me domainIds[] (D-02),
+        domain filtering ApplicationsService + BusinessCapabilitiesService (D-04, D-05).
+      - FS-12-dashboard-front.md : home page 4 zones (layout V0), AuthContext domainIds,
+        US-HOME-09 user admin multi-select domaines (D-06).
+      Référence : docs/03-Features-Spec/FS-12-Dashboard/FS-12-dashboard-userstories.md
+      (9 US, 7 dépendances techniques, décisions architecturales actées).
+
+  - id: T-103
+    nom: "Back — Implémenter FS-12 Dashboard backend (user_domain_scope + HomeModule BFF + amendments)"
+    statut: open
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-BACK"
+    priorité: high
+    sessions: []
+    notes: |
+      Scope complet backend FS-12 (dépend T-102) :
+      D-01 : migration Prisma — modèle UserDomainScope (@@map user_domain_scope, N:N User↔Domain, pas de champ role en P1).
+      D-02 : amendment AuthService.getProfile() — inclure domainIds[] + noms des domaines assignés.
+      D-03 : nouveau HomeModule — GET /api/v1/home/summary, orchestre 6 appels internes via
+             Promise.allSettled(), réponse 200 toujours (champs null si erreur partielle).
+      D-04 : amendment ApplicationsService — count() + findAll() filtré sur domainIds[] du user.
+      D-05 : amendment BusinessCapabilitiesService — count() filtré sur domainIds[].
+      Convention scope : 0 domaine assigné = portée globale (pas de flag is_global_scope).
+
+  - id: T-104
+    nom: "QA-back — Tests API FS-12 Dashboard (HomeModule + scope domaine)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "FS-12"
+    type: test
+    feature: "FS-12-BACK"
+    priorité: medium
+    sessions: []
+    notes: |
+      Dépend T-103.
+      Scope : e2e/tests/home/home-summary.api.spec.ts
+      - GET /api/v1/home/summary → 200 avec les 4 zones peuplées
+      - Scope domaine : user avec domaines assignés vs user global (0 domaine)
+      - Erreur partielle : champ null si sous-service échoue, reste 200
+      - RBAC : 401 sans token, 403 si permission manquante (applications:read)
+
+  - id: T-105
+    nom: "Front — Implémenter FS-12 Dashboard (home page 4 zones + US-HOME-09 user admin)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-FRONT"
+    priorité: high
+    sessions: []
+    notes: |
+      Dépend T-103.
+      Scope US-HOME-01..08 : page d'accueil route `/`
+      - Zone 1 : 4 tuiles KPI (Bandeau, cliquables → navigate)
+      - Zone 2 : fiches incomplètes (5 max) + contrats expirant 90j (5 max)
+      - Zone 3 : bar chart lifecycle via LinearProgress MUI (pas de lib graphique externe)
+      - Zone 4 : gauge data quality (LinearProgress, couleur dynamique error/warning/success)
+      - Zone transverse : bienvenue contextualisé (1/N/global domaine), EmptyState si 0 app
+      Layout V0 : Zone1 full width → Zone2 full width → Zones3+4 côte à côte 2/3+1/3, maxWidth xl.
+      US-HOME-09 : champ multi-select domaines dans page création/édition utilisateur (admin).
+      AuthContext : étendre le store auth avec domainIds[] (issus de /auth/me).
+
+  - id: T-106
+    nom: "QA-front — Tests e2e FS-12 Dashboard (parcours Playwright)"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "FS-12"
+    type: test
+    feature: "FS-12-FRONT"
+    priorité: medium
+    sessions: []
+    notes: |
+      Dépend T-105.
+      Parcours à couvrir (Playwright UI) :
+      - Marc (AE, 1 domaine) : tuiles KPI visibles, navigation depuis tuile, fiches incomplètes listées
+      - Thierry (CIO, 0 domaine) : portée globale, bandeau "Tous les domaines"
+      - User lecture seule (pas applications:read) : section "À traiter" masquée
+      - EmptyState : périmètre sans application → zones 2/3/4 remplacées par EmptyState

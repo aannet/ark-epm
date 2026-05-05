@@ -88,6 +88,10 @@ sprints:
         nom: "Navigation & UX transverse"
         back: draft
         front: draft
+      - id: "FS-12"
+        nom: "Dashboard d'accueil"
+        back: draft
+        front: draft
 
   - id: "P2"
     nom: "Phase 2 — Post-MVP"

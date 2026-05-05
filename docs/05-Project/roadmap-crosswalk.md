@@ -2,6 +2,12 @@
 
 Ce document relie les IDs de `docs/05-Project/roadmap.yaml` aux spécifications et aux tâches opérationnelles (`docs/05-Project/tasks.yaml`).
 
+## S5 — FS-12 Dashboard
+
+| Roadmap ID | Libellé | Référence spec | Tâche(s) opérationnelles |
+|---|---|---|---|
+| FS-12 | Dashboard d'accueil | `docs/03-Features-Spec/FS-12-Dashboard/FS-12-dashboard-userstories.md` | `T-102` (spec) · `T-103` (back) · `T-104` (qa-back) · `T-105` (front) · `T-106` (qa-front) |
+
 ## P2 — FS-09 + dette F-999
 
 | Roadmap ID | Libellé | Référence spec | Tâche(s) opérationnelles |
