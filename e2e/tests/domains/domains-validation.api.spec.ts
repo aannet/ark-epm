@@ -60,4 +60,27 @@ test.describe('Domains Validation API', () => {
     const body = await response.json();
     expect(body.code).toBe('DOMAIN_NOT_FOUND');
   });
+
+  // AGENT-DECISION: qa — T-101 injection hardening tests
+  test('POST /domains - should reject command injection in name', async ({ auth }) => {
+    const res = await auth.request.post('domains', {
+      data: { name: 'ZAP;cat /etc/passwd;' },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('POST /domains - should reject URL scheme injection in name', async ({ auth }) => {
+    const res = await auth.request.post('domains', {
+      data: { name: 'http://www.google.com/search?q=ZAP' },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('PATCH /domains/:id - should reject injection in name during update', async ({ auth, testData }) => {
+    const domain = await testData.createDomain({ name: `Domain Inject Target ${Date.now()}` });
+    const res = await auth.request.patch(`domains/${domain.id}`, {
+      data: { name: 'ZAP|type %SYSTEMROOT%\\win.ini' },
+    });
+    expect(res.status()).toBe(400);
+  });
 });

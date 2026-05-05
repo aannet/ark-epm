@@ -89,4 +89,38 @@ test.describe('Applications Validation API', () => {
     const error = await expectError(response, 404, 'BUSINESS_CAPABILITY_NOT_FOUND');
     expect(error.message).toContain('One or more business capabilities not found');
   });
+
+  // AGENT-DECISION: qa — T-101 injection hardening tests
+  test('POST /applications - should reject command injection in name (semicolon)', async ({ auth }) => {
+    const res = await auth.request.post('applications', {
+      data: { name: 'ZAP;cat /etc/passwd;' },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('POST /applications - should reject URL scheme injection in name', async ({ auth }) => {
+    const res = await auth.request.post('applications', {
+      data: { name: 'http://www.google.com/search?q=ZAP' },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('POST /applications - should accept valid name with spaces and hyphens', async ({ auth, testData }) => {
+    const name = `Valid Application - Test ${Date.now()}`;
+    const res = await auth.request.post('applications', {
+      data: { name },
+    });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    expect(body.name).toBe(name);
+    await auth.request.delete(`applications/${body.id}`);
+  });
+
+  test('PATCH /applications/:id - should reject injection in name during update', async ({ auth, testData }) => {
+    const app = await testData.createApplication({ name: `App Inject Target ${Date.now()}` });
+    const res = await auth.request.patch(`applications/${app.id}`, {
+      data: { name: 'ZAP|type %SYSTEMROOT%\\win.ini' },
+    });
+    expect(res.status()).toBe(400);
+  });
 });
