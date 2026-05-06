@@ -1017,17 +1017,29 @@ tasks:
 
   - id: T-108
     nom: "Playwright — l'intégralité des tests UI plante contrairement aux tests backend"
-    statut: in_progress
+    statut: done
     assigned_agent: qa
-    session_active: "6f4b2a"
-    handoff_ref: ~
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t108.md"
+    date_resolution: 2026-05-06
     sprint: S5
     theme: "QA"
     type: bug
     feature: "QA-E2E-UI"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "6f4b2a"
+        nom: "stabilisation UI Playwright + provisionnement readonly"
+    notes: |
+      Résolution complète de la panne UI Playwright.
+      Actions principales :
+      - Makefile `test-e2e` local-first + fallback Docker
+      - `e2e/playwright.config.ts` baseURL local + `globalSetup`
+      - `e2e/global-setup.ts` : provisionnement idempotent rôle/user `ReadOnly`
+      - suppression des `test.skip(!readonlyOk, ...)` sur les specs UI read-only
+      - stabilisation des helpers login (`/auth/me`) et sélecteurs fragiles
+      Validation : exécution UI verte et compte readonly opérationnel.
 
   - id: T-109
     nom: "MegaLinter — corriger plugin sonarjs ESLint v8 + calibrer jscpd sur codebase réelle"
@@ -1129,3 +1141,26 @@ tasks:
          Chaque tooltip doit expliquer ce que le bloc mesure / comment il se calcule.
 
       Fichier cible : frontend/src/pages/home/HomePage.tsx
+
+  - id: T-113
+    nom: "QA — Dashboard coverage : aligner comptage Playwright et inventaire fichiers"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t108.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "QA"
+    type: bug
+    feature: "QA-REPORTS"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "6f4b2a"
+        nom: "fix aggregate-coverage Playwright path mapping"
+    notes: |
+      Correction `scripts/aggregate-coverage.js` dans `resolveProjectPath`.
+      Problème : `spec.file` Playwright est relatif à `e2e/tests` (ex: `applications/...`),
+      ce qui empêchait le matching avec l'inventaire (`e2e/tests/...`) et masquait les stats par fichier.
+      Fix : normalisation explicite des chemins Playwright vers `e2e/tests/${cleaned}`.
+      Puis régénération de `docs/05-Project/test-coverage-dashboard/coverage-data.json`.
