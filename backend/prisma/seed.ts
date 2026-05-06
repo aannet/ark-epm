@@ -61,7 +61,35 @@ async function main() {
       VALUES (gen_random_uuid(), ${'admin@ark.io'}::varchar, ${passwordHash}::varchar, ${'Admin'}::varchar, ${'User'}::varchar, ${adminRole.id}::uuid, true)`;
   }
 
-  console.log('Seed completed: Admin user created (admin@ark.io / admin123456)');
+  const existingReadOnlyRole = await prisma.role.findUnique({ where: { name: 'ReadOnly' } });
+  // AGENT-DECISION: [data] — seed ReadOnly role + user to keep deterministic RBAC test baseline.
+  if (!existingReadOnlyRole) {
+    await prisma.$executeRaw`INSERT INTO roles (id, name, description) VALUES (gen_random_uuid(), 'ReadOnly', 'Read-only access to all resources')`;
+  }
+
+  const readOnlyRole = await prisma.role.findUnique({ where: { name: 'ReadOnly' } });
+  if (!readOnlyRole) throw new Error('ReadOnly role not created');
+
+  const readPermissions = await prisma.permission.findMany({
+    where: { name: { endsWith: ':read' } },
+  });
+  for (const perm of readPermissions) {
+    const existing = await prisma.rolePermission.findUnique({
+      where: { roleId_permissionId: { roleId: readOnlyRole.id, permissionId: perm.id } },
+    });
+    if (!existing) {
+      await prisma.$executeRaw`INSERT INTO role_permissions (role_id, permission_id) VALUES (${readOnlyRole.id}::uuid, ${perm.id}::uuid)`;
+    }
+  }
+
+  const existingReadOnlyUser = await prisma.user.findUnique({ where: { email: 'readonly@ark.io' } });
+  if (!existingReadOnlyUser) {
+    const readOnlyPasswordHash = await bcrypt.hash('readonly123456', 12);
+    await prisma.$executeRaw`INSERT INTO users (id, email, password_hash, first_name, last_name, role_id, is_active)
+      VALUES (gen_random_uuid(), ${'readonly@ark.io'}::varchar, ${readOnlyPasswordHash}::varchar, ${'Read'}::varchar, ${'Only'}::varchar, ${readOnlyRole.id}::uuid, true)`;
+  }
+
+  console.log('Seed completed: test users created (admin@ark.io, readonly@ark.io)');
 
   const tagDimensions = [
     { name: 'Geography', color: '#2196F3', icon: 'public', description: 'Geographic dimension for entities', entityScope: ['application', 'domain', 'business-capability', 'data-object', 'interface', 'it-component', 'provider'] },

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-06T07:23:18.897Z",
+  "generated_at": "2026-05-06T18:03:17.846Z",
   "sources": {
     "jest_unit_report": {
       "path": "backend/reports/jest-unit-results.json",
@@ -48,24 +48,24 @@
     "playwright_api": {
       "label": "Playwright API",
       "file_count": 17,
-      "total": 154,
-      "pass": 153,
-      "fail": 0,
+      "total": 136,
+      "pass": 134,
+      "fail": 1,
       "skipped": 1,
-      "pass_rate": 99.4,
+      "pass_rate": 98.5,
       "status": "ready",
-      "last_run": "2026-05-06T07:12:27.253Z"
+      "last_run": "2026-05-06T12:04:07.205Z"
     },
     "playwright_ui": {
       "label": "Playwright UI",
       "file_count": 7,
       "total": 81,
-      "pass": 0,
-      "fail": 67,
-      "skipped": 14,
-      "pass_rate": 0,
+      "pass": 78,
+      "fail": 1,
+      "skipped": 2,
+      "pass_rate": 96.3,
       "status": "ready",
-      "last_run": "2026-05-06T07:12:27.253Z"
+      "last_run": "2026-05-06T12:04:07.205Z"
     },
     "cypress": {
       "label": "Cypress",
@@ -362,7 +362,7 @@
       "frameworks": {
         "jest_unit": "not_run",
         "jest_e2e": "not_run",
-        "playwright": "not_run",
+        "playwright": "partial",
         "cypress": "not_run"
       },
       "totals": {
@@ -382,10 +382,10 @@
         },
         "playwright": {
           "files": 24,
-          "executed": 0,
-          "pass": 0,
-          "fail": 0,
-          "skipped": 0
+          "executed": 217,
+          "pass": 212,
+          "fail": 2,
+          "skipped": 3
         },
         "cypress": {
           "files": 7,
@@ -700,253 +700,253 @@
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/applications/applications-dependencies.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/applications/applications-pagination.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/applications/applications-validation.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/business-capabilities/business-capabilities-crud.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/business-capabilities/business-capabilities-tree.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/business-capabilities/business-capabilities-validation.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/business-capabilities/business-capabilities.spec.ts",
       "framework": "playwright_ui",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/data-objects/data-objects-crud.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 11,
+      "pass": 10,
+      "fail": 1,
+      "skipped": 0,
+      "status": "partial"
     },
     {
       "file": "e2e/tests/data-objects/data-objects-dependencies.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 5,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 1,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/data-objects/data-objects-validation.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 14,
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/data-objects/data-objects.spec.ts",
       "framework": "playwright_ui",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 36,
+      "pass": 33,
+      "fail": 1,
+      "skipped": 2,
+      "status": "partial"
     },
     {
       "file": "e2e/tests/domains/domains-crud.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/domains/domains-dependencies.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/domains/domains-validation.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/example.spec.ts",
       "framework": "playwright_ui",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/graph/graph.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/home/home-dashboard.spec.ts",
       "framework": "playwright_ui",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/home/home-summary.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/interfaces/interfaces-list.spec.ts",
       "framework": "playwright_ui",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/it-components/it-components-crud.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/it-components/it-components-dependencies.api.spec.ts",
       "framework": "playwright_api",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "e2e/tests/search/omnisearch.spec.ts",
       "framework": "playwright_ui",
       "framework_family": "playwright",
       "feature": "Core/Infra",
-      "total": null,
-      "pass": null,
-      "fail": null,
-      "skipped": null,
-      "status": "not_run"
+      "total": 21,
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0,
+      "status": "pass"
     },
     {
       "file": "frontend/cypress/e2e/access-control.cy.ts",
@@ -1027,10 +1027,10 @@
     }
   ],
   "totals": {
-    "tests": 235,
-    "pass": 153,
-    "fail": 67,
-    "skipped": 15,
-    "pass_rate": 65.1
+    "tests": 217,
+    "pass": 212,
+    "fail": 2,
+    "skipped": 3,
+    "pass_rate": 97.7
   }
 }

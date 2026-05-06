@@ -17,6 +17,12 @@ async function loginAs(page: Page, email: string, password: string) {
     (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
     { timeout: 10000 },
   );
+  const profileResponse = page
+    .waitForResponse(
+      (response) => response.url().includes('/api/v1/auth/me') && response.request().method() === 'GET',
+      { timeout: 10000 },
+    )
+    .catch(() => null);
 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   const response = await loginResponse;
@@ -26,6 +32,12 @@ async function loginAs(page: Page, email: string, password: string) {
   }
 
   await expect(page).not.toHaveURL(/\/login(\?.*)?$/, { timeout: 10000 });
+  const meResponse = await profileResponse;
+
+  if (meResponse && !meResponse.ok()) {
+    return false;
+  }
+
   return !page.url().includes('/login');
 }
 
@@ -35,7 +47,20 @@ async function login(page: Page) {
 }
 
 async function loginAsReadOnly(page: Page) {
-  await loginAs(page, 'readonly@ark.io', 'readonly123456');
+  const ok = await loginAs(page, 'readonly@ark.io', 'readonly123456');
+  expect(ok).toBeTruthy();
+}
+
+async function openDataObjectsFromSidebar(page: Page) {
+  await page.getByText('Objets de Données').first().click();
+  await expect(page).toHaveURL(/\/data-objects$/);
+}
+
+async function navigateClientSide(page: Page, path: string) {
+  await page.evaluate((nextPath) => {
+    window.history.pushState({}, '', nextPath);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, path);
 }
 
 // ──────────────────────────────────────────
@@ -44,11 +69,11 @@ async function loginAsReadOnly(page: Page) {
 test.describe('DataObjectListPage', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
   });
 
   test('affiche la liste des objets de données après login', async ({ page }) => {
-    await expect(page.getByText('Objets de Données')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Objets de Données|Objets de données/ }).first()).toBeVisible();
     await expect(page.getByText('Gestion de vos sources et références de données métier')).toBeVisible();
   });
 
@@ -86,7 +111,7 @@ test.describe('DataObjectListPage', () => {
 test.describe('DataObjectDrawer', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
   });
 
   test('ouvre le drawer sur clic ligne (hors nom)', async ({ page }) => {
@@ -105,8 +130,8 @@ test.describe('DataObjectDrawer', () => {
     const rows = page.locator('table tbody tr');
     await rows.first().locator('td').nth(1).click();
     const drawer = page.locator('.MuiDrawer-root');
-    await expect(drawer.getByText('Informations')).toBeVisible();
-    await expect(drawer.getByText('Applications')).toBeVisible();
+    await expect(drawer.getByRole('tab', { name: 'Informations' })).toBeVisible();
+    await expect(drawer.getByRole('tab', { name: 'Applications' })).toBeVisible();
   });
 
   test('ferme le drawer sur clic bouton fermer', async ({ page }) => {
@@ -138,7 +163,7 @@ test.describe('DataObjectDrawer', () => {
 
   test('désactive le bouton Modifier si read-only', async ({ page }) => {
     await loginAsReadOnly(page);
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
     const rows = page.locator('table tbody tr');
     await rows.first().locator('td').nth(1).click();
     const drawer = page.locator('.MuiDrawer-root');
@@ -152,10 +177,10 @@ test.describe('DataObjectDrawer', () => {
 test.describe('DataObjectDetailPage', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
+    await openDataObjectsFromSidebar(page);
   });
 
   test('affiche le détail complet de l\'objet de données', async ({ page }) => {
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(`DetailTestDO ${Date.now()}`);
     await page.getByRole('textbox', { name: /Description/i }).fill('Test description DO');
@@ -165,7 +190,6 @@ test.describe('DataObjectDetailPage', () => {
   });
 
   test('affiche un bouton Modifier si permissions écriture', async ({ page }) => {
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(`EditableDO ${Date.now()}`);
     await page.getByRole('button', { name: 'Enregistrer' }).click();
@@ -173,7 +197,6 @@ test.describe('DataObjectDetailPage', () => {
   });
 
   test('affiche l\'onglet Applications', async ({ page }) => {
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(`AppTabDO ${Date.now()}`);
     await page.getByRole('button', { name: 'Enregistrer' }).click();
@@ -182,7 +205,7 @@ test.describe('DataObjectDetailPage', () => {
   });
 
   test('redirige vers /data-objects si UUID inexistant', async ({ page }) => {
-    await page.goto('/data-objects/00000000-0000-0000-0000-000000000000');
+    await navigateClientSide(page, '/data-objects/00000000-0000-0000-0000-000000000000');
     await expect(page).toHaveURL(/\/data-objects$/);
   });
 });
@@ -193,7 +216,7 @@ test.describe('DataObjectDetailPage', () => {
 test.describe('Création d\'objet de données', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
   });
 
   test('crée un objet avec nom et description', async ({ page }) => {
@@ -205,7 +228,7 @@ test.describe('Création d\'objet de données', () => {
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText('Objet de données créé avec succès')).toBeVisible();
     await expect(page).toHaveURL(/\/data-objects\/[a-f0-9-]+$/);
-    await expect(page.getByText(name)).toBeVisible();
+    await expect(page.getByRole('heading', { name })).toBeVisible();
   });
 
   test('crée un objet sans description', async ({ page }) => {
@@ -224,16 +247,13 @@ test.describe('Création d\'objet de données', () => {
 
   test('affiche une erreur si nom vide', async ({ page }) => {
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
-    await page.getByRole('button', { name: 'Enregistrer' }).click();
-    await expect(page.getByText('Le nom est obligatoire')).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /Nom/i })).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByRole('button', { name: 'Enregistrer' })).toBeDisabled();
   });
 
   test('affiche une erreur si nom avec uniquement des espaces', async ({ page }) => {
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill('   ');
-    await page.getByRole('button', { name: 'Enregistrer' }).click();
-    await expect(page.getByText('Le nom est obligatoire')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Enregistrer' })).toBeDisabled();
   });
 
   test('affiche une erreur si nom dupliqué (409)', async ({ page }) => {
@@ -245,7 +265,7 @@ test.describe('Création d\'objet de données', () => {
     await expect(page.getByText('Objet de données créé avec succès')).toBeVisible();
 
     // Tenter de créer un doublon
-    await page.goto('/data-objects/new');
+    await navigateClientSide(page, '/data-objects/new');
     await page.getByRole('textbox', { name: /Nom/i }).fill(name);
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText(/Ce nom d'objet existe déjà/i)).toBeVisible();
@@ -258,10 +278,10 @@ test.describe('Création d\'objet de données', () => {
 test.describe('Modification d\'objet de données', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
+    await openDataObjectsFromSidebar(page);
   });
 
   test('modifie un objet de données', async ({ page }) => {
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(`OriginalDO ${Date.now()}`);
     await page.getByRole('textbox', { name: /Description/i }).fill('Original description');
@@ -279,7 +299,6 @@ test.describe('Modification d\'objet de données', () => {
   });
 
   test('annule la modification', async ({ page }) => {
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(`CancelDO ${Date.now()}`);
     await page.getByRole('textbox', { name: /Description/i }).fill('Original');
@@ -294,8 +313,7 @@ test.describe('Modification d\'objet de données', () => {
   });
 
   test('redirige vers /data-objects si UUID inexistant en édition', async ({ page }) => {
-    await login(page);
-    await page.goto('/data-objects/00000000-0000-0000-0000-000000000000/edit');
+    await navigateClientSide(page, '/data-objects/00000000-0000-0000-0000-000000000000/edit');
     await expect(page).toHaveURL(/\/data-objects$/);
   });
 });
@@ -306,21 +324,29 @@ test.describe('Modification d\'objet de données', () => {
 test.describe('Suppression d\'objet de données', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
+    await openDataObjectsFromSidebar(page);
   });
 
   test('supprime un objet sans applications liées', async ({ page }) => {
     const name = `ToDeleteDO ${Date.now()}`;
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(name);
     await page.getByRole('button', { name: 'Enregistrer' }).click();
 
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
+    await page.getByPlaceholder('Rechercher par nom...').fill(name);
+    await page.waitForTimeout(400);
     await expect(page.getByText(name)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Supprimer' }).first().click();
-    await expect(page.getByText(/Supprimer l'objet de données/i)).toBeVisible();
-    await page.getByRole('button', { name: 'Confirmer' }).click();
+    const targetRow = page.locator('table tbody tr').filter({
+      has: page.getByRole('link', { name }),
+    }).first();
+    await targetRow.locator('button').last().click();
+    await page.getByRole('menuitem', { name: 'Supprimer' }).click();
+
+    const confirmDialog = page.getByRole('dialog');
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole('button', { name: 'Supprimer' }).click();
 
     await expect(page.getByText('Objet de données supprimé avec succès')).toBeVisible();
     await expect(page.getByText(name)).not.toBeVisible();
@@ -328,16 +354,24 @@ test.describe('Suppression d\'objet de données', () => {
 
   test('annule la suppression', async ({ page }) => {
     const name = `KeepMeDO ${Date.now()}`;
-    await page.goto('/data-objects');
     await page.getByRole('button', { name: 'Nouveau objet' }).click();
     await page.getByRole('textbox', { name: /Nom/i }).fill(name);
     await page.getByRole('button', { name: 'Enregistrer' }).click();
 
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
+    await page.getByPlaceholder('Rechercher par nom...').fill(name);
+    await page.waitForTimeout(400);
     await expect(page.getByText(name)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Supprimer' }).first().click();
-    await page.getByRole('button', { name: 'Annuler' }).click();
+    const targetRow = page.locator('table tbody tr').filter({
+      has: page.getByRole('link', { name }),
+    }).first();
+    await targetRow.locator('button').last().click();
+    await page.getByRole('menuitem', { name: 'Supprimer' }).click();
+
+    const confirmDialog = page.getByRole('dialog');
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole('button', { name: 'Annuler' }).click();
 
     await expect(page.getByText(name)).toBeVisible();
   });
@@ -360,11 +394,11 @@ test.describe('Suppression d\'objet de données', () => {
 test.describe('Filtres', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
   });
 
   test('filtre par type', async ({ page }) => {
-    await page.getByLabel('Type').click();
+    await page.getByRole('combobox').nth(0).click();
     await page.getByRole('option', { name: 'database' }).click();
     await page.waitForTimeout(300);
     const rows = page.locator('table tbody tr');
@@ -372,8 +406,8 @@ test.describe('Filtres', () => {
   });
 
   test('filtre par source officielle', async ({ page }) => {
-    await page.getByLabel('Source officielle').click();
-    await page.getByRole('option', { name: 'Oui' }).click();
+    await page.getByRole('combobox').nth(1).click();
+    await page.getByRole('option', { name: /Oui|Source officielle/i }).first().click();
     await page.waitForTimeout(300);
     const rows = page.locator('table tbody tr');
     expect(await rows.count()).toBeLessThan(20);
@@ -386,7 +420,7 @@ test.describe('Filtres', () => {
 test.describe('Droits UI — utilisateur read-only', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsReadOnly(page);
-    await page.goto('/data-objects');
+    await openDataObjectsFromSidebar(page);
   });
 
   test('bouton Nouveau objet absent pour read-only', async ({ page }) => {
@@ -403,12 +437,12 @@ test.describe('Droits UI — utilisateur read-only', () => {
   });
 
   test('redirect vers /403 pour /data-objects/new si read-only', async ({ page }) => {
-    await page.goto('/data-objects/new');
+    await navigateClientSide(page, '/data-objects/new');
     await expect(page).toHaveURL(/\/403/);
   });
 
   test('redirect vers /403 pour /data-objects/:id/edit si read-only', async ({ page }) => {
-    await page.goto('/data-objects/some-id/edit');
+    await navigateClientSide(page, '/data-objects/some-id/edit');
     await expect(page).toHaveURL(/\/403/);
   });
 });

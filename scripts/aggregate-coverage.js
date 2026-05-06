@@ -99,6 +99,14 @@ function resolveProjectPath(inputPath, source) {
     return source.startsWith('playwright') ? `e2e/${cleaned}` : cleaned;
   }
 
+  if (
+    source.startsWith('playwright') &&
+    /\.(api\.)?spec\.(ts|tsx|js|jsx)$/.test(cleaned)
+  ) {
+    // AGENT-DECISION: qa — Playwright JSON uses paths relative to testDir (e2e/tests), normalize for inventory key matching.
+    return `e2e/tests/${cleaned}`;
+  }
+
   if (cleaned.startsWith('cypress/')) {
     return `frontend/${cleaned}`;
   }

@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  globalSetup: './global-setup.ts',
   globalTeardown: './global-teardown.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -22,7 +23,7 @@ export default defineConfig({
       testIgnore: /.*\.api\.spec\.ts$/,
       use: { 
         ...devices['Desktop Chrome'],
-        baseURL: process.env.BASE_URL || 'http://frontend:5173',
+        baseURL: process.env.BASE_URL || 'http://localhost:5173',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',

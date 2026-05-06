@@ -12,6 +12,12 @@ async function loginAs(page: Page, email: string, password: string) {
     (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
     { timeout: 10000 },
   );
+  const profileResponse = page
+    .waitForResponse(
+      (response) => response.url().includes('/api/v1/auth/me') && response.request().method() === 'GET',
+      { timeout: 10000 },
+    )
+    .catch(() => null);
 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   const response = await loginResponse;
@@ -21,6 +27,12 @@ async function loginAs(page: Page, email: string, password: string) {
   }
 
   await expect(page).not.toHaveURL(/\/login(\?.*)?$/, { timeout: 10000 });
+  const meResponse = await profileResponse;
+
+  if (meResponse && !meResponse.ok()) {
+    return false;
+  }
+
   return !page.url().includes('/login');
 }
 
@@ -39,7 +51,8 @@ async function loginAdmin(page: Page) {
 }
 
 async function loginReadOnly(page: Page) {
-  return loginAs(page, 'readonly@ark.io', 'readonly123456');
+  const ok = await loginAs(page, 'readonly@ark.io', 'readonly123456');
+  expect(ok).toBeTruthy();
 }
 
 async function getAdminApiToken(page: Page) {
@@ -137,8 +150,7 @@ test.describe('Business Capabilities UI', () => {
   });
 
   test('masque Add + colonne Actions en read-only', async ({ page }) => {
-    const readonlyOk = await loginReadOnly(page);
-    test.skip(!readonlyOk, 'Compte readonly indisponible sur cet environnement');
+    await loginReadOnly(page);
     await openBusinessCapabilitiesFromSidebar(page);
 
     await expect(page.getByRole('button', { name: 'Ajouter une capacité' })).toHaveCount(0);
@@ -152,7 +164,7 @@ test.describe('Business Capabilities create/edit/delete flows', () => {
     await openBusinessCapabilitiesFromSidebar(page);
     await page.getByRole('button', { name: 'Ajouter une capacité' }).click();
 
-    await expect(page.getByText('Accueil')).toBeVisible();
+    await expect(page.getByText('Accueil').first()).toBeVisible();
     await expect(page.getByText('Business Capabilities')).toBeVisible();
     await expect(page.getByText('Nouvelle capacité')).toBeVisible();
 
