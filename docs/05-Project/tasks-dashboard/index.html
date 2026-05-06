@@ -650,6 +650,20 @@
       grid-column: 1 / -1;
       height: 260px;
     }
+
+    .timeline-intro {
+      margin-bottom: 14px;
+      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .timeline-intro code {
+      font-family: var(--font-mono);
+      color: var(--text);
+    }
+    .timeline-chart-card {
+      height: 380px;
+    }
   </style>
 </head>
 <body>
@@ -676,6 +690,7 @@
   <button class="tab-btn active" data-tab="tasks">Tasks</button>
   <button class="tab-btn" data-tab="roadmap">Roadmap</button>
   <button class="tab-btn" data-tab="stats">Stats ✦</button>
+  <button class="tab-btn" data-tab="timeline">Timeline ✦</button>
 </div>
 
 <!-- ── View: Tasks ── -->
@@ -763,6 +778,17 @@
   </div>
 </div>
 
+<!-- ── View: Timeline ── -->
+<div id="view-timeline" style="display:none">
+  <p class="timeline-intro">
+    Progression temporelle basée uniquement sur les tickets <code>done</code> avec
+    <code>date_resolution</code>.
+  </p>
+  <div class="chart-card timeline-chart-card">
+    <canvas id="chart-timeline"></canvas>
+  </div>
+</div>
+
 <!-- ── View: Roadmap ── -->
 <div id="view-roadmap" style="display:none">
   <div class="roadmap-toolbar">
@@ -786,6 +812,7 @@
   let currentTab      = 'tasks';
   let currentRmView   = 'kanban';
   let chartsInitialized = false;
+  let timelineInitialized = false;
   let chartInstances  = {};
 
   const TYPE_COLORS = {
@@ -811,6 +838,7 @@
   const viewTasks     = document.getElementById('view-tasks');
   const viewRoadmap   = document.getElementById('view-roadmap');
   const viewStats     = document.getElementById('view-stats');
+  const viewTimeline  = document.getElementById('view-timeline');
   const kanbanView    = document.getElementById('kanban-view');
   const gridView      = document.getElementById('grid-view');
 
@@ -822,8 +850,10 @@
       viewTasks.style.display   = currentTab === 'tasks'   ? '' : 'none';
       viewRoadmap.style.display = currentTab === 'roadmap' ? '' : 'none';
       viewStats.style.display   = currentTab === 'stats'   ? '' : 'none';
+      viewTimeline.style.display = currentTab === 'timeline' ? '' : 'none';
       if (currentTab === 'roadmap') renderRoadmapView();
       if (currentTab === 'stats')   renderStats();
+      if (currentTab === 'timeline') renderTimeline();
     });
   });
 
@@ -1293,6 +1323,125 @@
     });
   }
 
+  function normalizeIsoDate(raw) {
+    if (raw === null || raw === undefined || raw === '' || raw === '~') return null;
+    if (raw instanceof Date && !Number.isNaN(raw.getTime())) {
+      return raw.toISOString().slice(0, 10);
+    }
+    const s = String(raw).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toISOString().slice(0, 10);
+  }
+
+  function renderTimeline() {
+    if (timelineInitialized || !allTasks.length) return;
+
+    // AGENT-DECISION: [spec] — timeline relies on resolved tickets only because tasks have no reliable creation date.
+    const doneTasks = allTasks.filter(t => t.statut === 'done');
+    const doneByDate = new Map();
+
+    doneTasks.forEach(task => {
+      const isoDate = normalizeIsoDate(task.date_resolution);
+      if (!isoDate) return;
+      doneByDate.set(isoDate, (doneByDate.get(isoDate) || 0) + 1);
+    });
+
+    const orderedDates = Array.from(doneByDate.keys()).sort((a, b) => a.localeCompare(b));
+
+    if (!orderedDates.length) {
+      viewTimeline.innerHTML = '<div class="state-box"><div class="icon">📈</div><h2>Aucune date de résolution exploitable</h2><p>Renseigner <code>date_resolution</code> sur les tickets <code>done</code> pour afficher la timeline.</p></div>';
+      timelineInitialized = true;
+      return;
+    }
+
+    const dailyResolved = orderedDates.map(d => doneByDate.get(d) || 0);
+    let runningTotal = 0;
+    const cumulativeDone = orderedDates.map(date => {
+      runningTotal += doneByDate.get(date) || 0;
+      return runningTotal;
+    });
+
+    const labels = orderedDates.map(d => {
+      const parts = d.split('-');
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}` : d;
+    });
+
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { labels: { color: '#ccc', boxWidth: 12 } } }
+    };
+
+    chartInstances.timeline = new Chart(document.getElementById('chart-timeline'), {
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Résolus / jour',
+            data: dailyResolved,
+            backgroundColor: 'rgba(233,69,96,0.5)',
+            borderColor: '#e94560',
+            borderWidth: 1,
+            yAxisID: 'y'
+          },
+          {
+            type: 'line',
+            label: 'Cumul traités',
+            data: cumulativeDone,
+            borderColor: '#22c55e',
+            backgroundColor: '#22c55e',
+            pointRadius: 2,
+            pointHoverRadius: 4,
+            tension: 0.25,
+            yAxisID: 'yCumulative'
+          }
+        ]
+      },
+      options: {
+        ...chartDefaults,
+        scales: {
+          x: { ticks: { color: '#ccc' }, grid: { color: '#2a2a4a' } },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#ccc', stepSize: 1 },
+            grid: { color: '#2a2a4a' },
+            title: { display: true, text: 'Résolus / jour', color: '#ccc' }
+          },
+          yCumulative: {
+            beginAtZero: true,
+            position: 'right',
+            ticks: { color: '#9be1af', stepSize: 1 },
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Cumul traités', color: '#9be1af' }
+          }
+        },
+        plugins: {
+          ...chartDefaults.plugins,
+          title: {
+            display: true,
+            text: 'Progression temporelle des tickets traités',
+            color: '#ccc',
+            font: { size: 13 }
+          },
+          tooltip: {
+            callbacks: {
+              title(items) {
+                const idx = items && items.length ? items[0].dataIndex : 0;
+                return orderedDates[idx] || '';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    timelineInitialized = true;
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
   function init(tasks) {
     allTasks = Array.isArray(tasks) ? tasks : [];
@@ -1310,6 +1459,9 @@
       applyFilters();
     });
     applyFilters();
+    if (currentTab === 'roadmap') renderRoadmapView();
+    if (currentTab === 'stats') renderStats();
+    if (currentTab === 'timeline') renderTimeline();
   }
 
   // ── Error states ───────────────────────────────────────────────────────────
