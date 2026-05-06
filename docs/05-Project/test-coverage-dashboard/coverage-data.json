@@ -1,0 +1,1036 @@
+{
+  "generated_at": "2026-05-06T07:23:18.897Z",
+  "sources": {
+    "jest_unit_report": {
+      "path": "backend/reports/jest-unit-results.json",
+      "found": false
+    },
+    "jest_e2e_report": {
+      "path": "backend/reports/jest-e2e-results.json",
+      "found": false
+    },
+    "jest_coverage_summary": {
+      "path": "backend/coverage/coverage-summary.json",
+      "found": false
+    },
+    "playwright_report": {
+      "path": "e2e/reports/results.json",
+      "found": true
+    },
+    "cypress_report": {
+      "path": "frontend/cypress/reports/results.json",
+      "found": true
+    }
+  },
+  "frameworks": {
+    "jest_unit": {
+      "label": "Jest unit",
+      "file_count": 12,
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "pass_rate": null,
+      "status": "not_run",
+      "last_run": null
+    },
+    "jest_e2e": {
+      "label": "Jest e2e",
+      "file_count": 14,
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "pass_rate": null,
+      "status": "not_run",
+      "last_run": null
+    },
+    "playwright_api": {
+      "label": "Playwright API",
+      "file_count": 17,
+      "total": 154,
+      "pass": 153,
+      "fail": 0,
+      "skipped": 1,
+      "pass_rate": 99.4,
+      "status": "ready",
+      "last_run": "2026-05-06T07:12:27.253Z"
+    },
+    "playwright_ui": {
+      "label": "Playwright UI",
+      "file_count": 7,
+      "total": 81,
+      "pass": 0,
+      "fail": 67,
+      "skipped": 14,
+      "pass_rate": 0,
+      "status": "ready",
+      "last_run": "2026-05-06T07:12:27.253Z"
+    },
+    "cypress": {
+      "label": "Cypress",
+      "file_count": 7,
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "pass_rate": null,
+      "status": "not_run",
+      "last_run": "2026-05-06T00:01:41.056Z"
+    }
+  },
+  "code_coverage": {
+    "total": null,
+    "modules": []
+  },
+  "features": [
+    {
+      "feature": "FS-03",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 1,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "FS-04",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 1,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "FS-05",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 2,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "FS-06",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 1,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "FS-07",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 1,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "FS-08",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 1,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "FS-11",
+      "frameworks": {
+        "jest_unit": "none",
+        "jest_e2e": "not_run",
+        "playwright": "none",
+        "cypress": "none"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 1,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 0,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "feature": "Core/Infra",
+      "frameworks": {
+        "jest_unit": "not_run",
+        "jest_e2e": "not_run",
+        "playwright": "not_run",
+        "cypress": "not_run"
+      },
+      "totals": {
+        "jest_unit": {
+          "files": 12,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "jest_e2e": {
+          "files": 6,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "playwright": {
+          "files": 24,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        },
+        "cypress": {
+          "files": 7,
+          "executed": 0,
+          "pass": 0,
+          "fail": 0,
+          "skipped": 0
+        }
+      }
+    }
+  ],
+  "test_files": [
+    {
+      "file": "backend/src/app.controller.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/auth/auth.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/business-capabilities/business-capabilities.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/data-objects/data-objects.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/domains/domains.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/home/home.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/interfaces/interfaces.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/it-components/it-components.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/providers/providers.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/search/search.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/tags/tags.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/src/users/users.service.spec.ts",
+      "framework": "jest_unit",
+      "framework_family": "jest_unit",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/app.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/auth.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/domains.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-03-providers.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-03",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-04-it-components.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-04",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-05-data-objects.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-05",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-05-rbac.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-05",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-06-applications.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-06",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-07-business-capabilities.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-07",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-08-interfaces.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-08",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/FS-11-search.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "FS-11",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/roles.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/tags.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "backend/test/users.e2e-spec.ts",
+      "framework": "jest_e2e",
+      "framework_family": "jest_e2e",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/04-it-components.cy.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/applications/applications-crud.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/applications/applications-dependencies.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/applications/applications-pagination.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/applications/applications-validation.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/business-capabilities/business-capabilities-crud.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/business-capabilities/business-capabilities-tree.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/business-capabilities/business-capabilities-validation.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/business-capabilities/business-capabilities.spec.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/data-objects/data-objects-crud.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/data-objects/data-objects-dependencies.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/data-objects/data-objects-validation.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/data-objects/data-objects.spec.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/domains/domains-crud.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/domains/domains-dependencies.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/domains/domains-validation.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/example.spec.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/graph/graph.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/home/home-dashboard.spec.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/home/home-summary.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/interfaces/interfaces-list.spec.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/it-components/it-components-crud.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/it-components/it-components-dependencies.api.spec.ts",
+      "framework": "playwright_api",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "e2e/tests/search/omnisearch.spec.ts",
+      "framework": "playwright_ui",
+      "framework_family": "playwright",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/access-control.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/data-objects.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/domains.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/login.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/providers.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/roles.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    },
+    {
+      "file": "frontend/cypress/e2e/users.cy.ts",
+      "framework": "cypress",
+      "framework_family": "cypress",
+      "feature": "Core/Infra",
+      "total": null,
+      "pass": null,
+      "fail": null,
+      "skipped": null,
+      "status": "not_run"
+    }
+  ],
+  "totals": {
+    "tests": 235,
+    "pass": 153,
+    "fail": 67,
+    "skipped": 15,
+    "pass_rate": 65.1
+  }
+}

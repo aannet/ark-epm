@@ -14,7 +14,7 @@
 	test-e2e test-e2e-ci test-e2e-report test-e2e-build test-e2e-debug \
 	test-api test-api-local test-api-docker test-api-custom test-api-domains test-api-applications test-api-report \
 	validate-backend \
-	project-dashboard \
+	project-dashboard coverage-report coverage-dashboard \
 	scan-trivy-backend scan-trivy-frontend scan-trivy-fs scan-trivy-all \
 	scan-semgrep-backend scan-semgrep-frontend scan-semgrep-all \
 	scan-zap scan-zap-baseline scan-zap-report \
@@ -278,6 +278,24 @@ validate-backend: backend-rebuild
 project-dashboard:
 	@echo "Dashboard disponible sur http://localhost:4000/docs/05-Project/tasks-dashboard/"
 	npx serve . --listen 4000
+
+coverage-report:
+	@echo "Generating test reports for coverage dashboard..."
+	@mkdir -p backend/reports e2e/reports frontend/cypress/reports
+	@echo "- Jest unit (coverage + json)"
+	@cd backend && npm run test:cov -- --json --outputFile=reports/jest-unit-results.json || true
+	@echo "- Jest e2e (json)"
+	@cd backend && npm run test:e2e -- --json --outputFile=reports/jest-e2e-results.json || true
+	@echo "- Playwright (list + html + json reporters)"
+	@cd e2e && PLAYWRIGHT_JSON_OUTPUT_NAME=reports/results.json npx playwright test --reporter=list,html,json || true
+	@echo "- Cypress (json reporter)"
+	@cd frontend && npx cypress run --reporter json --reporter-options output=cypress/reports/results.json || true
+	@echo "- Aggregate dashboard payload"
+	@node scripts/aggregate-coverage.js
+
+coverage-dashboard:
+	@echo "Coverage dashboard disponible sur http://localhost:4001/docs/05-Project/test-coverage-dashboard/"
+	npx serve . --listen 4001
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Security Scanning — Trivy (Container & Filesystem)
