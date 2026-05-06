@@ -909,17 +909,20 @@ tasks:
 
   - id: T-104
     nom: "QA-back — Tests API FS-12 Dashboard (HomeModule + scope domaine)"
-    statut: in_progress
+    statut: done
     assigned_agent: qa
-    session_active: "0e5d84"
-    handoff_ref: ~
-    date_resolution: ~
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t104.md"
+    date_resolution: 2026-05-06
     sprint: S5
     theme: "FS-12"
     type: test
     feature: "FS-12-BACK"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "0e5d84"
+        nom: "tests API FS-12 home/summary + scope domaine + RBAC 403"
     notes: |
       Dépend T-103.
       Scope : e2e/tests/home/home-summary.api.spec.ts
@@ -930,17 +933,20 @@ tasks:
 
   - id: T-105
     nom: "Front — Implémenter FS-12 Dashboard (home page 4 zones + US-HOME-09 user admin)"
-    statut: open
+    statut: done
     assigned_agent: front
     session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-front-t105.md"
+    date_resolution: 2026-05-06
     sprint: S5
     theme: "FS-12"
     type: impl
     feature: "FS-12-FRONT"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "f5a3d1"
+        nom: "implémentation FS-12-FRONT dashboard + US-HOME-09 + corrections review"
     notes: |
       Dépend T-103.
       Scope US-HOME-01..08 : page d'accueil route `/`
@@ -955,17 +961,20 @@ tasks:
 
   - id: T-106
     nom: "QA-front — Tests e2e FS-12 Dashboard (parcours Playwright)"
-    statut: open
+    statut: done
     assigned_agent: qa
     session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t106.md"
+    date_resolution: 2026-05-06
     sprint: S5
     theme: "FS-12"
     type: test
     feature: "FS-12-FRONT"
     priorité: medium
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "b701a2"
+        nom: "tests e2e dashboard FS-12 UI (13 cas)"
     notes: |
       Dépend T-105.
       Parcours à couvrir (Playwright UI) :
@@ -986,7 +995,10 @@ tasks:
     type: review
     feature: "QA-CYPRESS"
     priorité: low
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "0e5d84"
+        nom: "création tâche review findings Cypress it-components"
     notes: |
       3 findings remontés par code review (session T-104, 2026-05-06) sur
       e2e/tests/04-it-components.cy.ts :
