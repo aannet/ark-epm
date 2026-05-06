@@ -9,17 +9,23 @@
 
     :root {
       --bg: #1a1a2e;
-      --bg-card: #16213e;
-      --bg-muted: #0f3460;
-      --border: #2a2a4a;
+      --bg-card: #222538;
+      --bg-muted: #2a2d45;
+      --border: #3a3f5a;
       --text: #e0e0e0;
-      --text-dim: #8a8aa7;
+      --text-dim: #a4a9bf;
       --accent: #e94560;
+
+      --surface-soft: rgba(255, 255, 255, 0.03);
+      --surface-muted: rgba(255, 255, 255, 0.05);
+      --accent-soft: rgba(233, 69, 96, 0.16);
+      --accent-border: rgba(233, 69, 96, 0.38);
 
       --pass: #22c55e;
       --warning: #f59e0b;
       --fail: #ef4444;
-      --unknown: #64748b;
+      --unknown: #9ca3af;
+      --info: #2dd4bf;
     }
 
     body {
@@ -68,20 +74,31 @@
     }
 
     .pill-link {
-      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--accent-border);
       border-radius: 6px;
-      color: var(--text-dim);
+      color: var(--text);
+      background: var(--surface-soft);
       text-decoration: none;
       font-size: 12px;
+      font-weight: 600;
       padding: 6px 10px;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
       white-space: nowrap;
     }
 
     .pill-link:hover {
       border-color: var(--accent);
       color: var(--accent);
-      background: rgba(233, 69, 96, 0.08);
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+
+    .pill-link:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     .kpis {
@@ -98,6 +115,11 @@
       padding: 10px 12px;
     }
 
+    .kpi-danger { border-color: rgba(239, 68, 68, 0.45); }
+    .kpi-warning { border-color: rgba(245, 158, 11, 0.45); }
+    .kpi-ok { border-color: rgba(34, 197, 94, 0.45); }
+    .kpi-info { border-color: rgba(45, 212, 191, 0.45); }
+
     .kpi .label {
       color: var(--text-dim);
       font-size: 10px;
@@ -111,6 +133,12 @@
       font-weight: 700;
       line-height: 1.1;
     }
+
+    .value-danger { color: var(--fail); }
+    .value-warning { color: var(--warning); }
+    .value-ok { color: var(--pass); }
+    .value-info { color: var(--info); }
+    .value-neutral { color: var(--text); }
 
     .cards {
       display: grid;
@@ -132,7 +160,7 @@
       gap: 10px;
       padding: 12px 14px;
       border-bottom: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--surface-soft);
     }
 
     .card-title h2 {
@@ -163,7 +191,7 @@
     .status-pass { background: rgba(34, 197, 94, 0.2); color: var(--pass); }
     .status-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
     .status-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
-    .status-unknown { background: rgba(100, 116, 139, 0.25); color: #94a3b8; }
+    .status-unknown { background: rgba(156, 163, 175, 0.2); color: var(--unknown); }
 
     .card-body { padding: 12px 14px 14px; display: grid; gap: 12px; }
 
@@ -186,7 +214,27 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 8px;
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--surface-soft);
+    }
+
+    .metric-danger {
+      border-color: rgba(239, 68, 68, 0.45);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .metric-warning {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .metric-ok {
+      border-color: rgba(34, 197, 94, 0.45);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .metric-info {
+      border-color: rgba(45, 212, 191, 0.45);
+      background: rgba(45, 212, 191, 0.08);
     }
 
     .metric .label {
@@ -210,25 +258,46 @@
     }
 
     .report-link {
-      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--accent-border);
       border-radius: 6px;
-      color: var(--text-dim);
+      color: var(--text);
+      background: var(--surface-muted);
       text-decoration: none;
       font-size: 12px;
-      padding: 6px 8px;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      font-weight: 600;
+      padding: 6px 9px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+    }
+
+    .report-link::after {
+      content: "->";
+      font-size: 11px;
+      color: var(--text-dim);
     }
 
     .report-link:hover {
       border-color: var(--accent);
       color: var(--accent);
-      background: rgba(233, 69, 96, 0.08);
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+
+    .report-link:hover::after {
+      color: var(--accent);
+    }
+
+    .report-link:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     .analysis {
       border: 1px solid var(--border);
       border-radius: 10px;
-      background: rgba(15, 52, 96, 0.3);
+      background: var(--surface-muted);
       padding: 10px;
     }
 
@@ -263,7 +332,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--surface-soft);
     }
 
     summary {
@@ -334,6 +403,38 @@
       fail: "fail",
       unknown: "unknown"
     };
+    const VALUE_CLASS = {
+      danger: "value-danger",
+      warning: "value-warning",
+      ok: "value-ok",
+      info: "value-info",
+      neutral: "value-neutral"
+    };
+
+    function valueClassName(tone) {
+      return VALUE_CLASS[tone] || VALUE_CLASS.neutral;
+    }
+
+    function toneFromStatus(status) {
+      if (status === "fail") {
+        return "danger";
+      }
+      if (status === "warning") {
+        return "warning";
+      }
+      if (status === "pass") {
+        return "ok";
+      }
+      return "neutral";
+    }
+
+    function toneForCount(value, positiveTone) {
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && numeric === 0) {
+        return "ok";
+      }
+      return positiveTone;
+    }
 
     function formatDate(value) {
       if (!value) {
@@ -381,60 +482,80 @@
     }
 
     function metricRows(scannerId, latest) {
-      const fallback = [{ label: "Etat", value: STATUS_LABEL[latest.status] || "unknown" }];
+      const status = latest && latest.status ? latest.status : "unknown";
+      const fallback = [{
+        label: "Etat",
+        value: STATUS_LABEL[status] || "unknown",
+        tone: toneFromStatus(status)
+      }];
       if (!latest || !latest.metrics) {
         return fallback;
       }
 
       if (scannerId === "zap") {
+        const alertsTotal = latest.metrics.alerts_total ?? 0;
+        const high = latest.metrics.by_risk?.HIGH ?? 0;
+        const medium = latest.metrics.by_risk?.MEDIUM ?? 0;
+        const low = latest.metrics.by_risk?.LOW ?? 0;
         return [
-          { label: "Alertes", value: latest.metrics.alerts_total ?? 0 },
-          { label: "High", value: latest.metrics.by_risk?.HIGH ?? 0 },
-          { label: "Medium", value: latest.metrics.by_risk?.MEDIUM ?? 0 },
-          { label: "Low", value: latest.metrics.by_risk?.LOW ?? 0 }
+          { label: "Alertes", value: alertsTotal, tone: toneForCount(alertsTotal, "info") },
+          { label: "High", value: high, tone: toneForCount(high, "danger") },
+          { label: "Medium", value: medium, tone: toneForCount(medium, "warning") },
+          { label: "Low", value: low, tone: toneForCount(low, "info") }
         ];
       }
 
       if (scannerId === "semgrep") {
+        const findingsTotal = latest.metrics.findings_total ?? 0;
+        const error = latest.metrics.severity?.ERROR ?? 0;
+        const warning = latest.metrics.severity?.WARNING ?? 0;
+        const info = latest.metrics.severity?.INFO ?? 0;
         return [
-          { label: "Findings", value: latest.metrics.findings_total ?? 0 },
-          { label: "Error", value: latest.metrics.severity?.ERROR ?? 0 },
-          { label: "Warning", value: latest.metrics.severity?.WARNING ?? 0 },
-          { label: "Info", value: latest.metrics.severity?.INFO ?? 0 }
+          { label: "Findings", value: findingsTotal, tone: toneForCount(findingsTotal, "info") },
+          { label: "Error", value: error, tone: toneForCount(error, "danger") },
+          { label: "Warning", value: warning, tone: toneForCount(warning, "warning") },
+          { label: "Info", value: info, tone: toneForCount(info, "info") }
         ];
       }
 
       if (scannerId === "trivy") {
+        const issuesTotal = latest.metrics.issues_total ?? 0;
+        const critical = latest.metrics.by_severity?.CRITICAL ?? 0;
+        const high = latest.metrics.by_severity?.HIGH ?? 0;
+        const medium = latest.metrics.by_severity?.MEDIUM ?? 0;
         return [
-          { label: "Issues", value: latest.metrics.issues_total ?? 0 },
-          { label: "Critical", value: latest.metrics.by_severity?.CRITICAL ?? 0 },
-          { label: "High", value: latest.metrics.by_severity?.HIGH ?? 0 },
-          { label: "Medium", value: latest.metrics.by_severity?.MEDIUM ?? 0 }
+          { label: "Issues", value: issuesTotal, tone: toneForCount(issuesTotal, "info") },
+          { label: "Critical", value: critical, tone: toneForCount(critical, "danger") },
+          { label: "High", value: high, tone: toneForCount(high, "danger") },
+          { label: "Medium", value: medium, tone: toneForCount(medium, "warning") }
         ];
       }
 
       if (scannerId === "megalinter") {
+        const errorLinters = latest.metrics.error_linters ?? 0;
+        const warningLinters = latest.metrics.warning_linters ?? 0;
+        const channels = latest.metrics.channels ?? 0;
         return [
-          { label: "Linters error", value: latest.metrics.error_linters ?? 0 },
-          { label: "Linters warning", value: latest.metrics.warning_linters ?? 0 },
-          { label: "Channels", value: latest.metrics.channels ?? 0 },
-          { label: "Status", value: STATUS_LABEL[latest.status] || "unknown" }
+          { label: "Linters error", value: errorLinters, tone: toneForCount(errorLinters, "danger") },
+          { label: "Linters warning", value: warningLinters, tone: toneForCount(warningLinters, "warning") },
+          { label: "Channels", value: channels, tone: toneForCount(channels, "info") },
+          { label: "Status", value: STATUS_LABEL[status] || "unknown", tone: toneFromStatus(status) }
         ];
       }
 
       return fallback;
     }
 
-    function createKpi(title, value) {
+    function createKpi(title, value, tone) {
       const card = document.createElement("article");
-      card.className = "kpi";
+      card.className = `kpi kpi-${tone || "neutral"}`;
 
       const label = document.createElement("div");
       label.className = "label";
       label.textContent = title;
 
       const amount = document.createElement("div");
-      amount.className = "value";
+      amount.className = `value ${valueClassName(tone)}`;
       amount.textContent = String(value);
 
       card.append(label, amount);
@@ -539,13 +660,14 @@
       const metricList = document.createElement("div");
       metricList.className = "metric-list";
       for (const metric of metricRows(scannerId, latest)) {
+        const tone = metric.tone || "neutral";
         const box = document.createElement("div");
-        box.className = "metric";
+        box.className = `metric metric-${tone}`;
         const label = document.createElement("div");
         label.className = "label";
         label.textContent = metric.label;
         const value = document.createElement("div");
-        value.className = "value";
+        value.className = `value ${valueClassName(tone)}`;
         value.textContent = String(metric.value);
         box.append(label, value);
         metricList.append(box);
@@ -613,11 +735,16 @@
       ];
       globalMeta.textContent = metaParts.join(" | ");
 
+      const scannersTotal = summary.scanners_total ?? 0;
+      const failTotal = summary.fail ?? 0;
+      const warningTotal = summary.warning ?? 0;
+      const passTotal = summary.pass ?? 0;
+
       kpis.append(
-        createKpi("Scanners", summary.scanners_total ?? 0),
-        createKpi("Fail", summary.fail ?? 0),
-        createKpi("Warning", summary.warning ?? 0),
-        createKpi("Pass", summary.pass ?? 0)
+        createKpi("Scanners", scannersTotal, toneForCount(scannersTotal, "info")),
+        createKpi("Fail", failTotal, toneForCount(failTotal, "danger")),
+        createKpi("Warning", warningTotal, toneForCount(warningTotal, "warning")),
+        createKpi("Pass", passTotal, "ok")
       );
 
       // AGENT-DECISION: arch — Keep static rendering with one JSON fetch
