@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARK - Reports Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1a1a2e;
+      --bg-card: #16213e;
+      --bg-muted: #0f3460;
+      --border: #2a2a4a;
+      --text: #e0e0e0;
+      --text-dim: #8a8aa7;
+      --accent: #e94560;
+
+      --pass: #22c55e;
+      --warning: #f59e0b;
+      --fail: #ef4444;
+      --unknown: #64748b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .header h1 span { color: var(--accent); }
+
+    .meta {
+      margin-top: 8px;
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.5;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill-link {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 12px;
+      padding: 6px 10px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .pill-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(233, 69, 96, 0.08);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .kpi {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .kpi .label {
+      color: var(--text-dim);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .kpi .value {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .card-title h2 {
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .card-title p {
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .status-badge {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-pass { background: rgba(34, 197, 94, 0.2); color: var(--pass); }
+    .status-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .status-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
+    .status-unknown { background: rgba(100, 116, 139, 0.25); color: #94a3b8; }
+
+    .card-body { padding: 12px 14px 14px; display: grid; gap: 12px; }
+
+    .run-meta {
+      color: var(--text-dim);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .metric-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .metric .label {
+      color: var(--text-dim);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .metric .value {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .report-link {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 12px;
+      padding: 6px 8px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .report-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(233, 69, 96, 0.08);
+    }
+
+    .analysis {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(15, 52, 96, 0.3);
+      padding: 10px;
+    }
+
+    .analysis h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .analysis pre {
+      font-family: inherit;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .analysis .meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .history {
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 12px;
+      user-select: none;
+    }
+
+    .history-item {
+      margin-top: 8px;
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .state-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-dim);
+      text-align: center;
+      padding: 28px 22px;
+    }
+
+    .state-box h2 {
+      color: var(--text);
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    .state-box p { line-height: 1.6; }
+
+    @media (max-width: 1100px) {
+      .cards { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      body { padding: 14px; }
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .metric-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>ARK <span>Reports Dashboard</span></h1>
+      <div class="meta" id="globalMeta"></div>
+    </div>
+    <div class="actions">
+      <a class="pill-link" href="../tasks-dashboard/">Tasks Dashboard</a>
+      <a class="pill-link" href="../test-coverage-dashboard/">Coverage Dashboard</a>
+      <a class="pill-link" href="/e2e/reports/html/index.html" target="_blank" rel="noopener noreferrer">Playwright HTML</a>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+  <section class="cards" id="cards"></section>
+
+  <script>
+    const SCANNER_ORDER = ["zap", "semgrep", "trivy", "megalinter"];
+    const STATUS_LABEL = {
+      pass: "pass",
+      warning: "warning",
+      fail: "fail",
+      unknown: "unknown"
+    };
+
+    function formatDate(value) {
+      if (!value) {
+        return "n/a";
+      }
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+      return new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(date);
+    }
+
+    function resolvePath(pathValue) {
+      if (!pathValue) {
+        return "#";
+      }
+      const clean = String(pathValue).replace(/^\/+/, "");
+      return `/${clean}`;
+    }
+
+    function stateMessage(analysis) {
+      const state = analysis && analysis.state ? analysis.state : "none";
+      if (state === "ready") {
+        return analysis.text || "Analyse disponible mais vide.";
+      }
+      if (state === "missing_credentials") {
+        return "Analyse LLM indisponible: credentials manquants (voir .env).";
+      }
+      if (state === "disabled") {
+        return "Analyse LLM desactivee pour cette generation.";
+      }
+      if (state === "unsupported_provider") {
+        return "Analyse LLM indisponible: provider non supporte.";
+      }
+      if (state === "error") {
+        return `Analyse LLM en erreur: ${analysis.error || "unknown"}`;
+      }
+      if (state === "not_available") {
+        return "Analyse LLM non disponible pour ce run (donnees insuffisantes).";
+      }
+      return "Analyse LLM non disponible.";
+    }
+
+    function metricRows(scannerId, latest) {
+      const fallback = [{ label: "Etat", value: STATUS_LABEL[latest.status] || "unknown" }];
+      if (!latest || !latest.metrics) {
+        return fallback;
+      }
+
+      if (scannerId === "zap") {
+        return [
+          { label: "Alertes", value: latest.metrics.alerts_total ?? 0 },
+          { label: "High", value: latest.metrics.by_risk?.HIGH ?? 0 },
+          { label: "Medium", value: latest.metrics.by_risk?.MEDIUM ?? 0 },
+          { label: "Low", value: latest.metrics.by_risk?.LOW ?? 0 }
+        ];
+      }
+
+      if (scannerId === "semgrep") {
+        return [
+          { label: "Findings", value: latest.metrics.findings_total ?? 0 },
+          { label: "Error", value: latest.metrics.severity?.ERROR ?? 0 },
+          { label: "Warning", value: latest.metrics.severity?.WARNING ?? 0 },
+          { label: "Info", value: latest.metrics.severity?.INFO ?? 0 }
+        ];
+      }
+
+      if (scannerId === "trivy") {
+        return [
+          { label: "Issues", value: latest.metrics.issues_total ?? 0 },
+          { label: "Critical", value: latest.metrics.by_severity?.CRITICAL ?? 0 },
+          { label: "High", value: latest.metrics.by_severity?.HIGH ?? 0 },
+          { label: "Medium", value: latest.metrics.by_severity?.MEDIUM ?? 0 }
+        ];
+      }
+
+      if (scannerId === "megalinter") {
+        return [
+          { label: "Linters error", value: latest.metrics.error_linters ?? 0 },
+          { label: "Linters warning", value: latest.metrics.warning_linters ?? 0 },
+          { label: "Channels", value: latest.metrics.channels ?? 0 },
+          { label: "Status", value: STATUS_LABEL[latest.status] || "unknown" }
+        ];
+      }
+
+      return fallback;
+    }
+
+    function createKpi(title, value) {
+      const card = document.createElement("article");
+      card.className = "kpi";
+
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = title;
+
+      const amount = document.createElement("div");
+      amount.className = "value";
+      amount.textContent = String(value);
+
+      card.append(label, amount);
+      return card;
+    }
+
+    function createStateBox(title, message) {
+      const box = document.createElement("div");
+      box.className = "state-box";
+      const h2 = document.createElement("h2");
+      h2.textContent = title;
+      const p = document.createElement("p");
+      p.textContent = message;
+      box.append(h2, p);
+      return box;
+    }
+
+    function createReportLink(link) {
+      const anchor = document.createElement("a");
+      anchor.className = "report-link";
+      anchor.href = resolvePath(link.path);
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+      anchor.textContent = link.label;
+      return anchor;
+    }
+
+    function createHistory(historyItems) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "history";
+
+      if (!Array.isArray(historyItems) || historyItems.length === 0) {
+        return wrapper;
+      }
+
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = `Historique (${historyItems.length})`;
+      details.append(summary);
+
+      for (const item of historyItems) {
+        const row = document.createElement("div");
+        row.className = "history-item";
+
+        const meta = document.createElement("div");
+        meta.className = "run-meta";
+        meta.textContent = `Run ${item.run} - ${formatDate(item.run_iso)} - ${STATUS_LABEL[item.status] || "unknown"}`;
+        row.append(meta);
+
+        const links = document.createElement("div");
+        links.className = "links";
+        for (const link of item.links || []) {
+          links.append(createReportLink(link));
+        }
+        row.append(links);
+        details.append(row);
+      }
+
+      wrapper.append(details);
+      return wrapper;
+    }
+
+    function createCard(scannerId, scanner) {
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const latest = scanner.latest;
+      if (!latest) {
+        card.append(createStateBox(scanner.label, "Aucun run disponible pour ce scanner."));
+        return card;
+      }
+
+      const head = document.createElement("header");
+      head.className = "card-head";
+
+      const titleWrap = document.createElement("div");
+      titleWrap.className = "card-title";
+      const title = document.createElement("h2");
+      title.textContent = scanner.label;
+      const subtitle = document.createElement("p");
+      subtitle.textContent = scanner.kind;
+      titleWrap.append(title, subtitle);
+
+      const badge = document.createElement("span");
+      const status = STATUS_LABEL[latest.status] || "unknown";
+      badge.className = `status-badge status-${status}`;
+      badge.textContent = status;
+
+      head.append(titleWrap, badge);
+
+      const body = document.createElement("div");
+      body.className = "card-body";
+
+      const runMeta = document.createElement("div");
+      runMeta.className = "run-meta";
+      const left = document.createElement("span");
+      left.textContent = `Run: ${latest.run || "n/a"}`;
+      const right = document.createElement("span");
+      right.textContent = `Date: ${formatDate(latest.run_iso)}`;
+      runMeta.append(left, right);
+
+      const metricList = document.createElement("div");
+      metricList.className = "metric-list";
+      for (const metric of metricRows(scannerId, latest)) {
+        const box = document.createElement("div");
+        box.className = "metric";
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = metric.label;
+        const value = document.createElement("div");
+        value.className = "value";
+        value.textContent = String(metric.value);
+        box.append(label, value);
+        metricList.append(box);
+      }
+
+      const linksWrap = document.createElement("div");
+      linksWrap.className = "links";
+      const links = Array.isArray(latest.links) ? latest.links : [];
+      for (const link of links) {
+        linksWrap.append(createReportLink(link));
+      }
+
+      const analysis = document.createElement("section");
+      analysis.className = "analysis";
+      const analysisTitle = document.createElement("h3");
+      analysisTitle.textContent = "Analyse LLM";
+      const analysisText = document.createElement("pre");
+      analysisText.textContent = stateMessage(latest.analysis || null);
+
+      const analysisMeta = document.createElement("div");
+      analysisMeta.className = "meta";
+      const provider = latest.analysis?.provider ? `provider=${latest.analysis.provider}` : "provider=n/a";
+      const model = latest.analysis?.model ? `model=${latest.analysis.model}` : "model=n/a";
+      const generated = latest.analysis?.generated_at
+        ? `genere=${formatDate(latest.analysis.generated_at)}`
+        : "genere=n/a";
+      analysisMeta.textContent = `${provider} | ${model} | ${generated}`;
+
+      analysis.append(analysisTitle, analysisText, analysisMeta);
+
+      body.append(runMeta, metricList, linksWrap, analysis, createHistory(scanner.history));
+      card.append(head, body);
+      return card;
+    }
+
+    async function loadManifest() {
+      if (location.protocol === "file:") {
+        throw new Error("FILE_PROTOCOL_BLOCKED");
+      }
+      const response = await fetch("./reports-manifest.json", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`HTTP_${response.status}`);
+      }
+      return response.json();
+    }
+
+    function render(manifest) {
+      const cards = document.getElementById("cards");
+      const kpis = document.getElementById("kpis");
+      const globalMeta = document.getElementById("globalMeta");
+
+      cards.innerHTML = "";
+      kpis.innerHTML = "";
+      globalMeta.innerHTML = "";
+
+      const summary = manifest.summary || {};
+      const generatedAt = manifest.generated_at || null;
+      const llm = manifest.llm || {};
+
+      const metaParts = [
+        `Derniere generation: ${formatDate(generatedAt)}`,
+        `LLM: ${llm.enabled ? "active" : "desactive"}`,
+        `Provider: ${llm.provider || "n/a"}`,
+        `Model: ${llm.model || "n/a"}`
+      ];
+      globalMeta.textContent = metaParts.join(" | ");
+
+      kpis.append(
+        createKpi("Scanners", summary.scanners_total ?? 0),
+        createKpi("Fail", summary.fail ?? 0),
+        createKpi("Warning", summary.warning ?? 0),
+        createKpi("Pass", summary.pass ?? 0)
+      );
+
+      // AGENT-DECISION: arch — Keep static rendering with one JSON fetch
+      // to remain aligned with existing project dashboards architecture.
+      for (const scannerId of SCANNER_ORDER) {
+        const scanner = manifest.scanners && manifest.scanners[scannerId]
+          ? manifest.scanners[scannerId]
+          : null;
+
+        if (!scanner) {
+          continue;
+        }
+
+        cards.append(createCard(scannerId, scanner));
+      }
+
+      if (!cards.children.length) {
+        cards.append(createStateBox("Aucune donnee", "Le manifest ne contient pas de scanner exploitable."));
+      }
+    }
+
+    function renderError(error) {
+      const cards = document.getElementById("cards");
+      cards.innerHTML = "";
+      if (error && error.message === "FILE_PROTOCOL_BLOCKED") {
+        cards.append(
+          createStateBox(
+            "Serveur requis",
+            "Ouvre ce dashboard via HTTP. Exemple: make reports-dashboard puis http://localhost:4002/docs/05-Project/reports-dashboard/"
+          )
+        );
+        return;
+      }
+
+      cards.append(createStateBox("Erreur de chargement", `Impossible de charger reports-manifest.json (${error && error.message ? error.message : "unknown"}).`));
+    }
+
+    loadManifest().then(render).catch(renderError);
+  </script>
+</body>
+</html>

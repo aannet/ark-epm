@@ -1,0 +1,693 @@
+{
+  "generated_at": "2026-05-06T10:38:37.888Z",
+  "summary": {
+    "scanners_total": 4,
+    "pass": 1,
+    "warning": 1,
+    "fail": 2,
+    "unknown": 0
+  },
+  "llm": {
+    "enabled": true,
+    "provider": "anthropic",
+    "model": "claude-3-5-haiku-20241022"
+  },
+  "scanners": {
+    "zap": {
+      "scanner": "zap",
+      "label": "ZAP",
+      "kind": "DAST",
+      "latest": {
+        "run": "20260506-123538",
+        "run_iso": "2026-05-06T12:35:38Z",
+        "report_type": "zap-report",
+        "status": "warning",
+        "links": [
+          {
+            "label": "HTML report",
+            "path": "reports/zap/20260506-123538-zap-report.html",
+            "type": "html"
+          },
+          {
+            "label": "JSON report",
+            "path": "reports/zap/20260506-123538-zap-report.json",
+            "type": "json"
+          }
+        ],
+        "metrics": {
+          "alerts_total": 209,
+          "by_risk": {
+            "HIGH": 0,
+            "MEDIUM": 1,
+            "LOW": 31,
+            "INFO": 177
+          }
+        },
+        "analysis_context": {
+          "report_type": "zap-report",
+          "alerts_total": 209,
+          "by_risk": {
+            "HIGH": 0,
+            "MEDIUM": 1,
+            "LOW": 31,
+            "INFO": 177
+          },
+          "top_alerts": [
+            "[MEDIUM] Format String Error (1) on http://backend:3000/api/v1/roles",
+            "[LOW] A Server Error response code was returned by the server (15) on http://backend:3000/api/v1/data-objects?page=1&limit=20&sortBy=name&sortOrder=asc&search=%00",
+            "[LOW] Application Error Disclosure (2) on http://backend:3000/api/v1/tags/entity/domain/entityId",
+            "[LOW] Information Disclosure - Debug Error Messages (2) on http://backend:3000/api/v1/tags/entity/domain/entityId",
+            "[LOW] Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s) (5) on http://backend:3000/api/v1/business-capabilities?page=1&limit=20&sortBy=name&sortOrder=asc&search=ZAP&domainId=domainId",
+            "[LOW] Unexpected Content-Type was returned (2) on http://backend:3000/api/v1",
+            "[LOW] X-Content-Type-Options Header Missing (5) on http://backend:3000/api/v1/auth/me",
+            "[INFO] A Client Error response code was returned by the server (170) on http://backend:3000/api/v1/applications/id",
+            "[INFO] Authentication Request Identified (2) on http://backend:3000/api/v1/users",
+            "[INFO] Non-Storable Content (5) on http://backend:3000/api/v1/auth/me"
+          ]
+        },
+        "analysis": {
+          "state": "missing_credentials",
+          "text": null
+        }
+      },
+      "history": [
+        {
+          "run": "20260505-003316",
+          "run_iso": "2026-05-05T00:33:16Z",
+          "report_type": "zap-report",
+          "status": "warning",
+          "links": [
+            {
+              "label": "HTML report",
+              "path": "reports/zap/20260505-003316-zap-report.html",
+              "type": "html"
+            },
+            {
+              "label": "JSON report",
+              "path": "reports/zap/20260505-003316-zap-report.json",
+              "type": "json"
+            }
+          ],
+          "metrics": {
+            "alerts_total": 198,
+            "by_risk": {
+              "HIGH": 0,
+              "MEDIUM": 1,
+              "LOW": 24,
+              "INFO": 173
+            }
+          },
+          "analysis_context": {
+            "report_type": "zap-report",
+            "alerts_total": 198,
+            "by_risk": {
+              "HIGH": 0,
+              "MEDIUM": 1,
+              "LOW": 24,
+              "INFO": 173
+            },
+            "top_alerts": [
+              "[MEDIUM] Format String Error (1) on http://backend:3000/api/v1/roles",
+              "[LOW] A Server Error response code was returned by the server (9) on http://backend:3000/api/v1/tags/entity/domain/4587782425134865898",
+              "[LOW] Application Error Disclosure (2) on http://backend:3000/api/v1/tags/entity/domain/entityId",
+              "[LOW] Information Disclosure - Debug Error Messages (1) on http://backend:3000/api/v1/tags/entity/domain/entityId",
+              "[LOW] Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s) (5) on http://backend:3000/api/v1/domains/id",
+              "[LOW] Unexpected Content-Type was returned (2) on http://backend:3000/api/v1",
+              "[LOW] X-Content-Type-Options Header Missing (5) on http://backend:3000/api/v1/auth/me",
+              "[INFO] A Client Error response code was returned by the server (166) on http://backend:3000/api/v1/applications/id",
+              "[INFO] Authentication Request Identified (2) on http://backend:3000/api/v1/users",
+              "[INFO] Non-Storable Content (5) on http://backend:3000/api/v1/business-capabilities?page=1&limit=20&sortBy=name&sortOrder=asc&search=ZAP&domainId=domainId"
+            ]
+          }
+        },
+        {
+          "run": "20260504-234857",
+          "run_iso": "2026-05-04T23:48:57Z",
+          "report_type": "zap-report",
+          "status": "warning",
+          "links": [
+            {
+              "label": "HTML report",
+              "path": "reports/zap/20260504-234857-zap-report.html",
+              "type": "html"
+            },
+            {
+              "label": "JSON report",
+              "path": "reports/zap/20260504-234857-zap-report.json",
+              "type": "json"
+            }
+          ],
+          "metrics": {
+            "alerts_total": 205,
+            "by_risk": {
+              "HIGH": 0,
+              "MEDIUM": 1,
+              "LOW": 30,
+              "INFO": 174
+            }
+          },
+          "analysis_context": {
+            "report_type": "zap-report",
+            "alerts_total": 205,
+            "by_risk": {
+              "HIGH": 0,
+              "MEDIUM": 1,
+              "LOW": 30,
+              "INFO": 174
+            },
+            "top_alerts": [
+              "[MEDIUM] Format String Error (1) on http://backend:3000/api/v1/roles",
+              "[LOW] A Server Error response code was returned by the server (15) on http://backend:3000/api/v1/data-objects?page=1&limit=20&sortBy=name&sortOrder=asc&search=%00",
+              "[LOW] Application Error Disclosure (2) on http://backend:3000/api/v1/tags/entity/domain/entityId",
+              "[LOW] Information Disclosure - Debug Error Messages (1) on http://backend:3000/api/v1/tags/entity/domain/entityId",
+              "[LOW] Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s) (5) on http://backend:3000/api/v1/business-capabilities?page=1&limit=20&sortBy=name&sortOrder=asc&search=ZAP&domainId=domainId",
+              "[LOW] Unexpected Content-Type was returned (2) on http://backend:3000/api/v1",
+              "[LOW] X-Content-Type-Options Header Missing (5) on http://backend:3000/api/v1/auth/me",
+              "[INFO] A Client Error response code was returned by the server (167) on http://backend:3000/api/v1/applications/id",
+              "[INFO] Authentication Request Identified (2) on http://backend:3000/api/v1/users",
+              "[INFO] Non-Storable Content (5) on http://backend:3000/api/v1/health"
+            ]
+          }
+        },
+        {
+          "run": "20260422-235740",
+          "run_iso": "2026-04-22T23:57:40Z",
+          "report_type": "zap-report",
+          "status": "pass",
+          "links": [
+            {
+              "label": "HTML report",
+              "path": "reports/zap/20260422-235740-zap-report.html",
+              "type": "html"
+            },
+            {
+              "label": "JSON report",
+              "path": "reports/zap/20260422-235740-zap-report.json",
+              "type": "json"
+            }
+          ],
+          "metrics": {
+            "alerts_total": 183,
+            "by_risk": {
+              "HIGH": 0,
+              "MEDIUM": 0,
+              "LOW": 49,
+              "INFO": 134
+            }
+          },
+          "analysis_context": {
+            "report_type": "zap-report",
+            "alerts_total": 183,
+            "by_risk": {
+              "HIGH": 0,
+              "MEDIUM": 0,
+              "LOW": 49,
+              "INFO": 134
+            },
+            "top_alerts": [
+              "[LOW] A Server Error response code was returned by the server (21) on http://backend:3000/api/v1/applications/id",
+              "[LOW] Application Error Disclosure (8) on http://backend:3000/api/v1/applications/id",
+              "[LOW] Information Disclosure - Debug Error Messages (8) on http://backend:3000/api/v1/applications/id",
+              "[LOW] Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s) (5) on http://backend:3000/api/v1/domains/id",
+              "[LOW] Unexpected Content-Type was returned (2) on http://backend:3000/api/v1",
+              "[LOW] X-Content-Type-Options Header Missing (5) on http://backend:3000/api/v1/auth/me",
+              "[INFO] A Client Error response code was returned by the server (128) on http://backend:3000/api/v1/business-capabilities/id",
+              "[INFO] Authentication Request Identified (1) on http://backend:3000/api/v1/auth/login",
+              "[INFO] Non-Storable Content (5) on http://backend:3000/api/v1/domains/id"
+            ]
+          }
+        }
+      ]
+    },
+    "semgrep": {
+      "scanner": "semgrep",
+      "label": "Semgrep",
+      "kind": "SAST",
+      "latest": {
+        "run": "20260423-001231",
+        "run_iso": "2026-04-23T00:12:31Z",
+        "status": "pass",
+        "links": [
+          {
+            "label": "backend HTML",
+            "path": "reports/semgrep/20260423-001231-backend.html",
+            "type": "html"
+          },
+          {
+            "label": "backend JSON",
+            "path": "reports/semgrep/20260423-001231-backend.json",
+            "type": "json"
+          },
+          {
+            "label": "frontend HTML",
+            "path": "reports/semgrep/20260423-001231-frontend.html",
+            "type": "html"
+          },
+          {
+            "label": "frontend JSON",
+            "path": "reports/semgrep/20260423-001231-frontend.json",
+            "type": "json"
+          }
+        ],
+        "metrics": {
+          "findings_total": 0,
+          "severity": {
+            "ERROR": 0,
+            "WARNING": 0,
+            "INFO": 0,
+            "UNKNOWN": 0
+          }
+        },
+        "analysis_context": {
+          "findings_total": 0,
+          "severity": {
+            "ERROR": 0,
+            "WARNING": 0,
+            "INFO": 0,
+            "UNKNOWN": 0
+          },
+          "top_findings": []
+        },
+        "analysis": {
+          "state": "ready",
+          "provider": "static",
+          "model": "none",
+          "text": "Aucun finding Semgrep detecte sur le dernier run. Maintenir la meme baseline de regles et continuer les scans a chaque merge.",
+          "generated_at": "2026-05-06T10:33:44.000Z"
+        }
+      },
+      "history": []
+    },
+    "trivy": {
+      "scanner": "trivy",
+      "label": "Trivy",
+      "kind": "Vulnerability Scan",
+      "latest": {
+        "run": "20260506-123605",
+        "run_iso": "2026-05-06T12:36:05Z",
+        "status": "fail",
+        "links": [
+          {
+            "label": "backend HTML",
+            "path": "reports/trivy/20260506-123605-backend.html",
+            "type": "html"
+          },
+          {
+            "label": "backend JSON",
+            "path": "reports/trivy/20260506-123605-backend.json",
+            "type": "json"
+          },
+          {
+            "label": "frontend HTML",
+            "path": "reports/trivy/20260506-123605-frontend.html",
+            "type": "html"
+          },
+          {
+            "label": "frontend JSON",
+            "path": "reports/trivy/20260506-123605-frontend.json",
+            "type": "json"
+          },
+          {
+            "label": "fs HTML",
+            "path": "reports/trivy/20260506-123605-fs.html",
+            "type": "html"
+          },
+          {
+            "label": "fs JSON",
+            "path": "reports/trivy/20260506-123605-fs.json",
+            "type": "json"
+          }
+        ],
+        "metrics": {
+          "issues_total": 3092,
+          "by_severity": {
+            "CRITICAL": 44,
+            "HIGH": 535,
+            "MEDIUM": 1414,
+            "LOW": 1030,
+            "UNKNOWN": 69
+          },
+          "has_json": true
+        },
+        "analysis_context": {
+          "issues_total": 3092,
+          "by_severity": {
+            "CRITICAL": 44,
+            "HIGH": 535,
+            "MEDIUM": 1414,
+            "LOW": 1030,
+            "UNKNOWN": 69
+          },
+          "has_json": true,
+          "top_issues": [
+            "[LOW] CVE-2011-3374 in apt (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] TEMP-0841856-B18BAF in bash (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2017-13716 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2018-20673 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2018-20712 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2018-9996 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2021-32256 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2023-1972 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2024-53589 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2024-57360 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-0840 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-11081 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-11082 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-11083 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-11412 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-11413 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-11414 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-1147 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-1148 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none",
+            "[LOW] CVE-2025-1149 in binutils (ark-epm-backend:latest (debian 12.13)) fixed:none"
+          ]
+        },
+        "analysis": {
+          "state": "missing_credentials",
+          "text": null
+        }
+      },
+      "history": [
+        {
+          "run": "20260423-001259",
+          "run_iso": "2026-04-23T00:12:59Z",
+          "status": "unknown",
+          "links": [
+            {
+              "label": "backend HTML",
+              "path": "reports/trivy/20260423-001259-backend.html",
+              "type": "html"
+            },
+            {
+              "label": "frontend HTML",
+              "path": "reports/trivy/20260423-001259-frontend.html",
+              "type": "html"
+            },
+            {
+              "label": "fs HTML",
+              "path": "reports/trivy/20260423-001259-fs.html",
+              "type": "html"
+            }
+          ],
+          "metrics": {
+            "issues_total": 0,
+            "by_severity": {
+              "CRITICAL": 0,
+              "HIGH": 0,
+              "MEDIUM": 0,
+              "LOW": 0,
+              "UNKNOWN": 0
+            },
+            "has_json": false
+          },
+          "analysis_context": {
+            "issues_total": 0,
+            "by_severity": {
+              "CRITICAL": 0,
+              "HIGH": 0,
+              "MEDIUM": 0,
+              "LOW": 0,
+              "UNKNOWN": 0
+            },
+            "has_json": false,
+            "top_issues": []
+          }
+        }
+      ]
+    },
+    "megalinter": {
+      "scanner": "megalinter",
+      "label": "MegaLinter",
+      "kind": "Code Quality",
+      "latest": {
+        "run": "20260506-104924",
+        "run_iso": "2026-05-06T10:49:24Z",
+        "status": "fail",
+        "links": [
+          {
+            "label": "Quality - JSCPD HTML",
+            "path": "reports/megalinter/20260506-104924/copy-paste/html/index.html",
+            "type": "html"
+          },
+          {
+            "label": "Quality - MegaLinter log",
+            "path": "reports/megalinter/20260506-104924/megalinter.log",
+            "type": "log"
+          }
+        ],
+        "metrics": {
+          "channels": 1,
+          "error_linters": 2,
+          "warning_linters": 1
+        },
+        "analysis_context": {
+          "error_linters": [
+            "Quality:DOCKERFILE_HADOLINT",
+            "Quality:TYPESCRIPT_ES"
+          ],
+          "warning_linters": [
+            "Quality:COPYPASTE_JSCPD"
+          ],
+          "issue_lines": [
+            "Quality: DOCKERFILE_HADOLINT: backend/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+            "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3016 warning: Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`",
+            "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+            "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:12 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+            "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:15 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+            "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 81 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 6:16  warning  Refactor this function to reduce its Cognitive Complexity from 54 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 373:9   warning  Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 518:17  warning  Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 32:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+            "Quality: TYPESCRIPT_ES: 83:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+            "Quality: TYPESCRIPT_ES: 150:9  warning  Refactor this function to reduce its Cognitive Complexity from 32 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 408:9  warning  Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed  sonarjs/cognitive-complexity",
+            "Quality: TYPESCRIPT_ES: 9:7  warning  '_prismaService' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+            "Quality: COPYPASTE_JSCPD: Clone found (javascript):",
+            "Quality: COPYPASTE_JSCPD: Clone found (tsx):",
+            "Quality: COPYPASTE_JSCPD: Clone found (tsx):",
+            "Quality: COPYPASTE_JSCPD: Clone found (tsx):",
+            "Quality: COPYPASTE_JSCPD: Clone found (tsx):",
+            "Quality: COPYPASTE_JSCPD: Clone found (javascript):",
+            "Quality: COPYPASTE_JSCPD: Clone found (javascript):",
+            "Quality: COPYPASTE_JSCPD: Clone found (tsx):",
+            "Quality: COPYPASTE_JSCPD: Clone found (javascript):",
+            "Quality: COPYPASTE_JSCPD: Clone found (tsx):"
+          ]
+        },
+        "analysis": {
+          "state": "missing_credentials",
+          "text": null
+        }
+      },
+      "history": [
+        {
+          "run": "20260506-104122",
+          "run_iso": "2026-05-06T10:41:22Z",
+          "status": "fail",
+          "links": [
+            {
+              "label": "Quality - MegaLinter log",
+              "path": "reports/megalinter/20260506-104122/megalinter.log",
+              "type": "log"
+            }
+          ],
+          "metrics": {
+            "channels": 1,
+            "error_linters": 2,
+            "warning_linters": 0
+          },
+          "analysis_context": {
+            "error_linters": [
+              "Quality:DOCKERFILE_HADOLINT",
+              "Quality:TYPESCRIPT_ES"
+            ],
+            "warning_linters": [],
+            "issue_lines": [
+              "Quality: DOCKERFILE_HADOLINT: backend/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3016 warning: Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:12 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:15 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 81 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 6:16  warning  Refactor this function to reduce its Cognitive Complexity from 48 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 373:9   warning  Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 518:17  warning  Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 32:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 83:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 150:9  warning  Refactor this function to reduce its Cognitive Complexity from 32 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 408:9  warning  Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 9:7  warning  '_prismaService' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+            ]
+          }
+        },
+        {
+          "run": "20260506-102203",
+          "run_iso": "2026-05-06T10:22:03Z",
+          "status": "fail",
+          "links": [
+            {
+              "label": "Quality - MegaLinter log",
+              "path": "reports/megalinter/20260506-102203/megalinter.log",
+              "type": "log"
+            }
+          ],
+          "metrics": {
+            "channels": 1,
+            "error_linters": 2,
+            "warning_linters": 0
+          },
+          "analysis_context": {
+            "error_linters": [
+              "Quality:DOCKERFILE_HADOLINT",
+              "Quality:TYPESCRIPT_ES"
+            ],
+            "warning_linters": [],
+            "issue_lines": [
+              "Quality: DOCKERFILE_HADOLINT: backend/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3016 warning: Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:12 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:15 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 81 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 6:16  warning  Refactor this function to reduce its Cognitive Complexity from 48 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 373:9   warning  Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 518:17  warning  Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 32:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 83:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 150:9  warning  Refactor this function to reduce its Cognitive Complexity from 32 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 408:9  warning  Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 9:7  warning  '_prismaService' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+            ]
+          }
+        },
+        {
+          "run": "20260506-100933",
+          "run_iso": "2026-05-06T10:09:33Z",
+          "status": "fail",
+          "links": [
+            {
+              "label": "Quality - MegaLinter log",
+              "path": "reports/megalinter/20260506-100933/megalinter.log",
+              "type": "log"
+            }
+          ],
+          "metrics": {
+            "channels": 1,
+            "error_linters": 2,
+            "warning_linters": 0
+          },
+          "analysis_context": {
+            "error_linters": [
+              "Quality:DOCKERFILE_HADOLINT",
+              "Quality:TYPESCRIPT_ES"
+            ],
+            "warning_linters": [],
+            "issue_lines": [
+              "Quality: DOCKERFILE_HADOLINT: backend/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3016 warning: Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:12 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:15 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 81 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 6:16  warning  Refactor this function to reduce its Cognitive Complexity from 48 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 373:9   warning  Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 518:17  warning  Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 32:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 83:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 150:9  warning  Refactor this function to reduce its Cognitive Complexity from 32 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 408:9  warning  Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 9:7  warning  '_prismaService' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+            ]
+          }
+        },
+        {
+          "run": "20260506-100251",
+          "run_iso": "2026-05-06T10:02:51Z",
+          "status": "fail",
+          "links": [
+            {
+              "label": "Quality - MegaLinter log",
+              "path": "reports/megalinter/20260506-100251/megalinter.log",
+              "type": "log"
+            }
+          ],
+          "metrics": {
+            "channels": 1,
+            "error_linters": 2,
+            "warning_linters": 0
+          },
+          "analysis_context": {
+            "error_linters": [
+              "Quality:DOCKERFILE_HADOLINT",
+              "Quality:TYPESCRIPT_ES"
+            ],
+            "warning_linters": [],
+            "issue_lines": [
+              "Quality: DOCKERFILE_HADOLINT: backend/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3016 warning: Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:12 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:15 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 81 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 6:16  warning  Refactor this function to reduce its Cognitive Complexity from 48 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 373:9   warning  Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 518:17  warning  Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 32:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 83:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 150:9  warning  Refactor this function to reduce its Cognitive Complexity from 32 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 408:9  warning  Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 9:7  warning  '_prismaService' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+            ]
+          }
+        },
+        {
+          "run": "20260506-095910",
+          "run_iso": "2026-05-06T09:59:10Z",
+          "status": "fail",
+          "links": [
+            {
+              "label": "Quality - MegaLinter log",
+              "path": "reports/megalinter/20260506-095910/megalinter.log",
+              "type": "log"
+            }
+          ],
+          "metrics": {
+            "channels": 1,
+            "error_linters": 2,
+            "warning_linters": 0
+          },
+          "analysis_context": {
+            "error_linters": [
+              "Quality:DOCKERFILE_HADOLINT",
+              "Quality:TYPESCRIPT_ES"
+            ],
+            "warning_linters": [],
+            "issue_lines": [
+              "Quality: DOCKERFILE_HADOLINT: backend/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3016 warning: Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:9 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:12 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: DOCKERFILE_HADOLINT: e2e/Dockerfile:15 DL3059 info: Multiple consecutive `RUN` instructions. Consider consolidation.",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 81 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 5:16  warning  Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 6:16  warning  Refactor this function to reduce its Cognitive Complexity from 48 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 373:9   warning  Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 518:17  warning  Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 32:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 83:27  warning  '_passwordHash' is assigned a value but never used  @typescript-eslint/no-unused-vars",
+              "Quality: TYPESCRIPT_ES: 150:9  warning  Refactor this function to reduce its Cognitive Complexity from 32 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 408:9  warning  Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed  sonarjs/cognitive-complexity",
+              "Quality: TYPESCRIPT_ES: 9:7  warning  '_prismaService' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
