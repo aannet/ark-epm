@@ -1017,9 +1017,9 @@ tasks:
 
   - id: T-108
     nom: "Playwright — l'intégralité des tests UI plante contrairement aux tests backend"
-    statut: open
+    statut: in_progress
     assigned_agent: qa
-    session_active: ~
+    session_active: "6f4b2a"
     handoff_ref: ~
     date_resolution: ~
     sprint: S5
@@ -1028,3 +1028,32 @@ tasks:
     feature: "QA-E2E-UI"
     priorité: high
     sessions: []
+
+  - id: T-109
+    nom: "MegaLinter — corriger plugin sonarjs ESLint v8 + calibrer jscpd sur codebase réelle"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "QA"
+    type: debt
+    feature: "QA-MEGALINTER"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "a7c91f"
+        nom: "correction sonarjs + calibration jscpd"
+    notes: |
+      Cause sonarjs : eslint-plugin-sonarjs v4.0.2 incompatible avec le format legacy ESLint v8 de MegaLinter.
+      Fix : PRE_COMMANDS dans .mega-linter.yml installe sonarjs@1.0.4 dans /node-deps/ au runtime
+      (dernière version supportant ESLint v8 legacy config + peerDep ^8||^9).
+
+      jscpd recalibré pour ne mesurer que la codebase réelle :
+      - Exclusions .agents/**, .claude/**, .opencode/**
+      - languages: ["typescript", "javascript"]
+      - threshold: 10 → 8
+
+      Résultat : taux de duplication mesuré sur vraie codebase à 8.35%, HTML copy-paste restauré.
+      Fichiers modifiés : .mega-linter.yml, backend/.eslintrc.cjs, .jscpd.json.

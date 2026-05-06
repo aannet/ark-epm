@@ -1,5 +1,6 @@
 {
-  "threshold": 10,
+  "threshold": 8,
+  "languages": ["typescript", "javascript"],
   "minLines": 6,
   "minTokens": 50,
   "reporters": ["console"],
@@ -13,6 +14,9 @@
     "backend/prisma/**",
     "backend/test/**",
     "backend/scripts/**",
+    ".agents/**",
+    ".claude/**",
+    ".opencode/**",
     "**/*.spec.ts",
     "**/*.e2e-spec.ts",
     "**/*.test.ts"

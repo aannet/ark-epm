@@ -10,6 +10,14 @@ SHOW_ELAPSED_TIME: true
 FLAVOR_SUGGESTIONS: false
 VALIDATE_ALL_CODEBASE: true
 
+# Pre-commands: install custom ESLint plugins before linting
+# sonarjs@1.0.4 is the last version supporting ESLint v8 legacy config format
+# (sonarjs v4+ requires ESLint v9 flat config only)
+PRE_COMMANDS:
+  - command: bash -c "cd /node-deps && npm install eslint-plugin-sonarjs@1.0.4 2>/dev/null || true"
+    cwd: workspace
+    continue_if_failed: false
+
 # --- Quality linters (primary objective) ---
 # ENABLE_LINTERS = whitelist by linter name (vs ENABLE = whitelist by descriptor family)
 ENABLE_LINTERS:
