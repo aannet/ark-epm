@@ -1,4 +1,5 @@
-import { Box, LinearProgress, Paper, Typography } from '@mui/material';
+import { Box, LinearProgress, Paper, Tooltip, Typography } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useTranslation } from 'react-i18next';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import { LifecycleDistribution } from '@/types/home';
@@ -26,9 +27,14 @@ export default function LifecycleDistributionSection({
 
   return (
     <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        {t('home.lifecycle.title')}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h4">{t('home.lifecycle.title')}</Typography>
+        <Tooltip title={t('home.lifecycle.tooltip')}>
+          <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary' }}>
+            <InfoOutlinedIcon fontSize="small" />
+          </Box>
+        </Tooltip>
+      </Box>
 
       {isLoading ? (
         <LoadingSkeleton rows={5} columns={1} />

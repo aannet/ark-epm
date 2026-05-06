@@ -1057,3 +1057,75 @@ tasks:
 
       Résultat : taux de duplication mesuré sur vraie codebase à 8.35%, HTML copy-paste restauré.
       Fichiers modifiés : .mega-linter.yml, backend/.eslintrc.cjs, .jscpd.json.
+
+  - id: T-110
+    nom: "Arch — Ajouter vice (Webba) dans les scans (Makefile + reports + dashboard)"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "QA"
+    type: impl
+    feature: "QA-SCANS"
+    priorité: medium
+    sessions: []
+    notes: |
+      Intégrer https://github.com/Webba-Creative-Technologies/vice dans le pipeline de scans ARK-EPM.
+      Contrainte : impacts minimum sur Makefile, reports/, et dashboard reports.
+      Scope attendu :
+      - Ajouter une target Makefile (ex: scan-vice) sans casser les targets existantes
+      - Configurer la sortie des rapports dans reports/ avec horodatage (cohérence T-069)
+      - Vérifier compatibilité avec le dashboard reports existant
+
+  - id: T-111
+    nom: "Finaliser et tester l'analyse LLM phase 2 du reports dashboard (intégration Anthropic + Makefile)"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "QA"
+    type: impl
+    feature: "QA-REPORTS"
+    priorité: medium
+    sessions: []
+    notes: |
+      Suite de e68fa60 : tester l'analyse LLM avec clé Anthropic réelle,
+      committer le Makefile (targets reports-manifest, reports-dashboard,
+      hooks scan->manifest, JSON Trivy compagnon), valider le rendu
+      sur http://localhost:4002/docs/05-Project/reports-dashboard/.
+
+  - id: T-112
+    nom: "Front — Dashboard : layout 2 lignes sous KPIs + tooltips sur chaque bloc"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-front-t112.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-FRONT"
+    priorité: low
+    sessions:
+      - tool: OC
+        id: "9f2b6c"
+        nom: "dashboard home layout+tooltips"
+    notes: |
+      Deux améliorations subtiles du dashboard d'accueil (post-T-105).
+
+      1. Layout — repositionner les blocs sous les KPIs :
+         Actuellement Zone 3 + Zone 4 côte à côte (2/3 + 1/3).
+         Cible : 2 lignes distinctes sous la bande KPIs (Zone 1),
+         pour plus de lisibilité et d'espace par bloc.
+
+      2. Tooltips — étendre à tous les blocs :
+         "Qualité des données" possède déjà un tooltip définissant sa métrique.
+         Ajouter un tooltip équivalent sur chacun des autres blocs
+         (KPIs, fiches incomplètes/contrats, distribution cycle de vie).
+         Chaque tooltip doit expliquer ce que le bloc mesure / comment il se calcule.
+
+      Fichier cible : frontend/src/pages/home/HomePage.tsx

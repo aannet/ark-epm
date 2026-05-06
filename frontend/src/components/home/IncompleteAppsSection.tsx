@@ -1,4 +1,5 @@
-import { Box, Chip, Link as MuiLink, Paper, Typography } from '@mui/material';
+import { Box, Chip, Link as MuiLink, Paper, Tooltip, Typography } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
@@ -23,9 +24,14 @@ export default function IncompleteAppsSection({
 
   return (
     <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        {t('home.todo.incomplete.title')}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h4">{t('home.todo.incomplete.title')}</Typography>
+        <Tooltip title={t('home.todo.incomplete.tooltip')}>
+          <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary' }}>
+            <InfoOutlinedIcon fontSize="small" />
+          </Box>
+        </Tooltip>
+      </Box>
 
       {isLoading ? (
         <LoadingSkeleton rows={3} columns={1} />

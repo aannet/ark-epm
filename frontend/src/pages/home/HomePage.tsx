@@ -87,11 +87,13 @@ export default function HomePage(): JSX.Element {
             <KpiTile
               label={t('home.kpis.apps.label')}
               value={kpis?.appsCount ?? null}
+              tooltip={t('home.kpis.apps.tooltip')}
               onClick={() => navigate('/applications')}
             />
             <KpiTile
               label={t('home.kpis.missionCritical.label')}
               value={missionCriticalValue}
+              tooltip={t('home.kpis.missionCritical.tooltip')}
               subtext={t('home.kpis.missionCritical.subtext', {
                 count: kpis?.missionCriticalDenominator ?? 0,
               })}
@@ -100,11 +102,13 @@ export default function HomePage(): JSX.Element {
             <KpiTile
               label={t('home.kpis.interfaces.label')}
               value={kpis?.interfacesCount ?? null}
+              tooltip={t('home.kpis.interfaces.tooltip')}
               onClick={() => navigate('/interfaces')}
             />
             <KpiTile
               label={t('home.kpis.coveredCapabilities.label')}
               value={kpis?.coveredCapabilitiesCount ?? null}
+              tooltip={t('home.kpis.coveredCapabilities.tooltip')}
               onClick={() => navigate('/business-capabilities')}
             />
           </Box>
@@ -130,34 +134,13 @@ export default function HomePage(): JSX.Element {
         </Box>
       ) : (
         <>
-          {(showIncompleteSection || showContractsSection) && (
+          {(showLifecycleSection || showQualitySection) && (
             <Box
               sx={{
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
                 gap: 2,
                 mb: 3,
-              }}
-            >
-              {showIncompleteSection ? (
-                <IncompleteAppsSection apps={summary?.incompleteApps ?? []} isLoading={isLoading} />
-              ) : null}
-
-              {showContractsSection ? (
-                <ProviderExpirySection
-                  providers={summary?.expiringProviders ?? []}
-                  isLoading={isLoading}
-                />
-              ) : null}
-            </Box>
-          )}
-
-          {(showLifecycleSection || showQualitySection) && (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
-                gap: 2,
               }}
             >
               {showLifecycleSection ? (
@@ -169,6 +152,27 @@ export default function HomePage(): JSX.Element {
 
               {showQualitySection ? (
                 <DataQualitySection quality={summary?.dataQuality ?? DEFAULT_DATA_QUALITY} isLoading={isLoading} />
+              ) : null}
+            </Box>
+          )}
+
+          {(showIncompleteSection || showContractsSection) && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+                gap: 2,
+              }}
+            >
+              {showIncompleteSection ? (
+                <IncompleteAppsSection apps={summary?.incompleteApps ?? []} isLoading={isLoading} />
+              ) : null}
+
+              {showContractsSection ? (
+                <ProviderExpirySection
+                  providers={summary?.expiringProviders ?? []}
+                  isLoading={isLoading}
+                />
               ) : null}
             </Box>
           )}

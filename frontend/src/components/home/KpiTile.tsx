@@ -1,14 +1,16 @@
 import { Box, ButtonBase, Paper, Tooltip, Typography } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useTranslation } from 'react-i18next';
 
 interface KpiTileProps {
   label: string;
   value: number | string | null;
   subtext?: string;
+  tooltip?: string;
   onClick: () => void;
 }
 
-export default function KpiTile({ label, value, subtext, onClick }: KpiTileProps): JSX.Element {
+export default function KpiTile({ label, value, subtext, tooltip, onClick }: KpiTileProps): JSX.Element {
   const { t } = useTranslation();
   const renderedValue = value === null ? '—' : value;
 
@@ -38,9 +40,18 @@ export default function KpiTile({ label, value, subtext, onClick }: KpiTileProps
           cursor: 'pointer',
         }}
       >
-        <Typography variant="body2" color="text.secondary">
-          {label}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+          {tooltip ? (
+            <Tooltip title={tooltip}>
+              <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary' }}>
+                <InfoOutlinedIcon fontSize="small" />
+              </Box>
+            </Tooltip>
+          ) : null}
+        </Box>
 
         <Box sx={{ mt: 1 }}>
           {value === null ? (

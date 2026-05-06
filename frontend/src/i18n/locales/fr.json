@@ -954,17 +954,21 @@
       },
       "kpis": {
         "apps": {
-          "label": "Applications"
+          "label": "Applications",
+          "tooltip": "Nombre total d'applications dans votre périmètre"
         },
         "missionCritical": {
           "label": "Mission Critical",
-          "subtext": "sur {{count}} apps renseignées"
+          "subtext": "sur {{count}} apps renseignées",
+          "tooltip": "Pourcentage d'applications critiques sur celles avec criticité renseignée"
         },
         "interfaces": {
-          "label": "Interfaces"
+          "label": "Interfaces",
+          "tooltip": "Nombre total d'interfaces recensées dans votre périmètre"
         },
         "coveredCapabilities": {
-          "label": "Capacités couvertes"
+          "label": "Capacités couvertes",
+          "tooltip": "Capacités métier couvertes par au moins une application"
         }
       },
       "errors": {
@@ -973,6 +977,7 @@
       "todo": {
         "incomplete": {
           "title": "Fiches incomplètes",
+          "tooltip": "Applications sans responsable, criticité ou statut de cycle de vie",
           "empty": "Toutes les fiches sont complètes",
           "missingOwner": "Responsable",
           "missingCriticality": "Criticité",
@@ -980,6 +985,7 @@
         },
         "contracts": {
           "title": "Contrats expirant bientôt",
+          "tooltip": "Contrats fournisseurs arrivant à échéance dans les 90 prochains jours",
           "empty": "Aucun contrat n'expire dans les 90 prochains jours",
           "expiresSoon": "Expire dans {{days}} j",
           "expiresInDays": "Expire dans {{days}} j",
@@ -989,6 +995,7 @@
       },
       "lifecycle": {
         "title": "Distribution cycle de vie",
+        "tooltip": "Répartition des applications de votre périmètre par statut de cycle de vie",
         "empty": "Aucune application dans ce périmètre",
         "appsLabel": "apps",
         "statuses": {
