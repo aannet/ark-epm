@@ -1014,3 +1014,17 @@ tasks:
       3. [Low] Assertion dépendante de l'ordre/seed ("first row has linked apps").
          Risque : test fragile si tri ou seed change.
          Action : créer les données de test explicitement plutôt que d'hypothéquer la seed.
+
+  - id: T-108
+    nom: "Playwright — l'intégralité des tests UI plante contrairement aux tests backend"
+    statut: open
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "QA"
+    type: bug
+    feature: "QA-E2E-UI"
+    priorité: high
+    sessions: []
