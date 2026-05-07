@@ -210,6 +210,21 @@ components:
                 items:
                   type: string
                   enum: [owner, criticality, lifecycle]
+              businessCapability:
+                nullable: true
+                description: "BC de contexte à afficher dans le widget (règle N:N définie en RM-07)."
+                type: object
+                properties:
+                  id:   { type: string, format: uuid }
+                  name: { type: string }
+                  ancestors:
+                    type: array
+                    description: "Chemin hiérarchique racine -> parent direct de la BC sélectionnée."
+                    items:
+                      type: object
+                      properties:
+                        id:   { type: string, format: uuid }
+                        name: { type: string }
               createdAt:    { type: string, format: date-time }
 
         expiringProviders:
@@ -311,6 +326,10 @@ UserDetailResponse (amendment):
 - **RM-06 — Interfaces count global :** `prisma.interface.count()` sans aucun filtre domaine. Décision explicite : les interfaces sont une entité transverse (pas de `domain_id`).
 
 - **RM-07 — Applications incomplètes :** `WHERE (ownerId IS NULL OR criticality IS NULL OR lifecycleStatus IS NULL) AND domainFilter`, `ORDER BY createdAt ASC`, `TAKE 5`. Pour chaque app, construire `missingFields` en inspectant les 3 champs.
+  - Enrichir chaque item avec `businessCapability` (ou `null` si aucune BC liée).
+  - En cas de rattachement N:N app ↔ BC, sélectionner la BC la plus profonde (feuille la plus spécifique).
+  - Tie-break stable si même profondeur : `name ASC`, puis `id ASC`.
+  - `ancestors[]` contient le chemin racine -> parent direct de la BC sélectionnée.
 
 - **RM-08 — Fournisseurs expirants :** Jointure `providers → app_provider_map → applications`. Filtre : `expiryDate IS NOT NULL AND expiryDate <= today + 90j`. Filtre domaine : via `application.domainId IN domainIds`. `ORDER BY expiryDate ASC TAKE 5`. `daysUntilExpiry = Math.floor((expiryDate.getTime() - Date.now()) / 86_400_000)`.
 

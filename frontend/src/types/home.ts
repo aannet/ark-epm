@@ -10,6 +10,11 @@ export interface IncompleteApp {
   id: string;
   name: string;
   missingFields: Array<'owner' | 'criticality' | 'lifecycle'>;
+  businessCapability: {
+    id: string;
+    name: string;
+    ancestors: Array<{ id: string; name: string }>;
+  } | null;
   createdAt: string;
 }
 

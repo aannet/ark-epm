@@ -981,7 +981,8 @@
           "empty": "Toutes les fiches sont complètes",
           "missingOwner": "Responsable",
           "missingCriticality": "Criticité",
-          "missingLifecycle": "Cycle de vie"
+          "missingLifecycle": "Cycle de vie",
+          "noBusinessCapability": "Capacité métier non renseignée"
         },
         "contracts": {
           "title": "Contrats expirant bientôt",

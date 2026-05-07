@@ -16,6 +16,11 @@ interface HomeSummaryResponse {
     id: string;
     name: string;
     missingFields: string[];
+    businessCapability: {
+      id: string;
+      name: string;
+      ancestors: Array<{ id: string; name: string }>;
+    } | null;
     createdAt: string;
   }> | null;
   expiringProviders: Array<{
@@ -89,6 +94,16 @@ test.describe('Home Summary API — GET /home/summary', () => {
     expect(Array.isArray(body.incompleteApps)).toBe(true);
     // max 5 items
     expect(body.incompleteApps!.length).toBeLessThanOrEqual(5);
+
+    if (body.incompleteApps!.length > 0) {
+      const first = body.incompleteApps![0];
+      expect(first).toHaveProperty('businessCapability');
+      if (first.businessCapability !== null) {
+        expect(first.businessCapability).toHaveProperty('id');
+        expect(first.businessCapability).toHaveProperty('name');
+        expect(Array.isArray(first.businessCapability.ancestors)).toBe(true);
+      }
+    }
   });
 
   // G-03 : expiringProviders est un tableau (peut être vide)

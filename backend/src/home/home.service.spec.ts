@@ -13,6 +13,7 @@ const mockPrisma = {
   },
   interface: { count: jest.fn() },
   appCapabilityMap: { findMany: jest.fn() },
+  businessCapability: { findMany: jest.fn() },
   applicationProviderMap: { findMany: jest.fn() },
 };
 
@@ -31,10 +32,16 @@ function buildDefaultMocks(domainIds: string[] = []) {
     { lifecycleStatus: 'production', _count: { _all: 10 } },
   ]);
   mockPrisma.interface.count.mockResolvedValue(5);
-  mockPrisma.appCapabilityMap.findMany.mockResolvedValue([
-    { capabilityId: 'c1' },
-    { capabilityId: 'c2' },
-  ]);
+  mockPrisma.appCapabilityMap.findMany.mockImplementation((args?: { distinct?: string[]; where?: { applicationId?: { in: string[] } } }) => {
+    if (args?.distinct) {
+      return Promise.resolve([{ capabilityId: 'c1' }, { capabilityId: 'c2' }]);
+    }
+    if (args?.where?.applicationId?.in) {
+      return Promise.resolve([]);
+    }
+    return Promise.resolve([]);
+  });
+  mockPrisma.businessCapability.findMany.mockResolvedValue([]);
   mockPrisma.applicationProviderMap.findMany.mockResolvedValue([]);
 }
 
@@ -100,6 +107,7 @@ describe('HomeService', () => {
       mockPrisma.application.groupBy.mockResolvedValue([]);
       mockPrisma.interface.count.mockResolvedValue(0);
       mockPrisma.appCapabilityMap.findMany.mockResolvedValue([]);
+      mockPrisma.businessCapability.findMany.mockResolvedValue([]);
       mockPrisma.applicationProviderMap.findMany.mockResolvedValue([]);
 
       const result = await service.getSummary(USER_ID);
@@ -159,6 +167,49 @@ describe('HomeService', () => {
       expect(result.incompleteApps).toHaveLength(2);
       expect(result.incompleteApps![0].missingFields).toContain('owner');
       expect(result.incompleteApps![1].missingFields).not.toContain('owner');
+      expect(result.incompleteApps![0].businessCapability).toBeNull();
+    });
+
+    it('incompleteApps sélectionne la BC la plus profonde avec tie-break stable', async () => {
+      buildDefaultMocks([]);
+
+      mockPrisma.application.findMany.mockResolvedValue([
+        { id: 'a1', name: 'App 1', ownerId: null, criticality: null, lifecycleStatus: null, createdAt: new Date() },
+      ]);
+
+      mockPrisma.appCapabilityMap.findMany.mockImplementation((args?: { distinct?: string[]; where?: { applicationId?: { in: string[] } } }) => {
+        if (args?.distinct) {
+          return Promise.resolve([{ capabilityId: 'c1' }]);
+        }
+        if (args?.where?.applicationId?.in) {
+          return Promise.resolve([
+            { applicationId: 'a1', capabilityId: 'bc-shallow' },
+            { applicationId: 'a1', capabilityId: 'bc-deep-finance' },
+            { applicationId: 'a1', capabilityId: 'bc-deep-architecture' },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      mockPrisma.businessCapability.findMany.mockResolvedValue([
+        { id: 'bc-root', name: 'Strategy', parentId: null },
+        { id: 'bc-mid', name: 'Operations', parentId: 'bc-root' },
+        { id: 'bc-shallow', name: 'Shared Services', parentId: 'bc-root' },
+        { id: 'bc-deep-finance', name: 'Finance', parentId: 'bc-mid' },
+        { id: 'bc-deep-architecture', name: 'Architecture', parentId: 'bc-mid' },
+      ]);
+
+      const result = await service.getSummary(USER_ID);
+
+      expect(result.incompleteApps).toHaveLength(1);
+      expect(result.incompleteApps![0].businessCapability).toEqual({
+        id: 'bc-deep-architecture',
+        name: 'Architecture',
+        ancestors: [
+          { id: 'bc-root', name: 'Strategy' },
+          { id: 'bc-mid', name: 'Operations' },
+        ],
+      });
     });
 
     // RM-08 : daysUntilExpiry calculé correctement

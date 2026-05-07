@@ -122,12 +122,100 @@ export class HomeService {
       select: { id: true, name: true, ownerId: true, criticality: true, lifecycleStatus: true, createdAt: true },
     });
 
+    if (apps.length === 0) {
+      return [];
+    }
+
+    const appIds = apps.map((app) => app.id);
+    const appCapabilityMappings = await this.prisma.appCapabilityMap.findMany({
+      where: { applicationId: { in: appIds } },
+      select: { applicationId: true, capabilityId: true },
+    });
+
+    const businessCapabilities =
+      appCapabilityMappings.length > 0
+        ? await this.prisma.businessCapability.findMany({
+            select: { id: true, name: true, parentId: true },
+          })
+        : [];
+
+    // AGENT-DECISION: back — Widget fiches incomplètes : en N:N app<->BC,
+    // on affiche la BC la plus profonde (plus contextuelle), tie-break stable name/id.
+    const businessCapabilityById = new Map(
+      businessCapabilities.map((capability) => [capability.id, capability]),
+    );
+    const capabilityPathCache = new Map<string, Array<{ id: string; name: string }>>();
+
+    const buildCapabilityPath = (capabilityId: string): Array<{ id: string; name: string }> => {
+      const cached = capabilityPathCache.get(capabilityId);
+      if (cached) {
+        return cached;
+      }
+
+      const lineage: Array<{ id: string; name: string }> = [];
+      const visited = new Set<string>();
+      let currentId: string | null = capabilityId;
+
+      while (currentId && !visited.has(currentId)) {
+        visited.add(currentId);
+        const current = businessCapabilityById.get(currentId);
+        if (!current) {
+          break;
+        }
+        lineage.push({ id: current.id, name: current.name });
+        currentId = current.parentId;
+      }
+
+      const path = lineage.reverse();
+      capabilityPathCache.set(capabilityId, path);
+      return path;
+    };
+
+    const capabilityIdsByAppId = new Map<string, string[]>();
+    for (const mapping of appCapabilityMappings) {
+      const current = capabilityIdsByAppId.get(mapping.applicationId) ?? [];
+      current.push(mapping.capabilityId);
+      capabilityIdsByAppId.set(mapping.applicationId, current);
+    }
+
     return apps.map((app) => {
       const missingFields: IncompleteAppDto['missingFields'] = [];
       if (!app.ownerId) missingFields.push('owner');
       if (!app.criticality) missingFields.push('criticality');
       if (!app.lifecycleStatus) missingFields.push('lifecycle');
-      return { id: app.id, name: app.name, missingFields, createdAt: app.createdAt };
+
+      const selectedCapabilityPath = (capabilityIdsByAppId.get(app.id) ?? [])
+        .map((capabilityId) => buildCapabilityPath(capabilityId))
+        .filter((path) => path.length > 0)
+        .sort((left, right) => {
+          const depthDiff = right.length - left.length;
+          if (depthDiff !== 0) {
+            return depthDiff;
+          }
+
+          const leftLeaf = left[left.length - 1]!;
+          const rightLeaf = right[right.length - 1]!;
+          const nameDiff = leftLeaf.name.localeCompare(rightLeaf.name, 'fr');
+          if (nameDiff !== 0) {
+            return nameDiff;
+          }
+          return leftLeaf.id.localeCompare(rightLeaf.id);
+        })[0];
+
+      const businessCapability = selectedCapabilityPath
+        ? {
+            ...selectedCapabilityPath[selectedCapabilityPath.length - 1],
+            ancestors: selectedCapabilityPath.slice(0, -1),
+          }
+        : null;
+
+      return {
+        id: app.id,
+        name: app.name,
+        missingFields,
+        businessCapability,
+        createdAt: app.createdAt,
+      };
     });
   }
 

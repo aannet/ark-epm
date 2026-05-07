@@ -1164,3 +1164,33 @@ tasks:
       ce qui empêchait le matching avec l'inventaire (`e2e/tests/...`) et masquait les stats par fichier.
       Fix : normalisation explicite des chemins Playwright vers `e2e/tests/${cleaned}`.
       Puis régénération de `docs/05-Project/test-coverage-dashboard/coverage-data.json`.
+
+  - id: T-114
+    nom: "FS-12 — Dashboard polish : BC context dans fiches incomplètes + ancrage tooltip KPI"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-front-fs12-dashboard-polish.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-FRONT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "e6b4f2"
+        nom: "évolution widget fiches incomplètes + fix ancrage tooltip KPI"
+    notes: |
+      Ajustements post-T-105/T-112 du dashboard Home.
+      Réalisé :
+      - Widget "Fiches incomplètes" enrichi avec contexte Business Capability
+        (`businessCapability` + `ancestors[]`) et fallback i18n si non renseigné.
+      - Règle N:N app↔BC déterministe : profondeur max, tie-break `name ASC`, puis `id ASC`.
+      - Rendu UI gauche→droite (nom + breadcrumb BC à gauche, chips manquants pointillés neutres à droite).
+      - KPI band : icône tooltip "i" ancrée à droite dans chaque tuile.
+
+      Impacts transverses appliqués et alignés :
+      - Backend (DTO/service/tests), frontend (types/composants/i18n), OpenAPI et specs FS-12.
+      - Build frontend validé.
+      - Validation backend locale à rejouer dans un env disposant de `jest`/`nest`.

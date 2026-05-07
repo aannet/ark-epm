@@ -70,7 +70,11 @@ afin d'identifier rapidement ce qui dégrade la qualité des données du patrimo
 **Critères d'acceptation :**
 - [ ] Liste des applications du périmètre domaine du user avec au moins un des 3 champs manquants : `owner_id IS NULL` OU `criticality IS NULL` OU `lifecycle_status IS NULL`
 - [ ] Affichage limité à 5 items, triés par `created_at ASC` (les plus anciennes fiches incomplètes en premier)
-- [ ] Chaque ligne : nom de l'application (lien vers `/applications/:id`) + indicateur visuel des champs manquants (ex: chips `"Responsable"`, `"Criticité"`, `"Cycle de vie"` pour chaque champ absent)
+- [ ] Chaque ligne suit une lecture gauche → droite : contexte métier à gauche, actions de complétion à droite
+- [ ] Bloc gauche : nom de l'application (lien vers `/applications/:id`) + sous-titre breadcrumb de la Business Capability (racine → feuille)
+- [ ] Si l'application n'a aucune Business Capability rattachée, afficher un fallback neutre (`t('home.todo.incomplete.noBusinessCapability')`)
+- [ ] Si l'application a plusieurs Business Capabilities (N:N), afficher celle avec la profondeur la plus élevée ; en cas d'égalité, tie-break stable (nom ASC puis id ASC)
+- [ ] Bloc droit : un chip par champ manquant (`"Responsable"`, `"Criticité"`, `"Cycle de vie"`) en style pointillé neutre (sans couleur d'alerte)
 - [ ] Si aucune fiche incomplète dans le périmètre → section affichée avec message `t('home.todo.incomplete.empty')`
 - [ ] Si l'utilisateur n'a aucun domaine assigné → périmètre global (toutes les apps)
 - [ ] Si le user n'a pas la permission `applications:read` → section masquée

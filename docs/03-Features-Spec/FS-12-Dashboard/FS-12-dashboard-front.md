@@ -217,11 +217,17 @@ zones:
       rendering:
         null → section entière masquée (erreur partielle BFF)
         [] → EmptyState inline t('home.todo.incomplete.empty')
-        items → liste max 5, MuiLink vers /applications/:id + chips manquants
+        items → liste max 5, lecture gauche→droite
+          gauche: nom app (MuiLink vers /applications/:id) + sous-titre breadcrumb BC
+          droite: chips champs manquants en style pointillé neutre
+          fallback BC absente: t('home.todo.incomplete.noBusinessCapability')
+      bc_selection_rule:
+        app avec plusieurs BCs: garder la BC la plus profonde
+        tie-break même profondeur: name ASC puis id ASC
       missing_field_chips:
-        owner:       Chip label=t('home.todo.incomplete.missingOwner')
-        criticality: Chip label=t('home.todo.incomplete.missingCriticality')
-        lifecycle:   Chip label=t('home.todo.incomplete.missingLifecycle')
+        owner:       Chip outlined, borderStyle='dashed', label=t('home.todo.incomplete.missingOwner')
+        criticality: Chip outlined, borderStyle='dashed', label=t('home.todo.incomplete.missingCriticality')
+        lifecycle:   Chip outlined, borderStyle='dashed', label=t('home.todo.incomplete.missingLifecycle')
 
     right (xs=12 md=6):
       component: ProviderExpirySection
@@ -334,6 +340,11 @@ export interface IncompleteApp {
   id: string;
   name: string;
   missingFields: ('owner' | 'criticality' | 'lifecycle')[];
+  businessCapability: {
+    id: string;
+    name: string;
+    ancestors: Array<{ id: string; name: string }>;
+  } | null;
   createdAt: string;
 }
 
@@ -494,7 +505,8 @@ La sauvegarde passe `domainIds: string[]` dans le body de `POST /users` ou `PATC
       "empty": "Toutes les fiches sont complètes",
       "missingOwner": "Responsable",
       "missingCriticality": "Criticité",
-      "missingLifecycle": "Cycle de vie"
+      "missingLifecycle": "Cycle de vie",
+      "noBusinessCapability": "Capacité métier non renseignée"
     },
     "contracts": {
       "title": "Contrats expirant bientôt",

@@ -4,6 +4,11 @@ export interface IncompleteAppDto {
   id: string;
   name: string;
   missingFields: ('owner' | 'criticality' | 'lifecycle')[];
+  businessCapability: {
+    id: string;
+    name: string;
+    ancestors: Array<{ id: string; name: string }>;
+  } | null;
   createdAt: Date | null;
 }
 

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Box, Chip, Link as MuiLink, Paper, Tooltip, Typography } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Link as RouterLink } from 'react-router-dom';
@@ -51,19 +52,99 @@ export default function IncompleteAppsSection({
                 p: 1.5,
               }}
             >
-              <MuiLink
-                component={RouterLink}
-                to={`/applications/${app.id}`}
-                underline="hover"
-                sx={{ fontWeight: 600 }}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: { xs: 'flex-start', md: 'center' },
+                  justifyContent: 'space-between',
+                  gap: 1.5,
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                }}
               >
-                {app.name}
-              </MuiLink>
+                <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <MuiLink
+                    component={RouterLink}
+                    to={`/applications/${app.id}`}
+                    underline="hover"
+                    sx={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: 'primary.main',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {app.name}
+                  </MuiLink>
 
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                {app.missingFields.map((field) => (
-                  <Chip key={field} size="small" color="warning" label={t(MISSING_FIELD_LABELS[field])} />
-                ))}
+                  {app.businessCapability ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', minWidth: 0 }}>
+                      {app.businessCapability.ancestors.map((ancestor) => (
+                        <Fragment key={ancestor.id}>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.disabled', whiteSpace: 'nowrap', flexShrink: 0 }}
+                          >
+                            {ancestor.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.disabled', mx: 0.4, opacity: 0.6, flexShrink: 0 }}
+                          >
+                            {'>'}
+                          </Typography>
+                        </Fragment>
+                      ))}
+
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {app.businessCapability.name}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+                      {t('home.todo.incomplete.noBusinessCapability')}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 0.5,
+                    flexShrink: 0,
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                  }}
+                >
+                  {app.missingFields.map((field) => (
+                    <Chip
+                      key={field}
+                      label={t(MISSING_FIELD_LABELS[field])}
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        fontSize: 10,
+                        height: 20,
+                        color: 'text.disabled',
+                        borderStyle: 'dashed',
+                        borderColor: 'divider',
+                        borderRadius: '3px',
+                        '& .MuiChip-label': { px: '6px' },
+                      }}
+                    />
+                  ))}
+                </Box>
               </Box>
             </Box>
           ))}

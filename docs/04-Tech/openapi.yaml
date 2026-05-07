@@ -3787,6 +3787,19 @@ components:
                 items:
                   type: string
                   enum: [owner, criticality, lifecycle]
+              businessCapability:
+                nullable: true
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  name: { type: string }
+                  ancestors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        name: { type: string }
               createdAt:    { type: string, format: date-time }
         expiringProviders:
           nullable: true

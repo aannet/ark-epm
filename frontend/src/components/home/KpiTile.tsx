@@ -40,13 +40,21 @@ export default function KpiTile({ label, value, subtext, tooltip, onClick }: Kpi
           cursor: 'pointer',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="body2" color="text.secondary">
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 1,
+            width: '100%',
+          }}
+        >
+          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, pr: 1 }}>
             {label}
           </Typography>
           {tooltip ? (
             <Tooltip title={tooltip}>
-              <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary' }}>
+              <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary', flexShrink: 0 }}>
                 <InfoOutlinedIcon fontSize="small" />
               </Box>
             </Tooltip>
