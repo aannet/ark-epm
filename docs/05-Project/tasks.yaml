@@ -176,9 +176,9 @@ tasks:
 
   - id: T-079
     nom: "Back — Sécurité : ajouter @RequirePermissions sur les endpoints write de tags"
-    statut: open
+    statut: in_progress
     assigned_agent: back
-    session_active: ~
+    session_active: "e4f2a9"
     handoff_ref: ~
     date_resolution: ~
     sprint: S4

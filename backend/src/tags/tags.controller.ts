@@ -55,6 +55,7 @@ export class TagsController {
   }
 
   @Get('tags/autocomplete')
+  @RequirePermissions('tags:read')
   async autocomplete(@Query() query: AutocompleteQueryDto) {
     return this.tagsService.autocomplete(
       query.dimension,
@@ -64,6 +65,7 @@ export class TagsController {
   }
 
   @Post('tags/resolve')
+  @RequirePermissions('tags:write')
   async resolveTag(
     @Body() dto: ResolveTagDto,
     @Req() req: AuthenticatedRequest,
@@ -72,6 +74,7 @@ export class TagsController {
   }
 
   @Get('tags/entity/:entityType/:entityId')
+  @RequirePermissions('tags:read')
   async getEntityTags(
     @Param('entityType') entityType: string,
     @Param('entityId') entityId: string,
@@ -80,6 +83,7 @@ export class TagsController {
   }
 
   @Put('tags/entity/:entityType/:entityId')
+  @RequirePermissions('tags:write')
   async putEntityTags(
     @Param('entityType') entityType: string,
     @Param('entityId') entityId: string,
@@ -90,6 +94,7 @@ export class TagsController {
   }
 
   @Put('tags/entity/:entityType/:entityId/batch')
+  @RequirePermissions('tags:write')
   async batchEntityTags(
     @Param('entityType') entityType: string,
     @Param('entityId') entityId: string,
