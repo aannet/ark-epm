@@ -6,20 +6,6 @@
 
 ---
 
-## Accroche
-
-On a commencé comme tout le monde.
-
-Un agent généraliste, des prompts longs, du copier-coller.
-
-4 mois plus tard, ce repository est tenu par une **équipe d'agents spécialisés** avec des rituels, des verrous et une mémoire partagée.
-
-Ce n'est pas le produit qui prouve la maturité.
-
-**C'est la démarche qui a permis de le construire.**
-
----
-
 ## Contexte — ARK-EPM en 30 secondes
 
 Référentiel d'architecture d'entreprise (EA)
@@ -27,9 +13,8 @@ Référentiel d'architecture d'entreprise (EA)
 - Graphe de dépendances (ReactFlow)
 - 11 entités métier (Applications, Domaines, Fournisseurs...)
 - Import Excel, omnisearch, RBAC, i18n full-stack
-- Stack : NestJS + Prisma + PostgreSQL / React + Vite + MUI v5
+- Stack : NestJS + Prisma + PostgreSQL / React + Vite + MUI v8
 
-**Le déclencheur** : le fossé entre *"j'ai testé ChatGPT sur un endpoint"* et *"j'ai industrialisé une équipe d'agents"*.
 
 ---
 
