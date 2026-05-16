@@ -13,7 +13,9 @@ test.describe('ARK-EPM Basic E2E Tests', () => {
   });
 
 test('health check - backend accessible', async ({ request }) => {
-  const backendHealthUrl = `${(process.env.API_BASE_URL ?? 'http://backend:3000').replace(/\/+$/, '')}/health`;
+  const apiBaseUrl = (process.env.API_BASE_URL ?? 'http://localhost:3001').replace(/\/+$/, '');
+  const apiVersion = process.env.API_VERSION ?? '/api/v1';
+  const backendHealthUrl = `${apiBaseUrl}${apiVersion}/health`;
 
   // Test de disponibilité du backend
   const response = await request.get(backendHealthUrl);

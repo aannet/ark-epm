@@ -9,6 +9,12 @@ async function loginAs(page: Page, email: string, password: string) {
     (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
     { timeout: 10000 }
   );
+  const profileResponse = page
+    .waitForResponse(
+      (response) => response.url().includes('/api/v1/auth/me') && response.request().method() === 'GET',
+      { timeout: 10000 }
+    )
+    .catch(() => null);
 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   const response = await loginResponse;
@@ -18,6 +24,12 @@ async function loginAs(page: Page, email: string, password: string) {
   }
 
   await expect(page).not.toHaveURL(/\/login(\?.*)?$/, { timeout: 10000 });
+  const meResponse = await profileResponse;
+
+  if (meResponse && !meResponse.ok()) {
+    return false;
+  }
+
   return !page.url().includes('/login');
 }
 

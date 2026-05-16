@@ -11,10 +11,10 @@
 	db-shell db-push db-generate db-fix-audit-id db-reseed \
 	auth-token \
 	test-backend test-backend-unit test-backend-e2e \
-	test-e2e test-e2e-ci test-e2e-report test-e2e-build test-e2e-debug \
+	test-e2e test-e2e-local test-e2e-ci test-e2e-report test-e2e-build test-e2e-debug \
 	test-api test-api-local test-api-docker test-api-custom test-api-domains test-api-applications test-api-report \
 	validate-backend \
-	project-dashboard coverage-report coverage-dashboard \
+	project-dashboard coverage-report coverage-dashboard reports-manifest reports-dashboard \
 	scan-trivy-backend scan-trivy-frontend scan-trivy-fs scan-trivy-all \
 	scan-semgrep-backend scan-semgrep-frontend scan-semgrep-all \
 	scan-zap scan-zap-baseline scan-zap-report \
@@ -29,6 +29,8 @@ TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 
 # Backend configuration
 BACKEND_PORT ?= 3001
+E2E_BASE_URL ?= http://localhost:5173
+E2E_DOCKER_BASE_URL ?= http://frontend:5173
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Development
@@ -153,8 +155,24 @@ test-backend-e2e:
 # ─────────────────────────────────────────────────────────────────────────────
 
 test-e2e:
-	@echo "Running E2E tests against dev environment..."
-	docker-compose run --rm playwright
+	@echo "🔍 Detecting frontend on $(E2E_BASE_URL) and backend on $(API_BASE_URL)..."
+	@if command -v npx >/dev/null 2>&1 && curl -s $(E2E_BASE_URL) >/dev/null 2>&1 && curl -s $(API_BASE_URL)$(API_VERSION)/health >/dev/null 2>&1; then \
+		echo "🚀 Local mode (npx)..."; \
+		cd e2e && BASE_URL=$(E2E_BASE_URL) API_BASE_URL=$(API_BASE_URL) API_VERSION=$(API_VERSION) API_USER_EMAIL=$(API_USER_EMAIL) API_USER_PASSWORD=$(API_USER_PASSWORD) npx playwright test --project=ui; \
+	else \
+		echo "🐙 Docker mode (isolated)..."; \
+		docker-compose run --rm --no-deps \
+			-e BASE_URL=$(E2E_DOCKER_BASE_URL) \
+			-e API_BASE_URL=http://backend:3000 \
+			-e API_VERSION=$(API_VERSION) \
+			-e API_USER_EMAIL=$(API_USER_EMAIL) \
+			-e API_USER_PASSWORD=$(API_USER_PASSWORD) \
+			playwright npx playwright test --project=ui; \
+	fi
+
+test-e2e-local:
+	@echo "🚀 Local mode: $(E2E_BASE_URL)"
+	cd e2e && BASE_URL=$(E2E_BASE_URL) API_BASE_URL=$(API_BASE_URL) API_VERSION=$(API_VERSION) API_USER_EMAIL=$(API_USER_EMAIL) API_USER_PASSWORD=$(API_USER_PASSWORD) npx playwright test --project=ui
 
 test-e2e-ci:
 	@echo "Running E2E tests in isolated environment..."
@@ -287,7 +305,7 @@ coverage-report:
 	@echo "- Jest e2e (json)"
 	@cd backend && npm run test:e2e -- --json --outputFile=reports/jest-e2e-results.json || true
 	@echo "- Playwright (list + html + json reporters)"
-	@cd e2e && PLAYWRIGHT_JSON_OUTPUT_NAME=reports/results.json npx playwright test --reporter=list,html,json || true
+	@cd e2e && BASE_URL=$(E2E_BASE_URL) API_BASE_URL=$(API_BASE_URL) API_VERSION=$(API_VERSION) PLAYWRIGHT_JSON_OUTPUT_NAME=reports/results.json npx playwright test --reporter=list,html,json || true
 	@echo "- Cypress (json reporter)"
 	@cd frontend && npx cypress run --reporter json --reporter-options output=cypress/reports/results.json || true
 	@echo "- Aggregate dashboard payload"
@@ -296,6 +314,13 @@ coverage-report:
 coverage-dashboard:
 	@echo "Coverage dashboard disponible sur http://localhost:4001/docs/05-Project/test-coverage-dashboard/"
 	npx serve . --listen 4001
+
+reports-manifest:
+	@node scripts/build-reports-manifest.js --analyze
+
+reports-dashboard: reports-manifest
+	@echo "Reports dashboard disponible sur http://localhost:4002/docs/05-Project/reports-dashboard/"
+	npx serve . --listen 4002
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Security Scanning — Trivy (Container & Filesystem)
@@ -316,7 +341,14 @@ scan-trivy-backend:
 		--format template --template "@/tpl/html.tpl" \
 		-o /reports/$(TIMESTAMP)-backend.html \
 		ark-epm-backend:latest
-	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-backend.html"
+	@docker run --rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(TRIVY_REPORTS):/reports \
+		$(TRIVY_IMAGE) image \
+		--format json \
+		-o /reports/$(TIMESTAMP)-backend.json \
+		ark-epm-backend:latest
+	@echo "Reports: $(TRIVY_REPORTS)/$(TIMESTAMP)-backend.html and $(TRIVY_REPORTS)/$(TIMESTAMP)-backend.json"
 
 scan-trivy-frontend:
 	@mkdir -p $(TRIVY_REPORTS)
@@ -329,7 +361,14 @@ scan-trivy-frontend:
 		--format template --template "@/tpl/html.tpl" \
 		-o /reports/$(TIMESTAMP)-frontend.html \
 		ark-epm-frontend:latest
-	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-frontend.html"
+	@docker run --rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(TRIVY_REPORTS):/reports \
+		$(TRIVY_IMAGE) image \
+		--format json \
+		-o /reports/$(TIMESTAMP)-frontend.json \
+		ark-epm-frontend:latest
+	@echo "Reports: $(TRIVY_REPORTS)/$(TIMESTAMP)-frontend.html and $(TRIVY_REPORTS)/$(TIMESTAMP)-frontend.json"
 
 scan-trivy-fs:
 	@mkdir -p $(TRIVY_REPORTS)
@@ -342,10 +381,18 @@ scan-trivy-fs:
 		--format template --template "@/tpl/html.tpl" \
 		-o /reports/$(TIMESTAMP)-fs.html \
 		/workdir
-	@echo "Report: $(TRIVY_REPORTS)/$(TIMESTAMP)-fs.html"
+	@docker run --rm \
+		-v $(PWD):/workdir \
+		-v $(TRIVY_REPORTS):/reports \
+		$(TRIVY_IMAGE) fs \
+		--format json \
+		-o /reports/$(TIMESTAMP)-fs.json \
+		/workdir
+	@echo "Reports: $(TRIVY_REPORTS)/$(TIMESTAMP)-fs.html and $(TRIVY_REPORTS)/$(TIMESTAMP)-fs.json"
 
 scan-trivy-all: scan-trivy-backend scan-trivy-frontend scan-trivy-fs
 	@echo "All Trivy reports: $(TRIVY_REPORTS)/"
+	@node scripts/build-reports-manifest.js --analyze
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Security Scanning — Semgrep (SAST)
@@ -391,6 +438,7 @@ scan-semgrep-frontend:
 
 scan-semgrep-all: scan-semgrep-backend scan-semgrep-frontend
 	@echo "All Semgrep reports: $(SEMGREP_REPORTS)/"
+	@node scripts/build-reports-manifest.js --analyze
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Security Scanning — ZAP (DAST)
@@ -442,6 +490,7 @@ scan-zap:
 	fi; \
 	echo "   HTML: $(ZAP_REPORTS)/$(TIMESTAMP)-zap-report.html"; \
 	echo "   JSON: $(ZAP_REPORTS)/$(TIMESTAMP)-zap-report.json"; \
+	node scripts/build-reports-manifest.js --analyze || true; \
 	exit $$ZAP_EXIT
 
 # Quick baseline scan (spider only, no active attacks)
@@ -473,6 +522,7 @@ scan-zap-baseline:
 	fi; \
 	echo "   HTML: $(ZAP_REPORTS)/$(TIMESTAMP)-baseline-report.html"; \
 	echo "   JSON: $(ZAP_REPORTS)/$(TIMESTAMP)-baseline-report.json"; \
+	node scripts/build-reports-manifest.js --analyze || true; \
 	exit $$ZAP_EXIT
 
 # Open ZAP report in browser
@@ -536,6 +586,7 @@ scan-megalinter-frontend:
 
 # Run both backend and frontend quality checks in sequence
 scan-megalinter-all: scan-megalinter-quality scan-megalinter-frontend
+	@node scripts/build-reports-manifest.js --analyze
 
 # Alias: runs quality check only (convenience shorthand)
 scan-megalinter: scan-megalinter-quality
