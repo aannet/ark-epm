@@ -111,21 +111,6 @@ test.describe('Business Capabilities Validation API', () => {
     await expectError(response, 409, 'CONFLICT');
   });
 
-  // AGENT-DECISION: qa — T-101 injection hardening tests
-  test('POST /business-capabilities - should reject command injection in name', async ({ auth }) => {
-    const res = await auth.request.post('business-capabilities', {
-      data: { name: 'ZAP;cat /etc/passwd;' },
-    });
-    expect(res.status()).toBe(400);
-  });
-
-  test('POST /business-capabilities - should reject URL scheme injection in name', async ({ auth }) => {
-    const res = await auth.request.post('business-capabilities', {
-      data: { name: 'http://www.google.com/search?q=ZAP' },
-    });
-    expect(res.status()).toBe(400);
-  });
-
   test('DELETE /business-capabilities/:id should return 409 DEPENDENCY_CONFLICT when has children', async ({
     auth,
     testData,

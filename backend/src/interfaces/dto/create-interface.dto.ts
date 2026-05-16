@@ -1,27 +1,17 @@
-import { IsString, IsOptional, IsUUID, IsEnum, IsNumber, Min, Max, IsArray, MaxLength, Matches, NotContains } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsString, IsOptional, IsUUID, IsEnum, IsNumber, Min, Max, IsArray } from 'class-validator';
 import { InterfaceType, InterfaceFrequency, CriticalityLevel } from '@prisma/client';
 
 export class CreateInterfaceDto {
-  // AGENT-DECISION: back — T-101 injection hardening
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  @Matches(/^[^;<>|`\\{}\[\]\x00-\x1F]*$/, { message: 'Name contains forbidden characters (injection attempt)' })
-  @NotContains('://', { message: 'Name cannot contain URL schemes' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   name?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   description?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   comment?: string;
 
   @IsUUID()
@@ -47,10 +37,6 @@ export class CreateInterfaceDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  @Matches(/^[^;<>|`\\{}\[\]\x00-\x1F]*$/, { message: 'technicalContact contains forbidden characters' })
-  @NotContains('://', { message: 'technicalContact cannot contain URL schemes' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   technicalContact?: string;
 
   @IsOptional()
