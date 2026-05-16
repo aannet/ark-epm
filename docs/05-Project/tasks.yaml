@@ -176,17 +176,20 @@ tasks:
 
   - id: T-079
     nom: "Back — Sécurité : ajouter @RequirePermissions sur les endpoints write de tags"
-    statut: in_progress
+    statut: done
     assigned_agent: back
-    session_active: "e4f2a9"
+    session_active: ~
     handoff_ref: ~
-    date_resolution: ~
+    date_resolution: 2026-05-16
     sprint: S4
     theme: "F-03"
     type: bug
     feature: "F-03-TAGS"
     priorité: high
-    sessions: []
+    sessions:
+      - tool: OC
+        id: "e4f2a9"
+        nom: "fix @RequirePermissions tags:write x3 + tags:read x2 — build PASS"
     notes: |
       Vulnérabilité de sécurité confirmée (revue 2026-04-29, confiance 9/10).
       Le PermissionsGuard retourne true si @RequirePermissions est absent.
