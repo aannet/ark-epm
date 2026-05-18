@@ -1197,3 +1197,27 @@ tasks:
       - Backend (DTO/service/tests), frontend (types/composants/i18n), OpenAPI et specs FS-12.
       - Build frontend validé.
       - Validation backend locale à rejouer dans un env disposant de `jest`/`nest`.
+
+  - id: T-115
+    nom: "Spec — Espace Utilisateur : Settings + i18n EN (FS-13)"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260518/SESSION-HANDOFF-spec-t115.md"
+    date_resolution: 2026-05-18
+    sprint: S5
+    theme: "FS-13"
+    type: spec
+    feature: "FS-13-BACK"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "b749a5"
+        nom: "rédaction FS-13-userstories.md + FS-13-BACK.md + FS-13-FRONT.md — interview 13 questions, 7 décisions structurantes verrouillées"
+    notes: |
+      Périmètre : Settings utilisateur + traduction anglaise complète.
+      Livrables :
+      - FS-13-userstories.md (US en préalable)
+      - FS-13-BACK.md (endpoint settings, choix langue, structure user preferences)
+      - FS-13-FRONT.md (page settings, toggle FR/EN, thème)
+      Dépendances : F-02-i18n existant, F-99-Technical-Debt (items i18n).
