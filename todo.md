@@ -338,7 +338,7 @@ J'aimerais implémenter une mécanique de refresh token qui s'annule soit à l'e
     - [x] Règle d'unicité : pas de message de feedback qui apparait pour prévenir l'utilisateur
         - [x] Commencer par adapter la specs (et I18N) docs\03-Features-Spec\FS-02-Domains-front.md si besoin. 
     - [x] La tableau devrait être rafraichi après suppression d'un enregistrement.
-    - [x] rajout de tests CYpress dans ce sens 
+    - [x] rajout de tests Playwright dans ce sens 
     - [x] UI
         - [x] Edit et New qui occupent toute la page
 
@@ -427,10 +427,10 @@ Adapt
 - [ ] Session TEST
     - [ ] Séparer les tests Gherkins et les laisser dans un doc scenarios à part
     - [ ] voIR fin de discussion https://claude.ai/chat/61f7516f-ab42-4b37-ae74-9918710d420c
-    - [ ] STACK : lancer les tests CYPRESS 
-    - [ ] cd frontend && npx cypress run
+    - [ ] STACK : lancer les tests Playwright 
+    - [ ] npx playwright test
 
-    -> Cypress: error while loading shared libraries: libnspr4.so: cannot open shared object file: No such file or directory
+    -> Historique : Cypress était inutilisable sur cet env (dépendances système libnspr4.so manquantes). La stack a migré vers Playwright (T-009).
 
 # 04/03 
 

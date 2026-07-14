@@ -839,19 +839,19 @@ export const AppBreadcrumbs: React.FC<AppBreadcrumbsProps> = ({ items, sx }) => 
 
 | | |
 |---|---|
-| **Statut** | 🔴 À implémenter — Décision de migration de Cypress vers Playwright |
+| **Statut** | ✅ Fait — Migration de Cypress vers Playwright réalisée |
 | **Priorité** | Moyenne — Couverture tests E2E FS-05-FRONT en attente |
 
-**Contexte :**
-Lors de l'implémentation de FS-05-FRONT (Data Objects frontend), un fichier de tests Cypress a été généré (`frontend/cypress/e2e/data-objects.cy.ts`, 37 tests). Cependant, l'exécution a échoué en raison de dépendances système manquantes (`libnspr4.so`, bibliothèques X11/NSPR) sur l'environnement de développement. Plutôt que d'investir dans la résolution de ces dépendances Cypress, la décision a été prise de migrer vers **Playwright** pour les tests E2E frontend.
+**Contexte:**
+Lors de l'implémentation de FS-05-FRONT (Data Objects frontend), un fichier de tests Cypress a été généré (`frontend/cypress/e2e/data-objects.cy.ts`, 37 tests). L'exécution a échoué en raison de dépendances système manquantes (`libnspr4.so`, bibliothèques X11/NSPR) sur l'environnement de développement. Plutôt que d'investir dans la résolution de ces dépendances Cypress, la décision a été prise de migrer vers **Playwright** pour les tests E2E frontend.
 
-**Décision :**
-- **Abandonner Cypress** pour les tests E2E frontend — Playwright devient la référence
-- **Conserver le fichier `data-objects.cy.ts`** comme spécification de référence (37 tests documentés)
-- **Migrer les 37 tests** vers Playwright dans `e2e/tests/data-objects/`
-- **Supprimer les dépendances Cypress** du projet une fois la migration complète
+**Décision:**
+- **Abandonner Cypress** pour les tests E2E frontend — Playwright est devenu la référence
+- **Le fichier `data-objects.cy.ts`** a servi de spécification de référence (37 tests documentés)
+- **Les 37 tests ont été migrés** vers Playwright dans `e2e/tests/data-objects/`
+- **Les dépendances Cypress ont été retirées** du projet après migration complète
 
-**Tests à migrer (37 tests — référence `frontend/cypress/e2e/data-objects.cy.ts`) :**
+**Tests migrés (37 tests — référence historique `frontend/cypress/e2e/data-objects.cy.ts`) :**
 
 | Section | N° | Tests |
 |---------|-----|-------|
@@ -865,11 +865,11 @@ Lors de l'implémentation de FS-05-FRONT (Data Objects frontend), un fichier de 
 | **Droits UI** (6) | 33-37 | Bouton Add absent, colonne Actions absente, icônes absentes, Edit disabled, redirect /403 (×2) |
 
 **Fichiers concernés :**
-- À créer : `e2e/tests/data-objects/data-objects.spec.ts` (Playwright)
-- À supprimer après migration : `frontend/cypress/e2e/data-objects.cy.ts`
-- À supprimer après migration complète : `frontend/cypress/` (dossier entier)
+- ✅ Créé : `e2e/tests/data-objects/data-objects.spec.ts` (Playwright)
+- ✅ Supprimé après migration : `frontend/cypress/e2e/data-objects.cy.ts`
+- ✅ Supprimé après migration complète : `frontend/cypress/` (dossier entier)
 
-**Implémentation Playwright suggérée :**
+**Implémentation Playwright (réalisée) :**
 ```typescript
 // e2e/tests/data-objects/data-objects.spec.ts
 import { test, expect } from '@playwright/test';
@@ -889,12 +889,12 @@ test.describe('Data Objects Feature', () => {
 ```
 
 **Gate de validation :**
-- ✅ Les 37 tests Playwright passent en headless
-- ✅ `make test-e2e` inclut les tests Data Objects
-- ✅ Fichier Cypress `data-objects.cy.ts` supprimé
-- ✅ Dépendances Cypress retirées de `package.json`
+- [x] Les 37 tests Playwright passent en headless
+- [x] `make test-e2e` inclut les tests Data Objects
+- [x] Fichier Cypress `data-objects.cy.ts` supprimé
+- [x] Dépendances Cypress retirées de `package.json`
 
-**Timing :** Sprint 3 (après FS-05-FRONT completion)
+**Timing :** Sprint 3 (après FS-05-FRONT completion) — réalisé via T-009
 
 ---
 
@@ -1270,9 +1270,9 @@ Appliquer uniformément sur tous les DTOs create + update le pattern établi dan
 - [ ] **Item 20** — Breadcrumbs Providers harmonisés : 3 niveaux avec Accueil link + i18n refactor
 - [ ] **Item 20** — Spacing breadcrumbs standardisé à `mb: 2` sur toutes les pages
 - [ ] **Item 21** — Composant `AppBreadcrumbs` créé dans `@/components/shared/` (optional — recommandé P2/FS-11)
-- [ ] **Item 22** — Migrer 37 tests Cypress `data-objects.cy.ts` vers Playwright `e2e/tests/data-objects/data-objects.spec.ts`
-- [ ] **Item 22** — Supprimer `frontend/cypress/` après migration complète
-- [ ] **Item 22** — Retirer dépendances Cypress de `package.json`
+- [x] **Item 22** — Migrer 37 tests Cypress `data-objects.cy.ts` vers Playwright `e2e/tests/data-objects/data-objects.spec.ts`
+- [x] **Item 22** — Supprimer `frontend/cypress/` après migration complète
+- [x] **Item 22** — Retirer dépendances Cypress de `package.json`
 - [ ] **Item 27** — Stabiliser le runbook e2e : Jest backend (container) + Playwright API/UI
 - [ ] **Item 23** — Supprimer fallback JWT hardcodé dans `jwt.strategy.ts`
 - [ ] **Item 23** — Ajouter validation schema Joi pour `JWT_SECRET` dans `ConfigModule`

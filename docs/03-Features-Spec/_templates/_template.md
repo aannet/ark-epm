@@ -11,7 +11,7 @@ _Version 0.4 — Mars 2026_
 
 > **Changelog v0.3 :** Ajout section §11 — Revue de dette technique (gate de fin de sprint obligatoire).
 
-> **Changelog v0.2 :** Intégration de la stratégie de test dans le sprint — section 7 restructurée avec outillage explicite (Jest/Supertest vs Cypress).
+> **Changelog v0.2 :** Intégration de la stratégie de test dans le sprint — section 7 restructurée avec outillage explicite (Jest/Supertest vs Playwright).
 
 ---
 
@@ -22,7 +22,7 @@ _Version 0.4 — Mars 2026_
 | Document | Périmètre | Template |
 |---|---|---|
 | `FS-XX-<slug>-back.md` | NestJS + Prisma + tests Jest/Supertest | `_template-back.md` |
-| `FS-XX-<slug>-front.md` | React + MUI + i18n + Cypress | `_template-front.md` |
+| `FS-XX-<slug>-front.md` | React + MUI + i18n + Playwright | `_template-front.md` |
 
 **Pourquoi :** Le contexte d'une spec unifiée est trop dense et hétérogène pour OpenCode. Le signal/bruit est meilleur dans deux sessions spécialisées. La spec back est la gate bloquante avant toute session frontend.
 

@@ -958,56 +958,56 @@ interface ApplicationWithRole {
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
 - [ ] **Câblage `App.tsx` réalisé manuellement** (§8 de cette spec)
 - [ ] **Entrée Sidebar Data Objects ajoutée manuellement**
-- [ ] **`cy.loginAsReadOnly()` et `cy.loginAsAdmin()`** disponibles dans `cypress/support/commands.ts`
-- [ ] **Cypress opérationnel**
+- [ ] **`loginAsReadOnly()` et `loginAsAdmin()`** disponibles dans `e2e/fixtures/auth.fixture.ts`
+- [ ] **Playwright opérationnel**
 - [ ] **Layout Contract §4 relu** — un bloc par page, aucun composant F-01/F-03 manquant
 - [ ] **FS-05-FRONT passé au statut `stable`** avant de lancer OpenCode
 
 ---
 
-## 10. Tests Cypress — E2E Browser ⚠️
+## 10. Tests Playwright — E2E Browser ⚠️
 
-> À remplir exhaustivement — OpenCode génère les tests Cypress nominaux à partir de cette section.
+> À remplir exhaustivement — OpenCode génère les tests Playwright nominaux à partir de cette section.
 > Assertions sur les **valeurs FR** de `fr.json` — jamais sur les clés.
 
 ### Parcours nominaux
 
-- [ ] `[Cypress]` `DataObjectListPage` affiche la liste après login
-- [ ] `[Cypress]` `DataObjectListPage` affiche `EmptyState` si aucun objet
-- [ ] `[Cypress]` Tri par défaut sur `name` ascendant
-- [ ] `[Cypress]` Clic sur en-tête colonne → tri inversé
-- [ ] `[Cypress]` Clic sur une ligne (hors nom) → ouvre le drawer
-- [ ] `[Cypress]` Clic sur le nom → redirect vers `/data-objects/:id`
-- [ ] `[Cypress]` Drawer affiche onglet Informations + Applications
-- [ ] `[Cypress]` Drawer ferme sur Escape
-- [ ] `[Cypress]` Drawer ferme sur bouton close
-- [ ] `[Cypress]` Filtrer par type fonctionne
-- [ ] `[Cypress]` Filtrer par isSourceOfTruth fonctionne
-- [ ] `[Cypress]` Recherche par nom avec debounce (300ms)
-- [ ] `[Cypress]` `DataObjectDetailPage` affiche tous les champs
-- [ ] `[Cypress]` Créer un objet → redirect vers `/data-objects/<new-id>` + snackbar succès
-- [ ] `[Cypress]` Cancel sur `DataObjectNewPage` → redirect vers `/data-objects`
-- [ ] `[Cypress]` Modifier un objet → reste sur `/data-objects/:id` + snackbar succès
-- [ ] `[Cypress]` Cancel sur `DataObjectEditPage` → redirect vers `/data-objects/:id`
-- [ ] `[Cypress]` Supprimer sans applications liées → disparaît de la liste + snackbar succès
-- [ ] `[Cypress]` Cancel dans le dialog de suppression → dialog fermé, objet toujours présent
+- [ ] `[Playwright]` `DataObjectListPage` affiche la liste après login
+- [ ] `[Playwright]` `DataObjectListPage` affiche `EmptyState` si aucun objet
+- [ ] `[Playwright]` Tri par défaut sur `name` ascendant
+- [ ] `[Playwright]` Clic sur en-tête colonne → tri inversé
+- [ ] `[Playwright]` Clic sur une ligne (hors nom) → ouvre le drawer
+- [ ] `[Playwright]` Clic sur le nom → redirect vers `/data-objects/:id`
+- [ ] `[Playwright]` Drawer affiche onglet Informations + Applications
+- [ ] `[Playwright]` Drawer ferme sur Escape
+- [ ] `[Playwright]` Drawer ferme sur bouton close
+- [ ] `[Playwright]` Filtrer par type fonctionne
+- [ ] `[Playwright]` Filtrer par isSourceOfTruth fonctionne
+- [ ] `[Playwright]` Recherche par nom avec debounce (300ms)
+- [ ] `[Playwright]` `DataObjectDetailPage` affiche tous les champs
+- [ ] `[Playwright]` Créer un objet → redirect vers `/data-objects/<new-id>` + snackbar succès
+- [ ] `[Playwright]` Cancel sur `DataObjectNewPage` → redirect vers `/data-objects`
+- [ ] `[Playwright]` Modifier un objet → reste sur `/data-objects/:id` + snackbar succès
+- [ ] `[Playwright]` Cancel sur `DataObjectEditPage` → redirect vers `/data-objects/:id`
+- [ ] `[Playwright]` Supprimer sans applications liées → disparaît de la liste + snackbar succès
+- [ ] `[Playwright]` Cancel dans le dialog de suppression → dialog fermé, objet toujours présent
 
 ### Parcours d'erreur
 
-- [ ] `[Cypress]` Créer avec nom dupliqué → erreur inline
-- [ ] `[Cypress]` Créer sans nom → erreur inline
-- [ ] `[Cypress]` Créer avec nom uniquement espaces → erreur inline
-- [ ] `[Cypress]` Modifier avec nom dupliqué → erreur inline
-- [ ] `[Cypress]` Supprimer objet lié → message formaté dans le dialog + bouton Confirmer disabled
-- [ ] `[Cypress]` `DataObjectEditPage` UUID inexistant → redirect vers `/data-objects`
-- [ ] `[Cypress]` `DataObjectDetailPage` UUID inexistant → redirect vers `/data-objects`
+- [ ] `[Playwright]` Créer avec nom dupliqué → erreur inline
+- [ ] `[Playwright]` Créer sans nom → erreur inline
+- [ ] `[Playwright]` Créer avec nom uniquement espaces → erreur inline
+- [ ] `[Playwright]` Modifier avec nom dupliqué → erreur inline
+- [ ] `[Playwright]` Supprimer objet lié → message formaté dans le dialog + bouton Confirmer disabled
+- [ ] `[Playwright]` `DataObjectEditPage` UUID inexistant → redirect vers `/data-objects`
+- [ ] `[Playwright]` `DataObjectDetailPage` UUID inexistant → redirect vers `/data-objects`
 
 ### Droits UI
 
-- [ ] `[Cypress]` Sans `data-objects:write` sur ListPage → bouton Add absent
-- [ ] `[Cypress]` Sans `data-objects:write` sur ListPage → colonne Actions absente
-- [ ] `[Cypress]` Sans `data-objects:write` sur DetailPage → bouton Edit disabled
-- [ ] `[Cypress]` Sans `data-objects:write` dans Drawer → bouton Edit disabled
+- [ ] `[Playwright]` Sans `data-objects:write` sur ListPage → bouton Add absent
+- [ ] `[Playwright]` Sans `data-objects:write` sur ListPage → colonne Actions absente
+- [ ] `[Playwright]` Sans `data-objects:write` sur DetailPage → bouton Edit disabled
+- [ ] `[Playwright]` Sans `data-objects:write` dans Drawer → bouton Edit disabled
 - [ ] `[Manuel]` Sans `data-objects:write` → `/data-objects/new` redirige vers `/403`
 - [ ] `[Manuel]` Sans `data-objects:write` → `/data-objects/:id/edit` redirige vers `/403`
 
@@ -1074,7 +1074,7 @@ Respecte impérativement le Layout Contract §4 de cette spec :
 - Condition RBAC exacte par action
 
 Implémente la feature "Data Objects" frontend (FS-05-FRONT).
-Génère : pages React (4), DataObjectForm, data-objects.utils.ts, data-object.ts, tests Cypress nominaux.
+Génère : pages React (4), DataObjectForm, data-objects.utils.ts, data-object.ts, tests Playwright nominaux.
 Ne génère PAS le câblage App.tsx — déjà fait manuellement.
 Ne génère PAS les tests marqués [Manuel].
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
@@ -1106,7 +1106,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Drawer se ferme sur Escape + close button
 - [ ] Aucune string en dur dans les composants (`grep '"[A-Z]' src/pages/data-objects/`)
 - [ ] Aucune erreur TypeScript strict
-- [ ] Tests Cypress nominaux passent
+- [ ] Tests Playwright nominaux passent
 
 ---
 

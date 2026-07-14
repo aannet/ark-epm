@@ -318,9 +318,9 @@ interface SettingsFormProps {
 
 ---
 
-## 10. Tests Cypress — E2E Browser
+## 10. Tests Playwright — E2E Browser
 
-> ⚠️ **Note sur Playwright vs Cypress :** Le projet migre de Cypress vers Playwright. Les tests E2E UI de FS-13 doivent être écrits en **Playwright** (cohérence avec la migration en cours — voir T-009). Adapter les patterns ci-dessous à la syntaxe Playwright (`page.goto`, `page.click`, `expect(...).toBeVisible()`).
+> Tests E2E UI de FS-13 écrits en **Playwright** (convention projet — voir T-009). Syntaxe : `page.goto`, `page.click`, `expect(...).toBeVisible()`.
 
 ### Parcours nominaux
 

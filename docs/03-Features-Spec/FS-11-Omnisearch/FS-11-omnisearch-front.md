@@ -453,7 +453,7 @@ interface SearchMeta {
 
 ## 9. Tests — E2E Playwright ⚠️
 
-> Remplacer Cypress par Playwright (convention projet mise à jour).
+> Tests E2E UI en Playwright (convention projet).
 
 ### Parcours nominaux
 

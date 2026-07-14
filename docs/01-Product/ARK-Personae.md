@@ -115,7 +115,7 @@ Injecter dans le contexte OpenCode / Claude Code pour :
 1. **Valider les décisions UX** — "Est-ce que ce flux convient à Sophie ?"
 2. **Prioriser les fonctionnalités** — "Thierry a besoin du dashboard risques avant le graphe full"
 3. **Rédiger les labels et messages UI** — ton orienté valeur, pas technique
-4. **Écrire les Gherkin / tests Cypress** — les scénarios se basent sur des cas d'usage réels de ces personas
+4. **Écrire les Gherkin / tests Playwright** — les scénarios se basent sur des cas d'usage réels de ces personas
 
 ---
 

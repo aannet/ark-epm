@@ -535,7 +535,7 @@ frontend/src/
 | Unit (TagAdminService) | **Jest** | `src/tags/tag-admin.service.spec.ts` | ⚠️ Partiel — logique renommage manuelle |
 | API / contrat HTTP | **Jest + Supertest** | `test/tag-admin.e2e-spec.ts` | ✅ Oui |
 | Sécurité / RBAC | **Jest + Supertest** | `test/tag-admin.e2e-spec.ts` | ❌ **Manuel** |
-| E2E browser (UI) | **Cypress** | `cypress/e2e/tag-admin.cy.ts` | ✅ Oui (nominaux) |
+| E2E browser (UI) | **Playwright** | `e2e/tests/21-tag-admin.spec.ts` | ✅ Oui (nominaux) |
 
 ### Tests Jest — Unit (TagAdminService)
 
@@ -568,17 +568,17 @@ frontend/src/
 - [ ] `[Manuel]` `POST /tag-values/merge` — vérifier que les entity_tags de l'entité source n'apparaissent pas en doublon après fusion
 - [ ] `[Manuel]` Renommage — vérifier que l'audit_trail trace old_value et new_value corrects
 
-### Tests Cypress — E2E Browser
+### Tests Playwright — E2E Browser
 
-- [ ] `[Cypress]` Navigation `/admin/tags` → affiche liste des dimensions dans l'ordre `sort_order`
-- [ ] `[Cypress]` Créer une dimension → apparaît dans la liste avec couleur et icône
-- [ ] `[Cypress]` Sélectionner une dimension → arbre des valeurs s'affiche dans le panneau droit
-- [ ] `[Cypress]` Renommer un segment sans collision → label mis à jour, descendants propagés
-- [ ] `[Cypress]` Renommer avec collision → message d'erreur `TAG_PATH_COLLISION` affiché
-- [ ] `[Cypress]` Fusionner deux valeurs → confirmation affichée, `migratedEntityTagsCount` dans le toast
-- [ ] `[Cypress]` Cliquer "Nettoyer les orphelins" → ConfirmDialog avec count, confirmation → toast succès
-- [ ] `[Cypress]` Supprimer une valeur utilisée → bouton désactivé avec tooltip `"Utilisé par N entité(s)"`
-- [ ] `[Cypress]` Supprimer une dimension utilisée → 409 affiché en ConfirmDialog
+- [ ] `[Playwright]` Navigation `/admin/tags` → affiche liste des dimensions dans l'ordre `sort_order`
+- [ ] `[Playwright]` Créer une dimension → apparaît dans la liste avec couleur et icône
+- [ ] `[Playwright]` Sélectionner une dimension → arbre des valeurs s'affiche dans le panneau droit
+- [ ] `[Playwright]` Renommer un segment sans collision → label mis à jour, descendants propagés
+- [ ] `[Playwright]` Renommer avec collision → message d'erreur `TAG_PATH_COLLISION` affiché
+- [ ] `[Playwright]` Fusionner deux valeurs → confirmation affichée, `migratedEntityTagsCount` dans le toast
+- [ ] `[Playwright]` Cliquer "Nettoyer les orphelins" → ConfirmDialog avec count, confirmation → toast succès
+- [ ] `[Playwright]` Supprimer une valeur utilisée → bouton désactivé avec tooltip `"Utilisé par N entité(s)"`
+- [ ] `[Playwright]` Supprimer une dimension utilisée → 409 affiché en ConfirmDialog
 
 ---
 

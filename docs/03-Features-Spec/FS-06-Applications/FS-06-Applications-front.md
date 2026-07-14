@@ -1091,70 +1091,70 @@ import { DimensionTagInput } from '@/components/tags';
 - [ ] **Clés `applications.*` ajoutées dans `fr.json`** — y compris `applications.filters.*`, `applications.criticality.*`, `applications.lifecycle.*`
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
 - [ ] **Câblage `App.tsx` réalisé manuellement**
-- [ ] **`cy.loginAsReadOnly()`** créé dans `cypress/support/commands.ts`
-- [ ] **Cypress opérationnel**
+- [ ] **`loginAsReadOnly()`** disponible dans `e2e/fixtures/auth.fixture.ts`
+- [ ] **Playwright opérationnel**
 - [ ] **Layout Contract §4 relu** — zones `drawer` et `filters` précisées
 - [ ] **FS-06-FRONT passé au statut `stable`** avant de lancer OpenCode
 
 ---
 
-## 10. Tests Cypress — E2E Browser
+## 10. Tests Playwright — E2E Browser
 
 ### Parcours nominaux
 
-- [ ] `[Cypress]` `ApplicationsListPage` affiche la liste paginée après login
-- [ ] `[Cypress]` `ApplicationsListPage` affiche `EmptyState` si aucune application
-- [ ] `[Cypress]` Tri par défaut sur `name` ascendant
-- [ ] `[Cypress]` Clic sur en-tête "Nom" inverse le tri
-- [ ] `[Cypress]` Clic sur en-tête "Domaine" trie par domaine
-- [ ] `[Cypress]` Clic sur une ligne (hors nom) → ouvre `ApplicationDrawer`
-- [ ] `[Cypress]` Clic sur le nom → navigation vers `/applications/:id`
-- [ ] `[Cypress]` `ApplicationDrawer` affiche nom, domaine, provider, tags (read-only)
-- [ ] `[Cypress]` `ApplicationDrawer` affiche skeleton pendant chargement
-- [ ] `[Cypress]` Clic bouton "Voir la fiche complète" dans drawer → navigate vers `/applications/:id`
-- [ ] `[Cypress]` Clic bouton X ou backdrop → drawer fermé, reste sur liste
-- [ ] `[Cypress]` `ApplicationDetailPage` affiche toutes les sections (général, relations, tags, métadonnées)
-- [ ] `[Cypress]` `ApplicationDetailPage` — liens vers domaine et provider fonctionnels
-- [ ] `[Cypress]` Créer une application → redirect vers `/applications/<new-id>` + Alert success
-- [ ] `[Cypress]` Alert success disparaît automatiquement après 5 secondes
-- [ ] `[Cypress]` Cancel sur `ApplicationNewPage` → redirect vers `/applications`
-- [ ] `[Cypress]` Modifier une application → redirect vers `/applications/:id` + Alert success
-- [ ] `[Cypress]` Cancel sur `ApplicationEditPage` → redirect vers `/applications/:id`
-- [ ] `[Cypress]` Supprimer une application sans dépendances → redirect vers `/applications` + Alert success
-- [ ] `[Cypress]` Cancel suppression → dialog fermé, application toujours présente
+- [ ] `[Playwright]` `ApplicationsListPage` affiche la liste paginée après login
+- [ ] `[Playwright]` `ApplicationsListPage` affiche `EmptyState` si aucune application
+- [ ] `[Playwright]` Tri par défaut sur `name` ascendant
+- [ ] `[Playwright]` Clic sur en-tête "Nom" inverse le tri
+- [ ] `[Playwright]` Clic sur en-tête "Domaine" trie par domaine
+- [ ] `[Playwright]` Clic sur une ligne (hors nom) → ouvre `ApplicationDrawer`
+- [ ] `[Playwright]` Clic sur le nom → navigation vers `/applications/:id`
+- [ ] `[Playwright]` `ApplicationDrawer` affiche nom, domaine, provider, tags (read-only)
+- [ ] `[Playwright]` `ApplicationDrawer` affiche skeleton pendant chargement
+- [ ] `[Playwright]` Clic bouton "Voir la fiche complète" dans drawer → navigate vers `/applications/:id`
+- [ ] `[Playwright]` Clic bouton X ou backdrop → drawer fermé, reste sur liste
+- [ ] `[Playwright]` `ApplicationDetailPage` affiche toutes les sections (général, relations, tags, métadonnées)
+- [ ] `[Playwright]` `ApplicationDetailPage` — liens vers domaine et provider fonctionnels
+- [ ] `[Playwright]` Créer une application → redirect vers `/applications/<new-id>` + Alert success
+- [ ] `[Playwright]` Alert success disparaît automatiquement après 5 secondes
+- [ ] `[Playwright]` Cancel sur `ApplicationNewPage` → redirect vers `/applications`
+- [ ] `[Playwright]` Modifier une application → redirect vers `/applications/:id` + Alert success
+- [ ] `[Playwright]` Cancel sur `ApplicationEditPage` → redirect vers `/applications/:id`
+- [ ] `[Playwright]` Supprimer une application sans dépendances → redirect vers `/applications` + Alert success
+- [ ] `[Playwright]` Cancel suppression → dialog fermé, application toujours présente
 
 ### Filtres
 
-- [ ] `[Cypress]` Filtre par cycle de vie → liste filtrée côté serveur
-- [ ] `[Cypress]` Filtre par tags → liste filtrée
-- [ ] `[Cypress]` Combinaison filtres → liste filtrée avec AND
-- [ ] `[Cypress]` Bouton "Réinitialiser" → tous les filtres remis à zéro
+- [ ] `[Playwright]` Filtre par cycle de vie → liste filtrée côté serveur
+- [ ] `[Playwright]` Filtre par tags → liste filtrée
+- [ ] `[Playwright]` Combinaison filtres → liste filtrée avec AND
+- [ ] `[Playwright]` Bouton "Réinitialiser" → tous les filtres remis à zéro
 
 ### Tags — rendu et déduplication (F-03)
 
-- [ ] `[Cypress]` `ApplicationsListPage` — application avec 5 tags → colonne affiche 3 chips + badge "+2"
-- [ ] `[Cypress]` `ApplicationsListPage` — tags ancêtre + descendant → seul le descendant affiché (déduplication)
-- [ ] `[Cypress]` `ApplicationDetailPage` — tags ancêtre + descendant → seul le descendant affiché
-- [ ] `[Cypress]` `ApplicationDrawer` — dimension sans tags → section absente
-- [ ] `[Cypress]` `ApplicationNewPage` — `DimensionTagInput` permet d'ajouter des tags
-- [ ] `[Cypress]` `ApplicationEditPage` — `DimensionTagInput` affiche les deux chips (pas de déduplication)
+- [ ] `[Playwright]` `ApplicationsListPage` — application avec 5 tags → colonne affiche 3 chips + badge "+2"
+- [ ] `[Playwright]` `ApplicationsListPage` — tags ancêtre + descendant → seul le descendant affiché (déduplication)
+- [ ] `[Playwright]` `ApplicationDetailPage` — tags ancêtre + descendant → seul le descendant affiché
+- [ ] `[Playwright]` `ApplicationDrawer` — dimension sans tags → section absente
+- [ ] `[Playwright]` `ApplicationNewPage` — `DimensionTagInput` permet d'ajouter des tags
+- [ ] `[Playwright]` `ApplicationEditPage` — `DimensionTagInput` affiche les deux chips (pas de déduplication)
 
 ### Parcours d'erreur
 
-- [ ] `[Cypress]` Créer avec nom dupliqué → erreur inline sous le champ "Nom"
-- [ ] `[Cypress]` Créer sans nom → erreur inline sous le champ "Nom"
-- [ ] `[Cypress]` Modifier avec nom dupliqué → erreur inline
-- [ ] `[Cypress]` Supprimer application avec dépendances → message formaté dans `ConfirmDialog` + bouton désactivé
-- [ ] `[Cypress]` Erreur 500 simulée → Alert error visible au-dessus du formulaire
-- [ ] `[Cypress]` `ApplicationEditPage` UUID inexistant → redirect vers `/applications`
-- [ ] `[Cypress]` `ApplicationDetailPage` UUID inexistant → redirect vers `/applications`
+- [ ] `[Playwright]` Créer avec nom dupliqué → erreur inline sous le champ "Nom"
+- [ ] `[Playwright]` Créer sans nom → erreur inline sous le champ "Nom"
+- [ ] `[Playwright]` Modifier avec nom dupliqué → erreur inline
+- [ ] `[Playwright]` Supprimer application avec dépendances → message formaté dans `ConfirmDialog` + bouton désactivé
+- [ ] `[Playwright]` Erreur 500 simulée → Alert error visible au-dessus du formulaire
+- [ ] `[Playwright]` `ApplicationEditPage` UUID inexistant → redirect vers `/applications`
+- [ ] `[Playwright]` `ApplicationDetailPage` UUID inexistant → redirect vers `/applications`
 
 ### Droits UI
 
-- [ ] `[Cypress]` Sans `applications:write` sur ListPage → bouton "Ajouter" absent
-- [ ] `[Cypress]` Sans `applications:write` sur ListPage → colonne "Actions" absente
-- [ ] `[Cypress]` Sans `applications:write` sur ListPage → drawer accessible mais bouton "Modifier" grisé
-- [ ] `[Cypress]` Sans `applications:write` sur DetailPage → bouton "Modifier" absent
+- [ ] `[Playwright]` Sans `applications:write` sur ListPage → bouton "Ajouter" absent
+- [ ] `[Playwright]` Sans `applications:write` sur ListPage → colonne "Actions" absente
+- [ ] `[Playwright]` Sans `applications:write` sur ListPage → drawer accessible mais bouton "Modifier" grisé
+- [ ] `[Playwright]` Sans `applications:write` sur DetailPage → bouton "Modifier" absent
 - [ ] `[Manuel]` Sans `applications:write` → `/applications/new` redirige vers `/403`
 - [ ] `[Manuel]` Sans `applications:write` → `/applications/:id/edit` redirige vers `/403`
 
@@ -1219,7 +1219,7 @@ JWT : token en mémoire uniquement
 Routing : react-router-dom v6
 Câblage App.tsx : déjà réalisé manuellement — ne pas le générer
 
-Génère : 4 pages React, ApplicationForm, ApplicationDrawer, ApplicationFilters, application.utils.ts, application.ts, tests Cypress §10.
+Génère : 4 pages React, ApplicationForm, ApplicationDrawer, ApplicationFilters, application.utils.ts, application.ts, tests Playwright §10.
 Ne génère PAS le câblage App.tsx.
 Ne génère PAS les composants tags (DimensionTagInput, TagChipList) — déjà présents via F-03.
 Ne génère PAS les tests marqués [Manuel].
@@ -1251,7 +1251,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Message 409 DEPENDENCY_CONFLICT formaté avec les compteurs
 - [ ] Aucune string en dur dans les composants
 - [ ] Aucune erreur TypeScript strict
-- [ ] Tests Cypress nominaux passent
+- [ ] Tests Playwright nominaux passent
 
 ---
 

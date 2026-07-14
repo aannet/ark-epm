@@ -14,17 +14,17 @@ _Version 0.5 — Mars 2026_
 > - §4 RM-11 — Déduplication par profondeur en lecture : par dimension, seul le tag le plus profond est affiché si un ancêtre et un descendant coexistent sur la même entité
 > - §6 `TagChipList` — ajout fonction `deduplicateByDepth()` + règle appliquée avant rendu dans les deux modes (liste et drawer)
 > - §6 `DimensionTagInput` — déduplication explicitement **non appliquée** en mode édition (l'utilisateur voit la réalité des données)
-> - §7 Tests Jest (utilitaire) + Cypress (rendu dédupliqué) ajoutés
+> - §7 Tests Jest (utilitaire) + Playwright (rendu dédupliqué) ajoutés
 
 > **Changelog v0.3 :**
 > - §6 Ajout composant `TagChipList` — rendu lecture seule pour vue liste (N chips + badge "+X") et Side Drawer
 > - §6 Règles d'affichage : dimensions sans tags masquées, tooltip path complet sur chaque chip
-> - §7 Tests Cypress enrichis : TagChipList (débordement, tooltip, drawer)
+> - §7 Tests Playwright enrichis : TagChipList (débordement, tooltip, drawer)
 > - §8 Contraintes techniques : ajout règles TagChipList
 
 > **Changelog v0.2 :**
 > - §6 `DimensionTagInput` entièrement réécrit — rendu MUI Chip, comportements de validation détaillés (Entrée, Virgule, Tab, Blur, Escape, Backspace), option freeSolo "Créer X", états visuels exhaustifs
-> - §7 Tests Cypress enrichis (comportements clavier, états visuels)
+> - §7 Tests Playwright enrichis (comportements clavier, états visuels)
 > - §8 Contraintes techniques : ajout règles MUI Chip/sx
 
 > **Usage :** F-03 installe le moteur de tags dimensionnels d'ARK. C'est une spec de fondation : elle ne livre aucun écran utilisateur final, mais pose le `TagsModule` NestJS global, les migrations Prisma, et le composant `DimensionTagInput` réutilisé dans tous les modules CRUD suivants. **Ne pas commencer FS-02 sans F-03 terminé.**
@@ -1085,7 +1085,7 @@ frontend/src/
 | Unit (TagService)  | **Jest**             | `src/tags/tags.service.spec.ts` | ⚠️ Partiel — logique path manuelle |
 | API / contrat HTTP | **Jest + Supertest** | `test/tags.e2e-spec.ts`         | ✅ Oui                              |
 | Sécurité / RBAC    | **Jest + Supertest** | `test/tags.e2e-spec.ts`         | ❌ **Manuel**                       |
-| E2E browser (UI)   | **Cypress**          | `cypress/e2e/tags.cy.ts`        | ✅ Oui (nominaux)                   |
+| E2E browser (UI)   | **Playwright**       | `e2e/tests/tags.spec.ts`          | ✅ Oui (nominaux)                   |
 
 ### Tests Jest — Unit (TagService)
 
@@ -1132,64 +1132,64 @@ frontend/src/
 - [ ] `[Manuel]` `GET /tags/autocomplete` sans token → 401
 - [ ] `[Manuel]` `PUT /tags/entity/:type/:id` sans token → 401
 
-### Tests Cypress — E2E Browser
+### Tests Playwright — E2E Browser
 
-> F-03 ne livre pas d'écran dédié. Les tests Cypress sont sur `DimensionTagInput` intégré dans un formulaire hôte — à compléter dans les specs FS-xx consommatrices (FS-06 Applications en premier).
+> F-03 ne livre pas d'écran dédié. Les tests Playwright sont sur `DimensionTagInput` intégré dans un formulaire hôte — à compléter dans les specs FS-xx consommatrices (FS-06 Applications en premier).
 
 **Rendu des chips :**
-- [ ] `[Cypress]` Saisie d'une valeur existante + sélection → chip affiché avec label court (casse originale)
-- [ ] `[Cypress]` Chip affiché avec couleur de fond issue de `dimensionColor` (alpha 12%)
-- [ ] `[Cypress]` Survol chip → Tooltip MUI affiche le path complet
-- [ ] `[Cypress]` Clic × sur chip → chip retiré, PUT /tags/entity/... appelé
+- [ ] `[Playwright]` Saisie d'une valeur existante + sélection → chip affiché avec label court (casse originale)
+- [ ] `[Playwright]` Chip affiché avec couleur de fond issue de `dimensionColor` (alpha 12%)
+- [ ] `[Playwright]` Survol chip → Tooltip MUI affiche le path complet
+- [ ] `[Playwright]` Clic × sur chip → chip retiré, PUT /tags/entity/... appelé
 
 **Création freeSolo :**
-- [ ] `[Cypress]` Saisie d'une valeur inexistante + Entrée → `POST /tags/resolve` appelé → chip créé
-- [ ] `[Cypress]` Saisie d'une valeur inexistante + Virgule → même résultat qu'Entrée
-- [ ] `[Cypress]` Saisie d'une valeur inexistante + Tab → même résultat qu'Entrée
-- [ ] `[Cypress]` Option "Créer X" apparaît dans le dropdown si aucun match exact
-- [ ] `[Cypress]` Clic sur "Créer X" → chip créé
+- [ ] `[Playwright]` Saisie d'une valeur inexistante + Entrée → `POST /tags/resolve` appelé → chip créé
+- [ ] `[Playwright]` Saisie d'une valeur inexistante + Virgule → même résultat qu'Entrée
+- [ ] `[Playwright]` Saisie d'une valeur inexistante + Tab → même résultat qu'Entrée
+- [ ] `[Playwright]` Option "Créer X" apparaît dans le dropdown si aucun match exact
+- [ ] `[Playwright]` Clic sur "Créer X" → chip créé
 
 **Comportements clavier :**
-- [ ] `[Cypress]` Escape sur input avec texte en cours → input vidé, aucun tag créé, dropdown fermé
-- [ ] `[Cypress]` Backspace sur input vide → dernier chip supprimé
-- [ ] `[Cypress]` Path invalide (ex: `france<>`) → helper text rouge affiché, aucun chip créé
+- [ ] `[Playwright]` Escape sur input avec texte en cours → input vidé, aucun tag créé, dropdown fermé
+- [ ] `[Playwright]` Backspace sur input vide → dernier chip supprimé
+- [ ] `[Playwright]` Path invalide (ex: `france<>`) → helper text rouge affiché, aucun chip créé
 
 **Autocomplete :**
-- [ ] `[Cypress]` Saisie < 2 chars → aucun appel réseau, message "Tapez au moins 2 caractères"
-- [ ] `[Cypress]` Saisie ≥ 2 chars → appel GET /tags/autocomplete avec debounce 300ms
-- [ ] `[Cypress]` Pendant chargement → CircularProgress visible dans le champ
+- [ ] `[Playwright]` Saisie < 2 chars → aucun appel réseau, message "Tapez au moins 2 caractères"
+- [ ] `[Playwright]` Saisie ≥ 2 chars → appel GET /tags/autocomplete avec debounce 300ms
+- [ ] `[Playwright]` Pendant chargement → CircularProgress visible dans le champ
 
 **Mode création (entityId absent) :**
-- [ ] `[Cypress]` Tags sélectionnés sans entityId → stockés en state local, pas de PUT immédiat
-- [ ] `[Cypress]` Après submit du formulaire hôte → PUT /tags/entity/... appelé avec les tags accumulés
+- [ ] `[Playwright]` Tags sélectionnés sans entityId → stockés en state local, pas de PUT immédiat
+- [ ] `[Playwright]` Après submit du formulaire hôte → PUT /tags/entity/... appelé avec les tags accumulés
 
 **Disabled :**
-- [ ] `[Cypress]` `disabled=true` → chips sans icône ×, input non interactif
+- [ ] `[Playwright]` `disabled=true` → chips sans icône ×, input non interactif
 
 **TagChipList — vue liste (maxVisible=3) :**
-- [ ] `[Cypress]` Entité avec ≤ 3 tags dédupliqués → tous les chips affichés avec leur path, pas de badge "+X"
-- [ ] `[Cypress]` Entité avec 5 tags dédupliqués → 3 chips (path complet) + badge "+ 2" affiché
-- [ ] `[Cypress]` Clic sur badge "+ 2" → ouvre le drawer avec tous les tags dédupliqués
-- [ ] `[Cypress]` Path long tronqué avec "..." dans le chip (style ellipsis appliqué)
-- [ ] `[Cypress]` Entité sans tag → cellule vide (aucun chip, aucun badge)
-- [ ] `[Cypress]` Chips non cliquables (cursor: default) — aucune navigation au clic
-- [ ] `[Cypress]` Pas de tooltip sur les chips (path déjà visible)
+- [ ] `[Playwright]` Entité avec ≤ 3 tags dédupliqués → tous les chips affichés avec leur path, pas de badge "+X"
+- [ ] `[Playwright]` Entité avec 5 tags dédupliqués → 3 chips (path complet) + badge "+ 2" affiché
+- [ ] `[Playwright]` Clic sur badge "+ 2" → ouvre le drawer avec tous les tags dédupliqués
+- [ ] `[Playwright]` Path long tronqué avec "..." dans le chip (style ellipsis appliqué)
+- [ ] `[Playwright]` Entité sans tag → cellule vide (aucun chip, aucun badge)
+- [ ] `[Playwright]` Chips non cliquables (cursor: default) — aucune navigation au clic
+- [ ] `[Playwright]` Pas de tooltip sur les chips (path déjà visible)
 
 **TagChipList — Side Drawer :**
-- [ ] `[Cypress]` Section "Tags" absente si entité sans tag renseigné
-- [ ] `[Cypress]` Section "Tags" visible si ≥ 1 tag renseigné
-- [ ] `[Cypress]` Dimension sans tags après déduplication → non affichée
-- [ ] `[Cypress]` Regroupement visible : nom dimension en subtitle2 uppercase
-- [ ] `[Cypress]` Chips affichent le path complet (pas seulement le label)
-- [ ] `[Cypress]` Chips sans icône × (lecture seule)
-- [ ] `[Cypress]` Pas de tooltip sur les chips du drawer
+- [ ] `[Playwright]` Section "Tags" absente si entité sans tag renseigné
+- [ ] `[Playwright]` Section "Tags" visible si ≥ 1 tag renseigné
+- [ ] `[Playwright]` Dimension sans tags après déduplication → non affichée
+- [ ] `[Playwright]` Regroupement visible : nom dimension en subtitle2 uppercase
+- [ ] `[Playwright]` Chips affichent le path complet (pas seulement le label)
+- [ ] `[Playwright]` Chips sans icône × (lecture seule)
+- [ ] `[Playwright]` Pas de tooltip sur les chips du drawer
 
 **TagChipList — déduplication RM-11 :**
-- [ ] `[Cypress]` Entité avec `europe/france` (depth=1) et `europe/france/paris` (depth=2) → seul chip "europe/france/paris" affiché dans liste et drawer
-- [ ] `[Cypress]` Badge "+N" calculé après déduplication (ex: 8 tags bruts, 5 après déduplication, maxVisible=3 → affiche "+ 2")
-- [ ] `[Cypress]` Entité avec `europe/france/paris` seul → chip "europe/france/paris" affiché
-- [ ] `[Cypress]` Entité avec `europe` (depth=0) et `lyon` (depth=0, autre dimension) → deux chips affichés
-- [ ] `[Cypress]` `DimensionTagInput` (Full Page) avec `europe/france` et `europe/france/paris` → les **deux** chips affichés (déduplication non appliquée en mode édition)
+- [ ] `[Playwright]` Entité avec `europe/france` (depth=1) et `europe/france/paris` (depth=2) → seul chip "europe/france/paris" affiché dans liste et drawer
+- [ ] `[Playwright]` Badge "+N" calculé après déduplication (ex: 8 tags bruts, 5 après déduplication, maxVisible=3 → affiche "+ 2")
+- [ ] `[Playwright]` Entité avec `europe/france/paris` seul → chip "europe/france/paris" affiché
+- [ ] `[Playwright]` Entité avec `europe` (depth=0) et `lyon` (depth=0, autre dimension) → deux chips affichés
+- [ ] `[Playwright]` `DimensionTagInput` (Full Page) avec `europe/france` et `europe/france/paris` → les **deux** chips affichés (déduplication non appliquée en mode édition)
 
 ---
 

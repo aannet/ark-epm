@@ -8,7 +8,7 @@ _Version 1.6 — Mars 2026_
 > - Modification comportement clic ligne : navigate → open drawer
 > - Ajout composant `DomainDrawer.tsx` (read-only, 400px, anchor right)
 > - Layout Contract §3.1 : ajout zone `drawer` + modification `row_click`
-> - Tests Cypress §9 : nouveaux cas de test drawer
+> - Tests Playwright §9 : nouveaux cas de test drawer
 > - i18n : ajout clés `domains.drawer.*`
 
 > **Changelog v1.5 (Alignement F-03 v0.4) :**
@@ -19,7 +19,7 @@ _Version 1.6 — Mars 2026_
 > - §4 Composants : clarification des imports — `DimensionTagInput` pour l'édition, `TagChipList` pour la lecture
 > - §6 Règles Métier : ajout RM-12 (séparation lecture/édition des tags)
 > - §8 Session Gate : ajout gate `TagChipList` exporté depuis `@/components/tags`
-> - §9 Tests Cypress : ajout 3 cas de test déduplication et masquage dimensions vides
+> - §9 Tests Playwright : ajout 3 cas de test déduplication et masquage dimensions vides
 > - §10 Commande OpenCode : imports mis à jour, note déduplication
 
 > **Changelog v1.4 :**
@@ -765,66 +765,66 @@ import { DimensionTagInput } from '@/components/tags';
 - [ ] **Clés `domains.*` ajoutées dans `fr.json`** — y compris `domains.alert.*`, `domains.form.commentLabel`, `domains.form.tagsLabel`
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
 - [ ] **Câblage `App.tsx` réalisé manuellement** (§7)
-- [ ] **`cy.loginAsReadOnly()`** créé dans `cypress/support/commands.ts`
-- [ ] **Cypress opérationnel**
+- [ ] **`loginAsReadOnly()`** disponible dans `e2e/fixtures/auth.fixture.ts`
+- [ ] **Playwright opérationnel**
 - [ ] **Layout Contract §3 relu** — zones `tags` précisées sur chaque page avec le bon mode `TagChipList`
 - [ ] **FS-02-FRONT passé au statut `stable`** avant de lancer OpenCode
 
 ---
 
-## 9. Tests Cypress — E2E Browser
+## 9. Tests Playwright — E2E Browser
 
 > Assertions sur les valeurs FR de `fr.json` — jamais sur les clés.
 
 ### Parcours nominaux
 
-- [ ] `[Cypress]` `DomainsListPage` affiche la liste après login
-- [ ] `[Cypress]` `DomainsListPage` affiche l'`EmptyState` si aucun domaine
-- [ ] `[Cypress]` Tri par défaut sur `name` ascendant
-- [ ] `[Cypress]` Clic sur en-tête "Nom" inverse le tri
-- [ ] `[Cypress]` Clic sur en-tête "Créé le" trie par date croissante
-- [ ] `[Cypress]` Clic sur une ligne → ouvre DomainDrawer (pas de navigation)
-- [ ] `[Cypress]` DomainDrawer affiche nom, description, tags, dates (read-only)
-- [ ] `[Cypress]` DomainDrawer affiche skeleton pendant chargement
-- [ ] `[Cypress]` Clic bouton "Voir la fiche complète" dans drawer → navigate vers `/domains/:id`
-- [ ] `[Cypress]` Clic bouton X ou backdrop → drawer fermé, reste sur liste
-- [ ] `[Cypress]` Touche Escape → drawer fermé
-- [ ] `[Cypress]` DomainDrawer accessible pour tous les rôles (read-only)
-- [ ] `[Cypress]` `DomainDetailPage` affiche nom, description et date
-- [ ] `[Cypress]` Créer un domaine → redirect vers `/domains/<new-id>` + Alert success contenant "Domaine créé avec succès"
-- [ ] `[Cypress]` Alert success disparaît automatiquement après 5 secondes
-- [ ] `[Cypress]` Alert success ne réapparaît pas après refresh de la page
-- [ ] `[Cypress]` Cancel sur `DomainNewPage` → redirect vers `/domains`, pas d'Alert
-- [ ] `[Cypress]` Modifier un domaine → redirect vers `/domains/:id` + Alert success contenant "Domaine mis à jour avec succès"
-- [ ] `[Cypress]` Cancel sur `DomainEditPage` → redirect vers `/domains/:id`, pas d'Alert
-- [ ] `[Cypress]` Supprimer un domaine sans entités liées → redirect vers `/domains` + Alert success contenant "Domaine supprimé avec succès" + domaine absent de la liste
-- [ ] `[Cypress]` Cancel suppression → dialog fermé, domaine toujours présent, pas d'Alert
+- [ ] `[Playwright]` `DomainsListPage` affiche la liste après login
+- [ ] `[Playwright]` `DomainsListPage` affiche l'`EmptyState` si aucun domaine
+- [ ] `[Playwright]` Tri par défaut sur `name` ascendant
+- [ ] `[Playwright]` Clic sur en-tête "Nom" inverse le tri
+- [ ] `[Playwright]` Clic sur en-tête "Créé le" trie par date croissante
+- [ ] `[Playwright]` Clic sur une ligne → ouvre DomainDrawer (pas de navigation)
+- [ ] `[Playwright]` DomainDrawer affiche nom, description, tags, dates (read-only)
+- [ ] `[Playwright]` DomainDrawer affiche skeleton pendant chargement
+- [ ] `[Playwright]` Clic bouton "Voir la fiche complète" dans drawer → navigate vers `/domains/:id`
+- [ ] `[Playwright]` Clic bouton X ou backdrop → drawer fermé, reste sur liste
+- [ ] `[Playwright]` Touche Escape → drawer fermé
+- [ ] `[Playwright]` DomainDrawer accessible pour tous les rôles (read-only)
+- [ ] `[Playwright]` `DomainDetailPage` affiche nom, description et date
+- [ ] `[Playwright]` Créer un domaine → redirect vers `/domains/<new-id>` + Alert success contenant "Domaine créé avec succès"
+- [ ] `[Playwright]` Alert success disparaît automatiquement après 5 secondes
+- [ ] `[Playwright]` Alert success ne réapparaît pas après refresh de la page
+- [ ] `[Playwright]` Cancel sur `DomainNewPage` → redirect vers `/domains`, pas d'Alert
+- [ ] `[Playwright]` Modifier un domaine → redirect vers `/domains/:id` + Alert success contenant "Domaine mis à jour avec succès"
+- [ ] `[Playwright]` Cancel sur `DomainEditPage` → redirect vers `/domains/:id`, pas d'Alert
+- [ ] `[Playwright]` Supprimer un domaine sans entités liées → redirect vers `/domains` + Alert success contenant "Domaine supprimé avec succès" + domaine absent de la liste
+- [ ] `[Playwright]` Cancel suppression → dialog fermé, domaine toujours présent, pas d'Alert
 
 ### Tags — rendu et déduplication (F-03 v0.4)
 
-- [ ] `[Cypress]` `DomainsListPage` — domaine avec 5 tags → colonne "Tags" affiche 3 chips + badge "+2"
-- [ ] `[Cypress]` `DomainsListPage` — domaine avec tags ancêtre (`europe/france`) ET descendant (`europe/france/paris`) tous deux posés → colonne "Tags" affiche uniquement `Paris` (déduplication `deduplicateByDepth()`)
-- [ ] `[Cypress]` `DomainDetailPage` — domaine avec tags ancêtre + descendant → section Tags affiche uniquement le descendant (déduplication en mode drawer)
-- [ ] `[Cypress]` `DomainDetailPage` — dimension sans tags (ex : LegalEntity vide) → section de cette dimension absente du drawer
-- [ ] `[Cypress]` `DomainEditPage` — domaine avec tags ancêtre + descendant → `DimensionTagInput` affiche les **deux** chips (pas de déduplication en mode édition)
+- [ ] `[Playwright]` `DomainsListPage` — domaine avec 5 tags → colonne "Tags" affiche 3 chips + badge "+2"
+- [ ] `[Playwright]` `DomainsListPage` — domaine avec tags ancêtre (`europe/france`) ET descendant (`europe/france/paris`) tous deux posés → colonne "Tags" affiche uniquement `Paris` (déduplication `deduplicateByDepth()`)
+- [ ] `[Playwright]` `DomainDetailPage` — domaine avec tags ancêtre + descendant → section Tags affiche uniquement le descendant (déduplication en mode drawer)
+- [ ] `[Playwright]` `DomainDetailPage` — dimension sans tags (ex : LegalEntity vide) → section de cette dimension absente du drawer
+- [ ] `[Playwright]` `DomainEditPage` — domaine avec tags ancêtre + descendant → `DimensionTagInput` affiche les **deux** chips (pas de déduplication en mode édition)
 
 ### Parcours d'erreur
 
-- [ ] `[Cypress]` Créer avec nom dupliqué → erreur inline sous le champ "Nom", **aucune Alert visible**
-- [ ] `[Cypress]` Créer sans nom → erreur inline sous le champ "Nom", aucune Alert
-- [ ] `[Cypress]` Créer avec nom uniquement espaces → erreur inline sous le champ "Nom"
-- [ ] `[Cypress]` Modifier avec nom dupliqué → erreur inline sous le champ "Nom", **aucune Alert visible**
-- [ ] `[Cypress]` Supprimer un domaine lié → message formaté visible dans le `ConfirmDialog` (contient "application(s)" et "capacité(s)"), bouton Confirmer absent ou désactivé
-- [ ] `[Cypress]` Erreur 500 simulée sur création → Alert error contenant "Une erreur serveur est survenue" visible au-dessus du formulaire, formulaire toujours affiché
-- [ ] `[Cypress]` Alert error sur 500 ne disparaît pas automatiquement
-- [ ] `[Cypress]` `DomainEditPage` UUID inexistant → redirect vers `/domains`
-- [ ] `[Cypress]` `DomainDetailPage` UUID inexistant → redirect vers `/domains`
+- [ ] `[Playwright]` Créer avec nom dupliqué → erreur inline sous le champ "Nom", **aucune Alert visible**
+- [ ] `[Playwright]` Créer sans nom → erreur inline sous le champ "Nom", aucune Alert
+- [ ] `[Playwright]` Créer avec nom uniquement espaces → erreur inline sous le champ "Nom"
+- [ ] `[Playwright]` Modifier avec nom dupliqué → erreur inline sous le champ "Nom", **aucune Alert visible**
+- [ ] `[Playwright]` Supprimer un domaine lié → message formaté visible dans le `ConfirmDialog` (contient "application(s)" et "capacité(s)"), bouton Confirmer absent ou désactivé
+- [ ] `[Playwright]` Erreur 500 simulée sur création → Alert error contenant "Une erreur serveur est survenue" visible au-dessus du formulaire, formulaire toujours affiché
+- [ ] `[Playwright]` Alert error sur 500 ne disparaît pas automatiquement
+- [ ] `[Playwright]` `DomainEditPage` UUID inexistant → redirect vers `/domains`
+- [ ] `[Playwright]` `DomainDetailPage` UUID inexistant → redirect vers `/domains`
 
 ### Droits UI
 
-- [ ] `[Cypress]` Sans `domains:write` sur `DomainsListPage` → bouton "Ajouter un domaine" absent
-- [ ] `[Cypress]` Sans `domains:write` sur `DomainsListPage` → colonne "Actions" absente
-- [ ] `[Cypress]` Sans `domains:write` sur `DomainDetailPage` → bouton "Modifier" absent
+- [ ] `[Playwright]` Sans `domains:write` sur `DomainsListPage` → bouton "Ajouter un domaine" absent
+- [ ] `[Playwright]` Sans `domains:write` sur `DomainsListPage` → colonne "Actions" absente
+- [ ] `[Playwright]` Sans `domains:write` sur `DomainDetailPage` → bouton "Modifier" absent
 - [ ] `[Manuel]` Sans `domains:write` → `/domains/new` redirige vers `/403`
 - [ ] `[Manuel]` Sans `domains:write` → `/domains/:id/edit` redirige vers `/403`
 
@@ -892,7 +892,7 @@ JWT : token en mémoire uniquement
 Routing : react-router-dom v6
 Câblage App.tsx : déjà réalisé manuellement — ne pas le générer
 
-Génère : 4 pages React, DomainForm, DomainDrawer, ArkAlert, domain.utils.ts, domain.ts, tests Cypress §9.
+Génère : 4 pages React, DomainForm, DomainDrawer, ArkAlert, domain.utils.ts, domain.ts, tests Playwright §9.
 Ne génère PAS le câblage App.tsx.
 Ne génère PAS les composants tags (DimensionTagInput, TagChipList) — déjà présents via F-03.
 Ne génère PAS les tests marqués [Manuel].
@@ -932,7 +932,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Tri des colonnes fonctionnel — nulls en dernier sur `description`
 - [ ] Aucune string en dur dans les composants
 - [ ] Aucune erreur TypeScript strict
-- [ ] Tests Cypress §9 passent
+- [ ] Tests Playwright §9 passent
 
 ---
 

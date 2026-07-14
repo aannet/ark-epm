@@ -34,7 +34,7 @@ _Version 0.20 — Avril 2026_
 > - Ordre de rédaction mis à jour : FS-05-BACK en position 8
 
 > **Changelog v0.14 :**
-> - **FS-03-FRONT** (Providers) : statut `done` — 4 pages frontend implémentées (list/detail/new/edit), routes décommentées, Cypress tests (32 tests, 6 describe blocks)
+> - **FS-03-FRONT** (Providers) : statut `done` — 4 pages frontend implémentées (list/detail/new/edit), routes décommentées, Playwright tests (32 tests, 6 describe blocks)
 > - **Sprint 2 COMPLETE** — Tous les 6 satellites terminés (FS-02, FS-03 BACK+FRONT, FS-04, FS-06 BACK+FRONT). FS-03-FRONT débloque Sprint 2 et F-999 Item #15
 > - **F-999 Item 15 RESOLVED** — Routes Providers décommentées dans App.tsx ✅
 
@@ -174,7 +174,7 @@ _Version 0.20 — Avril 2026_
 
 > ⚠️ La migration F-03 retire les colonnes `tags TEXT[]` sur chaque table au fil des sprints. Chaque FS-xx est responsable du `DROP COLUMN tags` sur sa propre table (documenté en F-999 §2).
 
-> ✅ **Note FS-03-FRONT :** Implémentation complète le 29/03/2026 (4 pages, 12 fichiers, 1468 LOC, 32 tests Cypress). Routes Providers décommentées, FS-03-FRONT débloque Sprint 2. Voir F-999 Item 15 résolu.
+> ✅ **Note FS-03-FRONT :** Implémentation complète le 29/03/2026 (4 pages, 12 fichiers, 1468 LOC, 32 tests Playwright). Routes Providers décommentées, FS-03-FRONT débloque Sprint 2. Voir F-999 Item 15 résolu.
 
 ---
 
@@ -187,7 +187,7 @@ _Version 0.20 — Avril 2026_
 
 > FS-07-BACK contient la requête `WITH RECURSIVE` — à écrire et tester manuellement en SQL avant de rédiger la spec back. **Tâche 0.9 à réaliser pendant Sprint 2** (0.5j R&D SQL pur).
 
-> FS-06-FRONT est la première spec frontend à intégrer `DimensionTagInput` dans un formulaire réel — les tests Cypress F-03 (`DimensionTagInput`) sont complétés dans cette spec.
+> FS-06-FRONT est la première spec frontend à intégrer `DimensionTagInput` dans un formulaire réel — les tests Playwright F-03 (`DimensionTagInput`) sont complétés dans cette spec.
 
 > ✅ **Sprint 3 complet** — FS-07 BACK+FRONT done (2026-04-08/10), amendment T-019 (criticality+technicalFit), amendment T-025/T-026 (FS-06 liaison BC), recette T-024, tests Playwright T-015.
 
@@ -317,7 +317,7 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 - [ ] API testée manuellement (Postman/curl)
 - [ ] Clés `[domaine].*` ajoutées dans `fr.json` (inclut `tags.*` si DimensionTagInput présent)
 - [ ] Câblage `App.tsx` réalisé manuellement
-- [ ] `cy.loginAsReadOnly()` disponible dans `cypress/support/commands.ts`
+- [ ] `loginAsReadOnly()` disponible dans `e2e/fixtures/auth.fixture.ts`
 - [ ] Layout Contract §3 relu — un bloc YAML par page, aucun composant F-01/F-03 manquant
 - [ ] Spec FRONT au statut `stable`
 
@@ -329,7 +329,7 @@ Travailler à rebours depuis la feature la plus risquée. Pour chaque feature Sp
 - [ ] `TagService.labelFromPath()` écrit et testé unitairement
 - [ ] Migration Prisma appliquée — index `text_pattern_ops` présent (`\d tag_values` dans psql)
 - [ ] `SELECT * FROM tag_dimensions` retourne 3 lignes (Geography, Brand, LegalEntity)
-- [ ] `DimensionTagInput` intégré dans FS-06-FRONT en premier — tests Cypress F-03 complétés dans FS-06
+- [ ] `DimensionTagInput` intégré dans FS-06-FRONT en premier — tests Playwright F-03 complétés dans FS-06
 
 ---
 

@@ -8,7 +8,7 @@ _Version 0.5 — Février 2026_
 
 > **Changelog v0.7 :** Documente `/users` avec filtre optionnel `isActive` et précise le contrat API utilisé par `useUsers()` (T-012).
 
-> **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Cypress]` / `[Manuel]`. Fichiers cibles précisés. Section 9 mise à jour.
+> **Changelog v0.4 :** Section 7 restructurée — chaque cas de test étiqueté `[Jest]` / `[Supertest]` / `[Playwright]` / `[Manuel]`. Fichiers cibles précisés. Section 9 mise à jour.
 
 > **Changelog v0.3 :** Routes React (`/login`, `/users`, `/roles`), structure fichiers frontend, comportements UX `UsersListPage`/`RolesListPage`, `hasPermission()` dans `store/auth.ts`, checklist section 10 complétée.
 
@@ -874,7 +874,7 @@ const apiClient = axios.create({
 | Unit services | Jest | `src/users/users.service.spec.ts`, `src/auth/auth.service.spec.ts` | ✅ OpenCode |
 | Contrat API | Supertest | `test/auth.e2e-spec.ts`, `test/users.e2e-spec.ts`, `test/roles.e2e-spec.ts` | ✅ OpenCode |
 | Sécurité / RBAC | Supertest | `test/auth.e2e-spec.ts` | ❌ **Manuel** |
-| E2E browser | Cypress | `cypress/e2e/login.cy.ts`, `cypress/e2e/users.cy.ts` | ✅ OpenCode (nominaux) |
+| E2E browser | Playwright | `e2e/tests/login.spec.ts`, `e2e/tests/users.spec.ts` | ✅ OpenCode (nominaux) |
 
 ### Tests Jest — Unit
 
@@ -912,19 +912,19 @@ const apiClient = axios.create({
 - [ ] `[Manuel]` `POST /auth/login` avec credentials invalides → erreur inline dans `LoginPage`, **pas** de redirect vers `/401`
 - [ ] `[Manuel]` Intercepteur Axios : `401` reçu sur une route protégée → `_token` et `_user` purgés en mémoire
 
-### Tests Cypress — E2E Browser
+### Tests Playwright — E2E Browser
 
-- [ ] `[Cypress]` Flow login complet : saisie email/password → token en mémoire → redirection `/`
-- [ ] `[Cypress]` Credentials invalides → message d'erreur inline sur `LoginPage`
-- [ ] `[Cypress]` `PrivateRoute` redirige vers `/401` si token absent
-- [ ] `[Cypress]` `PrivateRoute` redirige vers `/403` si token valide mais permission insuffisante
-- [ ] `[Cypress]` `UnauthorizedPage` : bouton "Se connecter" redirige vers `/login`
-- [ ] `[Cypress]` `ForbiddenPage` : bouton "Retour à l'accueil" redirige vers `/`
-- [ ] `[Cypress]` Intercepteur Axios : réponse `401` de l'API → redirect `/401` + token purgé
-- [ ] `[Cypress]` `UsersListPage` affiche la liste des utilisateurs après login
-- [ ] `[Cypress]` Désactivation d'un utilisateur via UI → badge statut mis à jour
-- [ ] `[Cypress]` Flow logout : clic bouton déconnexion → token purgé + redirect `/login`
-- [ ] `[Cypress]` Après logout, navigation vers `/` redirige vers `/401`
+- [ ] `[Playwright]` Flow login complet : saisie email/password → token en mémoire → redirection `/`
+- [ ] `[Playwright]` Credentials invalides → message d'erreur inline sur `LoginPage`
+- [ ] `[Playwright]` `PrivateRoute` redirige vers `/401` si token absent
+- [ ] `[Playwright]` `PrivateRoute` redirige vers `/403` si token valide mais permission insuffisante
+- [ ] `[Playwright]` `UnauthorizedPage` : bouton "Se connecter" redirige vers `/login`
+- [ ] `[Playwright]` `ForbiddenPage` : bouton "Retour à l'accueil" redirige vers `/`
+- [ ] `[Playwright]` Intercepteur Axios : réponse `401` de l'API → redirect `/401` + token purgé
+- [ ] `[Playwright]` `UsersListPage` affiche la liste des utilisateurs après login
+- [ ] `[Playwright]` Désactivation d'un utilisateur via UI → badge statut mis à jour
+- [ ] `[Playwright]` Flow logout : clic bouton déconnexion → token purgé + redirect `/login`
+- [ ] `[Playwright]` Après logout, navigation vers `/` redirige vers `/401`
 ---
 
 ## 8. Contraintes Techniques
@@ -937,9 +937,9 @@ const apiClient = axios.create({
 - **Conventions de fichiers de test :**
   - Unit : `src/auth/auth.service.spec.ts`, `src/users/users.service.spec.ts`
   - E2E API : `test/auth.e2e-spec.ts`, `test/users.e2e-spec.ts`, `test/roles.e2e-spec.ts`
-  - Cypress : `cypress/e2e/login.cy.ts`, `cypress/e2e/users.cy.ts`
+  - Playwright : `e2e/tests/login.spec.ts`, `e2e/tests/users.spec.ts`
 - **Mock Prisma dans les tests unit :** `jest.mock()` ou `{ provide: PrismaService, useValue: mockPrisma }` dans `Test.createTestingModule()`.
-- **Cypress login :** Utiliser `cy.login('admin@ark.io', password)` depuis `cypress/support/commands.ts`.
+- **Playwright login :** Utiliser `login(page, 'admin@ark.io', password)` depuis `e2e/fixtures/auth.fixture.ts`.
 
 ---
 
@@ -950,7 +950,7 @@ const apiClient = axios.create({
 > - **1.3** : CRUD users/roles/permissions + guards
 > - **1.4** : Frontend (LoginPage, PrivateRoute, pages 401/403, store auth, interceptors)
 > - **1.5** : Tests Jest + Supertest
-> - **1.7** : Tests Cypress
+>   - **1.7** : Tests Playwright
 >
 > Les tests marqués [Manuel] ne sont pas générés.
 
@@ -967,11 +967,11 @@ Contexte projet ARK (conventions dans AGENTS.md) :
 - Intercepteur Axios à compléter : 401 API → clearAuth() + window.location.href='/401' (sauf POST /auth/login)
 - Stack de test :
   * Unit + API : Jest + Supertest (@nestjs/testing)
-  * E2E browser : Cypress
+  * E2E browser : Playwright
   * Tests marqués [Manuel] : NE PAS générer
 
 Implémente la feature "Auth & RBAC" (FS-01) en respectant strictement le contrat ci-dessous.
-Génère le code de production ET les tests [Jest], [Supertest] et [Cypress] définis en section 7.
+Génère le code de production ET les tests [Jest], [Supertest] et [Playwright] définis en section 7.
 Ne génère PAS les tests marqués [Manuel].
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
 
@@ -985,8 +985,8 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] F-00 terminé — `docker-compose up` OK, PrismaModule global, middleware audit actif
 - [ ] **F-01 terminé** — Theme MUI actif, AppShell fonctionnel, composants partagés disponibles
 - [ ] **Jest + Supertest configurés et opérationnels (G-12 de F-00)**
-- [ ] **Cypress installé et opérationnel (G-13 de F-00)**
-- [ ] **`cy.login()` disponible dans `cypress/support/commands.ts`**
+- [ ] **Playwright installé et opérationnel (G-13 de F-00)**
+- [ ] **`login()` disponible dans `e2e/fixtures/auth.fixture.ts`**
 - [ ] `schema.prisma` contient `User`, `Role`, `Permission`, `RolePermission`
 - [ ] Migration Prisma `init` appliquée
 - [ ] Seed `prisma/seed.ts` rédigé et testé
@@ -1007,7 +1007,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 
 ## Annexe : User Scenarios (Gherkin)
 
-> Cette section contient les scénarios utilisateur détaillés pour la génération des tests Cypress.
+> Cette section contient les scénarios utilisateur détaillés pour la génération des tests Playwright.
 
 ### Feature: Authentication
 

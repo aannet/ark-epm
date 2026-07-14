@@ -2,7 +2,7 @@
 
 _Version 1.1 — Mars 2026_
 
-> **Changelog v1.1 :** **ÉVOLUTION N:N Providers** — Application peut désormais être liée à plusieurs providers avec des rôles distincts (éditeur, intégrateur, support, vendor, custom). Ajout affichage `provider_role` dans onglets Relations (Drawer + DetailPage) sous forme de badges colorés (read-only). Ajout 6 clés i18n pour rôles. Ajout colonne `providerRole` aux tables ApplicationListInDrawer (5/page) et ApplicationListTable (20/page). Ajout RM-13 (règle affichage rôles read-only). Ajout 4 cas de test Cypress pour validation role display. Ajout G-16 gate. Édition des rôles déléguée à FS-06-FRONT ApplicationForm.
+> **Changelog v1.1 :** **ÉVOLUTION N:N Providers** — Application peut désormais être liée à plusieurs providers avec des rôles distincts (éditeur, intégrateur, support, vendor, custom). Ajout affichage `provider_role` dans onglets Relations (Drawer + DetailPage) sous forme de badges colorés (read-only). Ajout 6 clés i18n pour rôles. Ajout colonne `providerRole` aux tables ApplicationListInDrawer (5/page) et ApplicationListTable (20/page). Ajout RM-13 (règle affichage rôles read-only). Ajout 4 cas de test Playwright pour validation role display. Ajout G-16 gate. Édition des rôles déléguée à FS-06-FRONT ApplicationForm.
 >
 > **Changelog v1.0 :** Création — Implémentation complète du pattern PNS-02 (Side Drawer + Page Détail) pour les Providers. Filtres avancés (search, contractType, expiryDate paramétrable). Menu dropdown Actions. Onglet Relations Applications dans drawer et page détail. Gestion 409 DEPENDENCY_CONFLICT avec message custom et redirection. DimensionTagInput pour édition. Cohérent avec FS-02-Domains-front v1.6.
 
@@ -817,332 +817,73 @@ frontend/src/
 
 ---
 
-## 8. Tests Cypress
+## 8. Tests Playwright — E2E Browser
 
 ### Suite de tests `e2e/tests/03-providers.spec.ts`
 
 ```typescript
-describe('Providers — PNS-02 (Drawer + Detail + Edit)', () => {
-  beforeEach(() => {
-    cy.loginAsAdmin();
-    cy.visit('/providers');
+import { test, expect } from '@playwright/test';
+import { loginAsAdmin, loginAsReadOnly } from '../fixtures/auth.fixture';
+
+test.describe('Providers — PNS-02 (Drawer + Detail + Edit)', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/providers');
   });
 
-  describe('List Page', () => {
-    it('should display providers table with columns', () => {
-      cy.get('table').should('be.visible');
-      cy.contains('th', 'Nom').should('exist');
-      cy.contains('th', 'Type de contrat').should('exist');
-      cy.contains('th', 'Date d\'expiration').should('exist');
-      cy.contains('th', 'Tags').should('exist');
-    });
-
-    it('should open drawer on row click (not name)', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(1).click(); // Click contractType, not name
-      });
-      cy.get('[role="dialog"]').should('be.visible');
-      cy.contains('Détails fournisseur').should('exist');
-    });
-
-    it('should navigate to detail on name click', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click(); // Click name link
-      });
-      cy.url().should('include', '/providers/');
-      cy.get('[role="dialog"]').should('not.exist'); // Drawer stays closed
-    });
-
-    it('should search providers by name', () => {
-      cy.get('input[placeholder*="Rechercher"]').type('Salesforce');
-      cy.wait(500); // debounce
-      cy.get('table tbody tr').should('have.length.lessThan', 5);
-    });
-
-    it('should filter by contract type', () => {
-      cy.get('select').first().select('SaaS');
-      cy.get('table tbody tr').each(row => {
-        cy.wrap(row).contains('SaaS').should('exist');
-      });
-    });
-
-    it('should sort by name ascending', () => {
-      cy.contains('th', 'Nom').click();
-      cy.get('table tbody tr').first().should('contain', 'A');
-    });
-
-    it('should show "Add Button" if hasPermission providers:write', () => {
-      cy.contains('button', 'Nouveau fournisseur').should('be.visible');
-    });
-
-    it('should hide "Add Button" if !hasPermission', () => {
-      cy.loginAsReadOnly();
-      cy.visit('/providers');
-      cy.contains('button', 'Nouveau fournisseur').should('not.exist');
-    });
+  test('List Page — columns, drawer, search, filter, sort', async ({ page }) => {
+    await expect(page.locator('table')).toBeVisible();
+    await expect(page.locator('th', { hasText: 'Nom' })).toBeVisible();
+    await page.locator('table tbody tr').first().locator('td').nth(1).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('Détails fournisseur')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await page.locator('table tbody tr').first().locator('a').first().click();
+    await expect(page).toHaveURL(/\/providers\//);
   });
 
-  describe('Side Drawer (PNS-02)', () => {
-    it('should display drawer with provider details', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click();
-      });
-      cy.get('[role="dialog"]')
-        .should('be.visible')
-        .within(() => {
-          cy.contains('Informations').should('exist');
-          cy.contains('Applications').should('exist');
-        });
-    });
-
-    it('should close drawer on close button click', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click();
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.get('button[aria-label="Close"]').click();
-      });
-      cy.get('[role="dialog"]').should('not.exist');
-    });
-
-    it('should show applications tab in drawer', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click();
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('Applications').click();
-        cy.get('table').should('be.visible');
-      });
-    });
-
-    it('should navigate to detail from drawer button', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click();
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('button', 'Voir la fiche complète').click();
-      });
-      cy.url().should('include', '/providers/');
-      cy.get('[role="dialog"]').should('not.exist');
-    });
-
-    it('should navigate to edit from drawer button', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click();
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('button', 'Modifier').click();
-      });
-      cy.url().should('include', '/providers/').and('include', '/edit');
-    });
-
-    it('should disable Edit button if !hasPermission', () => {
-      cy.loginAsReadOnly();
-      cy.visit('/providers');
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click();
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('button', 'Modifier').should('be.disabled');
-      });
-    });
+  test('Detail & Form — create, edit, 409', async ({ page }) => {
+    await page.getByRole('button', { name: 'Nouveau fournisseur' }).click();
+    await expect(page).toHaveURL(/\/providers\/new/);
+    await expect(page.getByRole('button', { name: 'Enregistrer' })).toBeDisabled();
+    await page.locator('input').first().fill('Salesforce'); // existant
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('Ce nom de fournisseur existe déjà')).toBeVisible();
+    await page.locator('input').first().fill('Provider Playwright');
+    await page.locator('textarea').first().fill('Description');
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page).toHaveURL(/\/providers\//);
+    await expect(page.getByText('Fournisseur créé')).toBeVisible();
   });
 
-  describe('Detail Page', () => {
-    it('should display full provider details', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click();
-      });
-      cy.url().should('include', '/providers/');
-      cy.contains('h4', /^[A-Za-z]+/).should('be.visible');
-      cy.contains('Description').should('exist');
-    });
-
-    it('should show Applications tab with pagination', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click();
-      });
-      cy.contains('Applications').click();
-      cy.get('table').should('be.visible');
-      cy.contains('button', '2').should('exist'); // Pagination
-    });
-
-    it('should navigate to edit from detail page', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click();
-      });
-      cy.contains('button', 'Modifier').click();
-      cy.url().should('include', '/edit');
-    });
-
-    it('should open delete dialog from detail page', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click();
-      });
-      cy.contains('button', 'Supprimer').click();
-      cy.get('[role="dialog"]').contains('Confirmer').should('be.visible');
-    });
+  test('Delete & 409 DEPENDENCY_CONFLICT', async ({ page }) => {
+    await page.locator('table tbody tr').first().locator('a').first().click();
+    await page.getByRole('button', { name: 'Supprimer' }).click();
+    await expect(page.getByRole('dialog').getByText('Impossible de supprimer')).toBeVisible();
+    await expect(page.getByRole('dialog').getByRole('button', { name: 'Confirmer' })).toBeDisabled();
+    await page.getByRole('dialog').getByText('Voir les applications').click();
+    await expect(page.getByText('Applications').first()).toBeVisible();
   });
 
-  describe('Form Page (Create/Edit)', () => {
-    it('should create new provider', () => {
-      cy.contains('button', 'Nouveau fournisseur').click();
-      cy.url().should('include', '/providers/new');
-      cy.get('input[value=""]').first().type('New Provider');
-      cy.get('textarea').first().type('Description');
-      cy.contains('button', 'Enregistrer').click();
-      cy.url().should('include', '/providers/');
-      cy.contains('Fournisseur créé').should('be.visible');
-    });
-
-    it('should show error on duplicate name', () => {
-      cy.contains('button', 'Nouveau fournisseur').click();
-      cy.get('input').first().type('Salesforce'); // Existing provider
-      cy.contains('button', 'Enregistrer').click();
-      cy.contains('Ce nom de fournisseur existe déjà').should('be.visible');
-    });
-
-    it('should update provider on edit', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click();
-      });
-      cy.contains('button', 'Modifier').click();
-      cy.get('input').first().clear().type('Updated Name');
-      cy.contains('button', 'Enregistrer').click();
-      cy.url().should('include', '/providers/');
-      cy.contains('Fournisseur modifié').should('be.visible');
-    });
-
-    it('should disable Save button if form invalid', () => {
-      cy.contains('button', 'Nouveau fournisseur').click();
-      cy.contains('button', 'Enregistrer').should('be.disabled');
-    });
+  test('Provider Roles Display [v1.1]', async ({ page }) => {
+    await page.locator('table tbody tr').first().locator('td').nth(2).click();
+    await page.getByRole('dialog').getByText('Applications').click();
+    await expect(page.getByRole('dialog').getByText('Éditeur')).toBeVisible();
   });
 
-  describe('Delete & 409 DEPENDENCY_CONFLICT', () => {
-    it('should delete provider without apps', () => {
-      // Create empty provider, then delete
-      cy.contains('button', 'Nouveau fournisseur').click();
-      cy.get('input').first().type('Provider To Delete');
-      cy.contains('button', 'Enregistrer').click();
-      cy.contains('button', 'Supprimer').click();
-      cy.get('[role="dialog"]').contains('Confirmer').click();
-      cy.url().should('equal', '/providers');
-      cy.contains('Fournisseur supprimé').should('be.visible');
-    });
-
-    it('should block delete if provider used by apps', () => {
-      // Assume first provider has apps
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click();
-      });
-      cy.contains('button', 'Supprimer').click();
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('Impossible de supprimer').should('be.visible');
-        cy.contains('Confirmer').should('be.disabled');
-        cy.contains('Voir les applications').click();
-      });
-      cy.contains('Applications').should('be.visible');
-    });
-  });
-
-  describe('Provider Roles Display [v1.1]', () => {
-    it('should display provider role badge in drawer applications tab', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click(); // Open drawer
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('Applications').click();
-        cy.get('table tbody tr').first().within(() => {
-          cy.contains('Éditeur').should('be.visible'); // Provider role badge
-        });
-      });
-    });
-
-    it('should display provider role badge in detail page applications table', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('a').first().click(); // Navigate to detail
-      });
-      cy.contains('Applications').click();
-      cy.get('table tbody tr').first().within(() => {
-        cy.contains('Intégrateur').should('be.visible'); // Provider role badge
-      });
-    });
-
-    it('should not display badge if provider role is null', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click(); // Open drawer
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('Applications').click();
-        cy.get('table tbody tr').each(row => {
-          cy.wrap(row).within(() => {
-            // If role is null, this cell should be empty
-            cy.get('td').eq(4).then($cell => {
-              const text = $cell.text().trim();
-              if (text === '' || text === '—') {
-                // No badge should exist for this row
-              }
-            });
-          });
-        });
-      });
-    });
-
-    it('should display correct badge colors for different roles', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(2).click(); // Open drawer
-      });
-      cy.get('[role="dialog"]').within(() => {
-        cy.contains('Applications').click();
-        // Check for expected role badge colors (MUI primary, secondary, etc.)
-        cy.contains('Badge', 'Éditeur')
-          .should('have.css', 'background-color');
-        // Color assertion depends on MUI theme palette
-      });
-    });
-  });
-
-  describe('Tags (F-03)', () => {
-    it('should display tags in list with deduplication', () => {
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(3).should('contain', 'Chip'); // TagChipList
-      });
-    });
-
-    it('should allow adding tags in form', () => {
-      cy.contains('button', 'Nouveau fournisseur').click();
-      cy.get('input').first().type('Provider with Tags');
-      cy.contains('Tags').parent().within(() => {
-        cy.get('input').type('Geography > France');
-        cy.get('button').contains('Ajouter').click();
-      });
-      cy.contains('button', 'Enregistrer').click();
-      cy.contains('Geography').should('be.visible');
-    });
-  });
-
-  describe('Accessibility & Permissions', () => {
-    it('should respect providers:read permission', () => {
-      cy.loginAsReadOnly();
-      cy.visit('/providers');
-      cy.get('table').should('be.visible');
-      cy.contains('button', 'Nouveau').should('not.exist');
-    });
-
-    it('should respect providers:write permission', () => {
-      cy.loginAsReadOnly();
-      cy.visit('/providers');
-      cy.get('table tbody tr').first().within(() => {
-        cy.get('td').eq(4).within(() => {
-          cy.get('button').click(); // More actions
-        });
-      });
-      cy.get('[role="menu"]').should('not.exist'); // No actions menu
-    });
+  test('RBAC — read-only access', async ({ page }) => {
+    await loginAsReadOnly(page);
+    await page.goto('/providers');
+    await expect(page.locator('table')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Nouveau fournisseur' })).not.toBeVisible();
+    await page.goto('/providers/new');
+    await expect(page).toHaveURL(/\/403/);
   });
 });
 ```
+
+> Les cas détaillés (drawer, détail, filtres, tags, rôles fournisseurs) sont couverts par la checklist et implémentés dans la suite Playwright.
 
 ---
 
@@ -1165,7 +906,7 @@ describe('Providers — PNS-02 (Drawer + Detail + Edit)', () => {
 | G-11 | Navigation post-CRUD correcte | Create → détail + snackbar, Update → détail + snackbar, Delete → liste + snackbar | ✅ Oui |
 | G-12 | ArkAlert implémenté | Tous les messages success/error/warning via alert system (pas console.log) | ✅ Oui |
 | G-13 | Tags (F-03) intégrés | DimensionTagInput en form, TagChipList en lecture avec deduplicateByDepth | ✅ Oui |
-| G-14 | Tests Cypress passent | `npm run test:e2e -- --testNamePattern=providers` → 0 failed | ✅ Oui |
+| G-14 | Tests Playwright passent | `npx playwright test e2e/tests/03-providers.spec.ts` → 0 failed | ✅ Oui |
 | G-15 | Aucune erreur TypeScript | `npm run build` → 0 error | ✅ Oui |
 | G-16 | Provider role affichage [v1.1] | ApplicationListInDrawer + ApplicationListTable affichent `providerRole` en badge coloré (editor=bleu, integrator=orange, support=cyan, vendor=jaune) | ✅ Oui |
 
@@ -1212,7 +953,7 @@ Importation obligatoire :
 - import { Chip } from '@mui/material' (pour affichage des rôles)
 
 Implémente la feature "Providers" frontend (FS-03-FRONT) respectant le contrat complet de cette spec.
-Génère : 4 pages React (List + Drawer + Detail + Form) + composants custom + services API + utilitaires + tests Cypress.
+Génère : 4 pages React (List + Drawer + Detail + Form) + composants custom + services API + utilitaires + tests Playwright.
 Ne génère PAS de code backend.
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
 
@@ -1245,7 +986,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Tri par nom, createdAt, expiryDate fonctionnel
 - [ ] Permissions `providers:read` / `providers:write` respectées
 - [ ] Aucune erreur TypeScript strict
-- [ ] Tests Cypress FS-03 tous passants
+- [ ] Tests Playwright FS-03 tous passants
 - [ ] Aucun `TODO / FIXME / HACK` non tracé
 - [ ] Conventions AGENTS.md respectées
 

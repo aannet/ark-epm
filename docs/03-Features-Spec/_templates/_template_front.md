@@ -2,7 +2,7 @@
 
 _Version 0.1 — Mars 2026_
 
-> **Changelog v0.1 :** Création — split du template unifié v0.3 en deux templates distincts (back / front). Issu de la décision architecture de session OpenCode du Sprint FS-02. Ce template couvre la partie frontend (React + MUI v9 + i18n + Cypress). La partie backend est couverte par `_template-back.md`.
+> **Changelog v0.1 :** Création — split du template unifié v0.3 en deux templates distincts (back / front). Issu de la décision architecture de session OpenCode du Sprint FS-02. Ce template couvre la partie frontend (React + MUI v9 + i18n + Playwright). La partie backend est couverte par `_template-back.md`.
 
 > **Usage :** Ce template est le format standard des Feature-Specs **frontend** ARK. Chaque spec est un document autonome, versionné, directement injectable dans OpenCode sans reformatage.
 > - Nommer le fichier : `FS-<numéro>-<slug>-front.md` (ex: `FS-03-providers-front.md`)
@@ -536,48 +536,48 @@ interface [Domaine]Response {
 - [ ] **Clés `[domaine].*` ajoutées dans `fr.json`** (§5 de cette spec)
 - [ ] **`hasPermission()` exporté depuis `@/store/auth`** (FS-01)
 - [ ] **Câblage `App.tsx` réalisé manuellement** (§7 de cette spec)
-- [ ] **`cy.loginAsReadOnly()`** créé dans `cypress/support/commands.ts`
-- [ ] **Cypress opérationnel**
+- [ ] **`loginAsReadOnly()`** disponible dans `e2e/fixtures/auth.fixture.ts`
+- [ ] **Playwright opérationnel**
 - [ ] **Layout Contract §3 relu** — un bloc par page, aucun composant F-01 manquant
 - [ ] **FS-XX-FRONT passé au statut `stable`** avant de lancer OpenCode
 
 ---
 
-## 10. Tests Cypress — E2E Browser ⚠️
+## 10. Tests Playwright — E2E Browser ⚠️
 
-> À remplir exhaustivement — OpenCode génère les tests Cypress nominaux à partir de cette section.
+> À remplir exhaustivement — OpenCode génère les tests Playwright nominaux à partir de cette section.
 > Assertions sur les **valeurs FR** de `fr.json` — jamais sur les clés.
 
 ### Parcours nominaux
 
-- [ ] `[Cypress]` `[Domaine]ListPage` affiche la liste après login
-- [ ] `[Cypress]` `[Domaine]ListPage` affiche `EmptyState` si aucune entité
-- [ ] `[Cypress]` Tri par défaut sur `name` ascendant
-- [ ] `[Cypress]` Clic sur en-tête colonne → tri inversé
-- [ ] `[Cypress]` Clic sur une ligne → redirect vers `/[ressource]/:id`
-- [ ] `[Cypress]` `[Domaine]DetailPage` affiche les champs attendus
-- [ ] `[Cypress]` Créer une entité → redirect vers `/[ressource]/<new-id>` + snackbar succès
-- [ ] `[Cypress]` Cancel sur `[Domaine]NewPage` → redirect vers `/[ressource]`
-- [ ] `[Cypress]` Modifier une entité → reste sur `/[ressource]/:id` + snackbar succès
-- [ ] `[Cypress]` Cancel sur `[Domaine]EditPage` → redirect vers `/[ressource]/:id`
-- [ ] `[Cypress]` Supprimer sans entités liées → disparaît de la liste + snackbar succès
-- [ ] `[Cypress]` Cancel dans le dialog de suppression → dialog fermé, entité toujours présente
+- [ ] `[Playwright]` `[Domaine]ListPage` affiche la liste après login
+- [ ] `[Playwright]` `[Domaine]ListPage` affiche `EmptyState` si aucune entité
+- [ ] `[Playwright]` Tri par défaut sur `name` ascendant
+- [ ] `[Playwright]` Clic sur en-tête colonne → tri inversé
+- [ ] `[Playwright]` Clic sur une ligne → redirect vers `/[ressource]/:id`
+- [ ] `[Playwright]` `[Domaine]DetailPage` affiche les champs attendus
+- [ ] `[Playwright]` Créer une entité → redirect vers `/[ressource]/<new-id>` + snackbar succès
+- [ ] `[Playwright]` Cancel sur `[Domaine]NewPage` → redirect vers `/[ressource]`
+- [ ] `[Playwright]` Modifier une entité → reste sur `/[ressource]/:id` + snackbar succès
+- [ ] `[Playwright]` Cancel sur `[Domaine]EditPage` → redirect vers `/[ressource]/:id`
+- [ ] `[Playwright]` Supprimer sans entités liées → disparaît de la liste + snackbar succès
+- [ ] `[Playwright]` Cancel dans le dialog de suppression → dialog fermé, entité toujours présente
 
 ### Parcours d'erreur
 
-- [ ] `[Cypress]` Créer avec nom dupliqué → erreur inline
-- [ ] `[Cypress]` Créer sans nom → erreur inline
-- [ ] `[Cypress]` Créer avec nom uniquement espaces → erreur inline
-- [ ] `[Cypress]` Modifier avec nom dupliqué → erreur inline
-- [ ] `[Cypress]` Supprimer entité liée → message formaté dans le dialog
-- [ ] `[Cypress]` `[Domaine]EditPage` UUID inexistant → redirect vers `/[ressource]`
-- [ ] `[Cypress]` `[Domaine]DetailPage` UUID inexistant → redirect vers `/[ressource]`
+- [ ] `[Playwright]` Créer avec nom dupliqué → erreur inline
+- [ ] `[Playwright]` Créer sans nom → erreur inline
+- [ ] `[Playwright]` Créer avec nom uniquement espaces → erreur inline
+- [ ] `[Playwright]` Modifier avec nom dupliqué → erreur inline
+- [ ] `[Playwright]` Supprimer entité liée → message formaté dans le dialog
+- [ ] `[Playwright]` `[Domaine]EditPage` UUID inexistant → redirect vers `/[ressource]`
+- [ ] `[Playwright]` `[Domaine]DetailPage` UUID inexistant → redirect vers `/[ressource]`
 
 ### Droits UI
 
-- [ ] `[Cypress]` Sans `[domaine]:write` sur ListPage → bouton Add absent
-- [ ] `[Cypress]` Sans `[domaine]:write` sur ListPage → colonne Actions absente
-- [ ] `[Cypress]` Sans `[domaine]:write` sur DetailPage → bouton Edit absent
+- [ ] `[Playwright]` Sans `[domaine]:write` sur ListPage → bouton Add absent
+- [ ] `[Playwright]` Sans `[domaine]:write` sur ListPage → colonne Actions absente
+- [ ] `[Playwright]` Sans `[domaine]:write` sur DetailPage → bouton Edit absent
 - [ ] `[Manuel]` Sans `[domaine]:write` → `/[ressource]/new` redirige vers `/403`
 - [ ] `[Manuel]` Sans `[domaine]:write` → `/[ressource]/:id/edit` redirige vers `/403`
 
@@ -631,7 +631,7 @@ Respecte impérativement le Layout Contract §3 de cette spec :
 - Condition RBAC exacte par action
 
 Implémente la feature "[TITRE]" frontend (FS-XX-FRONT).
-Génère : pages React (4), [Domaine]Form, [domaine].utils.ts, [domaine].ts, tests Cypress nominaux.
+Génère : pages React (4), [Domaine]Form, [domaine].utils.ts, [domaine].ts, tests Playwright nominaux.
 Ne génère PAS le câblage App.tsx — déjà fait manuellement.
 Ne génère PAS les tests marqués [Manuel].
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
@@ -658,7 +658,7 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 - [ ] Snackbar succès après create / update / delete
 - [ ] Aucune string en dur dans les composants (`grep '"[A-Z]' src/pages/[domaine]/`)
 - [ ] Aucune erreur TypeScript strict
-- [ ] Tests Cypress nominaux passent
+- [ ] Tests Playwright nominaux passent
 
 ---
 

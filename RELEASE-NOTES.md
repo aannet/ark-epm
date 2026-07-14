@@ -44,7 +44,7 @@ _Last updated: 2026-03-29 — v0.7.0_
 
 ### Known Limitations
 
-- No frontend UI tests (Playwright/Cypress) for the new clickable links — pure API tests only
+- No frontend UI tests (Playwright) for the new clickable links — pure API tests only
 - Drag-drop IT Component reordering deferred (no use case identified)
 - Mass operations (add same ICs to multiple apps) deferred to future sprint
 
@@ -102,7 +102,7 @@ docker-compose up -d
 
 ### Known Limitations
 
-- FS-03-FRONT Cypress tests non implémentés (~50 cas, Phase 6 à venir)
+- FS-03-FRONT Playwright tests non implémentés (~50 cas, Phase 6 à venir)
 - Filtres contractType/expiryDate différés Sprint 3 (backend `QueryProvidersDto` non prêt)
 - Breadcrumbs manquants sur Applications/Domains (F-999 Items 18-19 Sprint 3)
 - Menu dropdown Actions (⋮) remplacé par icônes séparées Edit/Delete (fonctionnellement équivalent)
@@ -205,7 +205,7 @@ docker-compose up -d
 ### Known Limitations
 
 - FS-03-FRONT Providers frontend not yet started (routes commented in App.tsx)
-- Cypress tests FS-04-FRONT documented but not implemented (~30 cases)
+- Playwright tests FS-04-FRONT documented but not implemented (~30 cases)
 - Tag dimensions hardcoded in frontend (P2 — dynamic API pending)
 
 ### Migration Steps

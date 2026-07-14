@@ -444,7 +444,7 @@ import { GraphPage } from '@/pages/graph/GraphPage';
 
 ## 10. Tests — Playwright API
 
-> Cypress est indisponible sur cet environnement (T-009). Les tests e2e UI seront écrits en Playwright.
+> Décision historique (T-009) : Cypress a été retiré de la stack ; les tests e2e UI sont écrits en Playwright.
 
 ### Tests fonctionnels (à écrire en session QA séparée)
 
