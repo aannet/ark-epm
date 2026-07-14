@@ -2496,3 +2496,175 @@ tasks:
       Livré : commandes Claude/OpenCode, documentation et passage des rôles OpenCode à `mode: all`
       afin de préserver l'usage direct et la délégation. Validé contre T-999 absent dans les deux
       runtimes : refus sans écriture et sans fallback OpenCode.
+  - id: T-107
+    nom: "QA — Review findings Cypress it-components (emplacement, noms fixes, assertion seed)"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "QA"
+    type: review
+    feature: "QA-CYPRESS"
+    priorité: low
+    sessions:
+      - tool: OC
+        id: "0e5d84"
+        nom: "création tâche review findings Cypress it-components"
+    notes: |
+      Tâche obsolète : le dossier frontend/cypress/, cypress.config.ts et les dépendances Cypress
+      ont été supprimés par T-009 (migration Cypress → Playwright). Le fichier e2e/tests/04-it-components.cy.ts
+      n'existe plus. Clôturée sans action, le nettoyage technique final est suivi par T-129.
+
+  - id: T-127
+    nom: "Arch — Nettoyer les références Cypress dans la gouvernance et la stack"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-cypress-cleanup.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "QA"
+    type: doc
+    feature: "GOVERNANCE-CYPRESS-CLEANUP"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "9a43c2"
+        nom: "ouverture session nettoyage gouvernance Cypress"
+      - tool: OC
+        id: "9a43c2"
+        nom: "clôture session nettoyage gouvernance Cypress"
+    notes: |
+      Nettoyage post-T-009 (migration Cypress → Playwright) pour les références mortes dans
+      la gouvernance et la stack technique.
+      Périmètre : AGENTS.md racine, docs/AGENTS.md, opencode.json, .claude/agents/ark-qa.md,
+      .claude/commands/ark-qa.md, docs/05-Project/README.md, docs/04-Tech/ARK-NFR.md, e2e/AGENTS.md.
+      Tâches liées : T-128 (spec), T-129 (qa). Tâche obsolète clôturée : T-107.
+      Validation : grep -i cypress AGENTS.md docs/AGENTS.md opencode.json .claude/agents/ark-qa.md
+      .claude/commands/ark-qa.md docs/05-Project/README.md docs/04-Tech/ARK-NFR.md e2e/AGENTS.md → vide.
+
+  - id: T-128
+    nom: "Spec — Mettre à jour les specs et docs produit pour remplacer Cypress par Playwright"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-spec-cypress-cleanup.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "QA"
+    type: doc
+    feature: "SPEC-CYPRESS-CLEANUP"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "c4d5e6"
+        nom: "rituel ouverture T-128 — spec cypress cleanup"
+      - tool: OC
+        id: "c4d5e6"
+        nom: "clôture session T-128 — spec cypress cleanup"
+    notes: |
+      Remplacement des références actives à Cypress par Playwright dans les specs front,
+      les templates, les fondations, la documentation produit et todo.md.
+      Références historiques conservées : F-99 Item 22 (T-009), FS-09 note historique.
+      Fichiers principaux : _template_front.md, FS-02/03/04/05/06/09/11/13 front, F02/F03/F99,
+      P2/FS21, ARK-Roadmap.md, ARK-Personae.md, RELEASE-NOTES.md, todo.md.
+      Validation : rtk grep -R -i cypress docs/03-Features-Spec/ docs/01-Product/ RELEASE-NOTES.md todo.md → vide (hors références historiques).
+      Lié à T-127 (arch) et T-129 (qa).
+
+  - id: T-129
+    nom: "QA — Nettoyer les artefacts techniques Cypress (lockfile, coverage, linter config)"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-qa-cypress-cleanup.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "QA"
+    type: debt
+    feature: "QA-CYPRESS-CLEANUP"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "e1a2b3"
+        nom: "rituel ouverture nettoyage Cypress artefacts"
+      - tool: OC
+        id: "e1a2b3"
+        nom: "clôture nettoyage Cypress artefacts"
+    notes: |
+      Nettoyage post-T-009 des artefacts techniques Cypress restants.
+      Fichiers modifiés : frontend/package-lock.json, scripts/aggregate-coverage.js,
+      docs/05-Project/test-coverage-dashboard/coverage-data.json + index.html,
+      .mega-linter.yml, .mega-linter-frontend.yml, .mega-linter-config.yml.
+      Validation : grep -i cypress sur package-lock, coverage-data, configs MegaLinter, gitignore, Makefile → vide.
+      `make test-api` : 134 passed, 1 failed (T-050 préexistant), 1 skipped — pas cassé par le nettoyage.
+      Lié à T-127 (arch) et T-128 (spec).
+
+  - id: T-130
+    nom: "Supprimer la présentation revealjs obsolète dans docs/05-Project/"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-spec-revealjs-cleanup.md"
+    date_resolution: "2026-07-14"
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: doc
+    feature: "GOVERNANCE-DOCS"
+    priorité: low
+    sessions:
+      - tool: OC
+        id: "fa9ec3"
+        nom: "rituel ouverture + suppression fichier + vérification références"
+    notes: |
+      Suppression de docs/05-Project/presentation-revealjs.html confirmée par l'utilisateur comme inutilisée.
+      Vérification : aucune référence au fichier dans le projet (hors note de tâche).
+
+  - id: T-050
+    nom: "QA — 3 tests API en échec non tracés (applications-validation, domains-crud, it-components)"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-qa-t050.md"
+    date_resolution: "2026-07-14"
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "BACK-AUDIT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "a4f2e1"
+        nom: "identifiés lors de la validation T-006 (2026-04-12)"
+      - tool: OC
+        id: "b2c3d4"
+        nom: "audit et correction des tests API en échec"
+      - tool: OC
+        id: "b2c3d4"
+        nom: "clôture : 3 échecs déjà résolus par commit 0c7d666 (2026-05-04) — tests-side, pas de bug backend"
+    notes: |
+      RÉSOLU (2026-07-14). Audit make test-api : 135 passed, 1 skipped (data-objects
+      test.skip explicite, hors scope), 0 failed. Les 3 tests historiques sont stables
+      sur --repeat-each=3 (72/72 passed, 0 flaky).
+
+      Classification : les 3 échecs étaient des PROBLÈMES CÔTÉ TEST (pas des bugs backend),
+      déjà corrigés par le commit 0c7d666 « fix(e2e+search): real login flow, paginated
+      types, fixture aliases, Ctrl+K capture » (2026-05-04) :
+
+      1. applications-validation.api.spec.ts:78 — UUID nil invalide (00000000-0000-0000-
+         0000-000000000000) échouait au validation pipe (400) avant le check d'existence.
+         Remplacé par UUID v4 valide inexistant → 404 correct.
+      2. domains-crud.api.spec.ts:5 — test désérialisait en DomainResponse[] (tableau nu)
+         alors que l'API renvoie une enveloppe paginée { data, meta }. Typage corrigé en
+         PaginatedResponse<DomainResponse>.
+      3. it-components-crud.api.spec.ts:72 — fixture testData non injectée → cleanup
+         incomplet. Signature corrigée en ({ authenticatedRequest, testData }).
+
+      Renforcement ultérieur : T-101 (fad07bd / 9d97abf) a durci les guards de validation
+      des DTOs d'entité (400 format invalide vs 404 entité inexistante) — tests restés verts.
+
+      Aucune modification de code effectuée cette session (qa ne modifie pas le code
+      métier ; aucune correction de test n'était non plus nécessaire).
+      Handoff : docs/05-Project/20260714/SESSION-HANDOFF-qa-t050.md
+      Aucune tâche back à ouvrir.

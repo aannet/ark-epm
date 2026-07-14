@@ -57,39 +57,6 @@ tasks:
     priorité: low
     sessions: []
 
-  - id: T-050
-    nom: "QA — 3 tests API en échec non tracés (applications-validation, domains-crud, it-components)"
-    statut: open
-    assigned_agent: qa
-    session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
-    sprint: S4
-    theme: "QA"
-    type: bug
-    feature: "BACK-AUDIT"
-    priorité: medium
-    sessions:
-      - tool: OC
-        id: "a4f2e1"
-        nom: "identifiés lors de la validation T-006 (2026-04-12)"
-    notes: |
-      3 tests Playwright en échec préexistants découverts lors de la session T-006 (2026-04-12).
-      Score global : 100/107 après fix T-006 (6 échecs — 3 couverts par T-007, 3 non tracés ci-dessous).
-
-      1. applications-validation.api.spec.ts:78
-         POST /applications should return 404 for non-existent business capabilityId
-         Reçu : 400 — attendu : 404
-         Cause probable : validation capabilityId retourne 400 BAD_REQUEST au lieu de 404 NOT_FOUND.
-
-      2. domains-crud.api.spec.ts:5
-         GET /domains should return array of domains
-         Échec intermittent ou structure de réponse inattendue — à investiguer.
-
-      3. it-components-crud.api.spec.ts:72
-         DELETE /it-components/:id - should delete IT component without dependencies
-          Échec au DELETE — possible 409 DEPENDENCY_CONFLICT résiduel ou app liée non nettoyée.
-
   - id: T-051
     nom: "Interfaces — Décision : comment traiter les interfaces manuelles (model / back / front)"
     statut: open
@@ -502,38 +469,6 @@ tasks:
        - Liste tâches nouvelles (T-101..T-105)
        - Rapport détails arch/tech debt pour review sprint S5
 
-  - id: T-107
-    nom: "QA — Review findings Cypress it-components (emplacement, noms fixes, assertion seed)"
-    statut: open
-    assigned_agent: qa
-    session_active: ~
-    handoff_ref: ~
-    date_resolution: ~
-    sprint: S5
-    theme: "QA"
-    type: review
-    feature: "QA-CYPRESS"
-    priorité: low
-    sessions:
-      - tool: OC
-        id: "0e5d84"
-        nom: "création tâche review findings Cypress it-components"
-    notes: |
-      3 findings remontés par code review (session T-104, 2026-05-06) sur
-      e2e/tests/04-it-components.cy.ts :
-
-      1. [Medium] Fichier Cypress dans e2e/tests/ au lieu de frontend/cypress/e2e/.
-         Risque : tests silencieusement exclus des runs CI/locaux.
-         Action : vérifier si le fichier est déclenché quelque part, déplacer si nécessaire.
-
-      2. [Medium] Noms de données de test fixes (ex: "Test Component Cypress", "ToDelete Cypress Component").
-         Risque : contrainte de doublon lors de reruns si cleanup échoue.
-         Action : préfixer avec Date.now() ou timestamp unique.
-
-      3. [Low] Assertion dépendante de l'ordre/seed ("first row has linked apps").
-         Risque : test fragile si tri ou seed change.
-         Action : créer les données de test explicitement plutôt que d'hypothéquer la seed.
-
   - id: T-110
     nom: "Arch — Ajouter vice (Webba) dans les scans (Makefile + reports + dashboard)"
     statut: open
@@ -747,5 +682,7 @@ tasks:
       Proposition à valider : créer `docs/04-Tech/decisions/ADR-NNN-<slug>.md` (court, daté) pour
       toute décision structurante ; la tâche/spec/code référence l'ADR par son identifiant. Réserver
       les commentaires de code aux invariants locaux difficiles à déduire du contexte.
-      Si validé : mettre à jour AGENTS.md §1 Règle 2 et créer docs/04-Tech/decisions/.
+       Si validé : mettre à jour AGENTS.md §1 Règle 2 et créer docs/04-Tech/decisions/.
+
+
 
