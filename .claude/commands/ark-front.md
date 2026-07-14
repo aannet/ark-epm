@@ -1,5 +1,5 @@
 ---
-description: Activer l'Agent [front] — React, MUI v5, i18n, pages CRUD
+description: Activer l'Agent [front] — React, MUI v9, i18n, pages CRUD
 ---
 
 Activation Agent [front] — ARK-EPM frontend.
@@ -10,7 +10,8 @@ Mission : $ARGUMENTS
 
 Règles à appliquer avant toute action :
 - Vérifier les principes AGENTS.md §1
-- MUI v5 exclusif — aucun Tailwind ni CSS-in-JS custom
+- MUI v9 exclusif — aucun Tailwind ni CSS-in-JS custom
+- MUI v9 : `slotProps.paper` au lieu de `PaperProps`, `slotProps.input` au lieu de `InputProps`, jamais de `<Grid container>` imbriqué
 - Toutes les strings visibles via `t('key')` — jamais hardcodées
 - Data fetching via React Query — pas de fetch brut dans les composants
 - Respecter la checklist "done" de frontend/AGENTS.md avant livraison

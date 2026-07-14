@@ -16,6 +16,7 @@ docs/
 │   ├── ARK-Personae.md             # Profils utilisateurs cibles
 │   └── ARK-Release-Note-template.md
 ├── 02-Design/
+│   ├── DESIGN.md                   # Design system tokens (Google Stitch format v1.0)
 │   └── 02-Navigation-Patterns.md   # Patterns de navigation UI (flows, PNS-01 à PNS-11)
 ├── 03-Features-Spec/              # Specs fonctionnelles (coeur du workflow)
 │   ├── _template.md                # Index/routeur des templates (v0.4)
@@ -31,35 +32,8 @@ docs/
 │   ├── openapi.yaml                # Contrat API (source de vérité)
 │   └── schema.sql                  # Schéma SQL généré
 └── 05-Project/
+    ├── tasks.yaml                  # Coordinateur principal des tâches
     └── Import-Data-Template.md     # Template d'import de données
-
-DESIGN.md (à la racine)             # Design system tokens (Google Stitch format v1.0)
-```
-docs/
-\u251c\u2500\u2500 01-Product/
-\u2502   \u251c\u2500\u2500 ARK-Product-Brief.md        # Brief produit (contexte, objectifs)
-\u2502   \u251c\u2500\u2500 ARK-Roadmap.md              # Roadmap fonctionnelle par sprint
-\u2502   \u251c\u2500\u2500 ARK-Glossary.md             # Glossaire EA (entit\u00e9s, termes m\u00e9tier)
-\u2502   \u251c\u2500\u2500 ARK-Personae.md             # Profils utilisateurs cibles
-\u2502   \u2514\u2500\u2500 ARK-Release-Note-template.md
-\u251c\u2500\u2500 02-Design/
-\u2502   \u251c\u2500\u2500 00-UI-Kit.md                # Design tokens, palette, typographie
-\u2502   \u2514\u2500\u2500 02-Navigation-Patterns.md   # Patterns de navigation UI
-\u251c\u2500\u2500 03-Features-Spec/              # Specs fonctionnelles (coeur du workflow)
-\u2502   \u251c\u2500\u2500 _template.md                # Index/routeur des templates (v0.4)
-\u2502   \u251c\u2500\u2500 _template_back.md           # Template spec backend
-\u2502   \u251c\u2500\u2500 _template_front.md          # Template spec frontend
-\u2502   \u251c\u2500\u2500 F-XX-<slug>.md              # Fondations (format libre)
-\u2502   \u251c\u2500\u2500 FS-XX-<slug>-back.md        # Specs backend
-\u2502   \u251c\u2500\u2500 FS-XX-<slug>-front.md       # Specs frontend
-\u2502   \u2514\u2500\u2500 P2/                         # Phase 2 (backlog)
-\u251c\u2500\u2500 04-Tech/
-\u2502   \u251c\u2500\u2500 ARK-Architecture-Setup.md   # Architecture technique
-\u2502   \u251c\u2500\u2500 ARK-NFR.md                  # Exigences non fonctionnelles
-\u2502   \u251c\u2500\u2500 openapi.yaml                # Contrat API (source de v\u00e9rit\u00e9)
-\u2502   \u2514\u2500\u2500 schema.sql                  # Sch\u00e9ma SQL g\u00e9n\u00e9r\u00e9
-\u2514\u2500\u2500 05-Project/
-    \u2514\u2500\u2500 Import-Data-Template.md     # Template d'import de donn\u00e9es
 ```
 
 ---
@@ -113,12 +87,14 @@ La spec front **ne peut pas** passer \u00e0 `stable` tant que la spec back n'est
 ### Num\u00e9rotation
 
 - **F-XX** : Fondations transverses (F-00 Scaffolding, F-01 Design System, F-02 i18n, F-03 Tags, F-99 Tech Debt)
-- **FS-XX** : Feature Specs par entit\u00e9 (FS-01 Auth, FS-02 Domains, FS-03 Providers, ..., FS-10 Import Excel)
+- **FS-XX** : Feature Specs par entit\u00e9 (FS-01 Auth, FS-02 Domains, FS-03 Providers, ..., FS-13 User Settings)
 - **P2/** : Backlog Phase 2
 
 ### Specs existantes
 
-| Ref | Entit\u00e9 | Back | Front | Statut |
+> Statut v\u00e9rifi\u00e9 contre `docs/05-Project/tasks.yaml` le 2026-07-14. Le statut affich\u00e9 dans l'en-t\u00eate de chaque fichier spec peut rester sur la phase de r\u00e9daction (`draft`/`stable`) m\u00eame quand l'impl\u00e9mentation r\u00e9elle est termin\u00e9e \u2014 se fier \u00e0 `tasks.yaml` en cas de doute.
+
+| Ref | Entit\u00e9 | Back | Front | Statut r\u00e9el |
 |-----|---------|------|-------|--------|
 | FS-01 | Auth & RBAC | `FS-01-Auth-RBAC.md` (unifi\u00e9) | \u2014 | done |
 | FS-02 | Domains | `FS-02-Domains-back.md` | `FS-02-Domains-front.md` | done |
@@ -126,10 +102,13 @@ La spec front **ne peut pas** passer \u00e0 `stable` tant que la spec back n'est
 | FS-04 | IT Components | `FS-04-IT-Components-back.md` | `FS-04-IT-Components-front.md` | done |
 | FS-05 | Data Objects | `FS-05-Data-Objects.md` | \u2014 | draft |
 | FS-06 | Applications | `FS-06-Applications-back.md` | `FS-06-Applications-front.md` | done |
-| FS-07 | Business Capabilities | `FS-07-Business-Capabilities.md` | \u2014 | draft |
-| FS-08 | Interfaces | `FS-08-Interfaces.md` | \u2014 | draft |
-| FS-09 | Dependency Graph | `FS-09-Dependency-Graph.md` | \u2014 | draft |
-| FS-10 | Import Excel | `FS-10-Import-Excel.md` | \u2014 | draft |
+| FS-07 | Business Capabilities | `FS-07-Business-Capabilities-back.md` | `FS-07-Business-Capabilities-front.md` | back done, front draft (non d\u00e9marr\u00e9) |
+| FS-08 | Interfaces | `FS-08-Interfaces-back.md` | `FS-08-Interfaces-front.md` | done |
+| FS-09 | Dependency Graph | `FS-09-Dependency-Graph-back.md` | `FS-09-Dependency-Graph-front.md` | back done (T-087), front in_progress (T-003) |
+| FS-10 | Import Excel | `FS-10-Import-Excel.md` | \u2014 | draft (backlog, non d\u00e9marr\u00e9) |
+| FS-11 | Omnisearch | `FS-11-omnisearch-back.md` | `FS-11-omnisearch-front.md` | done |
+| FS-12 | Dashboard | `FS-12-dashboard-back.md` | `FS-12-dashboard-front.md` | done |
+| FS-13 | User Settings | `FS-13-BACK.md` | `FS-13-FRONT.md` | back done (T-116), front open (T-117) |
 
 ---
 

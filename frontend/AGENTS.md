@@ -121,7 +121,7 @@ export function EntityForm({ entity, onSubmit, isLoading }: EntityFormProps) {
 
 ### DESIGN.md — Design System as Code (Google Stitch Format)
 
-**Source de vérité pour tous les tokens de design.** Voir `DESIGN.md` à la racine du projet.
+**Source de vérité pour tous les tokens de design.** Voir `docs/02-Design/DESIGN.md`.
 
 Avant d'implémenter un composant UI :
 1. **Charger `DESIGN.md` comme contexte de session** — c'est le fichier normatif pour Claude Code, Cursor, et autres agents IA

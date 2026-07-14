@@ -157,9 +157,9 @@ date_resolution: ~                 # ~ si non terminé, YYYY-MM-DD si done
 sprint: S1|S2|...
 theme: "FS-XX" | "QA" | "F-999"
 type: spec|decision|review|debt|impl|test|doc|poc
-  feature: "FS-XX-BACK"
-  priorité: high|medium|low
-  sessions:
+feature: "FS-XX-BACK"
+priorité: high|medium|low
+sessions:
   - tool: OC|CL
     id: "6hexchars"
     nom: "description courte"

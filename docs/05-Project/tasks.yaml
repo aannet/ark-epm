@@ -1277,3 +1277,176 @@ tasks:
         - Amendment i18n/index.ts → support dynamique changeLanguage()
         - Création en.json minimal (settings + common + nav)
         - Amendment App.tsx → chargement langue au boot via /auth/me
+
+  - id: T-118
+    nom: "Arch — Décision : remplacer le gate 'FS-XX-BACK done avant FS-XX-FRONT stable' par un gate 'contrat API stable'"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: decision
+    feature: "GOVERNANCE-GATE"
+    priorité: high
+    sessions: []
+    notes: |
+      Issu de l'audit croisé de gouvernance (3 revues IA, 2026-07-14, docs/05-Project/20260714/).
+      Constat : docs/AGENTS.md §2 interdit à la spec front de passer `stable` tant que la spec
+      back n'est pas `done`, ce qui force une chaîne linéaire spec back → impl back → spec front
+      → impl front → QA, alors que le front n'a souvent besoin que du contrat (chemins, DTOs,
+      erreurs, permissions, pagination) pour démarrer layout/i18n/types/React Query/parcours.
+      Proposition à valider : contrat API stable (OpenAPI + DTO/erreurs/permissions) → spec front
+      stable → impl back/front en parallèle → gate d'intégration unique (API réelle + tests API +
+      1 parcours E2E critique). Le backend reste requis avant l'intégration, pas avant toute
+      conception/implémentation front. Mock temporaire limité au contrat toléré en attendant l'API.
+      Si validé : mettre à jour docs/AGENTS.md §2 (Séquencement) et le Cycle de feature associé.
+
+  - id: T-119
+    nom: "Arch — Décision : redistribuer le RACI tests entre implémenteurs (back/front/data) et QA"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: decision
+    feature: "GOVERNANCE-RACI"
+    priorité: high
+    sessions: []
+    notes: |
+      Issu de l'audit croisé de gouvernance (2026-07-14).
+      Constat : QA est R sur "Tests (toutes couches)" dans le RACI racine, mais ne peut pas
+      modifier le code source (e2e/AGENTS.md). La règle "bug = test de non-régression avant
+      correction" impose alors 3 handoffs (QA reproduit → back/front corrige → QA revalide)
+      même pour un bug trivial avec test ciblé.
+      Proposition à valider : back/front/data écrivent et maintiennent les tests directement liés
+      à leur changement (unitaire, API, ou UI ciblé) — une même session peut ajouter un test rouge,
+      corriger, vérifier vert. QA reste R sur la stratégie de test, les fixtures communes, les
+      parcours E2E critiques transverses, la stabilité globale et la revue de couverture. QA n'est
+      sollicité que si le test est transverse, instable, ou nécessite une stratégie nouvelle.
+      Si validé : mettre à jour le RACI racine (AGENTS.md §3) et e2e/AGENTS.md en conséquence.
+
+  - id: T-120
+    nom: "Arch — Décision : mécanisme de verrouillage non atomique de tasks.yaml (risque de collision multi-session)"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: decision
+    feature: "GOVERNANCE-LOCK"
+    priorité: high
+    sessions: []
+    notes: |
+      Issu de l'audit croisé de gouvernance (2026-07-14).
+      Constat : le rituel /ark-open-session lit puis écrit tasks.yaml sans verrou atomique — deux
+      agents peuvent lire la même tâche `open` et la verrouiller simultanément, ou calculer le même
+      prochain ID (max(id)+1) en parallèle. Le fichier est un registre partagé en clair, sans
+      validation de schéma ni transaction.
+      Voir aussi T-003 : verrou `session_active` orphelin détecté (session_active ≠ id dans
+      sessions[]), symptôme concret du problème.
+      Pistes à évaluer (non tranchées) : relecture + interruption si le verrou a changé avant
+      d'écrire, script de mutation unique validant le schéma et choisissant max(id)+1, ou un
+      registre transactionnel (issue GitHub/GitLab) si la concurrence devient fréquente.
+      Ne pas résoudre par convention textuelle seule.
+
+  - id: T-121
+    nom: "Arch — Décision : assouplir la validation arch systématique des migrations Prisma locales"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: decision
+    feature: "GOVERNANCE-PRISMA-GATE"
+    priorité: medium
+    sessions: []
+    notes: |
+      Issu de l'audit croisé de gouvernance (2026-07-14).
+      Constat : AGENTS.md §1 exige la validation arch avant toute modification de schema.prisma,
+      y compris pour un ajout local conforme à un pattern déjà validé (ex : nouveau champ optionnel
+      sur une entité existante). Goulot d'étranglement pour data.
+      Proposition à valider : data implémente sans gate les migrations locales conformes au schéma
+      existant ; arch valide uniquement les changements de contrat, modèle transverse, rupture de
+      compatibilité, cardinalité, index volumineux, trigger, ou sécurité. Décision enregistrée en
+      ADR courte si structurante (voir T-123).
+
+  - id: T-122
+    nom: "Arch — Décision : conditions d'autorisation de suppression de code sans confirmation préalable"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: decision
+    feature: "GOVERNANCE-CODE-DELETE"
+    priorité: medium
+    sessions: []
+    notes: |
+      Issu de l'audit croisé de gouvernance (2026-07-14).
+      Constat : AGENTS.md §1 Règle 3 impose de "proposer la suppression, ne pas l'exécuter sans
+      confirmation" pour tout code existant — cela bloque les refactors, le retrait de code mort et
+      les corrections de sécurité, et est déjà contredit en pratique par des tâches qui demandent
+      explicitement des suppressions après migration (ex : T-009 retrait Cypress après migration
+      Playwright).
+      Proposition à valider : autoriser la suppression sans confirmation quand le code est introduit
+      dans la même session, non référencé ailleurs, remplacé dans le même changement, ou couvert par
+      un test ciblant le comportement conservé. Confirmation requise seulement pour une API publique,
+      une migration de données irréversible, un comportement utilisateur incertain, ou une
+      suppression à large périmètre.
+
+  - id: T-123
+    nom: "Arch — Décision : remplacer les commentaires AGENT-DECISION dans le code par des ADR courtes"
+    statut: open
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: ~
+    theme: "GOVERNANCE"
+    type: decision
+    feature: "GOVERNANCE-ADR"
+    priorité: low
+    sessions: []
+    notes: |
+      Issu de l'audit croisé de gouvernance (2026-07-14).
+      Constat : AGENTS.md §1 Règle 2 impose un commentaire `// AGENT-DECISION: [agent] — raison`
+      pour toute décision structurante dans le code. Ces commentaires deviennent obsolètes et se
+      dupliquent au fil des changements.
+      Proposition à valider : créer `docs/04-Tech/decisions/ADR-NNN-<slug>.md` (court, daté) pour
+      toute décision structurante ; la tâche/spec/code référence l'ADR par son identifiant. Réserver
+      les commentaires de code aux invariants locaux difficiles à déduire du contexte.
+      Si validé : mettre à jour AGENTS.md §1 Règle 2 et créer docs/04-Tech/decisions/.
+
+  - id: T-124
+    nom: "Arch — Corrections de cohérence gouvernance suite à l'audit croisé (3 revues IA)"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-croisement-gouvernance.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "GOVERNANCE"
+    type: debt
+    feature: "GOVERNANCE-CONSISTENCY"
+    priorité: high
+    sessions: []
+    notes: |
+      Suite au croisement des 3 audits docs/05-Project/20260714/global-review-*.md.
+      Corrections appliquées (voir handoff_ref pour le détail complet) :
+      - MUI v5→v9 dans ark-front.md et opencode.json
+      - Ajout agents/commandes ark-arch et ark-spec (manquants)
+      - Chemin DESIGN.md corrigé (frontend/AGENTS.md, docs/AGENTS.md)
+      - docs/AGENTS.md §1 arborescence dupliquée nettoyée, §3 table specs rafraîchie
+      - Schéma YAML tasks.yaml corrigé dans AGENTS.md et ark-close-session.md
+      - SESSION-HANDOFF.md racine entièrement rafraîchi contre tasks.yaml réel
+      Décisions structurelles non tranchées déportées vers T-118 à T-123.
