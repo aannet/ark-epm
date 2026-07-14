@@ -25,7 +25,7 @@
 8. **Langue du code** : anglais (nommage, commentaires). **Langue UI/docs** : français.
 9. **Ambiguïté** → 1 question max, puis exécuter.
 
-> **Activation agent** : utiliser les skills `/back`, `/front`, `/data`, `/qa` (Claude Code) ou les agents nommés (OpenCode).
+> **Activation agent** : utiliser les commandes `/ark-back`, `/ark-front`, `/ark-data`, `/ark-qa`, `/ark-arch`, `/ark-spec` (Claude Code) ou les agents nommés (OpenCode). Pour une session supervisée : `claude --agent ark-orchestrator` ou l'agent OpenCode `ark-orchestrator`.
 
 ---
 
@@ -66,6 +66,14 @@ Gardien des décisions techniques structurantes. Arbitre en cas de chevauchement
 **Règles clés** : split back/front obligatoire (`FS-XX-slug-back.md` + `FS-XX-slug-front.md`) ; statuts `draft → review → stable → in-progress → done`.  
 **Ne fait PAS** : code, migrations, décisions architecture.  
 > Guide opérationnel : `docs/AGENTS.md`
+
+### `orchestrator` — Orchestration supervisée
+Plan de contrôle non-mutant commun à OpenCode et Claude Code.
+
+**Périmètre** : qualification des demandes, vérification des gates, planification, délégation supervisée et synthèse des résultats.  
+**Ne fait PAS** : posséder une tâche, modifier le code, la documentation ou `tasks.yaml`. Les six rôles métier restent les seuls valeurs possibles pour `assigned_agent`.
+
+> Politique et entrées runtime : `docs/04-Tech/agent-orchestration.md` (ADR-001).
 
 ---
 

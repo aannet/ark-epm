@@ -1450,3 +1450,24 @@ tasks:
       - Schéma YAML tasks.yaml corrigé dans AGENTS.md et ark-close-session.md
       - SESSION-HANDOFF.md racine entièrement rafraîchi contre tasks.yaml réel
       Décisions structurelles non tranchées déportées vers T-118 à T-123.
+
+  - id: T-125
+    nom: "Arch — Mettre en place l'orchestration supervisée ARK pour OpenCode et Claude Code"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-orchestration-supervisee.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "GOVERNANCE"
+    type: impl
+    feature: "GOVERNANCE-ORCHESTRATION"
+    priorité: high
+    sessions: []
+    notes: |
+      Décision utilisateur du 2026-07-14 : mode supervisé et compatibilité OpenCode + Claude Code.
+      Périmètre : agent primaire non-mutant, sous-agents métier sans délégation récursive,
+      approbation avant délégation mutante, politique commune et ADR.
+      Livré : ADR-001, politique docs/04-Tech/agent-orchestration.md, 7 définitions Claude
+      (.claude/agents/) et configuration OpenCode. Validé : JSON/YAML, `claude -p --agent
+      ark-orchestrator` et `opencode run --agent ark-orchestrator` répondent sans outil.

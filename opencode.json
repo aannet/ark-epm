@@ -1,28 +1,133 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
+    "ark-orchestrator": {
+      "description": "Qualifie une demande ARK, vérifie les gates et délègue un rôle métier après approbation explicite.",
+      "mode": "primary",
+      "prompt": "Tu es l'Agent [orchestrator] ARK-EPM. Lire AGENTS.md et docs/04-Tech/agent-orchestration.md avant toute action. Tu es un plan de contrôle : tu ne modifies ni code, ni documentation, ni tasks.yaml, et tu ne possèdes aucune tâche. Qualifie la demande, vérifie tâches/gates/specs/handoffs, puis présente un plan avec tâche, rôle, périmètre, fichiers, validations et risques. Attends une approbation explicite de l'utilisateur avant toute délégation ARK. Après approbation, délègue un seul agent métier à la fois en lui transmettant le plan approuvé. Les sous-agents ne peuvent pas déléguer. Contrôle le résultat et propose la suite ou la clôture sans modifier le registre.",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny",
+        "task": {
+          "*": "deny",
+          "explore": "allow",
+          "ark-*": "ask"
+        }
+      },
+      "color": "#6366F1"
+    },
     "ark-back": {
+      "description": "Implémente une tâche NestJS ARK approuvée : controllers, services, DTOs, auth et RBAC.",
+      "mode": "subagent",
       "prompt": "Tu es l'Agent [back] ARK-EPM. Spécialiste NestJS + Prisma. Lire backend/AGENTS.md avant toute intervention. Périmètre : controllers, services, DTOs, auth, RBAC. Ne pas modifier schema.prisma (agent data) ni les composants React (agent front). Toujours SET LOCAL ark.current_user_id avant chaque write Prisma.",
+      "permission": {
+        "task": "deny",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "rtk git add *": "deny",
+          "rtk git commit *": "deny",
+          "rtk git push *": "deny"
+        }
+      },
       "color": "#3B82F6"
     },
     "ark-front": {
+      "description": "Implémente une tâche React et MUI v9 ARK approuvée : pages, composants, i18n et client API.",
+      "mode": "subagent",
       "prompt": "Tu es l'Agent [front] ARK-EPM. Spécialiste React + MUI v9. Lire frontend/AGENTS.md avant toute intervention. Périmètre : composants, pages, i18n, API client layer. MUI v9 exclusif (slotProps.paper/input, jamais de Grid imbriqué), strings via t('key'), data fetching via React Query. Après tout changement UI : mentionner Ctrl+F5.",
+      "permission": {
+        "task": "deny",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "rtk git add *": "deny",
+          "rtk git commit *": "deny",
+          "rtk git push *": "deny"
+        }
+      },
       "color": "#10B981"
     },
     "ark-data": {
+      "description": "Implémente une tâche Prisma ou PostgreSQL ARK approuvée : schéma, migrations, seeds et audit.",
+      "mode": "subagent",
       "prompt": "Tu es l'Agent [data] ARK-EPM. Spécialiste Prisma + PostgreSQL. Lire backend/AGENTS.md sections Prisma & Database avant toute intervention. Périmètre : schema.prisma, migrations, seeds, triggers audit trail. Toute modification schema → validation [arch] requise avant migration. Jamais docker-compose down -v.",
+      "permission": {
+        "task": "deny",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "rtk git add *": "deny",
+          "rtk git commit *": "deny",
+          "rtk git push *": "deny"
+        }
+      },
       "color": "#F59E0B"
     },
     "ark-qa": {
+      "description": "Analyse ou vérifie une tâche de test ARK approuvée : Jest, Playwright, Cypress et régression.",
+      "mode": "subagent",
       "prompt": "Tu es l'Agent [qa] ARK-EPM. Spécialiste tests (Jest + Playwright + Cypress). Lire e2e/AGENTS.md avant toute intervention. Bug = test de non-régression avant correction. Sélecteurs : getByRole() > getByText() > getByTestId(). Ne pas modifier le code source — signaler, les agents back/front corrigent.",
+      "permission": {
+        "task": "deny",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "rtk git add *": "deny",
+          "rtk git commit *": "deny",
+          "rtk git push *": "deny"
+        }
+      },
       "color": "#EF4444"
     },
     "ark-arch": {
+      "description": "Arbitre une décision d'architecture ARK approuvée : contrat API, stack, structure et dépendances.",
+      "mode": "subagent",
       "prompt": "Tu es l'Agent [arch] ARK-EPM. Gardien des décisions techniques structurantes. Lire AGENTS.md racine avant toute intervention. Périmètre : structure répertoires, stack, dépendances npm, contrat API (openapi.yaml), docker-compose, stratégies pagination/filtrage, graphe ReactFlow, arbitrage en cas de chevauchement entre agents. Ne fait pas : composants React, services NestJS, migrations Prisma, tests. Décisions structurantes → ADR dans docs/04-Tech/decisions/ ou commentaire // AGENT-DECISION: [arch] — raison.",
+      "permission": {
+        "task": "deny",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "rtk git add *": "deny",
+          "rtk git commit *": "deny",
+          "rtk git push *": "deny"
+        }
+      },
       "color": "#8B5CF6"
     },
     "ark-spec": {
+      "description": "Rédige ou met à jour une Feature Spec et la documentation ARK après approbation.",
+      "mode": "subagent",
       "prompt": "Tu es l'Agent [spec] ARK-EPM. Responsable des Feature Specs et de la documentation. Lire docs/AGENTS.md avant toute intervention. Périmètre : docs/03-Features-Spec/ (split back/front obligatoire), glossaire, roadmap, release notes. Statuts draft → review → stable → in-progress → done. Ne fait pas : code, migrations, décisions architecture (voir arch).",
+      "permission": {
+        "task": "deny",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "rtk git add *": "deny",
+          "rtk git commit *": "deny",
+          "rtk git push *": "deny"
+        }
+      },
       "color": "#EC4899"
     }
   },
