@@ -2045,6 +2045,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # FS-13 D-03 : self-update des préférences utilisateur (JWT uniquement)
+  /users/me:
+    patch:
+      summary: Modifier les préférences de l'utilisateur connecté
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeDto'
+      responses:
+        '200':
+          description: Préférences mises à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferenceResponse'
+        '400':
+          description: Validation échouée (langue manquante ou invalide)
+        '401':
+          description: Non authentifié
+
   /users/{id}:
     get:
       summary: Détail d'un utilisateur
@@ -3419,6 +3444,15 @@ components:
                 format: uuid
               name:
                 type: string
+        # FS-13 D-02 : préférences utilisateur (null si utilisateur legacy sans row)
+        preferences:
+          type: object
+          nullable: true
+          description: "Préférences utilisateur. Null si l'utilisateur n'a pas encore de row user_preferences."
+          properties:
+            language:
+              type: string
+              example: "fr"
 
     RoleResponse:
       type: object
@@ -3627,6 +3661,37 @@ components:
             type: string
             format: uuid
           description: "Optionnel. Si présent, remplace intégralement les domaines assignés."
+
+    # FS-13 D-03 : DTO pour PATCH /users/me (self-update préférences)
+    UpdateMeDto:
+      type: object
+      required: [language]
+      properties:
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+          description: "Code langue ISO (fr, en, ...)"
+          example: "en"
+
+    UserPreferenceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        language:
+          type: string
+          example: "fr"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     RoleListItem:
       type: object
