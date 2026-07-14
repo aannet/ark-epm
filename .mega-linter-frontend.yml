@@ -24,7 +24,7 @@ TYPESCRIPT_ES_DIRECTORY: frontend
 COPYPASTE_JSCPD_DISABLE_ERRORS: true
 
 # Files exclusions
-FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|\.next/|out/|frontend/cypress/)'
+FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|\.next/|out/)'
 
 # Additional settings
 FILEIO_REPORTER: false

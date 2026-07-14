@@ -38,7 +38,7 @@ TYPESCRIPT_ES_DIRECTORY: backend
 COPYPASTE_JSCPD_DISABLE_ERRORS: true
 
 # Files exclusions
-FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|prisma/migrations/|.*\.generated\.ts|backend/scripts/get-token\.sh|e2e/reports/|coverage/|\.next/|out/|frontend/cypress/|test-results/|playwright-report/)'
+FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|prisma/migrations/|.*\.generated\.ts|backend/scripts/get-token\.sh|e2e/reports/|coverage/|\.next/|out/|test-results/|playwright-report/)'
 
 # Additional settings
 FILEIO_REPORTER: false

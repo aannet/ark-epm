@@ -16,6 +16,6 @@ ENABLE_LINTERS:
   - JSON_PRETTIER
   - ENV_DOTENV_LINTER
 
-FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|frontend/cypress/|test-results/|playwright-report/|e2e/reports/)'
+FILTER_REGEX_EXCLUDE: '(node_modules/|dist/|build/|\.git/|reports/|test-results/|playwright-report/|e2e/reports/)'
 
 FILEIO_REPORTER: false

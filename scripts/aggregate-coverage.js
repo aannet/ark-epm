@@ -14,7 +14,6 @@ const INPUTS = {
   jestE2eReport: path.join(ROOT, 'backend/reports/jest-e2e-results.json'),
   jestCoverage: path.join(ROOT, 'backend/coverage/coverage-summary.json'),
   playwrightReport: path.join(ROOT, 'e2e/reports/results.json'),
-  cypressReport: path.join(ROOT, 'frontend/cypress/reports/results.json'),
 };
 
 const FRAMEWORK_ORDER = [
@@ -22,7 +21,6 @@ const FRAMEWORK_ORDER = [
   'jest_e2e',
   'playwright_api',
   'playwright_ui',
-  'cypress',
 ];
 
 function toPosix(value) {
@@ -107,10 +105,6 @@ function resolveProjectPath(inputPath, source) {
     return `e2e/tests/${cleaned}`;
   }
 
-  if (cleaned.startsWith('cypress/')) {
-    return `frontend/${cleaned}`;
-  }
-
   return cleaned;
 }
 
@@ -156,17 +150,10 @@ function classifyTestFile(relativePath) {
 
   if (
     normalized.startsWith('e2e/tests/') &&
-    ((/\.spec\.ts$/.test(normalized) && !/\.api\.spec\.ts$/.test(normalized)) ||
-      /\.cy\.(ts|tsx|js|jsx)$/.test(normalized))
+    /\.spec\.ts$/.test(normalized) &&
+    !/\.api\.spec\.ts$/.test(normalized)
   ) {
     return 'playwright_ui';
-  }
-
-  if (
-    normalized.startsWith('frontend/cypress/e2e/') &&
-    /\.cy\.(ts|tsx|js|jsx)$/.test(normalized)
-  ) {
-    return 'cypress';
   }
 
   return null;
@@ -383,51 +370,6 @@ function parsePlaywrightReport(report) {
   };
 }
 
-function parseCypressReport(report) {
-  if (!report) {
-    return { summary: null, fileStats: new Map() };
-  }
-
-  const stats = report.stats || report.totalStats || null;
-  const summary = stats
-    ? {
-        total: stats.tests ?? (stats.passes || 0) + (stats.failures || 0) + (stats.pending || 0),
-        pass: stats.passes ?? 0,
-        fail: stats.failures ?? 0,
-        skipped: stats.pending ?? 0,
-      }
-    : null;
-
-  const fileStats = new Map();
-
-  // AGENT-DECISION: arch - Prefer resilient parsing over strict schema so mixed Cypress outputs still feed the dashboard.
-  const runs = Array.isArray(report.runs)
-    ? report.runs
-    : Array.isArray(report.results?.runs)
-      ? report.results.runs
-      : [];
-
-  for (const run of runs) {
-    const specPath = run.spec?.relative || run.spec?.name || null;
-    const relativePath = resolveProjectPath(specPath, 'cypress');
-    if (!relativePath) {
-      continue;
-    }
-
-    const runStats = run.stats || {};
-    addToMapCount(fileStats, relativePath, {
-      total:
-        runStats.tests ??
-        (runStats.passes || 0) + (runStats.failures || 0) + (runStats.pending || 0),
-      pass: runStats.passes || 0,
-      fail: runStats.failures || 0,
-      skipped: runStats.pending || 0,
-    });
-  }
-
-  return { summary, fileStats };
-}
-
 function parseCoverage(coverageSummary) {
   if (!coverageSummary || !coverageSummary.total) {
     return { total: null, modules: [] };
@@ -462,7 +404,6 @@ function collectTestInventory() {
     path.join(ROOT, 'backend/src'),
     path.join(ROOT, 'backend/test'),
     path.join(ROOT, 'e2e/tests'),
-    path.join(ROOT, 'frontend/cypress/e2e'),
   ];
 
   const records = [];
@@ -527,7 +468,6 @@ function buildFeatureView(testFiles) {
         jest_unit: { files: 0, executed: 0, pass: 0, fail: 0, skipped: 0 },
         jest_e2e: { files: 0, executed: 0, pass: 0, fail: 0, skipped: 0 },
         playwright: { files: 0, executed: 0, pass: 0, fail: 0, skipped: 0 },
-        cypress: { files: 0, executed: 0, pass: 0, fail: 0, skipped: 0 },
       });
     }
 
@@ -560,10 +500,6 @@ function buildFeatureView(testFiles) {
           stats.playwright.files === 0
             ? 'none'
             : summarizeStatus(stats.playwright.executed, stats.playwright.pass, stats.playwright.fail),
-        cypress:
-          stats.cypress.files === 0
-            ? 'none'
-            : summarizeStatus(stats.cypress.executed, stats.cypress.pass, stats.cypress.fail),
       },
       totals: stats,
     });
@@ -609,7 +545,6 @@ function applyExecutionToInventory(testFiles, reportData) {
     const sourceMapByFramework = {
       jest_unit: reportData.jestUnit.fileStats,
       jest_e2e: reportData.jestE2e.fileStats,
-      cypress: reportData.cypress.fileStats,
     };
 
     const sourceMap = sourceMapByFramework[testFile.framework];
@@ -629,13 +564,11 @@ function main() {
   const jestE2eReport = readJsonLoose(INPUTS.jestE2eReport);
   const jestCoverage = readJsonLoose(INPUTS.jestCoverage);
   const playwrightReport = readJsonLoose(INPUTS.playwrightReport);
-  const cypressReport = readJsonLoose(INPUTS.cypressReport);
 
   const reportData = {
     jestUnit: parseJestReport(jestUnitReport, 'jest_unit'),
     jestE2e: parseJestReport(jestE2eReport, 'jest_e2e'),
     playwright: parsePlaywrightReport(playwrightReport),
-    cypress: parseCypressReport(cypressReport),
   };
 
   const codeCoverage = parseCoverage(jestCoverage);
@@ -647,7 +580,6 @@ function main() {
     jest_e2e: testFiles.filter((file) => file.framework === 'jest_e2e').length,
     playwright_api: testFiles.filter((file) => file.framework === 'playwright_api').length,
     playwright_ui: testFiles.filter((file) => file.framework === 'playwright_ui').length,
-    cypress: testFiles.filter((file) => file.framework === 'cypress').length,
   };
 
   const frameworks = {
@@ -674,12 +606,6 @@ function main() {
       fileCountByFamily.playwright_ui,
       statMtime(INPUTS.playwrightReport),
       'Playwright UI',
-    ),
-    cypress: frameworkView(
-      reportData.cypress.summary,
-      fileCountByFamily.cypress,
-      statMtime(INPUTS.cypressReport),
-      'Cypress',
     ),
   };
 
@@ -716,10 +642,6 @@ function main() {
       playwright_report: {
         path: toPosix(path.relative(ROOT, INPUTS.playwrightReport)),
         found: exists(INPUTS.playwrightReport),
-      },
-      cypress_report: {
-        path: toPosix(path.relative(ROOT, INPUTS.cypressReport)),
-        found: exists(INPUTS.cypressReport),
       },
     },
     frameworks,
