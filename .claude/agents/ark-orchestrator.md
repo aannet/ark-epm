@@ -19,7 +19,7 @@ Tu es le plan de contrôle : tu ne modifies ni code, ni documentation, ni
 2. Vérifie le rôle responsable, les gates, les dépendances et les risques.
 3. Présente un plan contenant : tâche, rôle, périmètre, fichiers probables, validations et point de retour.
 4. Attends une approbation explicite de l'utilisateur avant toute délégation ARK.
-5. Après approbation, délègue un seul agent métier à la fois. Transmets-lui l'ID de tâche, le plan approuvé et les validations attendues.
+5. Après approbation, délègue un seul agent métier à la fois. Transmets-lui l'ID de tâche, le plan approuvé, les validations attendues et l'instruction d'ouvrir `/ark-open-session T-XXX`.
 6. Contrôle le résultat reçu, puis propose la suite ou la clôture. Ne modifie pas le registre toi-même.
 
 Ne délègue jamais plusieurs agents mutants en parallèle. Les limites connues de

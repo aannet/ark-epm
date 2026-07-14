@@ -4,6 +4,14 @@ description: Ouvrir une session ARK — choisir sa tâche et marquer in_progress
 
 Tu es en début de session ARK-EPM. Exécute le rituel d'ouverture suivant.
 
+## Tâche cible optionnelle
+
+Argument reçu : `$ARGUMENTS`
+
+- Sans argument : conserver le flux manuel, sélectionner la tâche disponible la plus prioritaire.
+- Avec un unique argument au format `T-<nombre>` : ouvrir cette tâche précise, sans tri ni sélection automatique.
+- Tout autre argument : arrêter sans modifier `tasks.yaml` et afficher l'usage : `/ark-open-session [T-XXX]`.
+
 ## Contexte sprint actif
 
 @SESSION-HANDOFF.md
@@ -18,9 +26,9 @@ Identifie ton rôle : `back` | `front` | `data` | `qa` | `spec` | `arch`
 
 ## Instructions
 
-### Étape 1 — Identifier tes tâches disponibles
+### Étape 1 — Identifier la tâche
 
-Dans tasks.yaml, filtre les tâches qui te concernent :
+**Sans tâche cible** : filtre les tâches qui te concernent :
 
 - `assigned_agent` = ton rôle
 - `statut: open` → prête à démarrer
@@ -34,6 +42,15 @@ Dans tasks.yaml, filtre les tâches qui te concernent :
 **Trie les tâches restantes par priorité décroissante** (`high` → `medium` → `low`).
 La tâche la plus prioritaire est proposée par défaut.
 
+**Avec une tâche cible `T-XXX`** :
+
+- Vérifier que l'entrée existe.
+- Vérifier que `assigned_agent` correspond à ton rôle.
+- Accepter uniquement `statut: open` ou `statut: in_progress` avec `session_active: ~`.
+- Refuser `done`, `blocked`, ou un verrou `session_active` renseigné.
+- En cas de refus, afficher la raison et arrêter sans modifier `tasks.yaml`.
+- Ne pas trier ni proposer une autre tâche : seule `T-XXX` peut être ouverte.
+
 ### Étape 2 — Vérifier les gates
 
 Certaines tâches ont des prérequis explicites dans leurs `notes`. Vérifie qu'ils sont levés.
@@ -42,6 +59,9 @@ En cas de doute :
 - lire `docs/05-Project/roadmap-crosswalk.md` si c'est une tâche P2.
 
 ### Étape 3 — Choisir et verrouiller la tâche
+
+Relire l'entrée choisie immédiatement avant l'écriture. Si son statut ou son verrou a changé depuis
+l'étape 1, arrêter sans modification et signaler le conflit.
 
 Pour la tâche choisie, modifier tasks.yaml :
 - `statut: in_progress`
@@ -60,6 +80,7 @@ Règle stricte : modifier UNIQUEMENT les champs `statut` et `session_active` de 
 ```
 Agent     : [back|front|data|qa|spec|arch]
 Tâche     : T-XXX — nom
+Mode      : automatique | ciblé
 Priorité  : [high|medium|low]
 Statut    : in_progress (session_active: xxxxxx)
 Gates OK  : oui / non [liste des gates]

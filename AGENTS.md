@@ -185,7 +185,7 @@ notes: |
 | `blocked` | Gate non levée — voir `notes` pour les prérequis |
 
 ### Rituel d'ouverture
-Utiliser `/ark-open-session` : lit tasks.yaml + SESSION-HANDOFF.md, filtre les tâches disponibles, **trie par priorité décroissante (high → medium → low)**, pose le verrou `session_active`.
+Utiliser `/ark-open-session [T-XXX]` : sans argument, lit tasks.yaml + SESSION-HANDOFF.md, filtre les tâches disponibles, **trie par priorité décroissante (high → medium → low)** et pose le verrou `session_active`. Avec `T-XXX`, vérifie et verrouille exclusivement cette tâche, notamment après délégation par `ark-orchestrator`.
 
 ### Rituel de clôture
 Utiliser `/ark-close-session` : met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff si pertinent.

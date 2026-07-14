@@ -281,9 +281,10 @@ SESSION-HANDOFF archives référencent :
    Entrée dans tasks.yaml : statut: open, session_active: ~
 
 2. OUVERTURE DE SESSION
-   /ark-open-session
+    /ark-open-session [T-XXX]
        ↓
-   Lecture tasks.yaml → filtre par agent + statut open
+    Sans argument : lecture tasks.yaml → filtre par agent + statut open
+    Avec T-XXX : vérification ciblée de la tâche déléguée
        ↓
    Choix tâche → statut: in_progress, session_active: f3a9c1
 

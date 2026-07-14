@@ -1471,3 +1471,24 @@ tasks:
       Livré : ADR-001, politique docs/04-Tech/agent-orchestration.md, 7 définitions Claude
       (.claude/agents/) et configuration OpenCode. Validé : JSON/YAML, `claude -p --agent
       ark-orchestrator` et `opencode run --agent ark-orchestrator` répondent sans outil.
+
+  - id: T-126
+    nom: "Arch — Ajouter l'ouverture ciblée optionnelle à ark-open-session"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-targeted-open-session.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "GOVERNANCE"
+    type: impl
+    feature: "GOVERNANCE-ORCHESTRATION"
+    priorité: high
+    sessions: []
+    notes: |
+      Décision utilisateur du 2026-07-14 : conserver l'ouverture manuelle automatique et
+      accepter optionnellement `T-XXX` après délégation par ark-orchestrator, pour Claude Code
+      et OpenCode. Le mode ciblé refuse toute tâche invalide avant écriture.
+      Livré : commandes Claude/OpenCode, documentation et passage des rôles OpenCode à `mode: all`
+      afin de préserver l'usage direct et la délégation. Validé contre T-999 absent dans les deux
+      runtimes : refus sans écriture et sans fallback OpenCode.

@@ -38,8 +38,9 @@ Demande utilisateur
 ```
 
 L'orchestrateur transmet au rôle métier le plan approuvé, l'ID de tâche et les
-validations attendues. Le rôle conserve ses conventions de domaine et le
-rituel de session existant.
+validations attendues. Le rôle ouvre ensuite `/ark-open-session T-XXX` : il
+verrouille exactement la tâche approuvée, sans sélectionner une autre tâche par
+priorité. Sans argument, `/ark-open-session` conserve le flux manuel existant.
 
 ## Entrées par runtime
 

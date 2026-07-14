@@ -393,6 +393,10 @@ Source : <code>AGENTS.md</code> (racine) · <code>backend/AGENTS.md</code> · <c
 
 **Rôle :** Rituel d'ouverture — identifier la tâche, poser le verrou, charger le contexte.
 
+Sans argument, le rituel sélectionne la tâche disponible la plus prioritaire.
+Avec `/ark-open-session T-XXX`, il vérifie et ouvre uniquement `T-XXX`, sans
+proposer une autre tâche. Ce mode est utilisé après une délégation supervisée.
+
 ```
 ┌── Filtre tasks.yaml ────────────────────────────────────────┐
 │                                                             │

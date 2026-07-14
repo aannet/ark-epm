@@ -72,7 +72,7 @@ docs/05-Project/
 
 | Commande | Outils | Description | Quand l'utiliser |
 |---|---|---|---|
-| `/ark-open-session` | OC + CL | Lit tasks.yaml + SESSION-HANDOFF, filtre les tâches disponibles par agent, pose le verrou `session_active` | Début de chaque session |
+| `/ark-open-session [T-XXX]` | OC + CL | Sans argument, sélectionne la tâche prioritaire ; avec `T-XXX`, vérifie et verrouille cette seule tâche | Début de chaque session |
 | `/ark-close-session` | OC + CL | Met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff dans `docs/05-Project/` | Fin de chaque session |
 | `/ark-task-add` | OC + CL | Ajout rapide d'une tâche avec détection de doublon et Q&A guidé (3 alternatives par champ) | Pense-bête tâches découvertes en cours de session |
 | `/ark-back` | CL | Active le mode agent `back` — NestJS, controllers, services, DTOs | Session backend |
@@ -289,12 +289,12 @@ make test-api-report    # ouvre le rapport dans le navigateur (port dédié Play
 
 ## Rituel de session — Référence rapide
 
-### Ouverture (`/ark-open-session`)
+### Ouverture (`/ark-open-session [T-XXX]`)
 
-1. Lire `SESSION-HANDOFF.md` — contexte sprint global
-2. Filtrer `tasks.yaml` → tâches `open` avec ton `assigned_agent`
-3. Vérifier les gates (prérequis dans `notes`)
-4. Poser le verrou : `statut: in_progress` + `session_active: <6hex>`
+1. Sans argument : lire `SESSION-HANDOFF.md`, filtrer les tâches disponibles de ton rôle et sélectionner la plus prioritaire.
+2. Avec `T-XXX` : vérifier exclusivement cette tâche (rôle, statut, verrou) sans sélectionner d'alternative.
+3. Vérifier les gates (prérequis dans `notes`).
+4. Relire la tâche juste avant la pose du verrou : `statut: in_progress` + `session_active: <6hex>`.
 
 ### Clôture (`/ark-close-session`)
 

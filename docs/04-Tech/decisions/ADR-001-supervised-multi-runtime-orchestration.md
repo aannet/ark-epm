@@ -21,8 +21,9 @@ propriétaires de tâches. Ils ne peuvent pas déléguer ni committer.
 
 ## Conséquences
 
-- OpenCode : `ark-orchestrator` est primaire ; les rôles métier sont des
-  sous-agents avec permission de délégation demandant confirmation.
+- OpenCode : `ark-orchestrator` est primaire ; les rôles métier sont
+  utilisables directement ou comme sous-agents, avec délégation demandant
+  confirmation.
 - Claude Code : `claude --agent ark-orchestrator` active la même politique ;
   les définitions projet sous `.claude/agents/` limitent les délégations aux
   six rôles ARK.
