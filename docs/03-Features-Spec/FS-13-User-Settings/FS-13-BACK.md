@@ -9,7 +9,7 @@ _Version 0.1 — 2026-05-18_
 | **ID** | FS-13-BACK |
 | **Titre** | Espace Utilisateur — Backend |
 | **Priorité** | P1 |
-| **Statut** | `draft` |
+| **Statut** | `done` |
 | **Dépend de** | FS-01 (Auth & RBAC) |
 | **Spec mère** | FS-13 Espace Utilisateur |
 | **Spec front** | FS-13-FRONT — bloquée tant que cette spec n'est pas `done` |
@@ -278,13 +278,15 @@ backend/src/
 
 ## 7. Tests Backend
 
+> **AGENT-DECISION: spec — T-116** : les tests API sont reportés à la tâche T-116-suite / T-118 et seront écrits en **Playwright API** (conformément à la stratégie actuelle du projet, `e2e/AGENTS.md` §1). Les tests unitaires Jest restent pertinents pour les services amendés.
+
 ### Outil par niveau
 
 | Niveau | Outil | Fichier cible | Déléguable à OpenCode |
 |---|---|---|---|
 | Unit (services NestJS) | **Jest** | `src/users/users.service.spec.ts` (amendé) | ✅ Oui |
-| API / contrat HTTP | **Supertest** | `test/FS-13-user-settings.e2e-spec.ts` | ✅ Oui |
-| Sécurité / RBAC | **Supertest** | `test/FS-13-user-settings.e2e-spec.ts` | ❌ **Manuel** |
+| API / contrat HTTP | **Playwright API** | `e2e/tests/users/user-settings.api.spec.ts` | ✅ Oui |
+| Sécurité / RBAC | **Playwright API** | `e2e/tests/users/user-settings.api.spec.ts` | ❌ **Manuel** |
 
 ### Tests Jest — Unit (amendements)
 
@@ -294,17 +296,18 @@ backend/src/
 - [ ] `[Jest]` `AuthService.getProfile()` retourne `preferences: null` si aucune row
 - [ ] `[Jest]` `AuthService.getProfile()` retourne `preferences.language` si row existe
 
-### Tests Supertest — Contrat API
+### Tests Playwright API — Contrat HTTP
 
-- [ ] `[Supertest]` `GET /api/v1/auth/me` authentifié → `200` avec `preferences.language`
-- [ ] `[Supertest]` `GET /api/v1/auth/me` authentifié sans préférences → `200` avec `preferences = null`
-- [ ] `[Supertest]` `POST /api/v1/auth/login` → `200` avec `user.preferences.language = "fr"`
-- [ ] `[Supertest]` `PATCH /api/v1/users/me` `{ "language": "en" }` → `200`, `language = "en"`
-- [ ] `[Supertest]` `PATCH /api/v1/users/me` `{ "language": "fr" }` → `200`, `language = "fr"`
-- [ ] `[Supertest]` `PATCH /api/v1/users/me` sans body → `400`
-- [ ] `[Supertest]` `PATCH /api/v1/users/me` `{ "language": "de" }` → `400`
-- [ ] `[Supertest]` `PATCH /api/v1/users/me` avec langue > 10 caractères → `400`
-- [ ] `[Supertest]` `PATCH /api/v1/users/me` → audit_trail contient 1 ligne avec entity_type='user_preferences' et changed_by non NULL
+- [ ] `[Playwright API]` `GET /api/v1/auth/me` authentifié → `200` avec `preferences.language`
+- [ ] `[Playwright API]` `GET /api/v1/auth/me` authentifié sans préférences → `200` avec `preferences = null`
+- [ ] `[Playwright API]` `POST /api/v1/auth/login` → `200` avec `user.preferences.language = "fr"`
+- [ ] `[Playwright API]` `POST /api/v1/auth/refresh` → `200` avec `user.preferences.language`
+- [ ] `[Playwright API]` `PATCH /api/v1/users/me` `{ "language": "en" }` → `200`, `language = "en"`
+- [ ] `[Playwright API]` `PATCH /api/v1/users/me` `{ "language": "fr" }` → `200`, `language = "fr"`
+- [ ] `[Playwright API]` `PATCH /api/v1/users/me` sans body → `400`
+- [ ] `[Playwright API]` `PATCH /api/v1/users/me` `{ "language": "de" }` → `400`
+- [ ] `[Playwright API]` `PATCH /api/v1/users/me` avec langue > 10 caractères → `400`
+- [ ] `[Playwright API]` `PATCH /api/v1/users/me` → audit_trail contient 1 ligne avec entity_type='user_preferences' et changed_by non NULL
 
 ### Tests Sécurité / RBAC — Manuel ❌
 
@@ -332,7 +335,7 @@ Conventions obligatoires :
 - P2002 intercepté dans un try/catch ciblé → ConflictException — ne jamais laisser remonter l'erreur Prisma brute
 - Requêtes raw : tagged template backtick uniquement — jamais Prisma.raw() avec interpolation
 - Tests unit : jest.mock() sur PrismaService — pas de base réelle
-- Fichier test e2e : backend/test/FS-13-user-settings.e2e-spec.ts
+- Fichier test API : e2e/tests/users/user-settings.api.spec.ts (Playwright API, non Supertest)
 
 Documentation obligatoire (NFR-GOV-001) :
 - À la fin de la session, recopier le contenu YAML de la section §3 (Contrat API) de cette spec dans le fichier `docs/04-Tech/openapi.yaml`
@@ -341,7 +344,8 @@ Documentation obligatoire (NFR-GOV-001) :
 - Ne pas générer de documentation OpenAPI/Swagger automatique — le fichier YAML central est la source de vérité
 
 Implémente la feature "Espace Utilisateur Settings" backend (FS-13-BACK) en respectant strictement le contrat ci-dessous.
-Génère : amendements Prisma schema, amendements AuthService/UsersService/UsersController, UpdateMeDto, tests Jest unit, tests Supertest.
+Génère : amendements Prisma schema, amendements AuthService/UsersService/UsersController, UpdateMeDto, tests Jest unit.
+Les tests API Playwright sont reportés à la tâche T-116-suite / T-118.
 Ne génère PAS les tests marqués [Manuel].
 Ne génère PAS de code frontend.
 Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une question avant de coder.
@@ -357,8 +361,8 @@ Ne fais aucune hypothèse non documentée. Si un point est ambigu, pose une ques
 |---|------|--------------|----------|
 | G-01 | Migration Prisma appliquée | Table `user_preferences` présente en base | ✅ Oui |
 | G-02 | Migration data legacy | Tous les users existants ont une row `user_preferences` avec `language = "fr"` | ✅ Oui |
-| G-03 | Tests Jest passent | `npm run test -- --testPathPattern=users` → 0 failed | ✅ Oui |
-| G-04 | Tests Supertest passent | `npm run test:e2e -- --testPathPattern=FS-13` → 0 failed | ✅ Oui |
+| G-03 | Tests Jest passent | `npm run test -- --testPathPattern=users` → 0 failed (reportés à T-116-suite) | ✅ Oui |
+| G-04 | Tests API Playwright passent | `make test-api -- tests/users/user-settings.api.spec.ts` → 0 failed (reportés à T-116-suite) | ✅ Oui |
 | G-05 | Tests RBAC manuels validés | Les cas [Manuel] §7 vérifiés à la main | ✅ Oui |
 | G-06 | Aucune erreur TypeScript | `npm run build` → 0 error | ✅ Oui |
 | G-07 | Statut mis à jour | Passer `FS-13-BACK` à `done` dans cet en-tête | ✅ Oui |

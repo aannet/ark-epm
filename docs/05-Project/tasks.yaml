@@ -1221,3 +1221,59 @@ tasks:
       - FS-13-BACK.md (endpoint settings, choix langue, structure user preferences)
       - FS-13-FRONT.md (page settings, toggle FR/EN, thème)
       Dépendances : F-02-i18n existant, F-99-Technical-Debt (items i18n).
+
+  - id: T-116
+    nom: "Back — Implémenter FS-13 Espace Utilisateur (user_preferences + PATCH /users/me + amendments auth)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "FS-13"
+    type: impl
+    feature: "FS-13-BACK"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "40a9b5"
+        nom: "Implémentation FS-13-BACK + corrections refresh/openapi + commit"
+    notes: |
+      Dépend de T-115 (spec done).
+      Spec : docs/03-Features-Spec/FS-13-User-Settings/FS-13-BACK.md
+      Livré (commit) :
+        D-01 : migration Prisma UserPreference (1:1 users, language VarChar(10), default "fr")
+        D-02 : amendment AuthService.getProfile() + login/refresh → preferences.language
+        D-03 : nouveau endpoint PATCH /api/v1/users/me (UpdateMeDto, JWT uniquement)
+        D-04 : amendment UsersService.create() → auto-create UserPreference au signup
+        D-05 : migration data legacy → backfill user_preferences pour users existants
+        D-06 : correction auth.controller.ts refresh pour inclure preferences
+        D-07 : mise à jour docs/04-Tech/openapi.yaml (UserResponse.preferences + PATCH /users/me)
+      Tests reportés à T-116-suite / T-118 : Jest unit (services) + Playwright API (endpoints).
+      FS-13-BACK statut `done`. Bloque T-117 (front) — débloquée.
+
+  - id: T-117
+    nom: "Front — Implémenter FS-13 Espace Utilisateur (SettingsPage + avatar dropdown + i18n dynamique)"
+    statut: open
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: ~
+    sprint: S5
+    theme: "FS-13"
+    type: impl
+    feature: "FS-13-FRONT"
+    priorité: medium
+    sessions: []
+    notes: |
+      Prête à démarrer : T-116 done (2026-07-14). Gates G-01..G-10 validées (tests reportés à T-116-suite).
+      Spec : docs/03-Features-Spec/FS-13-User-Settings/FS-13-FRONT.md
+      Scope :
+        - SettingsPage (/settings) avec Select langue FR/EN, sauvegarde immédiate
+        - Avatar + dropdown dans TopBar (nom + Paramètres + Déconnexion)
+        - Suppression footer Sidebar (nom user + bouton logout)
+        - Amendment store/auth.ts → getLanguage() helper
+        - Amendment types/auth.ts → preferences dans UserResponse
+        - Amendment i18n/index.ts → support dynamique changeLanguage()
+        - Création en.json minimal (settings + common + nav)
+        - Amendment App.tsx → chargement langue au boot via /auth/me
