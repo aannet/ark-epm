@@ -47,9 +47,9 @@ notes: |
    - Crée l'entrée complète avec `assigned_agent` et `session_active: ~`
 
 4. **Règles strictes** :
-   - Modifier UNIQUEMENT les entrées concernées
-   - Ne jamais reformater l'intégralité du fichier
-   - Ne jamais supprimer une entrée existante
+    - Modifier UNIQUEMENT les entrées concernées
+    - Ne jamais reformater l'intégralité du fichier
+    - Ne jamais supprimer une entrée existante hors archivage de l'étape 3
 
 ---
 
@@ -68,8 +68,29 @@ Si la session produit un contexte important à transmettre à un autre agent sur
 
 2. Dans tasks.yaml, sur la tâche concernée, ajoute :
    ```yaml
-   handoff_ref: "docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md"
+    handoff_ref: "docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md"
    ```
+
+---
+
+## Étape 3 — Archiver la tâche terminée
+
+Pour chaque tâche touchée qui vient de passer à `statut: done` lors de cette clôture :
+
+1. Copie l'entrée complète, sans modifier ses champs, à la fin de :
+   ```
+   docs/05-Project/tasks-done.yaml
+   ```
+2. Supprime ensuite cette entrée de :
+   ```
+   docs/05-Project/tasks.yaml
+   ```
+3. Préserve l'ID, les champs `sessions[]`, `handoff_ref`, `date_resolution` et toutes les `notes`.
+
+Règles strictes :
+- Cet archivage est la seule exception à l'interdiction de supprimer une entrée existante.
+- Ne jamais archiver une tâche `open`, `in_progress` ou `blocked`.
+- Ne jamais reformater l'intégralité de l'un ou l'autre fichier.
 
 ---
 
@@ -87,8 +108,11 @@ Si la session produit un contexte important à transmettre à un autre agent sur
 
 ```
 tasks.yaml :
-  T-XXX : statut → done / session_active libéré
+  T-XXX : session_active libéré / statut → open
   T-XXX : nouvelle entrée créée
+
+tasks-done.yaml :
+  T-XXX : tâche terminée archivée
   
 Handoff archivé : docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md
   (ou : aucun handoff archivé cette session)

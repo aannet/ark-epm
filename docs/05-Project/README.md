@@ -60,7 +60,8 @@ docs/05-Project/
 ├── 20260408/
 │   ├── SESSION-HANDOFF-back-fs07.md  ← archivé par back
 │   └── SESSION-HANDOFF-front-fs05.md ← archivé par front (parallèle)
-├── tasks.yaml                         ← source de vérité tâches
+├── tasks.yaml                         ← registre actif (open, in_progress, blocked)
+├── tasks-done.yaml                    ← archive append-only des tâches terminées
 ├── roadmap.yaml                       ← source de vérité features/sprints (dashboard)
 └── tasks-dashboard/
     └── index.html                     ← dashboard HTML standalone
@@ -73,7 +74,7 @@ docs/05-Project/
 | Commande | Outils | Description | Quand l'utiliser |
 |---|---|---|---|
 | `/ark-open-session [T-XXX]` | OC + CL | Sans argument, sélectionne la tâche prioritaire ; avec `T-XXX`, vérifie et verrouille cette seule tâche | Début de chaque session |
-| `/ark-close-session` | OC + CL | Met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff dans `docs/05-Project/` | Fin de chaque session |
+| `/ark-close-session` | OC + CL | Met à jour tasks.yaml, archive chaque tâche terminée dans tasks-done.yaml, libère `session_active` et archive le handoff dans `docs/05-Project/` | Fin de chaque session |
 | `/ark-task-add` | OC + CL | Ajout rapide d'une tâche avec détection de doublon et Q&A guidé (3 alternatives par champ) | Pense-bête tâches découvertes en cours de session |
 | `/ark-back` | CL | Active le mode agent `back` — NestJS, controllers, services, DTOs | Session backend |
 | `/ark-front` | CL | Active le mode agent `front` — React, MUI v9, hooks, i18n | Session frontend |
@@ -300,8 +301,9 @@ make test-api-report    # ouvre le rapport dans le navigateur (port dédié Play
 
 1. Mettre à jour les tâches touchées dans `tasks.yaml` (`done` ou `open`, `session_active: ~`)
 2. Ajouter l'entrée `sessions[]` avec `tool`, `id`, `nom`
-3. Si contexte à transmettre → créer `docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md`
-4. Référencer l'archive dans `handoff_ref` de la tâche
+3. Déplacer chaque tâche passée à `done` dans `tasks-done.yaml`, en préservant son entrée complète
+4. Si contexte à transmettre → créer `docs/05-Project/<date>/SESSION-HANDOFF-<agent>-<slug>.md`
+5. Référencer l'archive dans `handoff_ref` de la tâche avant son déplacement si elle est terminée
 
 ---
 

@@ -188,13 +188,14 @@ notes: |
 Utiliser `/ark-open-session [T-XXX]` : sans argument, lit tasks.yaml + SESSION-HANDOFF.md, filtre les tâches disponibles, **trie par priorité décroissante (high → medium → low)** et pose le verrou `session_active`. Avec `T-XXX`, vérifie et verrouille exclusivement cette tâche, notamment après délégation par `ark-orchestrator`.
 
 ### Rituel de clôture
-Utiliser `/ark-close-session` : met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, archive le handoff si pertinent.
+Utiliser `/ark-close-session` : met à jour tasks.yaml (statuts, sessions[]), libère `session_active`, déplace chaque tâche clôturée en `done` vers tasks-done.yaml et archive le handoff si pertinent.
 
 ### Format d'ID
 Lire le dernier `id` dans `tasks.yaml`, incrémenter de 1 avec padding 3 chiffres. Ex : `T-012` → `T-013`.
 
 ### Règle de modification
 Ne jamais supprimer une entrée existante. Les corrections se font par mise à jour des champs.
+Exception : une tâche qui vient de passer en `done` lors de `/ark-close-session` est déplacée intégralement de tasks.yaml vers tasks-done.yaml ; elle est archivée, jamais perdue.
 Ne jamais reformater l'intégralité du fichier — modifier uniquement les entrées concernées.
 
 ---

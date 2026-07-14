@@ -1761,9 +1761,738 @@ tasks:
       - tool: OC
         id: "b9e2d1"
         nom: "refactor hasInvalidPathChars() via charCodeAt() — regex supprimée"
+      - tool: OC
+        id: "553729"
+        nom: "fix no-control-regex + 65 no-unused-vars + dead code — commit 553729f"
     notes: |
       ESLint rule no-control-regex — backend/src/tags/tags.service.ts:15
+      Regex /[\\"'\x00-\x1F<>]/ remplacée par hasInvalidPathChars() via charCodeAt().
+      65 warnings no-unused-vars corrigés sur 36 fichiers (backend, e2e, frontend).
+      Appel mort getAncestorPaths() retiré de resolveOrCreate() (méthode conservée — API publique F-03).
+
+      Historique de l'archive précédente :
       Regex contenant des caractères de contrôle (\x00, \x1f) — potentiellement dangereux.
       Commande : make megalinter-quality → ERROR-TYPESCRIPT_ES.log pour détail.
       Fix : const INVALID_PATH_CHARS supprimée, remplacée par hasInvalidPathChars(str)
       utilisant charCodeAt() avec bornes ASCII explicitement documentées (0–31, 34, 39, 60, 62, 92).
+  - id: T-012
+    nom: "Débloquer sélecteur Owner — API Users mock (F-999 Item 12b)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: "20260502/SESSION-HANDOFF-back-t012.md"
+    date_resolution: 2026-05-03
+    sprint: S3
+    theme: "F-999"
+    type: bug
+    feature: "FS-06-FRONT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "dac536"
+        nom: "implémentation filtre users isActive"
+    notes: |
+       2026-05-03 — F-999 Item 12b résolu côté back+front :
+       - GET /api/v1/users?isActive=true implémenté côté back.
+       - Nouveau hook `useUsers()` créé dans `frontend/src/api/users.ts`.
+       - `MOCK_USERS` supprimé au profit de l'appel API dans
+         `ApplicationNewPage.tsx` et `ApplicationEditPage.tsx`.
+       - Fallback ajouté en édition : conservation du owner courant même si inactif.
+       - Gate validée : sélecteur Owner peuplé sur création/édition.
+
+  - id: T-079
+    nom: "Back — Sécurité : ajouter @RequirePermissions sur les endpoints write de tags"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-16
+    sprint: S4
+    theme: "F-03"
+    type: bug
+    feature: "F-03-TAGS"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "e4f2a9"
+        nom: "fix @RequirePermissions tags:write x3 + tags:read x2 — build PASS"
+    notes: |
+      Vulnérabilité de sécurité confirmée (revue 2026-04-29, confiance 9/10).
+      Le PermissionsGuard retourne true si @RequirePermissions est absent.
+      Tout utilisateur authentifié (rôle read-only inclus) peut :
+        - POST /tags/resolve → créer des valeurs de tag
+        - PUT /tags/entity/:type/:id → remplacer les tags d'une entité
+        - PUT /tags/entity/:type/:id/batch → écraser tous les tags d'une entité
+      Fix : ajouter @RequirePermissions('tags:write') sur les 3 méthodes write.
+      Défense : ajouter @RequirePermissions('tags:read') sur autocomplete + getEntityTags.
+      Fichier : backend/src/tags/tags.controller.ts
+      Référence spec : F-999 Item 25.
+
+  - id: T-075
+    nom: "Frontend — Moderniser l'affichage des pages NEW/EDIT pour Applications"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-04-29
+    sprint: S4
+    theme: "FS-06"
+    type: impl
+    feature: "FS-06-FRONT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "a7f3c2"
+        nom: "modernisation ApplicationNewPage + ApplicationEditPage + ApplicationForm — pattern MUI v9 post-T-064"
+    notes: |
+      Appliquer le pattern de design modernisé (post-T-064 MUI v9) aux pages
+      ApplicationNewPage et ApplicationEditPage.
+      Cohérence visuelle avec ApplicationDetailPage (T-065) et les patterns MUI v9 (T-064).
+
+  - id: T-076
+    nom: "Frontend — Évaluer et moderniser les pages NEW/EDIT des autres entités (Business Cap, Interfaces, Data Object, IT Components, Fournisseurs)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260429/SESSION-HANDOFF-front-t076.md"
+    date_resolution: 2026-04-29
+    sprint: S4
+    theme: "F-999"
+    type: review
+    feature: "F-999-FRONT-FORMS"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "k2e6a4"
+        nom: "modernisation 8 wrappers NEW/EDIT — pattern MUI v9 post-T-075"
+      - tool: OC
+        id: "k2e6a4"
+        nom: "review fixes + commit T-075/T-076"
+    notes: |
+      Suite T-075 : après modernisation des formulaires Applications,
+      évaluer l'état des pages NEW/EDIT sur les autres entités :
+      - BusinessCapabilityNew/Edit
+      - InterfaceNew/Edit
+      - DataObjectNew/Edit
+      - ITComponentNew/Edit
+      - ProviderNew/Edit (Fournisseurs)
+      Identifier les écarts par rapport au pattern MUI v9 et planifier les corrections.
+        Dépend de : T-075 done (pattern de référence établi).
+
+  - id: T-082
+    nom: "Interface list — nom manquant + filtre libre sur le nom"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-03
+    sprint: S4
+    theme: "FS-08"
+    type: bug
+    feature: "FS-08-FRONT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "0db803"
+        nom: "clôture T-082 + test e2e minimal liste interfaces"
+    notes: |
+      La liste des Interfaces (InterfaceList) n'affiche pas le nom de l'interface.
+      Le nom doit être le premier champ affiché.
+      Ajouter un filtre de recherche libre sur le nom.
+
+  - id: T-083
+    nom: "Back — Suppression application impossible (DELETE /applications/:id → 500)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-02
+    sprint: S4
+    theme: "FS-06"
+    type: bug
+    feature: "FS-06-BACK"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "a4c2d1"
+        nom: "fix middlewareInterfaces dependency check + remove dead P2003 catch"
+    notes: |
+      Impossible de supprimer une application même sans liaisons.
+      Exemple : applications.ts:124
+        DELETE http://localhost:5173/api/v1/applications/1dab9ce7-bc55-4f34-8a61-129ee6be8e4a
+        500 (Internal Server Error)
+      
+      Cause : getDependencies() oubliait de compter middlewareInterfaces.
+      Fix : ajouter middlewareInterfaces au _count.select.
+      Cleanup : retirer le try/catch P2003 dead code (pre-check suffit).
+      Tests : 21/21 PASS (FS-06 e2e).
+
+  - id: T-084
+    nom: "Data — Remettre à jour schema.sql et générer un diagramme Mermaid propre"
+    statut: done
+    assigned_agent: data
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-02
+    sprint: S4
+    theme: "QA"
+    type: doc
+    feature: "DATA-SCHEMA"
+    priorité: medium
+    sessions:
+      - tool: CL
+        id: "a8f3c1"
+        nom: "schema.sql v1.0 + docs/04-Tech/README.md avec diagramme Mermaid"
+
+  - id: T-085
+    nom: "Spec — FS-09 Dependency Graph (back + front)"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260503/SESSION-HANDOFF-spec-t085.md"
+    date_resolution: 2026-05-03
+    sprint: S4
+    theme: "FS-09"
+    type: spec
+    feature: "FS-09-BACK"
+    priorité: high
+    sessions:
+      - tool: CL
+        id: "f3a9c2"
+        nom: "spec FS-09-BACK + FS-09-FRONT rédigées (draft) — interview conception + 4 fichiers"
+    notes: |
+      Rédiger FS-09-BACK et FS-09-FRONT pour débloquer T-003.
+      User stories : FS-09-Dependency-Graph-userstories.md (rédigées, P1/P2 split fait).
+      API : GET /api/v1/graph?focalType=&focalId=&depth=&layers= (D7).
+      Permission : applications:read. PNS-02 drawer existant. Dagre layout P1.
+      US P2 : US-08, US-09, US-11, US-12. D12 GroupNode Domain = P2.
+      Gate US-04 : T-086 (BC recursive WITH RECURSIVE) créée.
+
+  - id: T-087
+    nom: "Back — Implémenter FS-09 Dependency Graph (backend/src/graph/)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260503/SESSION-HANDOFF-back-t087.md"
+    date_resolution: 2026-05-03
+    sprint: S4
+    theme: "FS-09"
+    type: impl
+    feature: "FS-09-BACK"
+    priorité: high
+    sessions:
+      - tool: CL
+        id: "fs09bk"
+        nom: "implémentation complète module graph/ — BFS x6 focalTypes, 8/8 e2e PASS, G-01 à G-09 validées"
+    notes: |
+      Créer module backend/src/graph/ avec GET /api/v1/graph endpoint.
+      BFS traversal focalType x6, depth 1-3, layers CSV.
+      Permission : applications:read (réutilisation).
+      Gates G-01 à G-09 validées. G-10 (BC récursif) bloquée par T-086.
+      Spec : docs/03-Features-Spec/FS-09-Dependency-Graph/FS-09-Dependency-Graph-back.md
+
+  - id: T-098
+    nom: "Arch — Ajouter eslint-plugin-sonarjs (cognitive-complexity) au pipeline MegaLinter"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260504/SESSION-HANDOFF-arch-t098.md"
+    date_resolution: 2026-05-04
+    sprint: S4
+    theme: "QA"
+    type: impl
+    feature: "QA-ESLINT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "0c5f42"
+        nom: "implémentation sonarjs backend + frontend, MegaLinter séparé, Makefile targets"
+    notes: |
+      Ajouter l'analyse de complexité cognitive au pipeline ESLint/MegaLinter.
+      Scope :
+      - Installer eslint-plugin-sonarjs (npm install --save-dev eslint-plugin-sonarjs)
+      - Activer la règle sonarjs/cognitive-complexity (warn à 15)
+      - Vérifier compatibilité avec la configuration MegaLinter existante (.eslintrc / eslint.config.*)
+      Référence : MegaLinter supporte nativement les plugins ESLint via la config locale.
+
+  - id: T-099
+    nom: "Fix test ZAP — injections persistées en base Data Objects + cleanup"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260504/SESSION-HANDOFF-back-t099.md"
+    date_resolution: 2026-05-04
+    sprint: S4
+    theme: "QA"
+    type: bug
+    feature: "QA-DAST"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "a5c2f1"
+        nom: "DTOs data-objects + whitelist:true + tests injection + SQL cleanup"
+    notes: |
+      Le scan OWASP ZAP a persisté des payloads de fuzzing dans la table data_objects
+      (screenshot : docs/tmp/2026-05-04 215832_bugzap.png).
+      Exemples visibles : "ZAP;cat /etc/passwd;", "ZAP|type %SYSTEMROOT%\win.ini",
+      "http://www.google.com/search?q=ZAP", "]]>", etc.
+
+      Cause : POST /api/v1/data-objects sans validation stricte + scan ZAP écrit en DB partagée.
+
+      Fix côté back (prioritaire) :
+      - Validation renforcée sur CreateDataObjectDto (name, description)
+      - Rejeter les payloads de type command injection, XSS, ou URLs malformées
+
+       Fix côté qa (secondaire) :
+       - Isoler l'env DAST (DB dédiée ou mode passif ZAP)
+       - Cleanup script post-scan pour retirer les entrées de test
+
+  - id: T-101
+    nom: "Back — Harmoniser validation injection sur tous les DTOs (suite T-099)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-05
+    sprint: S4
+    theme: "QA"
+    type: debt
+    feature: "QA-DAST"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "a5c2f1"
+        nom: "audit DTOs + F-999 Item 28 + plan implementation 6 entités"
+      - tool: OC
+        id: "f3d9e1"
+        nom: "hardening 7 entités (13 DTOs) + 14 nouveaux tests injection — 139/140 PASS"
+      - tool: OC
+        id: "20adf5"
+        nom: "revue code + fix @IsNotEmpty TagDimension + fix test cleanup interfaces + analyse ZAP threat"
+      - tool: OC
+        id: "c7f3a1"
+        nom: "commit résiduel T-101 — DTOs + tests validation (commit fad07bd)"
+    notes: |
+      Suite T-099 (data-objects validation hardening) : appliquer les mêmes contrôles
+      à toutes les entités EA. Référence pattern : CreateDataObjectDto post-T-099.
+
+      Audit préalable (2026-05-04) identifie ces gaps critiques/high :
+
+      CRITIQUE (aucune garde sur champs libres) :
+      - Interface : name, description, comment, technicalContact
+      - Application : description, comment, lifecycleStatus
+
+      HIGH (@Transform trim manquant, @MaxLength présent) :
+      - ItComponent : description, comment, technology, type
+
+      MEDIUM (@Matches manquant sur name, rest OK) :
+      - Domain, Provider, BusinessCapability, Application, TagDimension
+
+      Contrôles à appliquer sur ALL create + update DTOs :
+
+      Name fields (tous) :
+      + @Matches(/^[^;<>|`\\{}\[\]\x00-\x1F]*$/) — rejeter caractères injection
+      + @NotContains('://') — rejeter URL schemes
+      + @Transform trim si absent
+
+      Description/Comment/Text fields (tous libres) :
+      + @Transform(trim) si absent
+      + @MaxLength(2000) si absent
+      + Cohérence avec pattern data-objects
+
+      Tests requis :
+      - Chaque *.validation.api.spec.ts concerné : ajouter 1 test injection POST + PATCH
+      - Validation 400 sur payloads: ZAP;*, ZAP|*, http://, ]]>, `backtick`
+      - Sanity check: valid name avec espaces/tirets acceptée
+
+      Lié à F-999 Item 28 (tech debt).
+      Estimé 2-3 jours (6 DTOs × 2 files + tests + validation).
+
+  - id: T-102
+    nom: "Spec — FS-12 Dashboard : rédiger FS-12-dashboard-back.md + FS-12-dashboard-front.md"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-spec-t102.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: spec
+    feature: "FS-12"
+    priorité: high
+    sessions:
+      - tool: CL
+        id: "f2a8c1"
+        nom: "spec FS-12-BACK + FS-12-FRONT rédigées (draft) — 2 fichiers, gates G-01..G-11, correction store/auth"
+    notes: |
+      Gate avant toute implémentation FS-12.
+      Produire deux fichiers de spec opérationnelle :
+      - FS-12-dashboard-back.md : HomeModule NestJS, GET /api/v1/home/summary (Promise.allSettled),
+        migration Prisma user_domain_scope (D-01), amendment /auth/me domainIds[] (D-02),
+        domain filtering ApplicationsService + BusinessCapabilitiesService (D-04, D-05).
+      - FS-12-dashboard-front.md : home page 4 zones (layout V0), store/auth domainIds (correction :
+        le projet utilise un store in-memory, pas React Context), US-HOME-09 user admin multi-select.
+      Référence : docs/03-Features-Spec/FS-12-Dashboard/FS-12-dashboard-userstories.md
+      (9 US, 7 dépendances techniques, décisions architecturales actées).
+
+  - id: T-103
+    nom: "Back — Implémenter FS-12 Dashboard backend (user_domain_scope + HomeModule BFF + amendments)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-back-t103.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-BACK"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "c7f3a1"
+        nom: "implémentation FS-12-BACK : UserDomainScope + HomeModule + amendments — G-01..G-11 validées"
+    notes: |
+      Scope complet backend FS-12 (dépend T-102) :
+      D-01 : migration Prisma — modèle UserDomainScope (@@map user_domain_scope, N:N User↔Domain, pas de champ role en P1).
+      D-02 : amendment AuthService.getProfile() — inclure domainIds[] + noms des domaines assignés.
+      D-03 : nouveau HomeModule — GET /api/v1/home/summary, orchestre 6 appels internes via
+             Promise.allSettled(), réponse 200 toujours (champs null si erreur partielle).
+      D-04 : amendment ApplicationsService — count() + findAll() filtré sur domainIds[] du user.
+      D-05 : amendment BusinessCapabilitiesService — count() filtré sur domainIds[].
+      Convention scope : 0 domaine assigné = portée globale (pas de flag is_global_scope).
+
+  - id: T-104
+    nom: "QA-back — Tests API FS-12 Dashboard (HomeModule + scope domaine)"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t104.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: test
+    feature: "FS-12-BACK"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "0e5d84"
+        nom: "tests API FS-12 home/summary + scope domaine + RBAC 403"
+    notes: |
+      Dépend T-103.
+      Scope : e2e/tests/home/home-summary.api.spec.ts
+      - GET /api/v1/home/summary → 200 avec les 4 zones peuplées
+      - Scope domaine : user avec domaines assignés vs user global (0 domaine)
+      - Erreur partielle : champ null si sous-service échoue, reste 200
+      - RBAC : 401 sans token, 403 si permission manquante (applications:read)
+
+  - id: T-105
+    nom: "Front — Implémenter FS-12 Dashboard (home page 4 zones + US-HOME-09 user admin)"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-front-t105.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-FRONT"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "f5a3d1"
+        nom: "implémentation FS-12-FRONT dashboard + US-HOME-09 + corrections review"
+    notes: |
+      Dépend T-103.
+      Scope US-HOME-01..08 : page d'accueil route `/`
+      - Zone 1 : 4 tuiles KPI (Bandeau, cliquables → navigate)
+      - Zone 2 : fiches incomplètes (5 max) + contrats expirant 90j (5 max)
+      - Zone 3 : bar chart lifecycle via LinearProgress MUI (pas de lib graphique externe)
+      - Zone 4 : gauge data quality (LinearProgress, couleur dynamique error/warning/success)
+      - Zone transverse : bienvenue contextualisé (1/N/global domaine), EmptyState si 0 app
+      Layout V0 : Zone1 full width → Zone2 full width → Zones3+4 côte à côte 2/3+1/3, maxWidth xl.
+      US-HOME-09 : champ multi-select domaines dans page création/édition utilisateur (admin).
+      AuthContext : étendre le store auth avec domainIds[] (issus de /auth/me).
+
+  - id: T-106
+    nom: "QA-front — Tests e2e FS-12 Dashboard (parcours Playwright)"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t106.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: test
+    feature: "FS-12-FRONT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "b701a2"
+        nom: "tests e2e dashboard FS-12 UI (13 cas)"
+    notes: |
+      Dépend T-105.
+      Parcours à couvrir (Playwright UI) :
+      - Marc (AE, 1 domaine) : tuiles KPI visibles, navigation depuis tuile, fiches incomplètes listées
+      - Thierry (CIO, 0 domaine) : portée globale, bandeau "Tous les domaines"
+      - User lecture seule (pas applications:read) : section "À traiter" masquée
+      - EmptyState : périmètre sans application → zones 2/3/4 remplacées par EmptyState
+
+  - id: T-108
+    nom: "Playwright — l'intégralité des tests UI plante contrairement aux tests backend"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t108.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "QA"
+    type: bug
+    feature: "QA-E2E-UI"
+    priorité: high
+    sessions:
+      - tool: OC
+        id: "6f4b2a"
+        nom: "stabilisation UI Playwright + provisionnement readonly"
+    notes: |
+      Résolution complète de la panne UI Playwright.
+      Actions principales :
+      - Makefile `test-e2e` local-first + fallback Docker
+      - `e2e/playwright.config.ts` baseURL local + `globalSetup`
+      - `e2e/global-setup.ts` : provisionnement idempotent rôle/user `ReadOnly`
+      - suppression des `test.skip(!readonlyOk, ...)` sur les specs UI read-only
+      - stabilisation des helpers login (`/auth/me`) et sélecteurs fragiles
+      Validation : exécution UI verte et compte readonly opérationnel.
+
+  - id: T-109
+    nom: "MegaLinter — corriger plugin sonarjs ESLint v8 + calibrer jscpd sur codebase réelle"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "QA"
+    type: debt
+    feature: "QA-MEGALINTER"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "a7c91f"
+        nom: "correction sonarjs + calibration jscpd"
+    notes: |
+      Cause sonarjs : eslint-plugin-sonarjs v4.0.2 incompatible avec le format legacy ESLint v8 de MegaLinter.
+      Fix : PRE_COMMANDS dans .mega-linter.yml installe sonarjs@1.0.4 dans /node-deps/ au runtime
+      (dernière version supportant ESLint v8 legacy config + peerDep ^8||^9).
+
+      jscpd recalibré pour ne mesurer que la codebase réelle :
+      - Exclusions .agents/**, .claude/**, .opencode/**
+      - languages: ["typescript", "javascript"]
+      - threshold: 10 → 8
+
+      Résultat : taux de duplication mesuré sur vraie codebase à 8.35%, HTML copy-paste restauré.
+      Fichiers modifiés : .mega-linter.yml, backend/.eslintrc.cjs, .jscpd.json.
+
+  - id: T-112
+    nom: "Front — Dashboard : layout 2 lignes sous KPIs + tooltips sur chaque bloc"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-front-t112.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-FRONT"
+    priorité: low
+    sessions:
+      - tool: OC
+        id: "9f2b6c"
+        nom: "dashboard home layout+tooltips"
+    notes: |
+      Deux améliorations subtiles du dashboard d'accueil (post-T-105).
+
+      1. Layout — repositionner les blocs sous les KPIs :
+         Actuellement Zone 3 + Zone 4 côte à côte (2/3 + 1/3).
+         Cible : 2 lignes distinctes sous la bande KPIs (Zone 1),
+         pour plus de lisibilité et d'espace par bloc.
+
+      2. Tooltips — étendre à tous les blocs :
+         "Qualité des données" possède déjà un tooltip définissant sa métrique.
+         Ajouter un tooltip équivalent sur chacun des autres blocs
+         (KPIs, fiches incomplètes/contrats, distribution cycle de vie).
+         Chaque tooltip doit expliquer ce que le bloc mesure / comment il se calcule.
+
+      Fichier cible : frontend/src/pages/home/HomePage.tsx
+
+  - id: T-113
+    nom: "QA — Dashboard coverage : aligner comptage Playwright et inventaire fichiers"
+    statut: done
+    assigned_agent: qa
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-qa-t108.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "QA"
+    type: bug
+    feature: "QA-REPORTS"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "6f4b2a"
+        nom: "fix aggregate-coverage Playwright path mapping"
+    notes: |
+      Correction `scripts/aggregate-coverage.js` dans `resolveProjectPath`.
+      Problème : `spec.file` Playwright est relatif à `e2e/tests` (ex: `applications/...`),
+      ce qui empêchait le matching avec l'inventaire (`e2e/tests/...`) et masquait les stats par fichier.
+      Fix : normalisation explicite des chemins Playwright vers `e2e/tests/${cleaned}`.
+      Puis régénération de `docs/05-Project/test-coverage-dashboard/coverage-data.json`.
+
+  - id: T-114
+    nom: "FS-12 — Dashboard polish : BC context dans fiches incomplètes + ancrage tooltip KPI"
+    statut: done
+    assigned_agent: front
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260506/SESSION-HANDOFF-front-fs12-dashboard-polish.md"
+    date_resolution: 2026-05-06
+    sprint: S5
+    theme: "FS-12"
+    type: impl
+    feature: "FS-12-FRONT"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "e6b4f2"
+        nom: "évolution widget fiches incomplètes + fix ancrage tooltip KPI"
+    notes: |
+      Ajustements post-T-105/T-112 du dashboard Home.
+      Réalisé :
+      - Widget "Fiches incomplètes" enrichi avec contexte Business Capability
+        (`businessCapability` + `ancestors[]`) et fallback i18n si non renseigné.
+      - Règle N:N app↔BC déterministe : profondeur max, tie-break `name ASC`, puis `id ASC`.
+      - Rendu UI gauche→droite (nom + breadcrumb BC à gauche, chips manquants pointillés neutres à droite).
+      - KPI band : icône tooltip "i" ancrée à droite dans chaque tuile.
+
+      Impacts transverses appliqués et alignés :
+      - Backend (DTO/service/tests), frontend (types/composants/i18n), OpenAPI et specs FS-12.
+      - Build frontend validé.
+      - Validation backend locale à rejouer dans un env disposant de `jest`/`nest`.
+
+  - id: T-115
+    nom: "Spec — Espace Utilisateur : Settings + i18n EN (FS-13)"
+    statut: done
+    assigned_agent: spec
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260518/SESSION-HANDOFF-spec-t115.md"
+    date_resolution: 2026-05-18
+    sprint: S5
+    theme: "FS-13"
+    type: spec
+    feature: "FS-13-BACK"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "b749a5"
+        nom: "rédaction FS-13-userstories.md + FS-13-BACK.md + FS-13-FRONT.md — interview 13 questions, 7 décisions structurantes verrouillées"
+    notes: |
+      Périmètre : Settings utilisateur + traduction anglaise complète.
+      Livrables :
+      - FS-13-userstories.md (US en préalable)
+      - FS-13-BACK.md (endpoint settings, choix langue, structure user preferences)
+      - FS-13-FRONT.md (page settings, toggle FR/EN, thème)
+      Dépendances : F-02-i18n existant, F-99-Technical-Debt (items i18n).
+
+  - id: T-116
+    nom: "Back — Implémenter FS-13 Espace Utilisateur (user_preferences + PATCH /users/me + amendments auth)"
+    statut: done
+    assigned_agent: back
+    session_active: ~
+    handoff_ref: ~
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "FS-13"
+    type: impl
+    feature: "FS-13-BACK"
+    priorité: medium
+    sessions:
+      - tool: OC
+        id: "40a9b5"
+        nom: "Implémentation FS-13-BACK + corrections refresh/openapi + commit"
+    notes: |
+      Dépend de T-115 (spec done).
+      Spec : docs/03-Features-Spec/FS-13-User-Settings/FS-13-BACK.md
+      Livré (commit) :
+        D-01 : migration Prisma UserPreference (1:1 users, language VarChar(10), default "fr")
+        D-02 : amendment AuthService.getProfile() + login/refresh → preferences.language
+        D-03 : nouveau endpoint PATCH /api/v1/users/me (UpdateMeDto, JWT uniquement)
+        D-04 : amendment UsersService.create() → auto-create UserPreference au signup
+        D-05 : migration data legacy → backfill user_preferences pour users existants
+        D-06 : correction auth.controller.ts refresh pour inclure preferences
+        D-07 : mise à jour docs/04-Tech/openapi.yaml (UserResponse.preferences + PATCH /users/me)
+      Tests reportés à T-116-suite / T-118 : Jest unit (services) + Playwright API (endpoints).
+      FS-13-BACK statut `done`. Bloque T-117 (front) — débloquée.
+
+  - id: T-124
+    nom: "Arch — Corrections de cohérence gouvernance suite à l'audit croisé (3 revues IA)"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-croisement-gouvernance.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "GOVERNANCE"
+    type: debt
+    feature: "GOVERNANCE-CONSISTENCY"
+    priorité: high
+    sessions: []
+    notes: |
+      Suite au croisement des 3 audits docs/05-Project/20260714/global-review-*.md.
+      Corrections appliquées (voir handoff_ref pour le détail complet) :
+      - MUI v5→v9 dans ark-front.md et opencode.json
+      - Ajout agents/commandes ark-arch et ark-spec (manquants)
+      - Chemin DESIGN.md corrigé (frontend/AGENTS.md, docs/AGENTS.md)
+      - docs/AGENTS.md §1 arborescence dupliquée nettoyée, §3 table specs rafraîchie
+      - Schéma YAML tasks.yaml corrigé dans AGENTS.md et ark-close-session.md
+      - SESSION-HANDOFF.md racine entièrement rafraîchi contre tasks.yaml réel
+      Décisions structurelles non tranchées déportées vers T-118 à T-123.
+
+  - id: T-125
+    nom: "Arch — Mettre en place l'orchestration supervisée ARK pour OpenCode et Claude Code"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-orchestration-supervisee.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "GOVERNANCE"
+    type: impl
+    feature: "GOVERNANCE-ORCHESTRATION"
+    priorité: high
+    sessions: []
+    notes: |
+      Décision utilisateur du 2026-07-14 : mode supervisé et compatibilité OpenCode + Claude Code.
+      Périmètre : agent primaire non-mutant, sous-agents métier sans délégation récursive,
+      approbation avant délégation mutante, politique commune et ADR.
+      Livré : ADR-001, politique docs/04-Tech/agent-orchestration.md, 7 définitions Claude
+      (.claude/agents/) et configuration OpenCode. Validé : JSON/YAML, `claude -p --agent
+      ark-orchestrator` et `opencode run --agent ark-orchestrator` répondent sans outil.
+
+  - id: T-126
+    nom: "Arch — Ajouter l'ouverture ciblée optionnelle à ark-open-session"
+    statut: done
+    assigned_agent: arch
+    session_active: ~
+    handoff_ref: "docs/05-Project/20260714/SESSION-HANDOFF-arch-targeted-open-session.md"
+    date_resolution: "2026-07-14"
+    sprint: S5
+    theme: "GOVERNANCE"
+    type: impl
+    feature: "GOVERNANCE-ORCHESTRATION"
+    priorité: high
+    sessions: []
+    notes: |
+      Décision utilisateur du 2026-07-14 : conserver l'ouverture manuelle automatique et
+      accepter optionnellement `T-XXX` après délégation par ark-orchestrator, pour Claude Code
+      et OpenCode. Le mode ciblé refuse toute tâche invalide avant écriture.
+      Livré : commandes Claude/OpenCode, documentation et passage des rôles OpenCode à `mode: all`
+      afin de préserver l'usage direct et la délégation. Validé contre T-999 absent dans les deux
+      runtimes : refus sans écriture et sans fallback OpenCode.
