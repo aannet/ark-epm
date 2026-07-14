@@ -13,7 +13,10 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: { role: { include: { rolePermissions: { include: { permission: true } } } } },
+      include: {
+        role: { include: { rolePermissions: { include: { permission: true } } } },
+        preference: true, // AGENT-DECISION: back — FS-13 D-02 : inclure la préférence langue
+      },
     });
 
     if (!user) {
@@ -58,6 +61,8 @@ export class AuthService {
           })) || [],
         } : null,
         createdAt: user.createdAt,
+        // AGENT-DECISION: back — FS-13 D-02 : inclure la préférence langue dans la réponse login
+        preferences: user.preference ? { language: user.preference.language } : null,
       },
     };
   }
@@ -73,6 +78,7 @@ export class AuthService {
             domain: { select: { id: true, name: true } },
           },
         },
+        preference: true, // AGENT-DECISION: back — FS-13 D-02 : inclure la préférence langue
       },
     });
 
@@ -80,11 +86,12 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const { passwordHash: _passwordHash, domainScopes, ...rest } = user;
+    const { passwordHash: _passwordHash, domainScopes, preference, ...rest } = user;
     return {
       ...rest,
       domainIds: domainScopes.map((ds) => ds.domainId),
       domains: domainScopes.map((ds) => ({ id: ds.domain.id, name: ds.domain.name })),
+      preferences: preference ? { language: preference.language } : null,
     };
   }
 }

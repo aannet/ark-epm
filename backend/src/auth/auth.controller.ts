@@ -86,6 +86,8 @@ export class AuthController {
           })) || [],
         } : null,
         createdAt: user.createdAt,
+        // AGENT-DECISION: back — FS-13 D-02 : inclure preferences dans la réponse refresh
+        preferences: user.preferences ?? null,
       },
     };
   }

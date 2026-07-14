@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 export interface CreateUserDto {
   email: string;
@@ -67,6 +68,8 @@ export class UsersService {
               },
             },
           }),
+          // AGENT-DECISION: back — FS-13 D-04 : auto-create UserPreference avec language="fr" à la création
+          preference: { create: { language: 'fr' } },
         },
         include: {
           role: true,
@@ -83,6 +86,16 @@ export class UsersService {
     } catch (error) {
       throw new InternalServerErrorException(`Failed to create user: ${error.message}`);
     }
+  }
+
+  // AGENT-DECISION: back — FS-13 D-03 : auto-update des préférences utilisateur (PATCH /users/me)
+  async updateMe(userId: string, dto: UpdateMeDto): Promise<any> {
+    await this.prisma.setCurrentUser(userId);
+    return this.prisma.userPreference.upsert({
+      where: { userId },
+      update: { language: dto.language },
+      create: { userId, language: dto.language },
+    });
   }
 
   async findAll(query?: { isActive?: boolean }): Promise<any[]> {

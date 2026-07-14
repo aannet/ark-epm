@@ -54,8 +54,21 @@ model User {
   role              Role?             @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   refreshToken      RefreshToken?
   domainScopes      UserDomainScope[] // AGENT-DECISION: back — FS-12 scope domaine utilisateur
+  preference        UserPreference?   // AGENT-DECISION: back — FS-13 D-01 : préférences utilisateur (langue)
 
   @@map("users")
+}
+
+model UserPreference {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  language  String   @default("fr") @map("language") @db.VarChar(10)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }
 
 model Domain {
