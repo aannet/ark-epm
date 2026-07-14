@@ -299,15 +299,13 @@ project-dashboard:
 
 coverage-report:
 	@echo "Generating test reports for coverage dashboard..."
-	@mkdir -p backend/reports e2e/reports frontend/cypress/reports
+	@mkdir -p backend/reports e2e/reports
 	@echo "- Jest unit (coverage + json)"
 	@cd backend && npm run test:cov -- --json --outputFile=reports/jest-unit-results.json || true
 	@echo "- Jest e2e (json)"
 	@cd backend && npm run test:e2e -- --json --outputFile=reports/jest-e2e-results.json || true
 	@echo "- Playwright (list + html + json reporters)"
 	@cd e2e && BASE_URL=$(E2E_BASE_URL) API_BASE_URL=$(API_BASE_URL) API_VERSION=$(API_VERSION) PLAYWRIGHT_JSON_OUTPUT_NAME=reports/results.json npx playwright test --reporter=list,html,json || true
-	@echo "- Cypress (json reporter)"
-	@cd frontend && npx cypress run --reporter json --reporter-options output=cypress/reports/results.json || true
 	@echo "- Aggregate dashboard payload"
 	@node scripts/aggregate-coverage.js
 

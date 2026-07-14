@@ -67,4 +67,3 @@ docs/tmp/
 .agents/
 .ctxharness.yml
 skills-lock.json
-frontend/cypress/reports/

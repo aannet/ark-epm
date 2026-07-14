@@ -1,7 +1,7 @@
 /**
  * Data Objects — Tests E2E UI (Playwright)
  * Migration de frontend/cypress/e2e/data-objects.cy.ts (F-999 Item 22)
- * 37 tests — 8 sections
+ * 38 tests — 8 sections (36 actifs + 2 skippés)
  */
 import { test, expect, type Page } from '@playwright/test';
 
@@ -88,6 +88,12 @@ test.describe('DataObjectListPage', () => {
 
   test('affiche le bouton Nouveau objet si permissions écriture', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'Nouveau objet' })).toBeVisible();
+  });
+
+  test('affiche l\'état vide si aucun objet ne correspond à la recherche', async ({ page }) => {
+    await page.getByPlaceholder('Rechercher par nom...').fill(`EmptyState_${Date.now()}`);
+    await page.waitForTimeout(400);
+    await expect(page.getByText('Aucun objet de données')).toBeVisible();
   });
 
   test('recherche par nom avec debounce', async ({ page }) => {
@@ -444,5 +450,10 @@ test.describe('Droits UI — utilisateur read-only', () => {
   test('redirect vers /403 pour /data-objects/:id/edit si read-only', async ({ page }) => {
     await navigateClientSide(page, '/data-objects/some-id/edit');
     await expect(page).toHaveURL(/\/403/);
+  });
+
+  test('bouton Modifier absent sur page détail pour read-only', async ({ page }) => {
+    await navigateClientSide(page, '/data-objects/some-id');
+    await expect(page.getByRole('button', { name: 'Modifier' })).not.toBeVisible();
   });
 });

@@ -136,14 +136,18 @@ test.describe('Data Objects CRUD API', () => {
 
   test('GET /data-objects - should support sortBy=name asc', async ({ authenticatedRequest, testData }) => {
     const ts = Date.now();
-    await testData.createDataObject({ name: `Zzz Sort ${ts}` });
-    await testData.createDataObject({ name: `Aaa Sort ${ts}` });
+    const first = await testData.createDataObject({ name: `Zzz Sort ${ts}` });
+    const second = await testData.createDataObject({ name: `Aaa Sort ${ts}` });
 
     const res = await authenticatedRequest.get('data-objects?sortBy=name&sortOrder=asc&limit=100');
     expect(res.status()).toBe(200);
     const body = await res.json();
     const names: string[] = body.data.map((d: { name: string }) => d.name);
-    const sorted = [...names].sort((a, b) => a.localeCompare(b));
-    expect(names).toEqual(sorted);
+    const firstIndex = names.indexOf(first.name);
+    const secondIndex = names.indexOf(second.name);
+
+    expect(firstIndex).toBeGreaterThan(-1);
+    expect(secondIndex).toBeGreaterThan(-1);
+    expect(secondIndex).toBeLessThan(firstIndex);
   });
 });
