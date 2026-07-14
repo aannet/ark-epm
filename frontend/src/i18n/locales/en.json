@@ -1,0 +1,1125 @@
+{
+  "nav": {
+    "home": "Home",
+    "applications": "Applications",
+    "businessCapabilities": "Business Capabilities",
+    "interfaces": "Interfaces",
+    "dataObjects": "Data Objects",
+    "itComponents": "IT Components",
+    "providers": "Providers",
+    "domains": "Domains",
+    "graph": "Graph"
+  },
+
+  "common": {
+    "user": "User",
+    "of": "of",
+    "all": "All",
+    "rowsPerPage": "Rows per page",
+    "actions": {
+      "add": "Add",
+      "edit": "Edit",
+      "view": "View details",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "save": "Save",
+      "back": "Back",
+      "backHome": "Back to home",
+      "reload": "Reload page",
+      "contact": "Contact administrator",
+      "signIn": "Sign in"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "deprecated": "Deprecated",
+      "planned": "Planned",
+      "retired": "Retired"
+    },
+    "criticality": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "missionCritical": "Mission Critical"
+    },
+    "loading": "Loading...",
+    "emptyState": {
+      "title": "No items",
+      "description": "Start by creating your first item."
+    },
+    "noData": "No data",
+    "comingSoon": "Coming soon",
+    "confirmDialog": {
+      "defaultTitle": "Confirm deletion",
+      "defaultMessage": "This action is irreversible.",
+      "confirmLabel": "Delete",
+      "cancelLabel": "Cancel"
+    },
+    "snackbar": {
+      "createSuccess": "Item created successfully.",
+      "updateSuccess": "Item updated successfully.",
+      "deleteSuccess": "Item deleted successfully."
+    }
+  },
+
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "Page not found",
+      "description": "The page you are looking for does not exist or has been moved."
+    },
+    "unauthorized": {
+      "code": "401",
+      "title": "Session expired",
+      "description": "Your session has expired or you are not logged in."
+    },
+    "forbidden": {
+      "code": "403",
+      "title": "Access denied",
+      "description": "You do not have the required permissions to access this page."
+    },
+    "unexpected": {
+      "title": "An unexpected error occurred",
+      "description": "A technical error has occurred. Please reload the page.",
+      "technical": "Technical detail (dev only):"
+    }
+  },
+
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Access your ARK workspace",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "submitLabel": "Sign in",
+      "loadingLabel": "Signing in...",
+      "invalidCredentials": "Invalid credentials. Please check your email and password.",
+      "accountDisabled": "This account is disabled. Please contact your administrator.",
+      "sessionExpired": "Your session has expired. Please sign in again."
+    }
+  },
+
+  "domains": {
+    "list": {
+      "title": "Domains",
+      "subtitle": "Business domain management",
+      "addButton": "Add a domain",
+      "search": "Search by name...",
+      "columns": {
+        "name": "Name",
+        "description": "Description",
+        "comment": "Comment",
+        "tags": "Tags",
+        "createdAt": "Created on",
+        "updatedAt": "Updated on",
+        "actions": "Actions"
+      },
+      "emptyState": {
+        "title": "No domains created",
+        "description": "Start by creating your first domain.",
+        "cta": "Create your first domain"
+      }
+    },
+    "detail": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Domains"
+      },
+      "noDescription": "—",
+      "noComment": "No comment",
+      "editButton": "Edit",
+      "backButton": "Back"
+    },
+    "form": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Domains",
+        "new": "New domain"
+      },
+      "createTitle": "New domain",
+      "editTitle": "Edit domain",
+      "nameLabel": "Name",
+      "descriptionLabel": "Description",
+      "commentLabel": "Internal comment",
+      "tagsLabel": "Tags",
+      "saveButton": "Save",
+      "cancelButton": "Cancel",
+      "nameRequired": "Name is required",
+      "nameDuplicate": "This domain name is already in use"
+    },
+    "delete": {
+      "confirmTitle": "Delete domain",
+      "confirmMessage": "Are you sure you want to delete the domain \"{{name}}\"?",
+      "blockedMessage": "This domain is used by {{apps}} application(s) and {{bcs}} business capability(ies) and cannot be deleted"
+    },
+    "alert": {
+      "created": "Domain created successfully",
+      "updated": "Domain updated successfully",
+      "deleted": "Domain deleted successfully",
+      "errors": {
+        "serverError": "A server error occurred. Please try again.",
+        "notFound": "This domain no longer exists.",
+        "unknown": "An unexpected error occurred."
+      }
+    },
+    "drawer": {
+      "title": "Domain details",
+      "viewFullDetails": "View full record",
+      "edit": "Edit",
+      "close": "Close",
+      "showMoreTags": "Show {{count}} more tags",
+      "section": {
+        "info": "Information",
+        "tags": "Tags",
+        "metadata": "Metadata"
+      }
+    }
+  },
+
+  "tags": {
+    "autocomplete": {
+      "placeholder": "Search or create...",
+      "noOptions": "No results",
+      "createOption": "Create \"{{value}}\"",
+      "loading": "Loading..."
+    },
+    "tooltip": {
+      "fullPath": "Full path: {{path}}"
+    },
+    "drawer": {
+      "title": "All tags"
+    },
+    "showAllChip": "+ {{count}}",
+    "errors": {
+      "invalidPath": "Invalid tag value",
+      "saveFailed": "Error saving tag"
+    }
+  },
+
+  "providers": {
+    "list": {
+      "title": "Providers",
+      "subtitle": "Management of external providers and software vendors",
+      "addButton": "New provider",
+      "search": "Search by name...",
+      "filterContractType": "Contract type",
+      "filterExpiration": "Contract expiration",
+      "columns": {
+        "name": "Name",
+        "contractType": "Contract type",
+        "expiryDate": "Expiry date",
+        "tags": "Tags",
+        "applicationsCount": "Applications",
+        "actions": "Actions"
+      },
+      "emptyState": {
+        "title": "No providers",
+        "description": "Create your first provider to start organizing your application catalog.",
+        "cta": "Create a provider"
+      }
+    },
+    "drawer": {
+      "title": "Provider details",
+      "tabInfo": "Information",
+      "tabApplications": "Applications",
+      "buttonEdit": "Edit",
+      "buttonViewDetail": "View full record",
+      "contractType": "Contract type",
+      "expiryDate": "Expiry date",
+      "applicationsCount": "Linked applications"
+    },
+    "detail": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Providers"
+      },
+      "tabInfo": "Information",
+      "tabApplications": "Applications",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "contractTypeLabel": "Contract type",
+      "expiryDateLabel": "Expiry date",
+      "tagsLabel": "Tags",
+      "createdAtLabel": "Created on",
+      "updatedAtLabel": "Updated on",
+      "buttonEdit": "Edit",
+      "buttonDelete": "Delete",
+      "buttonBack": "Back"
+    },
+    "form": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Providers",
+        "new": "New provider"
+      },
+      "nameLabel": "Provider name",
+      "nameRequired": "Name is required",
+      "nameDuplicate": "This provider name already exists",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "contractTypeLabel": "Contract type",
+      "contractTypePlaceholder": "e.g. SaaS, License, Maintenance",
+      "expiryDateLabel": "Contract expiry date",
+      "tagsLabel": "Dimensional tags",
+      "buttonSave": "Save",
+      "buttonCancel": "Cancel",
+      "createTitle": "New provider",
+      "editTitle": "Edit provider"
+    },
+    "delete": {
+      "confirmTitle": "Confirm deletion",
+      "confirmMessage": "Are you sure you want to delete provider {{name}}?"
+    },
+    "alert": {
+      "createSuccess": "Provider created successfully",
+      "updateSuccess": "Provider updated successfully",
+      "deleteSuccess": "Provider deleted successfully",
+      "deleteBlocked": "Cannot delete: this provider is used by {{count}} application(s)",
+      "deleteBlockedViewApps": "View linked applications",
+      "errors": {
+        "validation": "Validation error",
+        "serverError": "Server error — please try again",
+        "notFound": "Provider not found"
+      }
+    }
+  },
+
+  "it-components": {
+    "list": {
+      "title": "IT Components",
+      "subtitle": "Technical infrastructure management (servers, databases, middleware)",
+      "addButton": "New component",
+      "search": "Search by name...",
+      "filterType": "Type",
+      "filterTechnology": "Technology",
+      "columns": {
+        "name": "Name",
+        "technology": "Technology",
+        "type": "Type",
+        "tags": "Tags",
+        "applicationsCount": "Applications",
+        "actions": "Actions"
+      },
+      "emptyState": {
+        "title": "No IT components",
+        "description": "Create your first IT component to inventory your technical infrastructure.",
+        "cta": "Create a component"
+      }
+    },
+
+    "drawer": {
+      "title": "IT component details",
+      "tabInfo": "Information",
+      "tabApplications": "Applications",
+      "buttonEdit": "Edit",
+      "buttonViewDetail": "View full record",
+      "nameLabel": "Name",
+      "technologyLabel": "Technology",
+      "typeLabel": "Type",
+      "descriptionLabel": "Description",
+      "tagsLabel": "Tags",
+      "applicationsCountLabel": "Linked applications",
+      "noApplications": "No linked applications"
+    },
+
+    "detail": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "IT Components"
+      },
+      "tabInfo": "Information",
+      "tabApplications": "Applications",
+      "noValue": "—",
+      "technologyLabel": "Technology",
+      "typeLabel": "Type",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "tagsLabel": "Tags",
+      "createdAtLabel": "Created on",
+      "updatedAtLabel": "Updated on",
+      "applicationsCount": "linked applications",
+      "noApplications": "No applications linked to this component",
+      "buttonBack": "Back",
+      "buttonEdit": "Edit",
+      "buttonDelete": "Delete"
+    },
+
+    "form": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "IT Components",
+        "new": "New component"
+      },
+      "createTitle": "New IT component",
+      "editTitle": "Edit IT component",
+      "nameLabel": "Name",
+      "nameRequired": "Name is required",
+      "nameDuplicate": "This component name already exists",
+      "technologyLabel": "Technology",
+      "technologyPlaceholder": "e.g. PostgreSQL 16, Redis 7.2, Kubernetes 1.28",
+      "typeLabel": "Type",
+      "typePlaceholder": "e.g. database, cache, messaging, web-server",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "tagsLabel": "Dimensional tags",
+      "tagsNote": "Note: depth-based deduplication is disabled in edit mode",
+      "buttonSave": "Save",
+      "buttonCancel": "Cancel"
+    },
+
+    "delete": {
+      "confirmTitle": "Delete IT component",
+      "confirmMessage": "Are you sure you want to delete \"{{name}}\"?",
+      "blockedMessage": "Cannot delete: this component is used by {{count}} application(s)",
+      "viewApps": "View linked applications"
+    },
+
+    "alert": {
+      "createSuccess": "IT component created successfully",
+      "updateSuccess": "IT component updated successfully",
+      "deleteSuccess": "IT component deleted successfully",
+      "errors": {
+        "serverError": "Server error — please try again",
+        "notFound": "IT component not found"
+      }
+    }
+  },
+
+  "applications": {
+    "list": {
+      "title": "Applications",
+      "subtitle": "Business application inventory",
+      "addButton": "Add an application",
+      "columns": {
+        "name": "Name",
+        "domain": "Domain",
+        "owner": "Owner",
+        "provider": "Provider",
+        "providerRole": "Provider role",
+        "itComponents": "IT Components",
+        "criticality": "Criticality",
+        "lifecycleStatus": "Lifecycle",
+        "tags": "Tags",
+        "createdAt": "Created on",
+        "actions": "Actions",
+        "description": "Description"
+      },
+      "emptyState": {
+        "title": "No applications created",
+        "description": "Start by creating your first application.",
+        "cta": "Create your first application"
+      },
+      "pagination": {
+        "rowsPerPage": "Rows per page"
+      }
+    },
+    "filters": {
+      "title": "Filters",
+      "lifecycleStatus": "Lifecycle",
+      "tags": "Tags",
+      "reset": "Reset"
+    },
+    "detail": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Applications"
+      },
+      "noDescription": "—",
+      "noComment": "No comment",
+      "noValue": "Not defined",
+      "editButton": "Edit",
+      "backButton": "Back to list",
+      "section": {
+        "general": "General information",
+        "relations": "Relations",
+        "tags": "Tags",
+        "metadata": "Metadata"
+      },
+      "criticality": "Criticality",
+      "owner": "Owner",
+      "comment": "Internal comment",
+      "updatedAt": "Updated on",
+      "tabs": {
+        "general": "General information",
+        "interfaces": "Interfaces",
+        "assessment": "Assessment"
+      },
+      "phaseActuelle": "Current phase"
+    },
+    "form": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Applications",
+        "new": "New application"
+      },
+      "createTitle": "New application",
+      "editTitle": "Edit application",
+      "nameLabel": "Name",
+      "descriptionLabel": "Description",
+      "commentLabel": "Internal comment",
+      "domainLabel": "Domain",
+      "providerLabel": "Provider",
+      "providersLabel": "Providers",
+      "providerRoleLabel": "Role",
+      "itComponentsLabel": "IT Components",
+      "ownerLabel": "Owner",
+      "criticalityLabel": "Criticality",
+      "lifecycleStatusLabel": "Lifecycle",
+      "tagsLabel": "Tags",
+      "addProvider": "Add a provider",
+      "removeProvider": "Remove",
+      "selectProvider": "Select a provider",
+      "addItComponent": "Add an IT component",
+      "removeItComponent": "Remove",
+      "selectItComponent": "Select an IT component",
+      "businessCapabilitiesLabel": "Business Capabilities",
+      "addBusinessCapability": "Add a capability",
+      "removeBusinessCapability": "Remove",
+      "selectBusinessCapability": "Select a capability",
+      "saveButton": "Save",
+      "cancelButton": "Cancel",
+      "addButton": "Add",
+      "nameRequired": "Name is required",
+      "nameDuplicate": "This application name is already in use"
+    },
+    "relations": {
+      "itComponents": "IT Components",
+      "itComponentsCount": "{{count}} IT component(s)",
+      "noItComponents": "No linked IT components",
+      "itComponentsDescription": "IT components used by this application",
+      "businessCapabilities": "Business Capabilities",
+      "businessCapabilitiesCount": "{{count}} linked capability(ies)",
+      "noBusinessCapabilities": "No linked business capabilities"
+    },
+    "drawer": {
+      "close": "Close",
+      "edit": "Edit",
+      "viewFullDetails": "View full record"
+    },
+    "delete": {
+      "confirmTitle": "Delete application",
+      "confirmMessage": "Are you sure you want to delete the application \"{{name}}\"?",
+      "blockedMessage": "This application is used by: {{capabilities}} capability(ies), {{dataObjects}} data object(s), {{itComponents}} IT component(s), {{sourceInterfaces}} source interface(s), {{targetInterfaces}} target interface(s). It cannot be deleted."
+    },
+    "alert": {
+      "created": "Application created successfully",
+      "updated": "Application updated successfully",
+      "deleted": "Application deleted successfully",
+      "errors": {
+        "serverError": "A server error occurred. Please try again.",
+        "notFound": "This application no longer exists.",
+        "unknown": "An unexpected error occurred."
+      }
+    },
+    "criticality": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "mission-critical": "Critical"
+    },
+    "lifecycle": {
+      "draft": "Draft",
+      "in_progress": "In development",
+      "production": "In production",
+      "deprecated": "Deprecated",
+      "retired": "Retired",
+      "tabLabel": "Assessment",
+      "sectionTitle": "Modernization roadmap",
+      "notDefined": "No lifecycle phase defined for this application.",
+      "editDescription": "Click on a phase to edit the lifecycle",
+      "clearButton": "Clear"
+    },
+    "roles": {
+      "editor": "Publisher",
+      "integrator": "Integrator",
+      "support": "Support",
+      "vendor": "Vendor (third-party)",
+      "custom": "Custom"
+    },
+    "snackbar": {
+      "lifecycleUpdated": "Lifecycle updated"
+    }
+  },
+
+  "businessCapabilities": {
+    "views": {
+      "list": "List",
+      "matrix": "Matrix"
+    },
+    "kpi": {
+      "maxDepth": "Hierarchy levels",
+      "totalApps": "Applications displayed",
+      "totalBcs": "Total BCs",
+      "levelUnit": "levels",
+      "appsUnit": "mappings",
+      "bcsUnit": "capabilities"
+    },
+    "list": {
+      "title": "Business Capabilities",
+      "subtitle": "Business capability map of the organization",
+      "addButton": "Add a capability",
+      "searchPlaceholder": "Search for a capability...",
+      "columns": {
+        "name": "Name",
+        "level": "Level",
+        "domain": "Domain",
+        "criticality": "Criticality",
+        "technicalFit": "Technical maturity",
+        "applicationsCount": "Applications",
+        "actions": "Actions",
+        "createdAt": "Created on"
+      },
+      "sortBy": "Sort by",
+      "sortOptions": {
+        "nameAsc": "Name (A → Z)",
+        "nameDesc": "Name (Z → A)",
+        "criticalityAsc": "Criticality (low → critical)",
+        "criticalityDesc": "Criticality (critical → low)"
+      },
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "filters": {
+        "domain": "Domain"
+      },
+      "emptyState": {
+        "title": "No capabilities created",
+        "description": "Start by creating your first business capability.",
+        "cta": "Create your first capability"
+      },
+      "noResults": {
+        "title": "No results",
+        "description": "No capability matches your search criteria."
+      }
+    },
+    "detail": {
+      "noValue": "—",
+      "noDomain": "No domain",
+      "tags": "Tags",
+      "editButton": "Edit",
+      "backButton": "Back",
+      "rootCapability": "Root capability",
+      "updatedAt": "Updated on",
+      "subtitle": "Level {{level}} · {{domain}}",
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Business Capabilities"
+      }
+    },
+    "form": {
+      "createTitle": "New Business Capability",
+      "editTitle": "Edit Business Capability",
+      "nameLabel": "Name",
+      "description": "Description",
+      "comment": "Comment",
+      "domain": "Domain",
+      "parent": "Parent capability",
+      "parentPlaceholder": "Select a parent capability...",
+      "noParent": "None (root capability)",
+      "criticality": "Criticality",
+      "technicalFit": "Technical maturity",
+      "saveButton": "Save",
+      "cancelButton": "Cancel",
+      "nameRequired": "Name is required",
+      "nameDuplicate": "This name is already in use",
+      "circularReference": "Cannot set this parent (circular reference detected)",
+      "noApplications": "No linked applications",
+      "tabs": {
+        "general": "General",
+        "relations": "Relations",
+        "audit": "Audit"
+      },
+      "sections": {
+        "hierarchy": "Hierarchy",
+        "applications": "Linked applications"
+      },
+      "relatedApplicationsCount": "{{count}} linked application(s)",
+      "applicationsRelationHint": "Application links are managed from the Application page.",
+      "audit": {
+        "placeholder": {
+          "title": "Change history",
+          "description": "This feature will be available in Phase 2"
+        }
+      },
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Business Capabilities",
+        "new": "New capability",
+        "edit": "Edit"
+      }
+    },
+    "criticality": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "technicalFit": {
+      "ADEQUATE": "Adequate",
+      "PARTIAL": "Partial",
+      "INADEQUATE": "Inadequate",
+      "LEGACY": "Legacy"
+    },
+    "drawer": {
+      "tabs": {
+        "info": "Information",
+        "applications": "Applications"
+      },
+      "hierarchy": "Hierarchy",
+      "applicationFootprint": "Application footprint",
+      "applicationsByLifecycle": "Distribution by lifecycle",
+      "close": "Close",
+      "moreApplications": "+{{count}} more applications",
+      "editButton": "Edit",
+      "viewFullButton": "View full record"
+    },
+    "common": {
+      "levelWithValue": "Level {{level}}",
+      "levelAndApplications": "Level {{level}} - {{count}} application(s)"
+    },
+    "matrix": {
+      "criticalityLabel": "Criticality",
+      "applicationsChip": "{{count}} apps"
+    },
+    "delete": {
+      "confirmTitle": "Delete capability",
+      "confirmMessage": "Are you sure you want to delete \"{{name}}\"?",
+      "blockedMessage": "This capability has {{childrenCount}} child(ren) and {{applicationsCount}} linked application(s) and cannot be deleted"
+    },
+    "snackbar": {
+      "created": "Capability created successfully",
+      "updated": "Capability updated successfully",
+      "deleted": "Capability deleted successfully"
+    }
+  },
+
+  "data-objects": {
+    "list": {
+      "title": "Data Objects",
+      "subtitle": "Management of your business data sources and references",
+      "addButton": "New object",
+      "search": "Search by name...",
+      "filterType": "Type",
+      "filterSourceOfTruth": "Official source",
+      "columns": {
+        "name": "Name",
+        "type": "Type",
+        "isSourceOfTruth": "Source",
+        "isSourceOfTruthTrue": "Official source",
+        "isSourceOfTruthFalse": "No",
+        "tags": "Tags",
+        "applicationsCount": "Applications",
+        "actions": "Actions"
+      },
+      "emptyState": {
+        "title": "No data objects",
+        "description": "Create your first data object to inventory your sources and reference repositories.",
+        "cta": "Create an object"
+      }
+    },
+
+    "drawer": {
+      "title": "Data object details",
+      "tabInfo": "Information",
+      "tabApplications": "Applications",
+      "buttonEdit": "Edit",
+      "buttonViewDetail": "View full record",
+      "nameLabel": "Name",
+      "typeLabel": "Type",
+      "isSourceOfTruthLabel": "Official source",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "tagsLabel": "Tags",
+      "applicationsCountLabel": "Linked applications",
+      "noApplications": "No linked applications"
+    },
+
+    "detail": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Data Objects"
+      },
+      "tabInfo": "Information",
+      "tabApplications": "Applications",
+      "noValue": "—",
+      "typeLabel": "Type",
+      "isSourceOfTruthLabel": "Official source",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "tagsLabel": "Tags",
+      "createdAtLabel": "Created on",
+      "updatedAtLabel": "Updated on",
+      "noApplications": "No applications linked to this object",
+      "editButton": "Edit",
+      "buttonBack": "Back",
+      "buttonDelete": "Delete"
+    },
+
+    "form": {
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Data Objects",
+        "new": "New object",
+        "edit": "Edit"
+      },
+      "createTitle": "New data object",
+      "editTitle": "Edit data object",
+      "nameLabel": "Name",
+      "nameRequired": "Name is required",
+      "nameDuplicate": "This object name already exists",
+      "typeLabel": "Type",
+      "typePlaceholder": "e.g. database, dataset, file",
+      "isSourceOfTruthLabel": "Source of truth",
+      "isSourceOfTruthCheckbox": "This object is the official data source",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "tagsLabel": "Dimensional tags",
+      "buttonSave": "Save",
+      "buttonCancel": "Cancel"
+    },
+
+    "delete": {
+      "confirmTitle": "Delete data object",
+      "confirmMessage": "Are you sure you want to delete \"{{name}}\"?",
+      "blockedMessage": "Cannot delete: this object is used by {{count}} application(s)",
+      "viewApps": "View linked applications"
+    },
+
+    "alert": {
+      "createSuccess": "Data object created successfully",
+      "updateSuccess": "Data object updated successfully",
+      "deleteSuccess": "Data object deleted successfully",
+      "errors": {
+        "serverError": "Server error — please try again",
+        "notFound": "Data object not found"
+      }
+    }
+  },
+
+  "search": {
+    "openButton": "Open search (Ctrl+K)",
+    "placeholder": "Search for an application, domain, capability...",
+    "inputAriaLabel": "Search field",
+    "minChars": "Enter at least {{count}} characters",
+    "noResults": "No results found",
+    "tryDifferentTerm": "Try a different search term",
+    "seeAllResults": "See all {{count}} results",
+    "resultCount": "{{count}} displayed out of {{total}}",
+    "footerKeyboardHint": "↑↓ to navigate · Enter to open · Esc to close",
+    "types": {
+      "application": "Applications",
+      "domain": "Domains",
+      "businessCapability": "Business Capabilities",
+      "provider": "Providers",
+      "itComponent": "IT Components",
+      "dataObject": "Data Objects",
+      "interface": "Interfaces"
+    }
+  },
+
+  "interfaces": {
+    "list": {
+      "title": "Application interfaces",
+      "subtitle": "Data flows between applications",
+      "addButton": "New interface",
+      "columns": {
+        "name": "Name",
+        "source": "Source application",
+        "middleware": "Middleware component",
+        "target": "Target application",
+        "type": "Type",
+        "criticality": "Criticality",
+        "frequency": "Frequency",
+        "actions": "Actions"
+      },
+      "filters": {
+        "nameSearch": "Search by name...",
+        "sourceApp": "Source application",
+        "middlewareApp": "Middleware component",
+        "targetApp": "Target application",
+        "type": "Interface type",
+        "criticality": "Criticality"
+      },
+      "emptyState": {
+        "title": "No interfaces created",
+        "description": "Start by documenting your first data flows between applications.",
+        "cta": "Create an interface"
+      }
+    },
+    "detail": {
+      "noValue": "—",
+      "editButton": "Edit",
+      "backButton": "Back",
+      "createdAt": "Created on",
+      "updatedAt": "Updated on",
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Interfaces"
+      }
+    },
+    "drawer": {
+      "unnamedInterface": "Unnamed interface",
+      "type": "Type",
+      "criticality": "Criticality",
+      "frequency": "Frequency",
+      "technicalContact": "Technical contact",
+      "errorRate": "Error rate",
+      "description": "Description",
+      "comment": "Comment",
+      "tags": "Tags",
+      "editButton": "Edit",
+      "viewFullButton": "View full record"
+    },
+    "form": {
+      "createTitle": "New interface",
+      "editTitle": "Edit interface",
+      "sourceAppLabel": "Source application",
+      "sourceAppRequired": "Source application is required",
+      "targetAppLabel": "Target application",
+      "targetAppRequired": "Target application is required",
+      "middlewareAppLabel": "Middleware component",
+      "middlewareAppPlaceholder": "ESB, API Gateway... (optional)",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. CRM → ERP orders (optional)",
+      "typeLabel": "Interface type",
+      "typeRequired": "Type is required",
+      "frequencyLabel": "Frequency",
+      "criticalityLabel": "Criticality",
+      "technicalContactLabel": "Technical contact",
+      "technicalContactPlaceholder": "Name, email or alias (free text)",
+      "errorRateLabel": "Error rate (%)",
+      "errorRatePlaceholder": "0 – 100",
+      "descriptionLabel": "Description",
+      "commentLabel": "Comment",
+      "tagsLabel": "Dimensional tags",
+      "saveButton": "Save",
+      "cancelButton": "Cancel",
+      "selfReference": "Source and target applications must be different",
+      "applicationNotFound": "Application not found",
+      "breadcrumb": {
+        "home": "Home",
+        "list": "Interfaces",
+        "new": "New interface",
+        "edit": "Edit"
+      }
+    },
+    "type": {
+      "REST": "REST",
+      "SOAP": "SOAP",
+      "FTP": "FTP",
+      "SFTP": "SFTP",
+      "DATABASE": "Database",
+      "MESSAGE_QUEUE": "Message queue",
+      "BATCH_FILE": "Batch file",
+      "EVENT_STREAM": "Event stream",
+      "GRAPHQL": "GraphQL",
+      "GRPC": "gRPC",
+      "OTHER": "Other"
+    },
+    "frequency": {
+      "REALTIME": "Real-time",
+      "NEAR_REALTIME": "Near real-time",
+      "HOURLY": "Hourly",
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "ON_DEMAND": "On demand"
+    },
+    "criticality": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "delete": {
+      "confirmTitle": "Delete interface",
+      "confirmMessage": "Are you sure you want to delete the interface from \"{{source}}\" to \"{{target}}\"?"
+    },
+    "snackbar": {
+      "created": "Interface created successfully",
+      "updated": "Interface updated successfully",
+      "deleted": "Interface deleted successfully"
+    }
+  },
+
+  "home": {
+    "page": {
+      "title": "Dashboard"
+    },
+    "welcome": {
+      "greeting": "Hello {{name}}",
+      "globalScope": "All domains",
+      "nDomains": "{{count}} domains",
+      "defaultName": "User"
+    },
+    "kpis": {
+      "apps": {
+        "label": "Applications",
+        "tooltip": "Total number of applications in your scope"
+      },
+      "missionCritical": {
+        "label": "Mission Critical",
+        "subtext": "out of {{count}} apps with data",
+        "tooltip": "Percentage of critical applications among those with a defined criticality"
+      },
+      "interfaces": {
+        "label": "Interfaces",
+        "tooltip": "Total number of interfaces recorded in your scope"
+      },
+      "coveredCapabilities": {
+        "label": "Covered capabilities",
+        "tooltip": "Business capabilities covered by at least one application"
+      }
+    },
+    "errors": {
+      "unavailable": "Data temporarily unavailable"
+    },
+    "todo": {
+      "incomplete": {
+        "title": "Incomplete records",
+        "tooltip": "Applications missing an owner, criticality or lifecycle status",
+        "empty": "All records are complete",
+        "missingOwner": "Owner",
+        "missingCriticality": "Criticality",
+        "missingLifecycle": "Lifecycle",
+        "noBusinessCapability": "No business capability assigned"
+      },
+      "contracts": {
+        "title": "Contracts expiring soon",
+        "tooltip": "Provider contracts expiring within the next 90 days",
+        "empty": "No contracts expire in the next 90 days",
+        "expiresSoon": "Expires in {{days}} d",
+        "expiresInDays": "Expires in {{days}} d",
+        "viewAll": "View all providers"
+      },
+      "noVisibleSections": "No actionable sections are visible with your permissions."
+    },
+    "lifecycle": {
+      "title": "Lifecycle distribution",
+      "tooltip": "Distribution of applications in your scope by lifecycle status",
+      "empty": "No applications in this scope",
+      "appsLabel": "apps",
+      "statuses": {
+        "draft": "Draft",
+        "in_progress": "In progress",
+        "production": "Production",
+        "deprecated": "Deprecated",
+        "retired": "Retired"
+      }
+    },
+    "quality": {
+      "title": "Data quality",
+      "score": "{{complete}} / {{total}} complete applications ({{percent}}%)",
+      "tooltip": "Score calculated on applications in your scope that have an owner, a criticality and a lifecycle status defined"
+    },
+    "empty": {
+      "title": "No applications in your scope",
+      "description": "Start by importing or creating applications to activate the dashboard.",
+      "ctaImport": "Import data",
+      "ctaCreate": "Create an application"
+    }
+  },
+
+  "users": {
+    "list": {
+      "title": "Users",
+      "subtitle": "User account management",
+      "addButton": "Add a user",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "domains": "Domains",
+        "status": "Status",
+        "createdAt": "Created on",
+        "actions": "Actions"
+      },
+      "emptyState": {
+        "title": "No users",
+        "description": "Create your first user.",
+        "cta": "Create a user"
+      }
+    },
+    "form": {
+      "createTitle": "New user",
+      "editTitle": "Edit user",
+      "emailLabel": "Email",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "passwordLabel": "Password",
+      "passwordRequired": "Password is required",
+      "roleLabel": "Role",
+      "rolePlaceholder": "No role",
+      "domainsLabel": "Assigned domains",
+      "domainsHelper": "Leave empty for global access to all domains",
+      "isActiveLabel": "Active account",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    },
+    "delete": {
+      "confirmTitle": "Deactivate user",
+      "confirmMessage": "Are you sure you want to deactivate user {{email}}?"
+    },
+    "alert": {
+      "created": "User created successfully",
+      "updated": "User updated successfully",
+      "deactivated": "User deactivated successfully"
+    },
+    "scope": {
+      "global": "All domains"
+    }
+  },
+
+  "graph": {
+    "page": {
+      "title": "Dependency graph"
+    },
+    "entityTypes": {
+      "application": "Application",
+      "business_capability": "Business capability",
+      "domain": "Domain",
+      "provider": "Provider",
+      "it_component": "IT component",
+      "data_object": "Data object"
+    },
+    "autocomplete": {
+      "placeholder": "Search for an application, domain, capability..."
+    },
+    "toolbar": {
+      "layers": "Layers",
+      "depth": "Depth",
+      "fitView": "Fit view",
+      "criticality": "Criticality",
+      "domain": "Domain",
+      "all": "All"
+    },
+    "layers": {
+      "applications": "Applications",
+      "interfaces": "Interfaces",
+      "business_capabilities": "Business Capabilities",
+      "providers": "Providers",
+      "it_components": "IT Components",
+      "data_objects": "Data Objects"
+    },
+    "emptyState": {
+      "noFocal": {
+        "title": "Choose a starting point",
+        "description": "Search for an application, domain, or business capability."
+      },
+      "noRelations": "No relations visible with the active layers."
+    },
+    "warning": {
+      "tooManyNodes": "This graph contains {{count}} nodes — try disabling layers or reducing the depth."
+    },
+    "edges": {
+      "viaMiddleware": "[via middleware]"
+    },
+    "nodes": {
+      "unnamed": "Unnamed"
+    },
+    "alert": {
+      "notFound": "Entity not found",
+      "loadError": "Unable to load the graph at this time."
+    }
+  }
+}
