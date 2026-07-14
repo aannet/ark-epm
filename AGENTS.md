@@ -56,10 +56,11 @@ Gardien des décisions techniques structurantes. Arbitre en cas de chevauchement
 > Guide opérationnel : `backend/AGENTS.md` (sections Prisma & Database)
 
 ### `qa` — QA / Tests
-**Périmètre** : tests Jest unitaires, e2e backend, Playwright API + UI, Cypress frontend.  
+**Périmètre** : tests Jest unitaires, e2e backend, Playwright API + UI.  
 **Règles clés** : bug = test de non-régression avant correction ; sélecteurs `getByRole()` > `getByText()` > `getByTestId()`.  
 **Ne fait PAS** : modifier le code source (signale, les agents back/front corrigent).  
 > Guide opérationnel : `e2e/AGENTS.md`
+> AGENT-DECISION: [arch] — Cypress retiré de la stack après T-009 (migration Playwright) ; le périmètre QA ne mentionne plus que les frameworks actifs.
 
 ### `spec` — Spec / Documentation
 **Périmètre** : Feature Specs (`docs/03-Features-Spec/`), glossaire, roadmap, release notes.  
@@ -102,7 +103,7 @@ Plan de contrôle non-mutant commun à OpenCode et Claude Code.
 |--------|-------------|
 | Backend | NestJS + Prisma ORM + PostgreSQL 16 |
 | Frontend | React + Vite + TypeScript + ReactFlow + MUI v9 |
-| Tests | Jest (unit) + Playwright (API + e2e) + Cypress (frontend) |
+| Tests | Jest (unit) + Playwright (API + e2e UI) |
 | Infra | Docker Compose |
 
 ### Conventions de nommage

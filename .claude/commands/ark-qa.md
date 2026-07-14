@@ -1,5 +1,5 @@
 ---
-description: Activer l'Agent [qa] — Jest, Playwright, Cypress, non-régression
+description: Activer l'Agent [qa] — Jest, Playwright, non-régression
 ---
 
 Activation Agent [qa] — ARK-EPM tests.

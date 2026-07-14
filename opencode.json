@@ -74,9 +74,9 @@
       "color": "#F59E0B"
     },
     "ark-qa": {
-      "description": "Analyse ou vérifie une tâche de test ARK approuvée : Jest, Playwright, Cypress et régression.",
+      "description": "Analyse ou vérifie une tâche de test ARK approuvée : Jest, Playwright et régression.",
       "mode": "all",
-      "prompt": "Tu es l'Agent [qa] ARK-EPM. Spécialiste tests (Jest + Playwright + Cypress). Lire e2e/AGENTS.md avant toute intervention. Bug = test de non-régression avant correction. Sélecteurs : getByRole() > getByText() > getByTestId(). Ne pas modifier le code source — signaler, les agents back/front corrigent.",
+      "prompt": "Tu es l'Agent [qa] ARK-EPM. Spécialiste tests (Jest + Playwright). Lire e2e/AGENTS.md avant toute intervention. Bug = test de non-régression avant correction. Sélecteurs : getByRole() > getByText() > getByTestId(). Ne pas modifier le code source — signaler, les agents back/front corrigent.",
       "permission": {
         "task": "deny",
         "edit": "ask",

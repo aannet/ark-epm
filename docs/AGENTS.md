@@ -47,7 +47,7 @@ Chaque Feature Spec est d\u00e9coup\u00e9e en deux documents distincts :
 | Document | P\u00e9rim\u00e8tre | Template |
 |---|---|---|
 | `FS-XX-<slug>-back.md` | NestJS + Prisma + tests Jest | `_template_back.md` |
-| `FS-XX-<slug>-front.md` | React + MUI + i18n + Cypress | `_template_front.md` |
+| `FS-XX-<slug>-front.md` | React + MUI + i18n + Playwright | `_template_front.md` |
 
 **Pourquoi** : le contexte d'une spec unifi\u00e9e est trop dense et h\u00e9t\u00e9rog\u00e8ne pour un agent IA. Le signal/bruit est meilleur dans deux sessions sp\u00e9cialis\u00e9es.
 

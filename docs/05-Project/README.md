@@ -79,7 +79,7 @@ docs/05-Project/
 | `/ark-back` | CL | Active le mode agent `back` — NestJS, controllers, services, DTOs | Session backend |
 | `/ark-front` | CL | Active le mode agent `front` — React, MUI v9, hooks, i18n | Session frontend |
 | `/ark-data` | CL | Active le mode agent `data` — Prisma schema, migrations, seeds | Session data |
-| `/ark-qa` | CL | Active le mode agent `qa` — Jest, Playwright, Cypress | Session tests |
+| `/ark-qa` | CL | Active le mode agent `qa` — Jest, Playwright | Session tests |
 
 > Les agents nommés (`ark-back`, `ark-front`, `ark-data`, `ark-qa`) sont aussi disponibles dans OpenCode via `opencode.json`.
 
@@ -106,7 +106,7 @@ Pour les tâches FS-09-P2 et F-999-* :
 | Backend | `back` | NestJS modules, controllers, services, DTOs, auth/RBAC | Non — archive dans `docs/05-Project/` |
 | Frontend | `front` | React/MUI v9, pages, hooks, API client, i18n | Non — archive dans `docs/05-Project/` |
 | Data | `data` | schema.prisma, migrations, seeds, triggers PostgreSQL | Non — archive dans `docs/05-Project/` |
-| QA | `qa` | Tests Jest, Playwright API + e2e, Cypress frontend | Non — archive dans `docs/05-Project/` |
+| QA | `qa` | Tests Jest, Playwright API + e2e UI | Non — archive dans `docs/05-Project/` |
 
 ---
 

@@ -413,7 +413,7 @@ Intégration de **MegaLinter** (oxsecurity/megalinter:v8) dans la chaîne de qua
 
 **Linters activés** : TypeScript/ESLint (backend utilise `eslint.config.mjs` existant ; frontend utilise defaults), Markdown, JSON, YAML, Dockerfile (Hadolint), Makefile (checkmake), SQL (sqlfluff), ENV (dotenv-linter).
 
-**Exclusions** : `node_modules/`, `dist/`, `build/`, `reports/`, `prisma/migrations/`, `*.generated.ts`, `coverage/`, `frontend/cypress/`, `test-results/`, `playwright-report/`.
+**Exclusions** : `node_modules/`, `dist/`, `build/`, `reports/`, `prisma/migrations/`, `*.generated.ts`, `coverage/`, `test-results/`, `playwright-report`.
 
 **Reporting** : horodatage `YYYYMMDD-HHMMSS` dans `reports/megalinter/` (cohérent T-067). Format HTML + JSON. Commande d'ouverture : `make open-megalinter-report`.
 

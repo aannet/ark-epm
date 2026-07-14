@@ -13,7 +13,7 @@
 | **Int\u00e9gration backend** | Jest + Supertest | Endpoints HTTP complets | `backend/test/*.e2e-spec.ts` | `make test-backend-e2e` |
 | **API Playwright** | Playwright | Endpoints REST isol\u00e9s | `e2e/tests/**/*.api.spec.ts` | `make test-api` |
 | **E2E UI Playwright** | Playwright | Parcours utilisateur complets | `e2e/tests/**/*.spec.ts` | `make test-e2e` |
-| **Frontend Cypress** | Cypress | Composants + parcours UI | `frontend/cypress/e2e/*.cy.ts` | `cd frontend && npx cypress run` |
+
 
 ### Quand \u00e9crire quel test
 
@@ -23,7 +23,7 @@
 | Nouveau CRUD endpoint | API Playwright (`*.api.spec.ts`) | `qa` |
 | Nouveau parcours utilisateur critique | E2E Playwright (`*.spec.ts`) | `qa` |
 | Bug signal\u00e9 | Test de non-r\u00e9gression **avant** correction | `qa` |
-| Nouveau composant React isol\u00e9 | Cypress | `qa` |
+| Nouveau composant React isol\u00e9 | Playwright UI | `qa` |
 
 ---
 
@@ -199,7 +199,7 @@ API_USER_PASSWORD=admin123456        # Mot de passe de test
 - [ ] `npm run build` passe sans erreur (backend + frontend)
 - [ ] Tests unitaires passent (`make test-backend-unit`)
 - [ ] Tests API passent pour l'entit\u00e9 concern\u00e9e
-- [ ] Si modification UI : test Cypress ou Playwright UI
+- [ ] Si modification UI : test Playwright UI
 
 ---
 
